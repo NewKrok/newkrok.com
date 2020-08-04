@@ -1,0 +1,106 @@
+.Sidebar {
+    width: 5rem;
+    height: 100%;
+    background-color: var(--main-color);
+    color: var(--main-color--text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: width var(--animation-speed) ease-out;
+
+    &:hover {
+        width: 15rem;
+
+        .Item {
+            .Label {
+                opacity: 1;
+            }
+        }
+
+        .SelectedItem {
+            &::after {
+                background-color: rgba(255, 255, 255, 1);
+            }
+        }
+
+        .Name {
+            transform: initial;
+            bottom: 3rem;
+        }
+    }
+
+    &:after
+    {
+        content: "";
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 100%);
+        width: 1px;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 100%;
+    }
+
+    .ItemContainer {
+        padding-left: 1rem;
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .Item {
+        padding: 30px 10px;
+        display: flex;
+        color: rgba(255, 255, 255, 0.5);
+        font-family: 'Kanit', sans-serif;
+        font-weight: 200;
+        cursor: pointer;
+        transition: color 0.3s;
+        position: relative;
+
+        &::after {
+            position: absolute;
+            content: "";
+            left: 0;
+            bottom: 1rem;
+            width: 3rem;
+            height: 3px;
+            background-color: rgba(255, 255, 255, 0);
+            transition: background-color var(--animation-speed);
+        }
+
+        &:hover {
+            color: rgba(255, 255, 255, 1);
+        }
+
+        .Icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .Label {
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity var(--animation-speed);
+        }
+    }
+
+    .SelectedItem {
+        &::after {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+    }
+
+    .Name {
+        position: absolute;
+        bottom: 5rem;
+        font-family: 'Kanit', sans-serif;
+        transform: rotate(-90deg);
+        font-size: 3rem;
+        color: rgba(255, 255, 255, 0.05);
+        user-select: none;
+        transition: transform var(--animation-speed), bottom var(--animation-speed);
+    }
+}
