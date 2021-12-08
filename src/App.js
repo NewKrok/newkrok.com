@@ -1,9 +1,9 @@
-import React, { Component } from "react";
-import { BrowserRouter } from "react-router-dom";
-
-import SideBar from "./components/sidebar/sidebar";
-
 import "./App.css";
+
+import React, { Component } from "react";
+
+import { BrowserRouter } from "react-router-dom";
+import SideBar from "./components/sidebar/sidebar";
 
 class App extends Component {
   render() {
@@ -16,7 +16,7 @@ class App extends Component {
               title="content"
               width="100%"
               height="100%"
-              src="http://newkrok.com/debug.html"
+              src="https://newkrok.com/three-particles-editor/index.html"
               allowFullScreen
               frameBorder="0"
               scrolling="no"
