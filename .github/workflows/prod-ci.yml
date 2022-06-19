@@ -34,10 +34,6 @@ jobs:
         run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Decrypt API secrets
-        run: gpg --quiet --batch --yes --decrypt --passphrase="$CONNECTION_PASSPHRASE" --output ./build/api/connection-secret.php ./build/api/connection-secret.php.gpg
-        env:
-          CONNECTION_PASSPHRASE: ${{ secrets.CONNECTION_PASSPHRASE }}
       - name: FTP Deploy to newkrok.com
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
         with:
