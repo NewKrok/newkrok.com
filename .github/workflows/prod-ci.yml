@@ -43,4 +43,4 @@ jobs:
           username: ${{secrets.FTP_USER_NAME}}
           password: ${{secrets.FTP_PASSWORD}}
           exclude: .git* - .git*/** - .vscode/** - .github/** - *.gpg - *.keys
-          dangerous-clean-slate: false
+          dangerous-clean-slate: true
