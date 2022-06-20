@@ -9,39 +9,28 @@ const SideBar = () => {
   return (
     <div className={styles.Sidebar}>
       <div className={styles.ItemContainer}>
-        <Link to="/home">
+        <Link to="/gamer-zone">
           <div
             className={`${styles.Item} ${
-              location.pathname === "/home" && styles.SelectedItem
+              (location.pathname === "/gamer-zone" ||
+                location.pathname === "/") &&
+              styles.SelectedItem
             }`}
           >
-            <i className={`${styles.Icon} ${"fas fa-house-user"}`}></i>
-            <div className={styles.Label}>Home</div>
+            <i className={`${styles.Icon} ${"fa-solid fa-gamepad"}`}></i>
+            <div className={styles.Label}>Gamer Zone</div>
           </div>
         </Link>
-        {/*<Link to="/three-particles-editor">
+        <Link to="/developer-area">
           <div
             className={`${styles.Item} ${
-              location.pathname === "/three-particles-editor" ||
-              (location.pathname === "/" && styles.SelectedItem)
+              location.pathname === "/developer-area" && styles.SelectedItem
             }`}
           >
-            <i className={`${styles.Icon} ${"fas fa-gamepad"}`}></i>
-            <div className={styles.Label}>Escape Project</div>
+            <i className={`${styles.Icon} ${"fa-solid fa-laptop-code"}`}></i>
+            <div className={styles.Label}>Developer Area</div>
           </div>
-          </Link>*/}
-        {/*<div className={styles.Item}>
-                    <i className={`${styles.Icon} ${"fas fa-gamepad"}`}></i>
-                    <div className={styles.Label}>My Games</div>
-                </div>
-                <div className={styles.Item}>
-                    <i className={`${styles.Icon} ${"fas fa-code"}`}></i>
-                    <div className={styles.Label}>Developer Area</div>
-                </div>
-                <div className={styles.Item}>
-                    <i className={`${styles.Icon} ${"fas fa-info-circle"}`}></i>
-                    <div className={styles.Label}>About Me</div>
-                </div>*/}
+        </Link>
       </div>
       <div className={styles.Name}>NewKrok</div>
     </div>

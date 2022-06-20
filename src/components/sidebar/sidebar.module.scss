@@ -10,6 +10,8 @@
   flex-direction: column;
   align-items: center;
   transition: width var(--animation-speed) ease-out;
+  user-select: none;
+  z-index: 1;
 
   &:hover {
     width: 15rem;
@@ -48,7 +50,7 @@
   }
 
   .ItemContainer {
-    padding-left: 1rem;
+    padding-left: 0.85rem;
     width: 100%;
     position: relative;
     overflow: hidden;
@@ -67,10 +69,10 @@
     &::after {
       position: absolute;
       content: "";
-      left: 0;
+      left: 0.1rem;
       bottom: 1rem;
       width: 3rem;
-      height: 3px;
+      height: 1px;
       background-color: rgba(255, 255, 255, 0);
       transition: background-color var(--animation-speed);
     }
@@ -103,7 +105,7 @@
     font-family: "Kanit", sans-serif;
     transform: rotate(-90deg);
     font-size: 3rem;
-    color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.2);
     user-select: none;
     transition: transform var(--animation-speed), bottom var(--animation-speed);
   }
