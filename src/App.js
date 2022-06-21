@@ -10,7 +10,7 @@ import SideBar from "./components/sidebar/sidebar";
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/">
       <div className="App">
         <SideBar />
         <div className="content">
