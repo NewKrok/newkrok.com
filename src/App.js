@@ -16,7 +16,7 @@ const App = () => {
         <div className="content">
           <Routes>
             <Route index path="/gamer-zone/*" element={<GamerZone />} />
-            <Route path="/developer-area" element={<DeveloperArea />} />
+            <Route path="/developer-area/*" element={<DeveloperArea />} />
             <Route path="*" element={<Navigate to="/gamer-zone" replace />} />
           </Routes>
         </div>

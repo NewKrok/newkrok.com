@@ -1,15 +1,16 @@
 import React from "react";
+import styles from "./iframe-view.module.scss";
 
-const Game = ({ url }) => (
+const IframeView = ({ url }) => (
   <iframe
+    className={styles.wrapper}
     title="content"
     width="100%"
     height="100%"
     src={url}
     allowFullScreen
     frameBorder="0"
-    scrolling="no"
   ></iframe>
 );
 
-export default Game;
+export default IframeView;

@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router";
 
-import Game from "./game";
 import Header from "../../ui/header/header";
+import IframeView from "../../ui/iframe-view/iframe-view";
 import { Link } from "react-router-dom";
 import List from "../../ui/list/list";
 import React from "react";
@@ -29,14 +29,18 @@ const games = [
 
 const GamerZone = () => (
   <>
-    <Link to="/">
+    <Link to="/gamer-zone">
       <Header>
         GAMER ZONE <i className="fa-solid fa-gamepad"></i>
       </Header>
     </Link>
     <Routes>
       {games.map(({ label, url, target }) => (
-        <Route key={label} path={`/${target}`} element={<Game url={url} />} />
+        <Route
+          key={label}
+          path={`/gamer-zone/${target}`}
+          element={<IframeView url={url} />}
+        />
       ))}
       <Route path="/" element={<List list={games} />} />
     </Routes>

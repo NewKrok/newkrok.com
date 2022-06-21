@@ -2,34 +2,46 @@
   display: flex;
   flex-wrap: wrap;
 
-  .thumbnail {
-    background-color: #eee;
-    border: #666 solid 1px;
-    border-radius: 0.5em;
-    overflow: hidden;
-    margin: 20px;
-    width: 20em;
+  .thumbnailContainer {
     cursor: pointer;
     user-select: none;
 
-    &:not(:hover) {
+    &:not(:hover) .thumbnail {
       transition: transform 0.2s;
     }
 
-    img {
-      width: 100%;
-      border-radius: 0.5em 0.5em 0 0;
+    .thumbnail {
+      background-color: #eee;
+      border: #666 solid 1px;
+      border-radius: 0.5em;
+      overflow: hidden;
+      margin: 20px;
+      width: 20em;
       pointer-events: none;
-    }
 
-    .label {
-      color: #303030;
-      text-align: center;
-      text-transform: uppercase;
-      font-size: 14px;
-      display: block;
-      margin: 10px;
-      pointer-events: none;
+      @media screen and (max-width: 1200px) {
+        width: 15em;
+      }
+
+      @media screen and (max-width: 600px) {
+        width: initial;
+      }
+
+      img {
+        width: 100%;
+        border-radius: 0.5em 0.5em 0 0;
+        pointer-events: none;
+      }
+
+      .label {
+        color: #303030;
+        text-align: center;
+        text-transform: uppercase;
+        font-size: 14px;
+        display: block;
+        margin: 10px;
+        pointer-events: none;
+      }
     }
   }
 }
