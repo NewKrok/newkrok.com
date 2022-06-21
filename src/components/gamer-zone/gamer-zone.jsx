@@ -11,19 +11,19 @@ const games = [
     label: "Impossible Wheels",
     target: "impossible-wheels",
     preview: "/games/impossible-wheels/media/preview.webp",
-    url: "http://flashplusplus.net/html-game-standalone/impossible-wheels",
+    url: "https://flashplusplus.net/html-game-standalone/impossible-wheels",
   },
   {
     label: "Valley Race",
     target: "valley-race",
     preview: "/games/valley-race/media/preview.webp",
-    url: "http://flashplusplus.net/html-game-standalone/valley-race",
+    url: "https://flashplusplus.net/html-game-standalone/valley-race",
   },
   {
     label: "Mountain Monster",
     target: "mountain-monster",
     preview: "/games/mountain-monster/media/preview.webp",
-    url: "http://flashplusplus.net/html-game-standalone/mountain-monster-html5",
+    url: "https://flashplusplus.net/html-game-standalone/mountain-monster-html5",
   },
 ];
 

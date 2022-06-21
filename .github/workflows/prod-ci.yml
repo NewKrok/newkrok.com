@@ -38,9 +38,9 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
         with:
           local-dir: "./build/"
-          server-dir: ./web/
+          server-dir: ./
           server: ${{secrets.FTP_SERVER}}
           username: ${{secrets.FTP_USER_NAME}}
           password: ${{secrets.FTP_PASSWORD}}
           exclude: .git* - .git*/** - .vscode/** - .github/** - *.gpg - *.keys
-          dangerous-clean-slate: true
+          dangerous-clean-slate: false
