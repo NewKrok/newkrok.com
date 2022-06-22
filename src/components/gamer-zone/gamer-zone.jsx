@@ -11,19 +11,19 @@ const games = [
     label: "Impossible Wheels",
     target: "impossible-wheels",
     preview: "/games/impossible-wheels/media/preview.webp",
-    url: "https://flashplusplus.net/html-game-standalone/impossible-wheels",
+    url: "/uploads/html/impossible_wheels",
   },
   {
     label: "Valley Race",
     target: "valley-race",
     preview: "/games/valley-race/media/preview.webp",
-    url: "https://flashplusplus.net/html-game-standalone/valley-race",
+    url: "/uploads/html/valley_race",
   },
   {
     label: "Mountain Monster",
     target: "mountain-monster",
     preview: "/games/mountain-monster/media/preview.webp",
-    url: "https://flashplusplus.net/html-game-standalone/mountain-monster-html5",
+    url: "/uploads/html/mountain_monster-html5",
   },
 ];
 
@@ -38,7 +38,7 @@ const GamerZone = () => (
       {games.map(({ label, url, target }) => (
         <Route
           key={label}
-          path={`/gamer-zone/${target}`}
+          path={`/${target}`}
           element={<IframeView url={url} />}
         />
       ))}
