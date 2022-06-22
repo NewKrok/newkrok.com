@@ -23,7 +23,7 @@ const games = [
     label: "Mountain Monster",
     target: "mountain-monster",
     preview: "/games/mountain-monster/media/preview.webp",
-    url: "/uploads/html/mountain_monster-html5",
+    url: "/uploads/html/mountain_monster_html5",
   },
 ];
 
