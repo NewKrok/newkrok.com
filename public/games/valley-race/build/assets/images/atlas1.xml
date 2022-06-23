@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<TextureAtlas imagePath="atlas.png">
+	<SubTexture name="back_world_1_a0000" x="5" y="5" width="284" height="852"/>
+	<SubTexture name="back_world_1_a0001" x="289" y="5" width="284" height="852"/>
+	<SubTexture name="back_world_1_a0002" x="573" y="5" width="284" height="852"/>
+	<SubTexture name="back_world_1_a0003" x="857" y="5" width="284" height="852"/>
+	<SubTexture name="back_world_1_b0000" x="5" y="865" width="284" height="588"/>
+	<SubTexture name="back_world_1_b0001" x="289" y="865" width="284" height="588"/>
+	<SubTexture name="back_world_1_b0002" x="573" y="865" width="284" height="588"/>
+	<SubTexture name="back_world_1_b0003" x="857" y="865" width="284" height="588"/>
+	<SubTexture name="back_world_1_c0000" x="1150" y="5" width="284" height="529"/>
+	<SubTexture name="back_world_1_c0001" x="1434" y="5" width="284" height="529"/>
+	<SubTexture name="back_world_1_c0002" x="1718" y="5" width="284" height="529"/>
+	<SubTexture name="back_world_1_c0003" x="2002" y="5" width="284" height="529"/>
+	<SubTexture name="back_world_1_d0000" x="1150" y="540" width="284" height="405"/>
+	<SubTexture name="back_world_1_d0001" x="1434" y="540" width="284" height="405"/>
+	<SubTexture name="back_world_1_d0002" x="1718" y="540" width="284" height="405"/>
+	<SubTexture name="back_world_1_d0003" x="2002" y="540" width="284" height="405"/>
+	<SubTexture name="car_marker" x="1150" y="950" width="161" height="52"/>
+	<SubTexture name="world_0_selector_back" x="5" y="1455" width="660" height="230"/>
+	<SubTexture name="world_1_selector_back" x="5" y="1690" width="660" height="230"/>
+	<SubTexture name="world_2_selector_back" x="1755" y="1150" width="380" height="470"/>
+	<SubTexture name="world_selector_play" x="1150" y="1005" width="598" height="179"/>
+	<SubTexture name="world_selector_challenge_play" x="1150" y="1535" width="319" height="419"/>
+	<SubTexture name="world_selector_locked" x="1150" y="1185" width="598" height="179"/>
+	<SubTexture name="game_logo" x="1150" y="1375" width="348" height="153"/>
+	<SubTexture name="play_button" x="905" y="1460" width="150" height="150"/>
+	<SubTexture name="home_button" x="905" y="1620" width="100" height="100"/>
+	<SubTexture name="facebook_button" x="905" y="1725" width="100" height="100"/>
+	<SubTexture name="youtube_button" x="905" y="1935" width="100" height="100"/>
+	<SubTexture name="github_button" x="905" y="1830" width="100" height="100"/>
+	<SubTexture name="about_us_button" x="1010" y="1620" width="100" height="100"/>
+	<SubTexture name="options_button" x="1010" y="1725" width="100" height="100"/>
+	<SubTexture name="flixel_logo" x="1990" y="950" width="84" height="84"/>
+	<SubTexture name="haxe_logo" x="2080" y="950" width="84" height="84"/>
+	<SubTexture name="hpp_logo" x="2170" y="950" width="124" height="64"/>
+	<SubTexture name="nape_logo" x="1990" y="1035" width="84" height="109"/>
+	<SubTexture name="checkbox_on" x="1010" y="1915" width="80" height="80"/>
+	<SubTexture name="checkbox_off" x="1010" y="1830" width="80" height="80"/>
+</TextureAtlas>

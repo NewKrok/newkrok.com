@@ -1,0 +1,169 @@
+{
+	"carDatas":[
+		{ 
+			"name": "Red Monster",
+			"id": 0,
+			"graphicId": 0,
+			"starRequired": 0,
+			"speed": 32,
+			"rotation": 1500,
+			"elasticity": 1
+		},
+		{ 
+			"name": "Santa Rock",
+			"id": 3,
+			"graphicId": 6,
+			"starRequired": 15,
+			"speed": 32,
+			"rotation": 1500,
+			"elasticity": 1,
+			"firstWheelXOffset": 2,
+			"firstWheelYOffset": 10,
+			"backWheelXOffset": -2,
+			"backWheelYOffset": 10
+		},
+		{ 
+			"name": "Snowy",
+			"id": 1,
+			"graphicId": 1,
+			"starRequired": 50,
+			"speed": 34,
+			"rotation": 1500,
+			"elasticity": 0.8,
+			"firstWheelXOffset": 4,
+			"firstWheelYOffset": 2,
+			"backWheelXOffset": -4,
+			"backWheelYOffset": 2
+		},
+		{ 
+			"name": "Ghost",
+			"id": 2,
+			"graphicId": 5,
+			"starRequired": 100,
+			"speed": 34,
+			"rotation": 1500,
+			"elasticity": 0.8,
+			"firstWheelXOffset": 2,
+			"backWheelXOffset": -2
+		},
+		{ 
+			"name": "Turtle",
+			"id": 4,
+			"graphicId": 8,
+			"starRequired": 125,
+			"speed": 36,
+			"rotation": 1700,
+			"elasticity": 0.8,
+			"firstWheelXOffset": 2,
+			"firstWheelYOffset": -1,
+			"backWheelXOffset": -2,
+			"backWheelYOffset": -1
+		},
+		{ 
+			"name": "Candy Car",
+			"id": 5,
+			"graphicId": 13,
+			"starRequired": 200,
+			"speed": 38,
+			"rotation": 1900,
+			"elasticity": 0.6,
+			"firstWheelXOffset": 2,
+			"firstWheelYOffset": 5,
+			"backWheelXOffset": -2,
+			"backWheelYOffset": 5
+		},
+		{ 
+			"name": "Blue Hook",
+			"id": 1000,
+			"graphicId": 2,
+			"speed": 34,
+			"rotation": 1700,
+			"elasticity": 0.5,
+			"firstWheelYOffset": -2,
+			"backWheelYOffset": -2
+		},
+		{ 
+			"name": "Mountain Hunter",
+			"id": 1001,
+			"graphicId": 3,
+			"speed": 34,
+			"rotation": 1700,
+			"elasticity": 0.4,
+			"firstWheelYOffset": -1,
+			"backWheelYOffset": -1
+		},
+		{ 
+			"name": "Lightning",
+			"id": 1002,
+			"graphicId": 4,
+			"speed": 38,
+			"rotation": 2000,
+			"elasticity": 0.3
+		},
+		{ 
+			"name": "Judge",
+			"id": 1003,
+			"graphicId": 7,
+			"speed": 40,
+			"rotation": 2200,
+			"elasticity": 0.2
+		},
+		{ 
+			"name": "Hawk",
+			"id": 1004,
+			"graphicId": 9,
+			"speed": 42,
+			"rotation": 2500,
+			"elasticity": 0,
+			"firstWheelXOffset": 1,
+			"firstWheelYOffset": -3,
+			"backWheelXOffset": -1,
+			"backWheelYOffset": -3
+		},
+		{ 
+			"name": "Dawn",
+			"id": 2000,
+			"graphicId": 10,
+			"speed": 34,
+			"rotation": 1700,
+			"elasticity": 0.7,
+			"firstWheelXOffset": 4,
+			"firstWheelYOffset": 2,
+			"backWheelXOffset": -4,
+			"backWheelYOffset": 2,
+			"unlockInformation": "Complete Sharp Mountain Tasks"
+		},
+		{ 
+			"name": "Drift",
+			"id": 2001,
+			"graphicId": 11,
+			"speed": 36,
+			"rotation": 1800,
+			"elasticity": 0.6,
+			"firstWheelXOffset": 1,
+			"backWheelXOffset": -7,
+			"unlockInformation": "Complete Ice World Tasks"
+		},
+		{ 
+			"name": "Desert Rock",
+			"id": 2002,
+			"graphicId": 12,
+			"speed": 38,
+			"rotation": 1700,
+			"elasticity": 0.5,
+			"firstWheelXOffset": 3,
+			"firstWheelYOffset": 3,
+			"backWheelYOffset": 3,
+			"unlockInformation": "Complete Desert Valley Tasks"
+		},
+		{ 
+			"name": "MISSING CAR!!",
+			"id": 2003,
+			"graphicId": 14,
+			"speed": 40,
+			"rotation": 2000,
+			"elasticity": 0.4,
+			"unlockInformation": "Complete Candy Land Tasks"
+		}
+	]
+}

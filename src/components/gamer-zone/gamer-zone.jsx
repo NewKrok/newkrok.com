@@ -11,19 +11,19 @@ const games = [
     label: "Impossible Wheels",
     target: "impossible-wheels",
     preview: "/games/impossible-wheels/media/preview.webp",
-    url: "/uploads/html/impossible_wheels",
+    url: "/games/impossible-wheels/build/",
   },
   {
     label: "Valley Race",
     target: "valley-race",
     preview: "/games/valley-race/media/preview.webp",
-    url: "/uploads/html/valley_race",
+    url: "/games/valley-race/build/",
   },
   {
     label: "Mountain Monster",
     target: "mountain-monster",
     preview: "/games/mountain-monster/media/preview.webp",
-    url: "/uploads/html/mountain_monster_html5",
+    url: "/games/mountain-monster/build/",
   },
 ];
 

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<TextureAtlas imagePath="atlas2.png">
+	<SubTexture name="back_world_0_a0000" x="5" y="5" width="284" height="852"/>
+	<SubTexture name="back_world_0_a0001" x="289" y="5" width="284" height="852"/>
+	<SubTexture name="back_world_0_a0002" x="573" y="5" width="284" height="852"/>
+	<SubTexture name="back_world_0_a0003" x="857" y="5" width="284" height="852"/>
+	<SubTexture name="back_world_0_b0000" x="5" y="870" width="284" height="567"/>
+	<SubTexture name="back_world_0_b0001" x="289" y="870" width="284" height="567"/>
+	<SubTexture name="back_world_0_b0002" x="573" y="870" width="284" height="567"/>
+	<SubTexture name="back_world_0_b0003" x="857" y="870" width="284" height="567"/>
+	<SubTexture name="back_world_0_c0000" x="1150" y="5" width="284" height="531"/>
+	<SubTexture name="back_world_0_c0001" x="1434" y="5" width="284" height="531"/>
+	<SubTexture name="back_world_0_c0002" x="1718" y="5" width="284" height="531"/>
+	<SubTexture name="back_world_0_c0003" x="2002" y="5" width="284" height="531"/>
+	<SubTexture name="back_world_0_d0000" x="1150" y="540" width="284" height="357"/>
+	<SubTexture name="back_world_0_d0001" x="1434" y="540" width="284" height="357"/>
+	<SubTexture name="back_world_0_d0002" x="1718" y="540" width="284" height="357"/>
+	<SubTexture name="back_world_0_d0003" x="2002" y="540" width="284" height="357"/>
+</TextureAtlas>

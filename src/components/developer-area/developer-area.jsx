@@ -22,7 +22,7 @@ const entries = [
   {
     label: "My Github",
     target: "https://github.com/newkrok",
-    preview: "/dev/three-particles-editor/media/preview.webp",
+    preview: "/dev/github/media/preview.webp",
   },
   {
     label: "My CodePens",

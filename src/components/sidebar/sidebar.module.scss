@@ -13,8 +13,17 @@
   user-select: none;
   z-index: 1;
 
+  @media screen and (max-width: 600px) {
+    width: 3rem;
+    font-size: 0.8rem;
+  }
+
   &:hover {
     width: 15rem;
+
+    @media screen and (max-width: 600px) {
+      width: 12rem;
+    }
 
     .Item {
       .Label {
@@ -31,6 +40,10 @@
     .Name {
       transform: initial;
       bottom: 3rem;
+
+      @media screen and (max-width: 600px) {
+        bottom: 1rem;
+      }
     }
   }
 
@@ -66,6 +79,10 @@
     transition: color 0.3s;
     position: relative;
 
+    @media screen and (max-width: 600px) {
+      padding: 1.25rem 2px;
+    }
+
     &::after {
       position: absolute;
       content: "";
@@ -75,6 +92,11 @@
       height: 1px;
       background-color: rgba(255, 255, 255, 0);
       transition: background-color var(--animation-speed);
+
+      @media screen and (max-width: 600px) {
+        width: 1.75rem;
+        left: -2px;
+      }
     }
 
     &:hover {
@@ -84,6 +106,10 @@
     .Icon {
       font-size: 1.5rem;
       margin-right: 1rem;
+
+      @media screen and (max-width: 600px) {
+        font-size: 1rem;
+      }
     }
 
     .Label {
@@ -108,5 +134,10 @@
     color: rgba(255, 255, 255, 0.2);
     user-select: none;
     transition: transform var(--animation-speed), bottom var(--animation-speed);
+
+    @media screen and (max-width: 600px) {
+      font-size: 2rem;
+      bottom: 4rem;
+    }
   }
 }
