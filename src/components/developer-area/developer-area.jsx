@@ -8,6 +8,12 @@ import React from "react";
 
 const entries = [
   {
+    label: "Three Particles Projectile Demo",
+    target: "three-particles-projectile-demo",
+    preview: "/dev/three-particles-projectile-demo/media/preview.webp",
+    url: "https://newkrok.com/three-particles-projectile-demo/index.html",
+  },
+  {
     label: "Three Game Demos",
     target: "three-game-demos",
     preview: "/dev/three-game-demos/media/preview.webp",
@@ -18,6 +24,11 @@ const entries = [
     target: "particles-editor",
     preview: "/dev/three-particles-editor/media/preview.webp",
     url: "https://newkrok.com/three-particles-editor/index.html",
+  },
+  {
+    label: "Find me on Discord",
+    target: "https://discordapp.com/users/389164495295086592",
+    preview: "/dev/discord/media/preview.webp",
   },
   {
     label: "My Github",
@@ -35,7 +46,7 @@ const DeveloperArea = () => (
   <>
     <Link to="/developer-area">
       <Header>
-        DEVELOPER AREA <i className="fa-solid fa-gamepad"></i>
+        DEVELOPER AREA <i className="fa-solid fa-laptop-code"></i>
       </Header>
     </Link>
     <Routes>
