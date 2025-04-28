@@ -23,7 +23,7 @@ const entries = [
     label: "Particles Editor",
     target: "particles-editor",
     preview: "/dev/three-particles-editor/media/preview.webp",
-    url: "https://newkrok.com/three-particles-editor/index.html",
+    url: "https://three-particles-editor.newkrok.com/index.html",
   },
   {
     label: "Find me on Discord",
