@@ -10,18 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v4
       - name: List files after checkout
         run: |
           pwd
           ls
-      - name: Cache node_modules
-        uses: actions/cache@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          node-version: '18'
+          cache: 'npm'
       - name: Run build
         id: build
         run: npm install
@@ -35,7 +33,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: FTP Deploy to newkrok.com
-        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        uses: SamKirkland/FTP-Deploy-Action@4.3.3
         with:
           local-dir: "./build/"
           server-dir: ./
