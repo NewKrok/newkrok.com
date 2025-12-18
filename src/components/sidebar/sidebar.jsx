@@ -7,32 +7,32 @@ const SideBar = () => {
   let location = useLocation();
 
   return (
-    <div className={styles.Sidebar}>
-      <div className={styles.ItemContainer}>
+    <div className={styles.sidebar}>
+      <div className={styles.itemContainer}>
         <Link to="/gamer-zone">
           <div
-            className={`${styles.Item} ${
+            className={`${styles.item} ${
               (location.pathname === "/gamer-zone" ||
                 location.pathname === "/") &&
-              styles.SelectedItem
+              styles.selectedItem
             }`}
           >
-            <i className={`${styles.Icon} ${"fa-solid fa-gamepad"}`}></i>
-            <div className={styles.Label}>Gamer Zone</div>
+            <i className={`${styles.icon} ${"fa-solid fa-gamepad"}`}></i>
+            <div className={styles.label}>Gamer Zone</div>
           </div>
         </Link>
         <Link to="/developer-area">
           <div
-            className={`${styles.Item} ${
-              location.pathname === "/developer-area" && styles.SelectedItem
+            className={`${styles.item} ${
+              location.pathname === "/developer-area" && styles.selectedItem
             }`}
           >
-            <i className={`${styles.Icon} ${"fa-solid fa-laptop-code"}`}></i>
-            <div className={styles.Label}>Developer Area</div>
+            <i className={`${styles.icon} ${"fa-solid fa-laptop-code"}`}></i>
+            <div className={styles.label}>Developer Area</div>
           </div>
         </Link>
       </div>
-      <div className={styles.Name}>NewKrok</div>
+      <div className={styles.name}>NewKrok</div>
     </div>
   );
 };
