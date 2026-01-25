@@ -5,6 +5,16 @@ import List from "../../ui/list/list";
 
 const entries = [
   {
+    label: "QuickMesh",
+    target: "https://quickmesh.dev/",
+    preview: "/dev/quick-mesh/media/preview.webp",
+  },
+  {
+    label: "QuickMap",
+    target: "https://quickmap.dev/",
+    preview: "/dev/quick-map/media/preview.webp",
+  },
+  {
     label: "Three Particles Projectile Demo",
     target: "three-particles-projectile-demo",
     preview: "/dev/three-particles-projectile-demo/media/preview.webp",
@@ -18,9 +28,13 @@ const entries = [
   },
   {
     label: "Particles Editor",
-    target: "particles-editor",
+    target: "https://three-particles-editor.newkrok.com/",
     preview: "/dev/three-particles-editor/media/preview.webp",
-    url: "https://three-particles-editor.newkrok.com/index.html",
+  },
+  {
+    label: "X / Twitter",
+    target: "https://x.com/KSomoracz",
+    preview: "/dev/x-com/media/preview.webp",
   },
   {
     label: "Find me on Discord",
@@ -36,6 +50,11 @@ const entries = [
     label: "My CodePens",
     target: "https://codepen.io/search/pens?q=Just+a+little+ThreeJS",
     preview: "/dev/codepen/media/preview.webp",
+  },
+  {
+    label: "LinkedIn",
+    target: "https://www.linkedin.com/in/istvan-krisztian-somoracz-8924b949",
+    preview: "/dev/linkedin/media/preview.webp",
   },
 ];
 
