@@ -22,12 +22,16 @@
     width: 15rem;
 
     @media screen and (max-width: 600px) {
-      width: 12rem;
+      width: 3rem;
     }
 
     .Item {
       .Label {
         opacity: 1;
+
+        @media screen and (max-width: 600px) {
+          opacity: 0;
+        }
       }
     }
 
@@ -42,6 +46,25 @@
       bottom: 3rem;
 
       @media screen and (max-width: 600px) {
+        transform: rotate(-90deg);
+        bottom: 4rem;
+      }
+    }
+  }
+
+  &.Expanded {
+    @media screen and (max-width: 600px) {
+      width: 12rem;
+      z-index: 1001;
+
+      .Item {
+        .Label {
+          opacity: 1;
+        }
+      }
+
+      .Name {
+        transform: initial;
         bottom: 1rem;
       }
     }
@@ -139,5 +162,18 @@
       font-size: 2rem;
       bottom: 4rem;
     }
+  }
+}
+
+.Overlay {
+  @media screen and (max-width: 600px) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    cursor: pointer;
   }
 }
