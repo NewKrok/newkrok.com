@@ -3,7 +3,28 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="NewKrok's personal website featuring browser games, Three.js projects, and game development tools. Explore Impossible Wheels, Valley Race, and open-source libraries for web game development." />
+    <meta name="keywords" content="NewKrok, game development, Three.js, WebGL games, browser games, JavaScript games, game developer portfolio, Impossible Wheels, Valley Race, Mountain Monster, QuickMesh, QuickMap, particles editor" />
+    <meta name="author" content="István Krisztián Somoracz (NewKrok)" />
+    <meta name="theme-color" content="#000000" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://newkrok.com/" />
+    <meta property="og:title" content="NewKrok - Game Developer & Three.js Specialist" />
+    <meta property="og:description" content="Browser games, Three.js projects, and game development tools by NewKrok. Play games and explore open-source libraries for web game development." />
+    <meta property="og:image" content="https://newkrok.com/favicon.ico" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://newkrok.com/" />
+    <meta property="twitter:title" content="NewKrok - Game Developer & Three.js Specialist" />
+    <meta property="twitter:description" content="Browser games, Three.js projects, and game development tools by NewKrok. Play games and explore open-source libraries for web game development." />
+    <meta property="twitter:image" content="https://newkrok.com/favicon.ico" />
+    <meta property="twitter:creator" content="@KSomoracz" />
+
     <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="canonical" href="https://newkrok.com/" />
     <script
       src="https://kit.fontawesome.com/8bba5946ab.js"
       crossorigin="anonymous"
@@ -31,7 +52,54 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>NewKrok's Site</title>
+    <title>NewKrok - Game Developer & Three.js Specialist | Browser Games & Web Development Tools</title>
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "István Krisztián Somoracz",
+      "alternateName": "NewKrok",
+      "url": "https://newkrok.com",
+      "image": "https://newkrok.com/favicon.ico",
+      "sameAs": [
+        "https://github.com/newkrok",
+        "https://www.linkedin.com/in/istvan-krisztian-somoracz-8924b949",
+        "https://x.com/KSomoracz",
+        "https://codepen.io/search/pens?q=Just+a+little+ThreeJS",
+        "https://discordapp.com/users/389164495295086592"
+      ],
+      "jobTitle": "Game Developer & Three.js Specialist",
+      "worksFor": {
+        "@type": "Organization",
+        "name": "Independent"
+      },
+      "knowsAbout": ["Game Development", "Three.js", "WebGL", "JavaScript", "React", "Web Development"],
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://newkrok.com"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "NewKrok",
+      "url": "https://newkrok.com",
+      "description": "Browser games, Three.js projects, and game development tools by NewKrok",
+      "author": {
+        "@type": "Person",
+        "name": "István Krisztián Somoracz"
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://newkrok.com/?s={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
