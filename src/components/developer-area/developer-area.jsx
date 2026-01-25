@@ -1,10 +1,7 @@
 import { Route, Routes } from "react-router";
 
-import Header from "../../ui/header/header";
 import IframeView from "../../ui/iframe-view/iframe-view";
-import { Link } from "react-router-dom";
 import List from "../../ui/list/list";
-import React from "react";
 
 const entries = [
   {
@@ -43,23 +40,16 @@ const entries = [
 ];
 
 const DeveloperArea = () => (
-  <>
-    <Link to="/developer-area">
-      <Header>
-        DEVELOPER AREA <i className="fa-solid fa-laptop-code"></i>
-      </Header>
-    </Link>
-    <Routes>
-      {entries.map(({ label, url, target }) => (
-        <Route
-          key={label}
-          path={`/${target}`}
-          element={<IframeView url={url} />}
-        />
-      ))}
-      <Route path="/" element={<List list={entries} />} />
-    </Routes>
-  </>
+  <Routes>
+    {entries.map(({ label, url, target }) => (
+      <Route
+        key={label}
+        path={`/${target}`}
+        element={<IframeView url={url} />}
+      />
+    ))}
+    <Route path="/" element={<List list={entries} />} />
+  </Routes>
 );
 
 export default DeveloperArea;
