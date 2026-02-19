@@ -16,7 +16,7 @@ const List = ({ list }) => {
 
   return (
     <div className={styles.list}>
-      {list.map(({ label, preview, target }) =>
+      {list.map(({ label, preview, target, badge }) =>
         target.includes("https") ? (
           <a key={label} href={target} target="_blank" rel="noreferrer">
             <div
@@ -26,6 +26,7 @@ const List = ({ list }) => {
             >
               <div className={styles.thumbnail}>
                 <img src={preview} alt={label} />
+                {badge && <div className={styles.badge}>{badge}</div>}
                 <div className={styles.label}>{label}</div>
               </div>
             </div>
@@ -39,6 +40,7 @@ const List = ({ list }) => {
             >
               <div className={styles.thumbnail}>
                 <img src={preview} alt={label} />
+                {badge && <div className={styles.badge}>{badge}</div>}
                 <div className={styles.label}>{label}</div>
               </div>
             </div>

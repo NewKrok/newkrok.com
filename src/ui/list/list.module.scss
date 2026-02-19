@@ -11,6 +11,7 @@
     }
 
     .thumbnail {
+      position: relative;
       background-color: #eee;
       border: #666 solid 1px;
       border-radius: 0.5em;
@@ -31,6 +32,21 @@
         width: 100%;
         border-radius: 0.5em 0.5em 0 0;
         pointer-events: none;
+      }
+
+      .badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #e07b00;
+        color: #fff;
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 4px;
+        pointer-events: none;
+        letter-spacing: 0.05em;
       }
 
       .label {

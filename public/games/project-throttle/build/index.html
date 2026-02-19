@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Top-Down Car Sandbox</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        overflow: hidden;
+        background: #050510;
+        font-family: Arial, sans-serif;
+        user-select: none;
+      }
+      #container {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+      }
+      #threeCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      #hud {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+      }
+      #speedDisplay {
+        color: white;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 20px;
+        font-weight: bold;
+        font-variant-numeric: tabular-nums;
+        min-width: 110px;
+        text-align: center;
+      }
+      #cameraMode {
+        color: white;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: bold;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      #instructions {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 6px 14px;
+        border-radius: 4px;
+        font-size: 12px;
+        z-index: 100;
+        white-space: nowrap;
+      }
+      #mpStatus {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: #0f0;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-family: monospace;
+        z-index: 100;
+      }
+    </style>
+    <script type="module" crossorigin src="/games/project-throttle/build/assets/index-bJ3ZYeqH.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <canvas id="threeCanvas"></canvas>
+      <div id="hud">
+        <div id="speedDisplay">0 km/h</div>
+        <div id="cameraMode">TOP-DOWN</div>
+      </div>
+      <div id="instructions">
+        Arrow Keys / WASD to drive &nbsp;|&nbsp; Space to brake &nbsp;|&nbsp; Shift to drift &nbsp;|&nbsp; C to switch camera
+      </div>
+      <div id="mpStatus">MP: connecting…</div>
+    </div>
+
+  </body>
+</html>
