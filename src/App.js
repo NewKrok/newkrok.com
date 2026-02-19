@@ -4,7 +4,6 @@ import { BrowserRouter, Navigate, Routes } from "react-router-dom";
 
 import DeveloperArea from "./components/developer-area/developer-area";
 import GamerZone from "./components/gamer-zone/gamer-zone";
-import React from "react";
 import { Route } from "react-router";
 import SideBar from "./components/sidebar/sidebar";
 

@@ -1,4 +1,3 @@
-import React from "react";
 import styles from "./iframe-view.module.scss";
 
 const IframeView = ({ url }) => (
