@@ -8,7 +8,7 @@ const games = [
     label: "Project Throttle",
     target: "project-throttle",
     preview: "/games/project-throttle/media/preview.webp",
-    url: "/games/project-throttle/build/",
+    url: "https://throttle.newkrok.com/",
     badge: "in progress",
   },
   {
