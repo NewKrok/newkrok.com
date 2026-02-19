@@ -23,6 +23,8 @@ const List = ({ list }) => {
               className={styles.thumbnailContainer}
               onMouseMove={onMouseMove}
               onMouseOut={onMouseOut}
+              onBlur={onMouseOut}
+              role="presentation"
             >
               <div className={styles.thumbnail}>
                 <img src={preview} alt={label} />
@@ -37,6 +39,8 @@ const List = ({ list }) => {
               className={styles.thumbnailContainer}
               onMouseMove={onMouseMove}
               onMouseOut={onMouseOut}
+              onBlur={onMouseOut}
+              role="presentation"
             >
               <div className={styles.thumbnail}>
                 <img src={preview} alt={label} />

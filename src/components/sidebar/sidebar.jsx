@@ -38,13 +38,22 @@ const SideBar = () => {
   return (
     <>
       {isMobile && isExpanded && (
-        <div className={styles.overlay} onClick={handleOverlayClick} />
+        <div
+          className={styles.overlay}
+          onClick={handleOverlayClick}
+          onKeyDown={handleOverlayClick}
+          role="button"
+          tabIndex={0}
+        />
       )}
       <div
         className={`${styles.sidebar} ${
           isMobile && isExpanded ? styles.expanded : ""
         }`}
         onClick={handleSidebarClick}
+        onKeyDown={handleSidebarClick}
+        role="button"
+        tabIndex={0}
       >
         <div className={styles.itemContainer}>
           <Link to="/gamer-zone" onClick={handleMenuItemClick}>
