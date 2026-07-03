@@ -10,19 +10,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: List files after checkout
         run: |
           pwd
           ls
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
-      - name: Run build
+      - name: Install dependencies
         id: build
-        run: npm install --legacy-peer-deps
+        run: npm ci
       - run: npm run build
       - name: List files after build
         run: |
@@ -33,7 +33,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: FTP Deploy to newkrok.com
-        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           local-dir: "./build/"
           server-dir: ./
