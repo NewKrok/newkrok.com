@@ -5,6 +5,11 @@ import List from "../../ui/list/list";
 
 const entries = [
   {
+    label: "NAPE-JS",
+    target: "https://napejs.org/",
+    preview: "/dev/napejs/media/preview.webp",
+  },
+  {
     label: "QuickMesh",
     target: "https://quickmesh.dev/",
     preview: "/dev/quick-mesh/media/preview.webp",
@@ -30,11 +35,6 @@ const entries = [
     label: "Particles Editor",
     target: "https://three-particles-editor.newkrok.com/",
     preview: "/dev/three-particles-editor/media/preview.webp",
-  },
-  {
-    label: "NapeJS",
-    target: "https://napejs.org/",
-    preview: "/dev/napejs/media/preview.webp",
   },
   {
     label: "X / Twitter",
