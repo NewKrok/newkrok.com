@@ -32,6 +32,11 @@ const entries = [
     preview: "/dev/three-particles-editor/media/preview.webp",
   },
   {
+    label: "NapeJS",
+    target: "https://napejs.org/",
+    preview: "/dev/napejs/media/preview.webp",
+  },
+  {
     label: "X / Twitter",
     target: "https://x.com/KSomoracz",
     preview: "/dev/x-com/media/preview.webp",

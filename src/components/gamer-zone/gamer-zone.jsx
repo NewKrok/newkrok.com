@@ -12,6 +12,16 @@ const games = [
     badge: "in progress",
   },
   {
+    label: "LOAF",
+    target: "https://loaf.newkrok.com/",
+    preview: "/games/loaf/media/preview.webp",
+  },
+  {
+    label: "MxDash",
+    target: "https://mxdash.newkrok.com/",
+    preview: "/games/mxdash/media/preview.webp",
+  },
+  {
     label: "Impossible Wheels",
     target: "impossible-wheels",
     preview: "/games/impossible-wheels/media/preview.webp",
