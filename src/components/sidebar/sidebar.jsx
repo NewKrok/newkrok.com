@@ -1,26 +1,19 @@
 import { Link, useLocation } from "react-router-dom";
 
-import { useState, useEffect } from "react";
+import Icon from "../../ui/icon/icon";
+import { useState } from "react";
 import styles from "./sidebar.module.scss";
+
+// Evaluated on demand instead of tracked in state, so the first render does
+// not depend on JS and there is no layout flip after hydration on mobile.
+// The mobile-only styles themselves live in the stylesheet's media queries.
+const isMobile = () => window.matchMedia("(max-width: 600px)").matches;
 
 const SideBar = () => {
   let location = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 600);
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
   const handleSidebarClick = () => {
-    if (isMobile && !isExpanded) {
+    if (isMobile() && !isExpanded) {
       setIsExpanded(true);
     }
   };
@@ -30,14 +23,14 @@ const SideBar = () => {
   };
 
   const handleMenuItemClick = () => {
-    if (isMobile) {
+    if (isMobile()) {
       setIsExpanded(false);
     }
   };
 
   return (
     <>
-      {isMobile && isExpanded && (
+      {isExpanded && (
         <div
           className={styles.overlay}
           onClick={handleOverlayClick}
@@ -48,7 +41,7 @@ const SideBar = () => {
       )}
       <div
         className={`${styles.sidebar} ${
-          isMobile && isExpanded ? styles.expanded : ""
+          isExpanded ? styles.expanded : ""
         }`}
         onClick={handleSidebarClick}
         onKeyDown={handleSidebarClick}
@@ -64,7 +57,7 @@ const SideBar = () => {
                 styles.selectedItem
               }`}
             >
-              <i className={`${styles.icon} ${"fa-solid fa-gamepad"}`}></i>
+              <Icon name="gamepad" className={styles.icon} />
               <div className={styles.label}>Gamer Zone</div>
             </div>
           </Link>
@@ -74,7 +67,7 @@ const SideBar = () => {
                 location.pathname === "/developer-area" && styles.selectedItem
               }`}
             >
-              <i className={`${styles.icon} ${"fa-solid fa-laptop-code"}`}></i>
+              <Icon name="laptopCode" className={styles.icon} />
               <div className={styles.label}>Developer Area</div>
             </div>
           </Link>

@@ -10,3 +10,19 @@
   RewriteRule ^.*$ - [NC,L]
   RewriteRule ^(.*) /index.html [NC,L]
 </IfModule>
+<IfModule mod_headers.c>
+  # The app shell must always be revalidated so new deploys show up at once.
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+
+  # Webpack output under /static/ has content hashes in its file names.
+  <If "%{REQUEST_URI} =~ m#^/static/#">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </If>
+
+  # Preview images and other media keep stable URLs, so cache them shorter.
+  <If "%{REQUEST_URI} !~ m#^/static/# && %{REQUEST_URI} =~ m#\.(webp|png|jpe?g|gif|svg|ico|woff2?)$#">
+    Header set Cache-Control "public, max-age=604800"
+  </If>
+</IfModule>
