@@ -383,6 +383,11 @@ function solveBidirectional(lvl, { from = null } = {}) {
 // is first driven to each box (trailer inside it, heading `a`) in turn.
 const PI = Math.PI;
 const VIA = {
+  club: [
+    { x: 1075, y: 600, a: -PI / 2, w: 70, l: 150 },
+    { x: 900, y: 440, a: PI, w: 60, l: 150 },
+    { x: 520, y: 440, a: PI, w: 60, l: 140 },
+  ],
   terminal: [{ x: 1070, y: 510, a: 0, w: 70, l: 120 }],
   retail: [{ x: 1100, y: 300, a: -PI / 2, w: 90, l: 130 }],
   ferry: [{ x: 1150, y: 520, a: 0, w: 70, l: 130 }],

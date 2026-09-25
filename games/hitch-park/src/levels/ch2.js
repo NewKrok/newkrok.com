@@ -1,6 +1,6 @@
 import {
   PI, level, hrow, vrow, angledRow, park, fill, car, rect, road, paintBays, line, arrow, text,
-  zebra, hatch, YELLOW, building, tree, containers, range,
+  zebra, hatch, YELLOW, building, tree, containers, range, sample, wallLine,
 } from "./kit.js";
 
 // ── Chapter 2 — A working day ────────────────────────────────────────────
@@ -39,32 +39,34 @@ function loadingDock() {
 
 // 7. School car park: 90° into the middle row.
 function school() {
-  const top = hrow(230, 45, 23, PI / 2);
-  const midT = hrow(290, 260, 19, -PI / 2);
-  const midB = hrow(290, 320, 19, PI / 2);
-  const bottom = hrow(230, 535, 23, -PI / 2);
-  const target = 11;
+  const top = hrow(230, 45, 33, PI / 2);
+  const midT = hrow(290, 260, 29, -PI / 2);
+  const midB = hrow(290, 320, 29, PI / 2);
+  const bottom = hrow(230, 535, 33, -PI / 2);
+  const target = 26;
   return level({
-    id: "school", name: "Primary school", title: "School Run", trailer: "box", par: 55, sun: "noon",
-    brief: "Drop-off time. Reverse into the free bay in the middle row, from the lower lane. Mind the planters.",
-    w: 1000, h: 580, edge: "fence", backdrop: "town",
+    id: "school", name: "Primary school", title: "School Run", trailer: "box", par: 70, sun: "noon",
+    brief: "Drop-off time, and the only free bay is at the far end, on the other side of the middle row. Drive round and reverse in from the lower lane.",
+    w: 1300, h: 580, edge: "fence", backdrop: "town",
     surfaces: [rect("pavement", 180, 0, 200, 580), rect("grass", 200, 0, 220, 580)],
     paint: [
       paintBays(top), paintBays(midT), paintBays(midB), paintBays(bottom), paintBays([{ ...midB[target], w: 34 }], YELLOW),
-      text(560, 290, "SCHOOL", { size: 18, color: YELLOW }), zebra(210, 430, 0, 36, 60), arrow(400, 430, 0), arrow(700, 160, PI),
+      text(700, 290, "SCHOOL", { size: 18, color: YELLOW }), zebra(210, 430, 0, 36, 60),
+      arrow(500, 150, 0), arrow(950, 150, 0), arrow(950, 430, PI), arrow(500, 430, PI),
     ],
     parked: [
-      ...park(top, fill(23, 0.8, 71), 72), ...park(midT, fill(19, 0.85, 73), 74),
-      ...park(midB, fill(19, 0.8, 75, [target]), 76), ...park(bottom, fill(23, 0.75, 77), 78),
+      ...park(top, fill(33, 0.8, 71), 72), ...park(midT, fill(29, 0.85, 73), 74),
+      ...park(midB, fill(29, 0.85, 75, [target]), 76), ...park(bottom, fill(33, 0.8, 77), 78),
     ],
     statics: [
       building(90, 290, 180, 460, { height: 44, color: 0xb8866a, roof: 0x5a4a44, sign: "OAKFIELD SCHOOL", signColor: "#7a3b2e", signSide: "e" }),
-      { kind: "planter", x: 270, y: 290, w: 14, h: 110 }, { kind: "planter", x: 890, y: 290, w: 14, h: 110 },
-      tree(270, 290, 14), tree(890, 290, 14),
-      { kind: "lamp", x: 500, y: 150 }, { kind: "lamp", x: 500, y: 430 },
+      { kind: "planter", x: 270, y: 290, w: 14, h: 110 }, { kind: "planter", x: 1180, y: 290, w: 14, h: 110 },
+      tree(270, 290, 14), tree(1180, 290, 14),
+      // Lamps at the ends of the planters, clear of the lanes and arrows.
+      { kind: "lamp", x: 270, y: 226 }, { kind: "lamp", x: 270, y: 354 }, { kind: "lamp", x: 1180, y: 226 }, { kind: "lamp", x: 1180, y: 354 },
     ],
     cones: [{ x: 240, y: 400 }, { x: 240, y: 460 }],
-    start: { x: 320, y: 430, a: 0 },
+    start: { x: 330, y: 150, a: 0 },
     bay: { ...midB[target], w: 34, l: 58 },
   });
 }
@@ -151,28 +153,43 @@ function sportsClub() {
   const fence = [];
   for (let x = pitch[0]; x <= pitch[2]; x += 40) fence.push({ kind: "fence", x: x + 20, y: pitch[3] + 8, w: 42, h: 3 });
   for (let y = pitch[1]; y < pitch[3]; y += 40) fence.push({ kind: "fence", x: pitch[2] + 8, y: y + 20, a: PI / 2, w: 42, h: 3 });
+  // Outside the club: a winding lane up from the south, then left through
+  // the gate in the hedge.
+  const lane = [[170, 920], [170, 730], [260, 700], [430, 760], [620, 720], [820, 790], [990, 800], [1075, 800]];
+  const gateX = 1075;
+  const laneTrees = [...sample(lane, 72, 76), ...sample(lane, 72, -76)]
+    .filter((p) => p.y > 668 && p.y < 890 && p.x < 1030)
+    .map((p, i) => (i % 3 ? { kind: "bush", x: p.x, y: p.y, r: 13 } : tree(p.x, p.y, 18)));
   return level({
-    id: "club", vehicle: "suv", name: "Sports club", title: "Tournament Day", trailer: "caravan", par: 90, sun: "golden",
-    brief: "Your first caravan. The camping field is filling up: reverse into the free plot between the other vans.",
-    w: 1150, h: 680, base: "grass", edge: "hedge",
-    surfaces: [road("gravel", [[1190, 440], [900, 440], [150, 440]], 60), rect("gravel", 690, 150, 1000, 200)],
+    id: "club", vehicle: "suv", name: "Sports club", title: "Tournament Day", trailer: "caravan", par: 110, sun: "golden",
+    brief: "Your first caravan. Follow the lane to the club, turn in through the gate and reverse into the free plot between the other vans.",
+    w: 1150, h: 900, base: "grass", edge: "hedge",
+    surfaces: [
+      road("gravel", lane, 64), road("gravel", [[gateX, 800], [gateX, 440], [900, 440], [150, 440]], 60),
+      rect("gravel", 690, 150, 1000, 200),
+    ],
     paint: [
       line([[pitch[0] + 10, pitch[1] + 10], [pitch[2] - 10, pitch[1] + 10], [pitch[2] - 10, pitch[3] - 10], [pitch[0] + 10, pitch[3] - 10], [pitch[0] + 10, pitch[1] + 10]], { width: 3 }),
       line([[340, pitch[1] + 10], [340, pitch[3] - 10]], { width: 3 }),
       ...plots.map((p) => line([[p.x - 32, 515], [p.x - 32, 605]], { dash: [6, 6], width: 1.5 })),
       paintBays([{ ...plots[target], w: 46 }], YELLOW),
     ],
-    parked: [car(1060, 560, -PI / 2, "suv"), car(160, 560, -PI / 2, "wagon")],
+    parked: [car(160, 560, -PI / 2, "wagon")],
     statics: [
       ...fence,
+      // The club's southern hedge, with the gate.
+      ...wallLine([[0, 648], [gateX - 44, 648]], { kind: "hedge", thick: 10, maxLen: 60 }),
+      ...wallLine([[gateX + 44, 648], [1150, 648]], { kind: "hedge", thick: 10, maxLen: 60 }),
+      { kind: "post", x: gateX - 40, y: 648, r: 5 }, { kind: "post", x: gateX + 40, y: 648, r: 5, flag: 0x2f5f9a },
       building(850, 90, 260, 120, { height: 36, color: 0xe8e0d0, roof: 0x2f5f9a, sign: "CLUBHOUSE", signColor: "#2f5f9a" }),
       { kind: "marquee", x: 1030, y: 260, w: 110, h: 80 },
       ...plots.filter((_, i) => i !== target && i % 4 !== 1).map((p) => ({ kind: "vancaravan", x: p.x, y: 566, a: -PI / 2 + ((p.x % 3) - 1) * 0.03 })),
       ...plots.filter((_, i) => i !== target && i % 4 === 1).map((p) => ({ kind: "tent", x: p.x, y: 575, w: 30, h: 36, a: 0.1 })),
-      tree(40, 640, 20), tree(1110, 620, 18), tree(660, 60, 20),
+      tree(660, 60, 20),
+      ...laneTrees,
     ],
     cones: [],
-    start: { x: 1000, y: 440, a: PI },
+    start: { x: 170, y: 760, a: -PI / 2 },
     bay: { ...plots[target], w: 46, l: 92 },
   });
 }
