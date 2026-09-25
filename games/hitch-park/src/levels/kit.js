@@ -90,6 +90,18 @@ export function sample(pts, spacing, offset = 0, from = 0) {
   return out;
 }
 
+// Shortest distance (px) from a point to a polyline.
+export function distToLine(pts, x, y) {
+  let best = Infinity;
+  for (let k = 0; k < pts.length - 1; k++) {
+    const [x0, y0] = pts[k], [x1, y1] = pts[k + 1];
+    const dx = x1 - x0, dy = y1 - y0, l2 = dx * dx + dy * dy || 1;
+    const t = Math.max(0, Math.min(1, ((x - x0) * dx + (y - y0) * dy) / l2));
+    best = Math.min(best, Math.hypot(x - x0 - dx * t, y - y0 - dy * t));
+  }
+  return best;
+}
+
 // Offset copy of a polyline (mitred joints), `offset` px to the left.
 export function offsetLine(pts, offset) {
   const out = [];

@@ -1,6 +1,6 @@
 import {
   PI, level, hrow, angledRow, park, fill, car, rect, road, paintBays, line, arrow, text, zebra,
-  YELLOW, building, tree, scatter, sample, offsetLine, wallLine, range,
+  YELLOW, building, tree, scatter, sample, offsetLine, wallLine, range, distToLine,
 } from "./kit.js";
 
 // ── Chapter 3 — Out of town ──────────────────────────────────────────────
@@ -41,35 +41,53 @@ function countryLane() {
 // 12. Ferry port: the long boat stalls by the check-in.
 function ferryTerminal() {
   const stalls = angledRow(830, 640, 8, -PI / 4, { w: 44, l: 96 });
+  const visitors = hrow(900, 960, 13, -PI / 2);
+  const hrowSurface = rect("asphalt", 880, 925, 1320, 1000);
+  const roadPts = [[-40, 905], [260, 905], [430, 870], [560, 830], [620, 800]];
+  const roadTrees = [...sample(roadPts, 70, 78), ...sample(roadPts, 70, -78)]
+    .filter((p) => p.y > 748 && p.y < 990 && p.x > 20)
+    .map((p, i) => tree(p.x, p.y, 16 + (i % 3) * 3));
   const target = 4;
   const queue = [];
   for (let r = 0; r < 5; r++) for (let i = 0; i < 9; i++) if ((r * 9 + i) % 7 !== 3) queue.push(car(480 + i * 62, 232 + r * 44, PI, ["sedan", "wagon", "suv", "hatch", "van"][(r + i) % 5]));
   return level({
     id: "ferry", vehicle: "pickup", name: "Ferry port", title: "Boarding Soon", trailer: "boat", par: 95, sun: "marina",
-    brief: "The ferry isn't loading yet. Park the boat in the slanted stall by the check-in — pass it, then reverse in.",
-    w: 1400, h: 760, edge: "rail", backdrop: "town",
-    surfaces: [rect("water", -500, -600, 1900, 130), rect("concrete", 0, 130, 1400, 180)],
+    brief: "The ferry isn't loading yet. Come in off the port road through a check-in lane, then park the boat in a slanted stall — pass it, then reverse in.",
+    w: 1400, h: 1000, edge: "rail", backdrop: "town",
+    surfaces: [
+      rect("water", -500, -600, 1900, 130), rect("concrete", 0, 130, 1400, 180),
+      rect("grass", 0, 732, 1400, 1000),
+      road("asphalt", [[-40, 905], [260, 905], [430, 870], [560, 830], [620, 800], [620, 740]], 84),
+      rect("asphalt", 470, 732, 770, 812, 10), hrowSurface,
+    ],
     paint: [
       ...range(0, 6).map((r) => line([[440, 210 + r * 44], [1030, 210 + r * 44]], { color: YELLOW, width: 1.5 })),
       ...range(0, 5).map((r) => text(1060, 232 + r * 44, `LANE ${r + 1}`, { size: 11, color: YELLOW })),
       paintBays(stalls), paintBays([{ ...stalls[target], w: 46 }], YELLOW), text(1080, 540, "BOATS · CARAVANS", { size: 12, color: YELLOW }),
       arrow(300, 500, 0), arrow(800, 520, 0),
+      arrow(560, 770, -PI / 2), arrow(680, 770, -PI / 2), text(620, 796, "CHECK-IN", { size: 12 }),
+      paintBays(visitors),
     ],
-    parked: [...queue, ...park(stalls, [0, 2, 6], 121, ["van", "suv"])],
+    parked: [...queue, ...park(stalls, [0, 2, 6], 121, ["van", "suv"]), ...park(visitors, fill(visitors.length, 0.7, 122), 123)],
     statics: [
       { kind: "water", x: 700, y: 60, w: 1400, h: 128 },
       { kind: "quay", x: 700, y: 132, w: 1400, h: 8 },
       ...range(0, 13).map((i) => ({ kind: "bollard", x: 60 + i * 105, y: 146, r: 3.2 })),
       building(170, 330, 260, 200, { height: 48, color: 0xe8eef4, roof: 0x2f5f9a, sign: "FERRY TERMINAL", signColor: "#2f5f9a", signSide: "e" }),
       ...wallLine([[440, 210], [1030, 210], [1030, 430], [440, 430], [440, 210]], { kind: "kerb", thick: 6 }),
-      ...[500, 620, 740].map((x) => ({ kind: "kiosk", x, y: 700, w: 30, h: 22 })),
+      // The terminal is fenced off from the port road; the check-in booths
+      // are the only way in.
+      ...[500, 620, 740].map((x) => ({ kind: "kiosk", x, y: 718, w: 30, h: 26 })),
+      ...wallLine([[0, 722], [486, 722]], { kind: "wall", style: "white", height: 12, thick: 6 }),
+      ...wallLine([[754, 722], [1400, 722]], { kind: "wall", style: "white", height: 12, thick: 6 }),
+      ...roadTrees,
       ...stalls.filter((_, i) => [1, 3, 5, 7].includes(i)).map((b) => ({ kind: "vancaravan", x: b.x, y: b.y, a: b.a })),
       { kind: "lamp", x: 360, y: 470 }, { kind: "lamp", x: 760, y: 470 },
       ...wallLine([[760, 694], [1330, 694]], { kind: "hedge", thick: 10, maxLen: 60 }),
     ],
     decor: [{ kind: "ferry", x: 700, y: 40, w: 640, h: 110 }],
     cones: [],
-    start: { x: 140, y: 520, a: 0 },
+    start: { x: 150, y: 905, a: 0 },
     bay: { ...stalls[target], w: 46, l: 96 },
   });
 }
@@ -126,14 +144,25 @@ function oldTown() {
 
 // 14. Timber yard: between the log piles.
 function timberYard() {
-  const road1 = [[-40, 640], [200, 620], [420, 560], [640, 520]];
-  const forest = scatter(141, 90, [0, 0, 1300, 720], (x, y, r) => (r() < 0.7 ? { kind: "pine", x, y, r: 14 + r() * 8 } : tree(x, y, 16 + r() * 6)),
-    [[560, 120, 1300, 700], [-10, 560, 700, 700], [300, 460, 700, 600], [140, 560, 680, 690]]);
+  // A winding track up through the forest into the yard.
+  const road1 = [[-40, 660], [140, 650], [250, 590], [230, 480], [140, 400], [170, 280], [300, 210], [430, 250], [500, 360], [610, 410]];
+  const distToRoad = (x, y) => {
+    let best = Infinity;
+    for (let k = 0; k < road1.length - 1; k++) {
+      const [x0, y0] = road1[k], [x1, y1] = road1[k + 1];
+      const dx = x1 - x0, dy = y1 - y0, l2 = dx * dx + dy * dy;
+      const t = Math.max(0, Math.min(1, ((x - x0) * dx + (y - y0) * dy) / l2));
+      best = Math.min(best, Math.hypot(x - x0 - dx * t, y - y0 - dy * t));
+    }
+    return best;
+  };
+  const forest = scatter(141, 190, [0, 0, 1300, 720], (x, y, r) => (r() < 0.7 ? { kind: "pine", x, y, r: 14 + r() * 8 } : tree(x, y, 16 + r() * 6)),
+    [[575, 115, 1300, 700]]).filter((t) => distToRoad(t.x, t.y) > 58);
   return level({
-    id: "timber", vehicle: "pickup", name: "Timber yard", title: "Log Jam", trailer: "box", par: 85, sun: "golden",
-    brief: "Up the forest track into the timber yard, then reverse into the loading slot between the two log piles.",
+    id: "timber", vehicle: "pickup", name: "Timber yard", title: "Log Jam", trailer: "box", par: 100, sun: "golden",
+    brief: "Wind up the forest track into the timber yard, then reverse into the loading slot between the two log piles.",
     w: 1300, h: 720, base: "grass", edge: "fence", backdrop: "forest",
-    surfaces: [road("dirt", road1, 70), rect("gravel", 600, 140, 1260, 660, 30)],
+    surfaces: [road("dirt", road1, 64), rect("gravel", 600, 140, 1260, 660, 30)],
     paint: [],
     statics: [
       { kind: "logs", x: 1150, y: 235, w: 150, h: 50 }, { kind: "logs", x: 1150, y: 365, w: 150, h: 50 },
@@ -148,7 +177,7 @@ function timberYard() {
       ...forest,
     ],
     cones: [{ x: 1062, y: 268 }, { x: 1062, y: 332 }],
-    start: { x: 115, y: 630, a: -0.05 },
+    start: { x: 112, y: 652, a: -0.05 },
     bay: { x: 1150, y: 300, a: PI, w: 46, l: 70 },
   });
 }
@@ -157,18 +186,26 @@ function timberYard() {
 function beach() {
   const rows = [hrow(160, 200, 12, PI / 2), hrow(160, 330, 12, -PI / 2), hrow(900, 200, 12, PI / 2), hrow(900, 330, 12, -PI / 2)];
   const posts = rows.flatMap((r) => r.map((b) => ({ kind: "post", x: b.x - 15, y: b.y + Math.sin(b.a) * 28, r: 2 })));
+  // The start is a winding stretch between the rocks in the east; near the
+  // car park it joins the straight coast road.
+  const windPts = [[2040, 380], [1860, 380], [1740, 300], [1800, 190], [1660, 120], [1500, 160], [1380, 85], [1300, 75]];
+  const rocks = [...sample(windPts, 42, 62), ...sample(windPts, 42, -62)]
+    .filter((p) => p.x > 1330 && p.x < 1990 && p.y > 8 && p.y < 520)
+    .map((p, i) => ({ kind: "rock", x: p.x + ((i * 7) % 9) - 4, y: p.y + ((i * 5) % 7) - 3, r: 7 + ((i * 5) % 8) }))
+    // Keep every rock off the tarmac, also on the inside of the bends.
+    .filter((r) => distToLine(windPts, r.x, r.y) > 36 + r.r + 4 && (r.x > 1320 || r.y > 110 + r.r + 4 || r.y < 40 - r.r - 4));
   return level({
-    id: "beach", vehicle: "suv", name: "Beach", title: "Low Tide", trailer: "boat", par: 95, sun: "noon",
-    brief: "From the coast road through the sandy car park to the beach ramp. Reverse the boat down between the groynes.",
-    w: 1400, h: 760, base: "sand", edge: "none", backdrop: "dunes",
+    id: "beach", vehicle: "suv", name: "Beach", title: "Low Tide", trailer: "boat", par: 110, sun: "noon",
+    brief: "Wind through the rocks onto the coast road, follow it to the sandy car park, then reverse the boat down the beach ramp between the groynes.",
+    w: 2000, h: 760, base: "sand", edge: "none", backdrop: "dunes",
     surfaces: [
-      rect("water", -500, 610, 1900, 1300), rect("asphalt", 0, 40, 1400, 110), rect("ramp", 680, 440, 760, 690),
-      rect("sand", 0, 520, 1400, 612),
+      rect("water", -500, 610, 2600, 1300), rect("asphalt", 0, 40, 1320, 110), road("asphalt", windPts, 72), rect("ramp", 680, 440, 760, 690),
+      rect("sand", 0, 520, 2000, 612),
     ],
-    paint: [line([[0, 75], [1400, 75]], { dash: [20, 16] }), ...rows.map((r) => paintBays(r, "rgba(120,90,50,0.35)"))],
+    paint: [line([[0, 75], [1300, 75]], { dash: [20, 16] }), line(windPts.slice(1), { dash: [20, 16] }), ...rows.map((r) => paintBays(r, "rgba(120,90,50,0.35)"))],
     parked: rows.flatMap((r, i) => park(r, fill(12, 0.65, 150 + i), 155 + i)),
     statics: [
-      { kind: "water", x: 350, y: 700, w: 700, h: 180 }, { kind: "water", x: 1080, y: 700, w: 640, h: 180 },
+      { kind: "water", x: 350, y: 700, w: 700, h: 180 }, { kind: "water", x: 1380, y: 700, w: 1240, h: 180 },
       { kind: "water", x: 720, y: 736, w: 80, h: 64 },
       { kind: "wall", x: 672, y: 600, w: 180, h: 8, a: PI / 2, style: "stone", height: 10 },
       { kind: "wall", x: 768, y: 600, w: 180, h: 8, a: PI / 2, style: "stone", height: 10 },
@@ -177,9 +214,14 @@ function beach() {
       ...[[260, 560], [1000, 560], [1150, 555]].map(([x, y]) => ({ kind: "rock", x, y, r: 10 })),
       ...[380, 440, 500, 900, 960, 1020].map((x, i) => building(x, 490, 44, 34, { height: 22, color: [0xd33a2c, 0x2e86c1, 0xf2c230, 0x1e8449, 0xe67e22, 0x8e44ad][i], roof: 0xf2f2ee })),
       { kind: "lamp", x: 640, y: 150 }, { kind: "lamp", x: 800, y: 150 },
+      ...rocks,
+    ],
+    decor: [
+      { kind: "boat", x: 380, y: 720, a: 0.25, len: 64 }, { kind: "boat", x: 1010, y: 740, a: 2.9, len: 76 },
+      { kind: "boat", x: 1560, y: 700, a: -0.15, len: 56 },
     ],
     cones: [],
-    start: { x: 1250, y: 75, a: PI },
+    start: { x: 1860, y: 380, a: PI },
     bay: { x: 720, y: 560, a: -PI / 2, w: 44, l: 86 },
   });
 }
