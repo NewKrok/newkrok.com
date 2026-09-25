@@ -131,6 +131,38 @@ export function createSim({ onEvent = () => {} } = {}) {
     return rec;
   }
 
+  // Which surface is under a point: the last level surface that covers it
+  // (they are painted in order), else the level's base. Mud is the blob
+  // drawn inside its rectangle.
+  function surfaceAt(x, y) {
+    const list = S.level.surfaces;
+    for (let i = list.length - 1; i >= 0; i--) {
+      const s = list[i];
+      if (s.pts) {
+        const r = s.width / 2;
+        for (let k = 0; k < s.pts.length - 1; k++) {
+          const [x0, y0] = s.pts[k], [x1, y1] = s.pts[k + 1];
+          const dx = x1 - x0, dy = y1 - y0, l2 = dx * dx + dy * dy || 1;
+          const t = clamp(((x - x0) * dx + (y - y0) * dy) / l2, 0, 1);
+          if (Math.hypot(x - x0 - dx * t, y - y0 - dy * t) <= r) return s.k;
+        }
+      } else if (s.rad != null) {
+        if (Math.hypot(x - s.x, y - s.y) <= s.rad) return s.k;
+      } else if (s.poly) {
+        let inside = false;
+        for (let a = 0, b = s.poly.length - 1; a < s.poly.length; b = a++) {
+          const [xa, ya] = s.poly[a], [xb, yb] = s.poly[b];
+          if ((ya > y) !== (yb > y) && x < ((xb - xa) * (y - ya)) / (yb - ya) + xa) inside = !inside;
+        }
+        if (inside) return s.k;
+      } else if (s.k === "mud") {
+        const ex = (x - (s.x0 + s.x1) / 2) / ((s.x1 - s.x0) / 2), ey = (y - (s.y0 + s.y1) / 2) / ((s.y1 - s.y0) / 2);
+        if (ex * ex + ey * ey <= 0.8) return s.k;
+      } else if (x >= s.x0 && x <= s.x1 && y >= s.y0 && y <= s.y1) return s.k;
+    }
+    return S.level.base;
+  }
+
   // Props that sit loose on the ground (hay bales): pushed about by the rig,
   // slowed by ground friction, and a knock counts as a bump.
   const MOVABLE = new Set(["hay"]);
@@ -322,8 +354,19 @@ export function createSim({ onEvent = () => {} } = {}) {
   // One tyre: grip against sideways slip, drive / braking / rolling losses
   // along the wheel, all inside one friction circle. Applied to the wheel
   // body itself — the joints carry it into the chassis.
+  // Ground effects: mud drags hard and grips badly, sand drags a little,
+  // snow is slippery. { drag: m/s², grip: × mu, power: × drive }
+  const GROUND = {
+    mud: { drag: 1.4, grip: 0.65, power: 0.8 },
+    sand: { drag: 1.0, grip: 0.85, power: 0.85 },
+    snow: { drag: 0.2, grip: 0.7, power: 0.9 },
+  };
+  const LOOSE = new Set(["grass", "gravel", "dirt", "mud", "sand", "snow"]);
+
   function tyre(spec, w, share, drive, brake, engineBrake) {
     const b = w.body;
+    w.surf = surfaceAt(b.position.x, b.position.y);
+    const gnd = GROUND[w.surf];
     const a = b.rotation, c = Math.cos(a), s = Math.sin(a);
     const vx = b.velocity.x, vy = b.velocity.y;
     const vLong = vx * c + vy * s;
@@ -331,14 +374,16 @@ export function createSim({ onEvent = () => {} } = {}) {
     let jLat = -vLat * share * 0.85;
     let jLong;
     if (drive !== 0) {
-      jLong = drive * DT;
+      jLong = drive * DT * (gnd ? gnd.power : 1);
+      if (gnd?.drag) jLong -= Math.sign(vLong) * Math.min(Math.abs(vLong) * share, gnd.drag * M * share * DT);
     } else {
       let dec = spec.roll * M + (engineBrake ? spec.engineBrake * M : 0);
       if (brake) dec = spec.brake * M;
+      if (gnd?.drag) dec += gnd.drag * M;
       const kill = Math.min(Math.abs(vLong) * share, dec * share * DT);
       jLong = -Math.sign(vLong) * kill;
     }
-    const cap = spec.mu * share * G * DT;
+    const cap = spec.mu * (gnd ? gnd.grip : 1) * share * G * DT;
     const mag = Math.hypot(jLat, jLong);
     w.skid = 0;
     if (mag > cap) {
@@ -351,6 +396,11 @@ export function createSim({ onEvent = () => {} } = {}) {
     w.fLat = jLat / DT;
     w.spin += vLong * DT / w.r;
     w.vLong = vLong;
+    // A real slide: over the grip limit AND moving (a slow full-lock
+    // scrub while parking is not a skid).
+    const moving = Math.hypot(vx, vy);
+    w.sliding = moving > 18 ? clamp(w.skid * 1.6, 0, 1) * clamp((moving - 18) / 30, 0, 1) : 0;
+    w.loose = LOOSE.has(w.surf);
   }
 
   function driveVehicle(input) {
@@ -392,16 +442,17 @@ export function createSim({ onEvent = () => {} } = {}) {
     const driveF = dir * Math.abs(input.throttle) * spec.drive * M * v.carMass * curve;
     const share = v.carMass / 4;
     let skid = 0;
+    v.skidLoose = false;
     for (const w of v.wheels) {
       const driven = spec.driveRear ? !w.front : w.front;
       tyre(spec, w, share, driven ? driveF / 2 : 0, brake || hold, driven && dir === 0);
-      skid = Math.max(skid, w.skid);
+      if (w.sliding > skid) { skid = w.sliding; v.skidLoose = w.loose; }
     }
     const t = v.trailer;
     const tshare = t.mass / 2 * 0.9;
     for (const w of t.wheels) {
       tyre(spec, w, tshare, 0, hold && Math.abs(speed) < 1.5, false);
-      skid = Math.max(skid, w.skid);
+      if (w.sliding > skid) { skid = w.sliding; v.skidLoose = w.loose; }
     }
     v.skid = skid;
   }

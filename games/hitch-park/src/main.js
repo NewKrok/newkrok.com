@@ -513,7 +513,7 @@ function frame(now) {
   const driving = G.phase === "play";
   audio.drive({
     active: driving || G.phase === "done",
-    speed: v.speed, throttle: driving ? v.throttle : 0, skid: v.skid,
+    speed: v.speed, throttle: driving ? v.throttle : 0, skid: v.skid, loose: v.skidLoose,
     reverse: driving && v.gear < 0, clearance: driving && v.gear < 0 ? sim.rearClearance() : Infinity,
     hazard: driving && sim.parked.some((p) => p.hazard > 0), dt, truck: v.key === "truck",
   });

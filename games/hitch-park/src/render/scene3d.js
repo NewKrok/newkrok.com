@@ -1246,6 +1246,16 @@ export class Scene3D {
     lv.group.add(ghost);
     lv.guide = { dots, ghost };
 
+    // Skid marks: a ring buffer of dark strips laid behind sliding wheels.
+    const skidMat = owned(new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, depthWrite: false }));
+    const marks = new T.InstancedMesh(g.plane, skidMat, 3000);
+    marks.count = 0;
+    marks.frustumCulled = false;
+    marks.renderOrder = 1;
+    marks.setColorAt(0, new T.Color(0x1a1a1a));
+    lv.group.add(marks);
+    lv.skid = { mesh: marks, next: 0, last: [], hard: new T.Color(0x1a1a1a), loose: new T.Color(0x3b2c1c) };
+
     // The rig.
     const truck = sim.veh.key === "truck";
     const tailC = owned(new T.MeshStandardMaterial({ color: 0x5a0a0a, emissive: 0xff1a1a, emissiveIntensity: 0.3, roughness: 0.3 }));
@@ -1438,6 +1448,30 @@ export class Scene3D {
       const on = p.rec.hazard > 0 && Math.floor(p.rec.hazard * 3) % 2 === 0;
       p.hz.emissiveIntensity = on ? 3.2 : 0.05;
     }
+    // Skid marks from every wheel of the rig that is really sliding.
+    const sk = lv.skid, dm = this.dummy;
+    let added = false;
+    [...v.wheels, ...v.trailer.wheels].forEach((w, i) => {
+      const p = w.body.position, last = sk.last[i];
+      if (!(w.sliding > 0.15)) { sk.last[i] = null; return; }
+      if (!last) { sk.last[i] = { x: p.x, y: p.y }; return; }
+      const dx = p.x - last.x, dy = p.y - last.y, dist = Math.hypot(dx, dy);
+      if (dist < 2.5) return;
+      if (dist < 30) {
+        dm.position.set((p.x + last.x) / 2, -(p.y + last.y) / 2, 0.52);
+        dm.rotation.set(0, 0, -Math.atan2(dy, dx));
+        dm.scale.set(dist + 0.6, w.w * 0.9, 1);
+        dm.updateMatrix();
+        sk.mesh.setMatrixAt(sk.next, dm.matrix);
+        sk.mesh.setColorAt(sk.next, w.loose ? sk.loose : sk.hard);
+        sk.next = (sk.next + 1) % sk.mesh.instanceMatrix.count;
+        sk.mesh.count = Math.min(sk.mesh.count + 1, sk.mesh.instanceMatrix.count);
+        added = true;
+      }
+      sk.last[i] = { x: p.x, y: p.y };
+    });
+    if (added) { sk.mesh.instanceMatrix.needsUpdate = true; sk.mesh.instanceColor.needsUpdate = true; }
+
     for (const mv of lv.movables) {
       const b = mv.rec.body;
       mv.grp.position.set(b.position.x, -b.position.y, 0);

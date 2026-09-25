@@ -194,14 +194,23 @@ export class Audio {
     const lfoG = c.createGain(); lfoG.gain.value = 0.6;
     lfo.connect(lfoG); lfoG.connect(o1.frequency); lfoG.connect(o2.frequency);
     o1.start(); o2.start(); o3.start(); rum.start(); lfo.start();
-    // Tyre squeal: band-passed noise.
-    const sq = c.createBufferSource();
-    sq.buffer = this.noiseBuf; sq.loop = true;
-    const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1900; bp.Q.value = 6;
+    // Tyre squeal on hard ground: a wavering tone, not a hiss.
+    const sqO = c.createOscillator(); sqO.type = "sawtooth"; sqO.frequency.value = 920;
+    const sqV = c.createOscillator(); sqV.frequency.value = 9;
+    const sqVG = c.createGain(); sqVG.gain.value = 45;
+    sqV.connect(sqVG).connect(sqO.frequency);
+    const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1150; bp.Q.value = 3;
     const sg = c.createGain(); sg.gain.value = 0;
-    sq.connect(bp).connect(sg).connect(this.sfx);
-    sq.start();
-    this.engine = { o1, o2, o3, lp, gain, sg, bp };
+    sqO.connect(bp).connect(sg).connect(this.sfx);
+    sqO.start(); sqV.start();
+    // On loose ground a slide is a crunch of gravel / dirt.
+    const cr = c.createBufferSource();
+    cr.buffer = this.noiseBuf; cr.loop = true;
+    const cbp = c.createBiquadFilter(); cbp.type = "bandpass"; cbp.frequency.value = 520; cbp.Q.value = 0.7;
+    const cg = c.createGain(); cg.gain.value = 0;
+    cr.connect(cbp).connect(cg).connect(this.sfx);
+    cr.start();
+    this.engine = { o1, o2, o3, lp, gain, sg, bp, sqO, cg };
   }
 
   // state: { active, speed (px/s), throttle (−1…1), skid (0…1), reverse,
@@ -218,9 +227,10 @@ export class Audio {
     e.o3.frequency.setTargetAtTime(rpm * 2, t, 0.12);
     e.lp.frequency.setTargetAtTime(220 + load * 260 + sp * 18, t, 0.15);
     e.gain.gain.setTargetAtTime(s.active ? (0.07 + load * 0.06 + sp * 0.003) * 1.15 : 0, t, 0.15);
-    const sk = s.active ? clamp(s.skid * 1.4, 0, 1) * clamp(sp / 2, 0, 1) : 0;
-    e.sg.gain.setTargetAtTime(sk * 0.12, t, 0.05);
-    e.bp.frequency.setTargetAtTime(1700 + sk * 600, t, 0.1);
+    const sk = s.active ? clamp(s.skid, 0, 1) : 0;
+    e.sg.gain.setTargetAtTime(s.loose ? 0 : sk * 0.07, t, 0.05);
+    e.sqO.frequency.setTargetAtTime(820 + sk * 260 + sp * 12, t, 0.08);
+    e.cg.gain.setTargetAtTime(s.loose ? sk * 0.16 : 0, t, 0.05);
 
     // Reversing / parking sensor: the closer the tail is to something, the
     // faster it beeps; very close is a steady tone.
