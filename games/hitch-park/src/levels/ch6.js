@@ -1,6 +1,6 @@
 import {
   PI, level, hrow, angledRow, park, fill, car, rect, road, paintBays, line, arrow, text, zebra,
-  YELLOW, building, tree, sample, wallLine, range, containers, parkedSemi,
+  YELLOW, building, tree, sample, wallLine, range, containers, parkedSemi, smooth, hatch,
 } from "./kit.js";
 
 // ── Chapter 6 — Big rigs ─────────────────────────────────────────────────
@@ -42,28 +42,41 @@ function distribution() {
   });
 }
 
-// 27. Truck stop: an angled lorry bay between the sleepers.
+// 27. Truck stop: in off the road, then an angled bay between the sleepers,
+// with a row of parked lorries narrowing the aisle.
 function truckStop() {
   const a = -PI / 2 + 0.6;
   const bays = angledRow(360, 330, 12, a, { w: 56, l: 210 });
   const target = 7;
+  const rd = smooth([[-40, 1110], [700, 1110], [1060, 1070], [1290, 960], [1380, 820], [1380, 660]]);
+  const verge = [...sample(rd, 80, 92), ...sample(rd, 80, -92)].filter((p) => p.y > 800 && p.y < 1180 && p.x > 20).map((p) => tree(p.x, p.y, 18));
+  // The next row over: lorries and vans parked side on.
+  const row = [[300, "lorry"], [430, "van"], [560, "lorry"], [720, "lorry"], [850, "van"], [980, "lorry"], [1130, "lorry"]]
+    .map(([x, t], i) => car(x, 700, 0, t, [0xf2f0e6, 0x2e86c1, 0xd9a13a, 0x8a1f24, 0x2f6b4a, 0xb8bcc2, 0x5b4a8a][i]));
   return level({
-    id: "truckstop", name: "Truck stop", title: "Night Shift", vehicle: "truck", trailer: "semi", par: 120, sun: "dusk",
-    brief: "Park up for the night. The bays slant across the lorry park: drive past the free one and reverse in between the sleepers.",
+    id: "truckstop", name: "Truck stop", title: "Night Shift", vehicle: "truck", trailer: "semi", par: 170, sun: "dusk",
+    brief: "Park up for the night. Off the road and through the gate, then back along the aisle past the parked lorries. Drive past the free bay and reverse in between the sleepers.",
     w: 2000, h: 1200, edge: "rail", backdrop: "fields",
-    surfaces: [rect("concrete", 1500, 700, 1950, 1000), road("asphalt", [[-40, 1080], [600, 1080], [900, 900], [1400, 850]], 110)],
-    paint: [paintBays(bays), paintBays([{ ...bays[target], w: 58 }], YELLOW), text(1100, 560, "HGV PARKING", { size: 22, color: YELLOW }), arrow(700, 640, 0), arrow(1300, 640, 0)],
-    parked: [car(1650, 1060, 0, "sedan"), car(1720, 1060, 0, "hatch")],
+    surfaces: [rect("grass", 0, 780, 1320, 1200), rect("grass", 1440, 1010, 2000, 1200), rect("concrete", 1500, 700, 1950, 1000), road("asphalt", rd, 110)],
+    paint: [paintBays(bays), paintBays([{ ...bays[target], w: 58 }], YELLOW), text(1100, 560, "HGV PARKING", { size: 22, color: YELLOW }), arrow(1200, 570, PI), arrow(600, 570, PI), arrow(1380, 740, -PI / 2)],
+    parked: [car(1650, 1060, 0, "sedan"), car(1720, 1060, 0, "hatch"), ...row],
     statics: [
-      ...bays.filter((_, i) => i !== target && i !== 3 && i !== 10).map((b, i) => semiAt(b.x - Math.cos(a) * 18, b.y - Math.sin(a) * 18, a, i + 2, i === 3 ? "NEWKROK GAMES" : i === 6 ? "THREE.JS" : null)),
+      // Everyone has backed in, cab towards the aisle.
+      ...bays.filter((_, i) => i !== target && i !== 3 && i !== 10).map((b, i) => semiAt(b.x + Math.cos(a) * 18, b.y + Math.sin(a) * 18, a + PI, i + 2, i === 3 ? "NEWKROK GAMES" : i === 6 ? "THREE.JS" : null)),
+      // A hedge right behind the bays: they can only be reached from the aisle.
+      ...wallLine([[200, 200], [1300, 200]], { kind: "hedge", thick: 10, maxLen: 60 }),
       building(1720, 820, 360, 180, { height: 40, color: 0xd33a2c, roof: 0xf2f2ee, sign: "JOE'S DINER", signColor: "#ffffff", lit: true }),
       ...[1560, 1660, 1760, 1860].map((x) => ({ kind: "pump", x, y: 620, w: 16, h: 70 })),
-      ...[400, 800, 1200].map((x) => ({ kind: "lamp", x, y: 720 })), { kind: "lamp", x: 1600, y: 1000 },
-      ...sample([[0, 1160], [2000, 1160]], 70, 0).map((p) => tree(p.x, p.y, 20)),
+      // The lorry park is hedged off from the road; the gate is at the east end.
+      ...wallLine([[0, 780], [1318, 780]], { kind: "hedge", thick: 10, maxLen: 60 }),
+      ...wallLine([[1442, 780], [1442, 1010], [2000, 1010]], { kind: "hedge", thick: 10, maxLen: 60 }),
+      ...[400, 800, 1200].map((x) => ({ kind: "lamp", x, y: 752, a: -PI / 2 })), { kind: "lamp", x: 1600, y: 990 },
+      ...verge,
     ],
     cones: [],
-    start: { x: 180, y: 1080, a: 0 },
-    bay: { ...bays[target], w: 58, l: 210 },
+    start: { x: 180, y: 1110, a: 0 },
+    // Tractor out towards the aisle: the trailer has to be backed in.
+    bay: { ...bays[target], a: a + PI, w: 58, l: 210 },
   });
 }
 
@@ -95,46 +108,50 @@ function port() {
   });
 }
 
-// 29. Town delivery: blind-side into the supermarket's service yard.
+// 29. Town delivery: in through the gate, then back the trailer round a
+// right angle onto the dock at the far end of the service yard.
 function delivery() {
   const kerbCars = [300, 420, 560, 700, 1480, 1620, 1760].map((x, i) => car(x, 792, 0, ["sedan", "hatch", "wagon", "suv", "van", "sedan", "hatch"][i]));
   const shops = [];
   let x = 0, i = 0;
   while (x < 2000) {
     const w = 120 + ((i * 53) % 90);
-    if (!(x + w > 1060 && x < 1380)) shops.push(building(x + w / 2, 430, w - 3, 260, { height: 50 + (i % 4) * 12, color: [0xd8c3a5, 0xb8866a, 0xe8e0d0, 0xc9b79c, 0xa0705a, 0x8e9aa6][i % 6], roof: 0x5a4a44 }));
+    if (!(x + w > 1040 && x < 1610)) shops.push(building(x + w / 2, 430, w - 3, 260, { height: 50 + (i % 4) * 12, color: [0xd8c3a5, 0xb8866a, 0xe8e0d0, 0xc9b79c, 0xa0705a, 0x8e9aa6][i % 6], roof: 0x5a4a44 }));
     x += w; i++;
   }
   const south = [];
   x = 0; i = 3;
   while (x < 2000) { const w = 130 + ((i * 41) % 80); south.push(building(x + w / 2, 960, w - 3, 160, { height: 44 + (i % 3) * 14, color: [0xc9b79c, 0x8e9aa6, 0xd6c8b0, 0xb8866a][i % 4], roof: 0x5a4a44 })); x += w; i++; }
+  const bay = { x: 1478, y: 490, a: PI, w: 54, l: 190 };
+  const brick = { kind: "wall", style: "brick", height: 26 };
   return level({
-    id: "delivery", name: "High street", title: "Service Yard", vehicle: "truck", trailer: "semi", par: 140, sun: "deck",
-    brief: "Morning delivery. Reverse the trailer off the high street, through the narrow gate, into the supermarket's service yard.",
+    id: "delivery", name: "High street", title: "Service Yard", vehicle: "truck", trailer: "semi", par: 170, sun: "deck",
+    brief: "Morning delivery. Pull in through the gate off the high street, then reverse the trailer round the corner onto the supermarket's dock at the end of the yard.",
     w: 2000, h: 1100, base: "asphalt", edge: "none", backdrop: "town",
-    surfaces: [rect("pavement", 0, 560, 2000, 600), rect("pavement", 0, 820, 2000, 860), rect("concrete", 1110, 280, 1330, 560)],
+    surfaces: [rect("pavement", 0, 560, 2000, 600), rect("pavement", 0, 820, 2000, 860), rect("concrete", 1060, 210, 1590, 560), rect("concrete", 1060, 560, 1260, 600)],
     paint: [
       line([[0, 710], [860, 710]], { dash: [24, 20] }), line([[940, 710], [2000, 710]], { dash: [24, 20] }),
-      paintBays([{ x: 1220, y: 440, a: PI / 2, w: 54, l: 190 }], YELLOW), text(1220, 580, "DELIVERIES ONLY", { size: 12, color: YELLOW }),
-      // Pedestrian crossing across the street: stripes run with the traffic.
+      paintBays([bay], YELLOW), text(1160, 580, "DELIVERIES ONLY", { size: 12, color: YELLOW }), hatch(1400, 222, 1580, 290),
       zebra(900, 710, PI / 2, 208, 40),
     ],
-    parked: kerbCars,
+    parked: [...kerbCars, car(1330, 240, 0, "van", 0xf2f0e6)],
     statics: [
       ...shops, ...south,
-      building(1220, 150, 440, 260, { height: 60, color: 0x2e86c1, roof: 0x3b3f45, sign: "FRESHMART", signColor: "#ffffff" }),
-      { kind: "wall", x: 1095, y: 420, a: PI / 2, w: 290, h: 10, style: "brick", height: 26 },
-      { kind: "wall", x: 1345, y: 420, a: PI / 2, w: 290, h: 10, style: "brick", height: 26 },
-      { kind: "kerb", x: 540, y: 598, w: 1080, h: 6 }, { kind: "kerb", x: 1690, y: 598, w: 620, h: 6 },
+      building(1330, 105, 660, 190, { height: 60, color: 0x2e86c1, roof: 0x3b3f45, sign: "FRESHMART", signColor: "#ffffff" }),
+      // The yard: gate on the street at the west end, dock wall at the east end.
+      { ...brick, x: 1054, y: 385, a: PI / 2, w: 370, h: 10 }, { ...brick, x: 1592, y: 385, a: PI / 2, w: 370, h: 10 },
+      { ...brick, x: 1426, y: 562, w: 342, h: 10 },
+      { kind: "kerb", x: 530, y: 598, w: 1060, h: 6 }, { kind: "kerb", x: 1630, y: 598, w: 740, h: 6 },
       { kind: "kerb", x: 1000, y: 820, w: 2000, h: 6 },
-      // A builder's skip on the far side of the gate: less room to pull forward.
+      // Roll cages and the compactor take a bite out of the turning room.
+      { kind: "crates", x: 1080, y: 330, w: 34, h: 60 }, { kind: "block", x: 1520, y: 250, w: 110, h: 56, height: 30, color: 0x5d6d4a },
       { kind: "skip", x: 1640, y: 628, w: 60, h: 28, color: 0xe8c547 },
-      ...[200, 600, 1000, 1500, 1900].map((x) => ({ kind: "lamp", x, y: 575 })),
+      ...[200, 600, 1000, 1500, 1900].map((x) => ({ kind: "lamp", x, y: 575, a: -PI / 2 })),
       { kind: "barrier", x: 6, y: 710, w: 6, h: 210 }, { kind: "barrier", x: 1994, y: 710, w: 6, h: 210 },
     ],
     cones: [],
     start: { x: 180, y: 690, a: 0 },
-    bay: { x: 1220, y: 440, a: PI / 2, w: 54, l: 190 },
+    bay,
   });
 }
 
@@ -143,7 +160,7 @@ function ferryDeck() {
   const hull = [[700, 380], [700, 60], [1300, 60], [1300, 380]];
   return level({
     id: "ferrydeck", name: "Ferry terminal", title: "Last Aboard", vehicle: "truck", trailer: "semi", par: 150, sun: "night",
-    brief: "The night ferry is waiting for you. Reverse the trailer up the stern ramp and onto the lorry deck, between the other trailers.",
+    brief: "The night ferry is waiting for you. Weave through the check-in queue, then reverse the trailer up the stern ramp and onto the lorry deck, between the other trailers.",
     w: 2000, h: 1000, base: "concrete", edge: "rail", backdrop: "town",
     // The sea round the ship, leaving out its deck and the stern ramp.
     surfaces: [
@@ -155,7 +172,13 @@ function ferryDeck() {
       paintBays([{ x: 1000, y: 230, a: PI / 2, w: 58, l: 192 }], YELLOW), line([[0, 720], [2000, 720]], { dash: [28, 22] }),
       ...range(0, 6).map((r) => line([[200 + r * 280, 520], [200 + r * 280, 640]], { color: YELLOW })), text(1600, 900, "FREIGHT CHECK-IN", { size: 16, color: YELLOW }),
     ],
-    parked: [car(1500, 580, 0, "lorry", 0xf2f0e6), car(400, 580, 0, "lorry", 0x2f6b4a)],
+    parked: [
+      car(1500, 580, 0, "lorry", 0xf2f0e6), car(400, 580, 0, "lorry", 0x2f6b4a),
+      // Cars queueing for the ferry, then a block of waiting lorries: an S
+      // through the check-in before you can line up on the ramp.
+      ...[500, 570, 640, 710].flatMap((x, i) => [car(x, 800, 0, ["sedan", "hatch", "suv", "wagon"][i]), car(x + 10, 854, 0, ["van", "sedan", "hatch", "suv"][i])]),
+      car(960, 700, 0, "lorry", 0xd9a13a), car(960, 745, 0, "lorry", 0x3d6fb6), car(960, 790, 0, "lorry", 0x8a1f24),
+    ],
     statics: [
       ...wallLine(hull, { kind: "wall", style: "hull", thick: 12, height: 46, skip: (x, y) => y > 370 && x > 930 && x < 1070 }),
       { kind: "wall", x: 820, y: 382, w: 240, h: 12, style: "hull", height: 46 }, { kind: "wall", x: 1180, y: 382, w: 240, h: 12, style: "hull", height: 46 },
@@ -169,7 +192,7 @@ function ferryDeck() {
     ],
     decor: [{ kind: "ferryhull", x: 1000, y: 220, w: 640, h: 360 }],
     cones: [{ x: 930, y: 520 }, { x: 1070, y: 520 }],
-    start: { x: 250, y: 800, a: 0 },
+    start: { x: 250, y: 725, a: 0 },
     bay: { x: 1000, y: 230, a: PI / 2, w: 58, l: 192 },
   });
 }

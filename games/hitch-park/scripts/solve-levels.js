@@ -408,10 +408,10 @@ const VIA = {
   farm: [{ x: 1640, y: 360, a: PI / 2, w: 60, l: 130 }],
   festival: [{ x: 820, y: 600, a: 0, w: 60, l: 140 }, { x: 1330, y: 600, a: 0, w: 60, l: 130 }],
   dc: [{ x: 1200, y: 560, a: 0, w: 90, l: 200 }],
-  truckstop: [{ x: 980, y: 560, a: 0, w: 90, l: 200 }],
+  truckstop: [{ x: 1380, y: 700, a: -PI / 2, w: 90, l: 220 }, { x: 640, y: 560, a: PI, w: 90, l: 220 }],
   port: [{ x: 1320, y: 455, a: 0, w: 90, l: 200 }],
-  delivery: [{ x: 1360, y: 690, a: 0, w: 80, l: 200 }],
-  ferrydeck: [{ x: 1150, y: 700, a: 0, w: 90, l: 220 }],
+  delivery: [{ x: 1160, y: 340, a: -PI / 2, w: 80, l: 220 }],
+  ferrydeck: [{ x: 700, y: 735, a: 0, w: 70, l: 220 }, { x: 980, y: 880, a: 0, w: 90, l: 220 }, { x: 1250, y: 700, a: 0, w: 90, l: 220 }],
 };
 
 // Try the strategies in turn: forward search (straight-line heuristic),
