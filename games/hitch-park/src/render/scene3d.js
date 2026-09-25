@@ -322,7 +322,8 @@ export class Scene3D {
     const r = (o.wheelR ?? VEHICLES.car.wheelR) * M, ww = (o.wheelW ?? VEHICLES.car.wheelW) * M;
     const axF = o.wheelbase ? o.wheelbase / 2 * M : L / 2 - 0.9 * M;
     const axR = o.wheelbase ? -o.wheelbase / 2 * M : -(L / 2 - 0.95 * M);
-    const wy = W / 2 - ww / 2 + 0.3;
+    // Tyres stand a pixel proud of the body so their faces never share a plane with it.
+    const wy = W / 2 - ww / 2 + 1.1;
     const wheels = [];
     const wheelParts = (PP, x, y) => {
       PP.add(g.cyl, g.tire, x, y, r, 0, r, ww, r);
@@ -442,7 +443,8 @@ export class Scene3D {
     const out = { body, wheels: [], L, W, bedZ };
     for (const w of wheels) {
       const pivot = new T.Group();
-      pivot.position.set(w.lx, w.ly, r);
+      // Caravan wheels sit under the body: keep their faces clear of its sides.
+      pivot.position.set(w.lx, w.ly + Math.sign(w.ly) * (key === "caravan" ? 1.4 : 0), r);
       const spin = new T.Group();
       const tire = new T.Mesh(g.cyl, g.tire);
       tire.scale.set(r, ww, r);
@@ -1287,7 +1289,7 @@ export class Scene3D {
     for (const sd of [-1, 1]) P.add(g.box, o.tailMat || g.tail, -L / 2 + 0.3, sd * (W / 2 - 3), 10, 0, 0.8, 4, 2);
     if (o.revMat) for (const sd of [-1, 1]) P.add(g.box, o.revMat, -L / 2 + 0.3, sd * (W / 2 - 7), 10, 0, 0.8, 2.4, 1.6);
     const r = v.wheelR * M, ww = v.wheelW * M;
-    const ax = v.wheelbase / 2 * M, wy = W / 2 - ww / 2;
+    const ax = v.wheelbase / 2 * M, wy = W / 2 - ww / 2 + 1.2;
     const wheels = [];
     const body = P.merged();
     for (const [lx, ly, front] of [[ax, wy, true], [ax, -wy, true], [-ax, wy, false], [-ax, -wy, false]]) {
@@ -1369,15 +1371,15 @@ export class Scene3D {
     const P = this.parts();
     const paint = this.paintMat(color);
     const cabL = L * 0.26;
-    P.add(g.box, paint, L / 2 - cabL / 2, 0, 20, 0, cabL, W, 28);
+    P.add(g.box, paint, L / 2 - cabL / 2, 0, 20, 0, cabL, W - 0.6, 28);
     P.add(g.box, g.glass, L / 2 + 0.1, 0, 27, 0, 0.6, W - 4, 10);
-    P.add(g.box, g.white, -cabL / 2, 0, 8 + (H - 8) / 2, 0, L - cabL - 1, W, H - 8);
+    P.add(g.box, g.white, -cabL / 2, 0, 8 + (H - 8) / 2, 0, L - cabL - 1, W - 0.6, H - 8);
     P.add(g.box, g.darkMetal, 0, 0, 6, 0, L - 4, W * 0.6, 4);
     for (const sd of [-1, 1]) P.add(g.box, g.head, L / 2 + 0.4, sd * (W / 2 - 4), 10, 0, 0.8, 5, 2.4);
     for (const sd of [-1, 1]) P.add(g.box, g.tail, -L / 2 + 0.3, sd * (W / 2 - 3), 8, 0, 0.8, 4, 2);
     if (o.hazardMat) for (const [sx, sy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) P.add(g.box, o.hazardMat, sx * (L / 2 - 2), sy * (W / 2 + 0.05), 10, 0, 3, 0.6, 1.6);
     const r = 6, ww = 4;
-    for (const lx of [L / 2 - cabL * 0.55, -L / 2 + 16]) for (const sd of [-1, 1]) P.add(g.cyl, g.tire, lx, sd * (W / 2 - ww / 2), r, 0, r, ww, r);
+    for (const lx of [L / 2 - cabL * 0.55, -L / 2 + 16]) for (const sd of [-1, 1]) P.add(g.cyl, g.tire, lx, sd * (W / 2 - ww / 2 + 1.2), r, 0, r, ww, r);
     return { body: P.merged(), wheels: [], L, W, H };
   }
 
