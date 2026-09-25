@@ -228,9 +228,9 @@ export class Audio {
     e.lp.frequency.setTargetAtTime(220 + load * 260 + sp * 18, t, 0.15);
     e.gain.gain.setTargetAtTime(s.active ? (0.07 + load * 0.06 + sp * 0.003) * 1.15 : 0, t, 0.15);
     const sk = s.active ? clamp(s.skid, 0, 1) : 0;
-    e.sg.gain.setTargetAtTime(s.loose ? 0 : sk * 0.021, t, 0.05);
+    e.sg.gain.setTargetAtTime(s.loose ? 0 : sk * 0.018, t, 0.05);
     e.sqO.frequency.setTargetAtTime(820 + sk * 260 + sp * 12, t, 0.08);
-    e.cg.gain.setTargetAtTime(s.loose ? sk * 0.048 : 0, t, 0.05);
+    e.cg.gain.setTargetAtTime(s.loose ? sk * 0.041 : 0, t, 0.05);
 
     // Reversing / parking sensor: the closer the tail is to something, the
     // faster it beeps; very close is a steady tone.
