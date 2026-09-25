@@ -90,6 +90,21 @@ export function sample(pts, spacing, offset = 0, from = 0) {
   return out;
 }
 
+// Rounds a polyline's corners (Chaikin corner cutting); the two ends stay.
+export function smooth(pts, iterations = 3) {
+  let out = pts;
+  for (let it = 0; it < iterations; it++) {
+    const next = [out[0]];
+    for (let i = 0; i < out.length - 1; i++) {
+      const [x0, y0] = out[i], [x1, y1] = out[i + 1];
+      next.push([x0 * 0.75 + x1 * 0.25, y0 * 0.75 + y1 * 0.25], [x0 * 0.25 + x1 * 0.75, y0 * 0.25 + y1 * 0.75]);
+    }
+    next.push(out[out.length - 1]);
+    out = next;
+  }
+  return out;
+}
+
 // Shortest distance (px) from a point to a polyline.
 export function distToLine(pts, x, y) {
   let best = Infinity;

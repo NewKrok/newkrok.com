@@ -1,6 +1,6 @@
 import {
   PI, level, hrow, angledRow, park, fill, car, rect, road, paintBays, line, arrow, text, zebra,
-  YELLOW, building, tree, scatter, sample, offsetLine, wallLine, range, distToLine,
+  YELLOW, building, tree, scatter, sample, offsetLine, wallLine, range, distToLine, smooth,
 } from "./kit.js";
 
 // ── Chapter 3 — Out of town ──────────────────────────────────────────────
@@ -188,18 +188,18 @@ function beach() {
   const posts = rows.flatMap((r) => r.map((b) => ({ kind: "post", x: b.x - 15, y: b.y + Math.sin(b.a) * 28, r: 2 })));
   // The start is a winding stretch between the rocks in the east; near the
   // car park it joins the straight coast road.
-  const windPts = [[2040, 380], [1860, 380], [1740, 300], [1800, 190], [1660, 120], [1500, 160], [1380, 85], [1300, 75]];
-  const rocks = [...sample(windPts, 42, 62), ...sample(windPts, 42, -62)]
+  const windPts = smooth([[2040, 380], [1860, 380], [1740, 300], [1800, 190], [1660, 120], [1500, 160], [1380, 85], [1300, 75]]);
+  const rocks = [...sample(windPts, 42, 66), ...sample(windPts, 42, -66)]
     .filter((p) => p.x > 1330 && p.x < 1990 && p.y > 8 && p.y < 520)
     .map((p, i) => ({ kind: "rock", x: p.x + ((i * 7) % 9) - 4, y: p.y + ((i * 5) % 7) - 3, r: 7 + ((i * 5) % 8) }))
     // Keep every rock off the tarmac, also on the inside of the bends.
-    .filter((r) => distToLine(windPts, r.x, r.y) > 36 + r.r + 4 && (r.x > 1320 || r.y > 110 + r.r + 4 || r.y < 40 - r.r - 4));
+    .filter((r) => distToLine(windPts, r.x, r.y) > 40 + r.r + 4 && (r.x > 1320 || r.y > 110 + r.r + 4 || r.y < 40 - r.r - 4));
   return level({
     id: "beach", vehicle: "suv", name: "Beach", title: "Low Tide", trailer: "boat", par: 110, sun: "noon",
     brief: "Wind through the rocks onto the coast road, follow it to the sandy car park, then reverse the boat down the beach ramp between the groynes.",
     w: 2000, h: 760, base: "sand", edge: "none", backdrop: "dunes",
     surfaces: [
-      rect("water", -500, 610, 2600, 1300), rect("asphalt", 0, 40, 1320, 110), road("asphalt", windPts, 72), rect("ramp", 680, 440, 760, 690),
+      rect("water", -500, 610, 2600, 1300), rect("asphalt", 0, 40, 1320, 110), road("asphalt", windPts, 80), rect("ramp", 680, 440, 760, 690),
       rect("sand", 0, 520, 2000, 612),
     ],
     paint: [line([[0, 75], [1300, 75]], { dash: [20, 16] }), line(windPts.slice(1), { dash: [20, 16] }), ...rows.map((r) => paintBays(r, "rgba(120,90,50,0.35)"))],
