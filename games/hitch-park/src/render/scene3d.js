@@ -432,8 +432,8 @@ export class Scene3D {
       for (const [x, w] of [[L * 0.25, 12], [-L * 0.22, 14]]) for (const sd of [-1, 1]) P.add(g.box, g.glass, x, sd * (W / 2 + 0.25), z0 + 14, 0, w, 0.5, 6);
       P.add(g.box, g.glass, hl + 0.3, 0, z0 + 13, 0, 0.6, W - 8, 5);
       P.add(g.box, this.paintMat(0xdad6ca), -L * 0.02, -W / 2 - 0.25, z0 + 9.5, 0, 6.5, 0.5, 15);
-      P.add(g.box, this.paintMat(0xe0e3e7), -L * 0.1, 0, H + 0.8, 0, 12, 9, 1.6);
-      P.add(g.box, this.paintMat(0xd0d4d8), L * 0.2, 0, H + 0.5, 0, 6, 6, 1);
+      P.add(g.box, this.paintMat(0xe0e3e7), -L * 0.1, 0, H + 1.9, 0, 12, 9, 1.6);
+      P.add(g.box, this.paintMat(0xd0d4d8), L * 0.2, 0, H + 1.7, 0, 6, 6, 1.2);
       P.add(g.box, this.paintMat(0xe7e2d6), hl + 5, 0, bedZ + 2, 0, 5, 7, 4);
       for (const sd of [-1, 1]) P.add(g.box, tail, -hl - 0.3, sd * (W / 2 - 2.6), z0 + 3, 0, 0.6, 3.6, 2.2);
       P.add(g.box, g.trim, -hl - 0.1, 0, z0 + 0.6, 0, 1, W - 1, 1.4);
