@@ -6,10 +6,10 @@ const KEY_PROGRESS = "hitch-park.progress.v2";
 const KEY_SETTINGS = "hitch-park.settings.v1";
 
 const read = (key) => {
-  try { return JSON.parse(localStorage.getItem(key) || "null"); } catch (_) { return null; }
+  try { return JSON.parse(localStorage.getItem(key) || "null"); } catch { return null; }
 };
 const write = (key, value) => {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) { /* private mode */ }
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode */ }
 };
 
 export const DEFAULT_SETTINGS = {

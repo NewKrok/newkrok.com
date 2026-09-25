@@ -1,6 +1,6 @@
 import {
-  PI, level, hrow, vrow, angledRow, park, fill, car, rect, road, disc, paintBays, line, arrow, text, zebra, hatch,
-  YELLOW, WHITE, building, tree, pine, shed, scatter, sample, offsetLine, wallLine, range,
+  PI, level, hrow, park, car, rect, road, disc, paintBays, line, YELLOW, building, tree,
+  pine, shed, scatter, offsetLine, wallLine, range,
 } from "./kit.js";
 
 // ── Chapter 5 — Master of the tow ────────────────────────────────────────
@@ -18,7 +18,7 @@ function mountain() {
   const pines = scatter(211, 120, [0, 0, 1400, 900], (x, y, r) => pine(x, y, 14 + r() * 10),
     [[880, 100, 1400, 440], [-50, 760, 700, 900], [560, 560, 980, 800], [240, 180, 1000, 520], [200, 240, 420, 560], [1000, 0, 1400, 120]]);
   return level({
-    id: "mountain", name: "Mountain lodge", title: "Switchbacks", trailer: "caravan", par: 130, sun: "noon",
+    id: "mountain", vehicle: "suv", name: "Mountain lodge", title: "Switchbacks", trailer: "caravan", par: 130, sun: "noon",
     brief: "Tow the caravan up the snowy switchbacks to the lodge, then reverse it into the free bay at the far side of the car park.",
     w: 1400, h: 900, base: "snow", edge: "none", backdrop: "mountains",
     surfaces: [road("asphalt", rd, 84), disc("asphalt", 860, 600, 140), disc("asphalt", 320, 320, 140), rect("asphalt", 880, 120, 1380, 430, 20)],
@@ -43,7 +43,7 @@ function harbourWall() {
   const quayCars = [car(90, 182, 0, "van", 0xf2f0e6), car(200, 182, 0, "sedan"), car(330, 182, 0, "hatch"), car(470, 182, 0, "van", 0x3d6fb6),
     car(820, 182, 0, "suv"), car(930, 182, 0, "van", 0xd9342b), car(1060, 182, 0, "wagon"), car(1190, 182, 0, "hatch")];
   return level({
-    id: "harbour", name: "Fishing harbour", title: "Quayside", trailer: "caravan", par: 120, sun: "night",
+    id: "harbour", vehicle: "suv", name: "Fishing harbour", title: "Quayside", trailer: "caravan", par: 120, sun: "night",
     brief: "The last space on the quay, under the lamps. Parallel-park the caravan between the vans — the harbour wall is right there.",
     w: 1300, h: 600, base: "cobble", edge: "none", backdrop: "town",
     surfaces: [rect("water", -500, -600, 1800, 150), rect("asphalt", 0, 160, 1300, 390), rect("pavement", 0, 390, 1300, 410)],
@@ -70,7 +70,7 @@ function nightMarket() {
   const stallRow = (y, face, seed) => range(0, 13).map((i) => ({ kind: "stall", x: 150 + i * 72, y, w: 56, h: 36, a: face, color: [0xd33a2c, 0x2e86c1, 0xf2c230, 0x1e8449, 0xe67e22, 0x8e44ad][(i + seed) % 6] }));
   const vans = [320, 400, 480, 640, 720, 800, 880].map((x, i) => car(x, 440, -PI / 2, i % 2 ? "van" : "pickup", [0xf2f0e6, 0xd9a13a, 0x3d6fb6, 0xd9342b][i % 4]));
   return level({
-    id: "market", name: "Night market", title: "Food Trucks", trailer: "box", par: 110, sun: "night",
+    id: "market", vehicle: "van", name: "Night market", title: "Food Trucks", trailer: "box", par: 110, sun: "night",
     brief: "Deliver the ice to the market after dark. Reverse between the food trucks behind the second row of stalls.",
     w: 1200, h: 700, base: "cobble", edge: "none", backdrop: "town",
     surfaces: [rect("asphalt", 0, 600, 1200, 700), rect("pavement", 0, 580, 1200, 600)],
@@ -101,7 +101,7 @@ function farmTrack() {
   ];
   const bales = [[500, 560], [520, 580], [700, 380], [720, 400], [1150, 620], [200, 650]].map(([x, y]) => ({ kind: "hay", x, y, r: 9 }));
   return level({
-    id: "farm", name: "Farm track", title: "Harvest Home", trailer: "boat", par: 140, sun: "dusk",
+    id: "farm", vehicle: "pickup", name: "Farm track", title: "Harvest Home", trailer: "boat", par: 140, sun: "dusk",
     brief: "Down the long farm track to the yard, then reverse the boat into the machinery shed beside the tractor.",
     w: 1800, h: 900, base: "grass", edge: "fence", backdrop: "fields",
     surfaces: [
@@ -133,7 +133,7 @@ function festival() {
   const fence = range(0, 22).map((i) => ({ kind: "fence", x: 700 + i * 40, y: 486, w: 42, h: 3 }));
   const arena = scatter(251, 26, [60, 200, 1550, 470], (x, y, r) => (r() < 0.5 ? { kind: "tent", x, y, w: 26 + r() * 8, h: 30, a: r() * 3 } : { kind: "marquee", x, y, w: 60 + r() * 30, h: 50 }), [[560, 20, 1060, 190]]);
   return level({
-    id: "festival", name: "Music festival", title: "Last Pitch", trailer: "caravan", par: 150, sun: "night",
+    id: "festival", vehicle: "suv", name: "Music festival", title: "Last Pitch", trailer: "caravan", par: 150, sun: "night",
     brief: "The headliner is on. Crawl along the festival track and reverse the caravan into the last free pitch in the north row.",
     w: 1600, h: 900, base: "grass", edge: "fence", backdrop: "forest",
     surfaces: [road("gravel", track, 70), rect("mud", 800, 600, 900, 700, 30), rect("grass", 680, 490, 1540, 590)],

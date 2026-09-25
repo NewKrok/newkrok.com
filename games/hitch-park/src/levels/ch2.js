@@ -1,6 +1,6 @@
 import {
-  PI, level, hrow, vrow, angledRow, park, fill, car, rect, road, paintBays, line, arrow, text, zebra, hatch,
-  YELLOW, WHITE, building, tree, containers, scatter, range,
+  PI, level, hrow, vrow, angledRow, park, fill, car, rect, road, paintBays, line, arrow, text,
+  zebra, hatch, YELLOW, building, tree, containers, range,
 } from "./kit.js";
 
 // ── Chapter 2 — A working day ────────────────────────────────────────────
@@ -11,7 +11,7 @@ function loadingDock() {
   const target = 3;
   const staff = hrow(120, 585, 20, -PI / 2);
   return level({
-    id: "docks", name: "Warehouse", title: "Dock Three", trailer: "box", par: 60, sun: "deck",
+    id: "docks", vehicle: "van", name: "Warehouse", title: "Dock Three", trailer: "box", par: 60, sun: "deck",
     brief: "Back the trailer onto dock 3, between the two lorries. The yard is big — use it to line up square.",
     w: 1100, h: 620, base: "concrete", edge: "wall", backdrop: "industrial",
     surfaces: [rect("asphalt", 0, 230, 1100, 620), rect("concrete", 100, 110, 1000, 230)],
@@ -82,7 +82,7 @@ function containerTerminal() {
     }
   }
   return level({
-    id: "terminal", name: "Container port", title: "Stack Gap", trailer: "box", par: 100, sun: "noon",
+    id: "terminal", vehicle: "van", name: "Container port", title: "Stack Gap", trailer: "box", par: 100, sun: "noon",
     brief: "In through the gate, up the cross lane, then find the empty slot in the middle stack row and back into it.",
     w: 1600, h: 900, base: "concrete", edge: "rail", backdrop: "industrial",
     surfaces: [rect("asphalt", 0, 700, 1600, 900), rect("asphalt", 680, 0, 820, 700), rect("asphalt", 1180, 0, 1320, 700)],
@@ -118,7 +118,7 @@ function retailPark() {
   const longBays = vrow(1235, 200, 10, PI, { w: 44, l: 90 });
   const target = 4;
   return level({
-    id: "retail", name: "Retail park", title: "Long Stay", trailer: "boat", par: 85, sun: "noon",
+    id: "retail", vehicle: "pickup", name: "Retail park", title: "Long Stay", trailer: "boat", par: 85, sun: "noon",
     brief: "Round to the east fence, where the long bays for trailers are. Pass the free one and reverse the boat in.",
     w: 1300, h: 720, edge: "hedge", backdrop: "town",
     surfaces: [rect("pavement", 40, 120, 1200, 134)],
@@ -152,7 +152,7 @@ function sportsClub() {
   for (let x = pitch[0]; x <= pitch[2]; x += 40) fence.push({ kind: "fence", x: x + 20, y: pitch[3] + 8, w: 42, h: 3 });
   for (let y = pitch[1]; y < pitch[3]; y += 40) fence.push({ kind: "fence", x: pitch[2] + 8, y: y + 20, a: PI / 2, w: 42, h: 3 });
   return level({
-    id: "club", name: "Sports club", title: "Tournament Day", trailer: "caravan", par: 90, sun: "golden",
+    id: "club", vehicle: "suv", name: "Sports club", title: "Tournament Day", trailer: "caravan", par: 90, sun: "golden",
     brief: "Your first caravan. The camping field is filling up: reverse into the free plot between the other vans.",
     w: 1150, h: 680, base: "grass", edge: "hedge",
     surfaces: [road("gravel", [[1190, 440], [900, 440], [150, 440]], 60), rect("gravel", 690, 150, 1000, 200)],

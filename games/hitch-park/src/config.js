@@ -13,7 +13,7 @@ export const G = 9.81 * M;             // gravity in px/s² (tyre normal loads)
 // tow point from the body centre (negative = behind it).
 export const VEHICLES = {
   car: {
-    name: "Estate car",
+    name: "Estate car", body: "wagon",
     len: 4.4, wid: 1.8, h: 1.48, wheelbase: 2.62, track: 1.64,
     wheelR: 0.33, wheelW: 0.24,
     hitch: 0.42,                  // tow ball behind the rear bumper
@@ -30,6 +30,40 @@ export const VEHICLES = {
     density: 1,
     hitchLimit: 1.32,             // rad either way before the drawbar hits the bumper
     hitchWarn: 0.9,
+  },
+  // Other tow cars: same model, their own size, wheelbase and power.
+  pickup: {
+    name: "Pickup", body: "pickup",
+    len: 5.3, wid: 1.98, h: 1.8, wheelbase: 3.2, track: 1.7,
+    wheelR: 0.38, wheelW: 0.26,
+    hitch: 0.35, hitchX: -(5.3 / 2 + 0.35),
+    maxSteer: 0.58, steerRate: 1.8, steerReturn: 1.1,
+    drive: 4.6, driveRear: true,
+    vmaxF: 9.5, vmaxR: 4.2,
+    brake: 7.5, roll: 0.35, engineBrake: 1.4, mu: 1.0,
+    density: 1.15, hitchLimit: 1.32, hitchWarn: 0.9,
+  },
+  suv: {
+    name: "SUV", body: "suv",
+    len: 4.7, wid: 1.95, h: 1.72, wheelbase: 2.8, track: 1.66,
+    wheelR: 0.36, wheelW: 0.25,
+    hitch: 0.4, hitchX: -(4.7 / 2 + 0.4),
+    maxSteer: 0.6, steerRate: 1.85, steerReturn: 1.1,
+    drive: 4.4, driveRear: false,
+    vmaxF: 9.2, vmaxR: 4.2,
+    brake: 7.5, roll: 0.35, engineBrake: 1.4, mu: 1.0,
+    density: 1.1, hitchLimit: 1.32, hitchWarn: 0.9,
+  },
+  van: {
+    name: "Van", body: "van",
+    len: 5.0, wid: 2.0, h: 2.0, wheelbase: 3.0, track: 1.72,
+    wheelR: 0.34, wheelW: 0.25,
+    hitch: 0.38, hitchX: -(5.0 / 2 + 0.38),
+    maxSteer: 0.6, steerRate: 1.8, steerReturn: 1.0,
+    drive: 3.9, driveRear: false,
+    vmaxF: 8.5, vmaxR: 4.0,
+    brake: 7.0, roll: 0.35, engineBrake: 1.4, mu: 1.0,
+    density: 1.05, hitchLimit: 1.32, hitchWarn: 0.9,
   },
   truck: {
     name: "Tractor unit",

@@ -239,7 +239,7 @@ export function createSim({ onEvent = () => {} } = {}) {
         const arb = cb.arbiters.at(0)?.collisionArbiter;
         const ct = arb?.contacts.at(0);
         if (ct) return { x: ct.position.x, y: ct.position.y };
-      } catch (_) { /* no contact data */ }
+      } catch { /* no contact data */ }
       return fallback;
     };
     space.listeners.add(new InteractionListener(CbEvent.BEGIN, InteractionType.COLLISION, cbVeh, cbThing, (cb) => {

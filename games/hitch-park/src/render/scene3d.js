@@ -258,7 +258,7 @@ export class Scene3D {
       if (env) scene.environment = env;
       envTex.dispose();
       pm.dispose();
-    } catch (_) { /* no PMREM — paint just looks flatter */ }
+    } catch { /* no PMREM — paint just looks flatter */ }
 
     g.rearCam = new T.PerspectiveCamera(72, 16 / 9, 1, 3000);
     g.rearCam.up.set(0, 0, 1);
@@ -318,8 +318,10 @@ export class Scene3D {
     P.add(g.box, g.plate, -L / 2 - 0.15, 0, z0 + 3.4, 0, 0.3, 6, 1.6);
     P.add(g.box, g.plate, L / 2 + 0.15, 0, z0 + 2.4, 0, 0.3, 6, 1.4);
     for (const s of [-1, 1]) P.add(g.box, paint, X(spec.ws) - 1.2, s * (W / 2 + 1), zb + 1.1, 0, 2.2, 1.8, 1.4);
-    const r = VEHICLES.car.wheelR * M, ww = VEHICLES.car.wheelW * M;
-    const axF = L / 2 - 0.9 * M, axR = -(L / 2 - 0.95 * M);
+    // Live (player) wheels sit where the physics wheels are.
+    const r = (o.wheelR ?? VEHICLES.car.wheelR) * M, ww = (o.wheelW ?? VEHICLES.car.wheelW) * M;
+    const axF = o.wheelbase ? o.wheelbase / 2 * M : L / 2 - 0.9 * M;
+    const axR = o.wheelbase ? -o.wheelbase / 2 * M : -(L / 2 - 0.95 * M);
     const wy = W / 2 - ww / 2 + 0.3;
     const wheels = [];
     const wheelParts = (PP, x, y) => {
@@ -1231,7 +1233,10 @@ export class Scene3D {
     const headC = owned(new T.MeshStandardMaterial({ color: 0xfff6dc, emissive: 0xfff2cc, emissiveIntensity: sun.lamps ? 2.4 : 0.5, roughness: 0.2 }));
     const car = truck
       ? this.buildTruckModel(PLAYER_COLOR, { live: true, tailMat: tailC, revMat: revC, headMat: headC })
-      : this.buildCarModel(CAR_TYPES.wagon, PLAYER_COLOR, { live: true, tailMat: tailC, revMat: revC, headMat: headC, rails: true });
+      : this.buildCarModel(CAR_TYPES[sim.veh.spec.body ?? "wagon"], PLAYER_COLOR, {
+        live: true, tailMat: tailC, revMat: revC, headMat: headC, rails: sim.veh.spec.body === "wagon" || sim.veh.spec.body === "suv",
+        wheelbase: sim.veh.spec.wheelbase, wheelR: sim.veh.spec.wheelR, wheelW: sim.veh.spec.wheelW,
+      });
     lv.group.add(car.body);
     const tailT = owned(new T.MeshStandardMaterial({ color: 0x5a0a0a, emissive: 0xff1a1a, emissiveIntensity: 0.3, roughness: 0.3 }));
     const trailer = sim.veh.trailer.key === "semi"

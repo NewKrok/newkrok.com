@@ -143,7 +143,7 @@ export function drawRigTop(p, vehicle, trailer, x, y, a) {
   const v = VEHICLES[vehicle], t = TRAILERS[trailer];
   const d = (-v.hitchX + t.len / 2 + t.bar) * M;
   drawTrailerTop(p, trailer, x - Math.cos(a) * d, y - Math.sin(a) * d, a, trailer === "semi" ? 0xe8e8e4 : undefined);
-  drawCarTop(p, vehicle === "truck" ? TRACTOR_TOP : CAR_TYPES.wagon, PLAYER_COLOR, x, y, a);
+  drawCarTop(p, vehicle === "truck" ? TRACTOR_TOP : CAR_TYPES[v.body ?? "wagon"], PLAYER_COLOR, x, y, a);
 }
 
 // Car + trailer rig, centred on (x, y) and scaled to fit `maxW`.

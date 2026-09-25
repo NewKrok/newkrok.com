@@ -1,4 +1,4 @@
-import { DT, PARK_HOLD, SCORE, TRAILERS, clamp, fmtTime, fmtPar } from "./config.js";
+import { DT, PARK_HOLD, SCORE, clamp, fmtTime, fmtPar } from "./config.js";
 import { LEVELS, CHAPTERS } from "./levels.js";
 import { createSim } from "./sim.js";
 import { Scene3D } from "./render/scene3d.js";
@@ -21,7 +21,7 @@ const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 const app = $("#app");
 const settings = loadSettings();
 setLang(detectLang(settings.lang));
-const trailerName = (L) => (L.vehicle === "truck" ? t("tractorSemi") : t("tr_" + L.trailer));
+const trailerName = (L) => (L.vehicle === "truck" ? t("tractorSemi") : `${t("veh_" + (L.vehicle ?? "car"))} + ${t("tr_" + L.trailer)}`);
 const camName = (m) => t("cam" + m);
 const progress = loadProgress();
 const audio = new Audio();
@@ -117,7 +117,7 @@ function buildLevelSelect() {
     const sec = document.createElement("section");
     sec.className = "site";
     const levels = LEVELS.filter((l) => l.chapter === ci);
-    sec.innerHTML = `<h3>${t("chapter", { n: ci + 1, name: t("ch" + (ci + 1)) })} <small>${ch.truck ? t("lorryChapter") : t("nJobs", { n: levels.length })}</small></h3><div class="grid"></div>`;
+    sec.innerHTML = `<h3>${t("chapter", { n: ci + 1, name: t("ch" + (ci + 1)) })} <small>${t("chs" + (ci + 1))}</small></h3><div class="grid"></div>`;
     const grid = $(".grid", sec);
     for (const l of levels) {
       const lt = levelText(l);
@@ -564,8 +564,8 @@ function boot() {
   setTimeout(() => $("#loading").classList.remove("active"), 250);
 }
 
-// Debug handle for automated checks.
-window.__hitchPark = { G, sim, LEVELS, openIntro, startDriving, finishLevel, keys };
+// Debug handle for automated checks (dev server only).
+if (import.meta.env.DEV) window.__hitchPark = { G, sim, LEVELS, openIntro, startDriving, finishLevel, keys };
 
 boot();
 window.focus();

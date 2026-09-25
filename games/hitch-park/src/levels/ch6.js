@@ -1,6 +1,6 @@
 import {
-  PI, level, hrow, vrow, angledRow, park, fill, car, rect, road, disc, paintBays, line, arrow, text, zebra, hatch,
-  YELLOW, WHITE, building, tree, pine, shed, scatter, sample, offsetLine, wallLine, range, containers, parkedSemi,
+  PI, level, hrow, angledRow, park, fill, car, rect, road, paintBays, line, arrow, text, zebra,
+  YELLOW, building, tree, sample, wallLine, range, containers, parkedSemi,
 } from "./kit.js";
 
 // ── Chapter 6 — Big rigs ─────────────────────────────────────────────────

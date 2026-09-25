@@ -1,6 +1,6 @@
 import {
-  PI, level, hrow, vrow, angledRow, park, fill, car, rect, road, paintBays, line, arrow, text, zebra, hatch,
-  YELLOW, WHITE, building, tree, scatter, sample, offsetLine, wallLine, range,
+  PI, level, hrow, angledRow, park, fill, car, rect, road, paintBays, line, arrow, text, zebra,
+  YELLOW, building, tree, scatter, sample, offsetLine, wallLine, range,
 } from "./kit.js";
 
 // ── Chapter 3 — Out of town ──────────────────────────────────────────────
@@ -16,7 +16,7 @@ function countryLane() {
     .filter((p) => !(p.x > 1040 && p.x < 1260))
     .map((p, i) => (i % 3 ? { kind: "bush", x: p.x, y: p.y, r: 12 } : tree(p.x, p.y, 20)));
   return level({
-    id: "lane", name: "Country lane", title: "Field Gate", trailer: "box", par: 100, sun: "golden",
+    id: "lane", vehicle: "pickup", name: "Country lane", title: "Field Gate", trailer: "box", par: 100, sun: "golden",
     brief: "Follow the lane between the stone walls. At the open field gate, use the passing place opposite to swing the trailer through the gateway.",
     w: 1800, h: 700, base: "grass", edge: "none", backdrop: "fields",
     surfaces: [road("asphalt", lane, 66), rect("asphalt", 1070, 296, 1230, 380, 16), rect("mud", 1112, 170, 1188, 262)],
@@ -45,7 +45,7 @@ function ferryTerminal() {
   const queue = [];
   for (let r = 0; r < 5; r++) for (let i = 0; i < 9; i++) if ((r * 9 + i) % 7 !== 3) queue.push(car(480 + i * 62, 232 + r * 44, PI, ["sedan", "wagon", "suv", "hatch", "van"][(r + i) % 5]));
   return level({
-    id: "ferry", name: "Ferry port", title: "Boarding Soon", trailer: "boat", par: 95, sun: "marina",
+    id: "ferry", vehicle: "pickup", name: "Ferry port", title: "Boarding Soon", trailer: "boat", par: 95, sun: "marina",
     brief: "The ferry isn't loading yet. Park the boat in the slanted stall by the check-in — pass it, then reverse in.",
     w: 1400, h: 760, edge: "rail", backdrop: "town",
     surfaces: [rect("water", -500, -600, 1900, 130), rect("concrete", 0, 130, 1400, 180)],
@@ -130,7 +130,7 @@ function timberYard() {
   const forest = scatter(141, 90, [0, 0, 1300, 720], (x, y, r) => (r() < 0.7 ? { kind: "pine", x, y, r: 14 + r() * 8 } : tree(x, y, 16 + r() * 6)),
     [[560, 120, 1300, 700], [-10, 560, 700, 700], [300, 460, 700, 600], [140, 560, 680, 690]]);
   return level({
-    id: "timber", name: "Timber yard", title: "Log Jam", trailer: "box", par: 85, sun: "golden",
+    id: "timber", vehicle: "pickup", name: "Timber yard", title: "Log Jam", trailer: "box", par: 85, sun: "golden",
     brief: "Up the forest track into the timber yard, then reverse into the loading slot between the two log piles.",
     w: 1300, h: 720, base: "grass", edge: "fence", backdrop: "forest",
     surfaces: [road("dirt", road1, 70), rect("gravel", 600, 140, 1260, 660, 30)],
@@ -155,7 +155,7 @@ function beach() {
   const rows = [hrow(160, 200, 12, PI / 2), hrow(160, 330, 12, -PI / 2), hrow(900, 200, 12, PI / 2), hrow(900, 330, 12, -PI / 2)];
   const posts = rows.flatMap((r) => r.map((b) => ({ kind: "post", x: b.x - 15, y: b.y + Math.sin(b.a) * 28, r: 2 })));
   return level({
-    id: "beach", name: "Beach", title: "Low Tide", trailer: "boat", par: 95, sun: "noon",
+    id: "beach", vehicle: "suv", name: "Beach", title: "Low Tide", trailer: "boat", par: 95, sun: "noon",
     brief: "From the coast road through the sandy car park to the beach ramp. Reverse the boat down between the groynes.",
     w: 1400, h: 760, base: "sand", edge: "none", backdrop: "dunes",
     surfaces: [

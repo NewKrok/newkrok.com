@@ -1,6 +1,6 @@
 import {
-  PI, level, hrow, vrow, angledRow, park, fill, car, rect, road, disc, paintBays, line, arrow, text, zebra, hatch,
-  YELLOW, WHITE, building, tree, pine, shed, scatter, sample, offsetLine, wallLine, range,
+  PI, level, hrow, angledRow, park, fill, car, rect, road, paintBays, line, arrow, text, hatch,
+  YELLOW, building, tree, shed, scatter, sample, wallLine, range,
 } from "./kit.js";
 
 // ── Chapter 4 — Tight spots ──────────────────────────────────────────────
@@ -10,7 +10,7 @@ function construction() {
   const cols = [700, 800, 900, 1000, 1100], rows = [200, 300, 400, 500];
   const pillars = cols.flatMap((x) => rows.map((y) => ({ kind: "pillar", x, y, s: 10, style: "site" })));
   return level({
-    id: "site", name: "Building site", title: "Column Maze", trailer: "box", par: 90, sun: "deck",
+    id: "site", vehicle: "van", name: "Building site", title: "Column Maze", trailer: "box", par: 90, sun: "deck",
     brief: "The bricks go up on the ground floor of the new block. Reverse up between the columns to the marked spot.",
     w: 1200, h: 720, base: "dirt", edge: "rail", backdrop: "town",
     surfaces: [rect("concrete", 680, 180, 1120, 520), rect("gravel", 0, 560, 1200, 700), rect("mud", 300, 560, 420, 620, 20)],
@@ -46,7 +46,7 @@ function dealer() {
   ];
   const flags = range(0, 8).map((i) => ({ kind: "post", x: 120 + i * 60, y: 160, r: 2, flag: [0xd9342b, 0xf2f2ee, 0x3d6fb6][i % 3] }));
   return level({
-    id: "dealer", name: "Car dealer", title: "Showroom Shuffle", trailer: "box", par: 75, sun: "noon",
+    id: "dealer", vehicle: "van", name: "Car dealer", title: "Showroom Shuffle", trailer: "box", par: 75, sun: "noon",
     brief: "Deliver the parts to the workshop at the end of the showroom. Every car out here is brand new — don't touch.",
     w: 1000, h: 620, edge: "wall", backdrop: "town",
     surfaces: [rect("pavement", 90, 140, 620, 165), rect("concrete", 740, 40, 860, 150)],
@@ -73,7 +73,7 @@ function services() {
   const carRows = [hrow(420, 280, 18, -PI / 2), hrow(420, 340, 18, PI / 2), hrow(420, 480, 18, -PI / 2), hrow(420, 540, 18, PI / 2)];
   const lorryBays = angledRow(1340, 260, 6, -PI / 2 + 0.6, { w: 50, l: 200 });
   return level({
-    id: "services", name: "Motorway services", title: "Against the Flow", trailer: "caravan", par: 120, sun: "dusk",
+    id: "services", vehicle: "suv", name: "Motorway services", title: "Against the Flow", trailer: "caravan", par: 120, sun: "dusk",
     brief: "Off the motorway and round to the caravan bays at the back. They slant against the traffic: drive past, then reverse in.",
     w: 1800, h: 900, edge: "rail", backdrop: "fields",
     surfaces: [road("asphalt", slip, 80), rect("grass", 0, 0, 380, 640), rect("pavement", 700, 170, 1100, 190)],
@@ -108,7 +108,7 @@ function riverside() {
   const target = 4;
   const meadow = scatter(191, 16, [100, 330, 1350, 780], (x, y, r) => tree(x, y, 16 + r() * 8), [[560, 290, 840, 580], [0, 440, 1440, 740], [120, 300, 280, 480]]);
   return level({
-    id: "river", name: "Riverside camp", title: "River View", trailer: "caravan", par: 120, sun: "golden",
+    id: "river", vehicle: "suv", name: "Riverside camp", title: "River View", trailer: "caravan", par: 120, sun: "golden",
     brief: "Along the winding path to the river bank. Reverse the caravan into pitch 5, between the old oaks, back to the water.",
     w: 1400, h: 800, base: "grass", edge: "hedge", backdrop: "forest",
     surfaces: [rect("water", -500, -600, 1900, 172), rect("sand", 0, 170, 1400, 192), road("gravel", path, 60), ...pitches.map((p) => rect("gravel", p.x - 26, 205, p.x + 26, 296, 8))],
@@ -135,7 +135,7 @@ function riverside() {
 function hangar() {
   const hangars = [350, 750, 1150];
   return level({
-    id: "hangar", name: "Airfield", title: "Wing Tip", trailer: "boat", par: 110, sun: "noon",
+    id: "hangar", vehicle: "pickup", name: "Airfield", title: "Wing Tip", trailer: "boat", par: 110, sun: "noon",
     brief: "Store the boat in hangar 2 for the winter. The little plane stays where it is — mind its wing.",
     w: 1500, h: 800, base: "grass", edge: "fence", backdrop: "fields",
     surfaces: [rect("asphalt", 0, 560, 1500, 660), rect("concrete", 200, 255, 1300, 560), ...hangars.map((x) => rect("concrete", x - 75, 85, x + 75, 255))],

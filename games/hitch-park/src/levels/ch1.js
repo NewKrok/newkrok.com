@@ -1,6 +1,6 @@
 import {
-  PI, level, hrow, vrow, angledRow, park, fill, except, car, rect, road, paintBays, line, arrow, text, zebra, hatch,
-  YELLOW, WHITE, building, tree, shed, sample, scatter,
+  PI, level, hrow, vrow, angledRow, park, fill, car, rect, road, paintBays, line, arrow, text,
+  zebra, YELLOW, building, tree, shed, sample,
 } from "./kit.js";
 
 // ── Chapter 1 — Learner plates ───────────────────────────────────────────
@@ -43,7 +43,7 @@ function gardenCentre() {
 function barn() {
   const bay = { x: 300, y: 90, a: PI / 2, w: 44, l: 76 };
   return level({
-    id: "barn", name: "Hill farm", title: "Into the Barn", trailer: "box", par: 40, sun: "golden",
+    id: "barn", vehicle: "pickup", name: "Hill farm", title: "Into the Barn", trailer: "box", par: 40, sun: "golden",
     brief: "The farmer wants the trailer inside the old barn. Line it up on the doorway and reverse straight in.",
     w: 900, h: 520, base: "grass", edge: "fence",
     surfaces: [
@@ -104,7 +104,7 @@ function lakeside() {
     .filter((p) => p.y > 290 && !(p.x > 760 && p.x < 1090 && p.y < 520))
     .map((p, i) => tree(p.x, p.y, 15 + (i * 7) % 8));
   return level({
-    id: "lake", name: "Lakeside", title: "First Launch", trailer: "boat", par: 75, sun: "marina",
+    id: "lake", vehicle: "pickup", name: "Lakeside", title: "First Launch", trailer: "boat", par: 75, sun: "marina",
     brief: "Follow the shore road to the slipway, then back the boat straight down the ramp. Long trailer — steer early and gently.",
     w: 1400, h: 720, base: "grass", edge: "fence",
     surfaces: [
@@ -144,7 +144,7 @@ function villageGreen() {
     [0, 200, 0xd8c3a5], [200, 190, 0xb8866a], [390, 220, 0xe8e0d0], [610, 200, 0xc9b79c], [810, 190, 0xa0705a],
   ];
   return level({
-    id: "village", name: "Village square", title: "Market Day", trailer: "box", par: 60, sun: "noon",
+    id: "village", vehicle: "van", name: "Village square", title: "Market Day", trailer: "box", par: 60, sun: "noon",
     brief: "Drive round the green and reverse into the free slanted bay outside the bakery. Pass it first, then swing back.",
     w: 1000, h: 600, base: "cobble", edge: "none", backdrop: "town",
     surfaces: [rect("grass", ...green, 14), rect("pavement", 0, 80, 1000, 92), rect("pavement", 0, 508, 1000, 520)],
