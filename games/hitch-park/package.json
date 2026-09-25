@@ -1,0 +1,20 @@
+{
+  "name": "@newkrok-games/hitch-park",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check-levels": "node scripts/check-levels.js",
+    "solve-levels": "node scripts/solve-levels.js"
+  },
+  "dependencies": {
+    "@newkrok/nape-js": "^3.42.3",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "vite": "^8.3.1"
+  }
+}

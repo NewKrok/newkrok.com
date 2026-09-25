@@ -2,12 +2,14 @@
 
 # dependencies
 /node_modules
+/games/*/node_modules
 
 # testing
 /coverage
 
 # production
 /build
+/games/*/dist
 
 # misc
 .DS_Store

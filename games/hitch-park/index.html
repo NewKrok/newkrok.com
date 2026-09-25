@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#0b0f17" />
+    <meta name="description" content="Hitch & Park — back a trailer into the bay. A physics parking game by NewKrok." />
+    <title>Hitch & Park</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%230b0f17%22/%3E%3Cpath d=%22M20 48V16h13a10 10 0 0 1 0 20H20%22 fill=%22none%22 stroke=%22%23ffd166%22 stroke-width=%227%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="hud"></canvas>
+
+      <div id="loading" class="screen active">
+        <div class="loader"><div class="logo small">HITCH <span>&amp;</span> PARK</div><div class="bar"><i></i></div></div>
+      </div>
+
+      <!-- In-game buttons -->
+      <div id="ingame" class="hidden">
+        <button class="icon-btn cam-btn" data-action="camera" title="C" aria-label="Camera">
+          <svg viewBox="0 0 24 24"><path d="M4 7h3l2-2h6l2 2h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/></svg>
+          <span class="cam-label"></span><kbd>C</kbd>
+        </button>
+        <button class="icon-btn" data-action="pause" title="Esc" aria-label="Pause">
+          <svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        </button>
+      </div>
+
+      <!-- Main menu -->
+      <section id="menu-main" class="screen">
+        <div class="main-card">
+          <div class="logo">HITCH <span>&amp;</span> PARK</div>
+          <p class="tagline" data-i18n="tagline"></p>
+          <div class="star-total"><span class="star-i">★</span> <b data-bind="stars">0</b> / <span data-bind="maxStars">90</span></div>
+          <div class="menu-buttons">
+            <button class="btn primary" data-action="continue"><span data-bind="continueLabel"></span></button>
+            <button class="btn" data-action="levels" data-i18n="levels"></button>
+            <button class="btn" data-action="howto" data-i18n="howto"></button>
+            <button class="btn" data-action="settings" data-i18n="settings"></button>
+          </div>
+        </div>
+        <footer class="credit"><div class="made" data-bind="madeBy"></div><div class="tech" data-bind="techLine"></div></footer>
+      </section>
+
+      <!-- Level select -->
+      <section id="menu-levels" class="screen scroll">
+        <header class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="chooseJob"></h2>
+          <div class="star-total"><span class="star-i">★</span> <b data-bind="stars">0</b> / <span data-bind="maxStars">90</span></div>
+        </header>
+        <div id="sites"></div>
+      </section>
+
+      <!-- How to play -->
+      <section id="menu-howto" class="screen scroll">
+        <header class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="howto"></h2>
+          <div></div>
+        </header>
+        <div class="panel prose">
+          <h3 data-i18n="h_job"></h3>
+          <p data-i18n-html="p_job1"></p>
+          <p data-i18n-html="p_job2"></p>
+          <h3 data-i18n="h_stars"></h3>
+          <ul class="stars-list">
+            <li><span class="star-i">★</span> <span data-i18n="s_park"></span></li>
+            <li><span class="star-i">★</span> <span data-i18n="s_nobumps"></span></li>
+            <li><span class="star-i">★</span> <span data-i18n="s_par"></span></li>
+          </ul>
+          <h3 data-i18n="h_keys"></h3>
+          <table class="keys">
+            <tr><td><kbd>↑</kbd> <kbd>W</kbd></td><td data-i18n="k_fwd"></td></tr>
+            <tr><td><kbd>↓</kbd> <kbd>S</kbd></td><td data-i18n="k_rev"></td></tr>
+            <tr><td><kbd>←</kbd> <kbd>→</kbd> <kbd>A</kbd> <kbd>D</kbd></td><td data-i18n="k_steer"></td></tr>
+            <tr><td><kbd>Space</kbd></td><td data-i18n="k_brake"></td></tr>
+            <tr><td><kbd>C</kbd> / <span data-i18n="k_mouse"></span></td><td data-i18n="k_cam"></td></tr>
+            <tr><td><kbd>V</kbd> · <kbd>G</kbd></td><td data-i18n="k_aids"></td></tr>
+            <tr><td><kbd>R</kbd> · <kbd>Esc</kbd></td><td data-i18n="k_restart"></td></tr>
+          </table>
+          <h3 data-i18n="h_touch"></h3>
+          <p data-i18n-html="p_touch"></p>
+          <h3 data-i18n="h_tips"></h3>
+          <ul>
+            <li data-i18n-html="tip1"></li>
+            <li data-i18n-html="tip2"></li>
+            <li data-i18n-html="tip3"></li>
+            <li data-i18n-html="tip4"></li>
+            <li data-i18n-html="tip5"></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section id="menu-settings" class="screen scroll">
+        <header class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="settings"></h2>
+          <div></div>
+        </header>
+        <div class="panel settings">
+          <h3 data-i18n="set_language"></h3>
+          <div class="row"><span data-i18n="set_language"></span><select data-setting="lang" id="lang-select"></select></div>
+          <h3 data-i18n="set_sound"></h3>
+          <label class="row"><span data-i18n="set_master"></span><input type="range" min="0" max="1" step="0.05" data-setting="master" /></label>
+          <label class="row"><span data-i18n="set_sfx"></span><input type="range" min="0" max="1" step="0.05" data-setting="sfx" /></label>
+          <label class="row"><span data-i18n="set_music"></span><input type="range" min="0" max="1" step="0.05" data-setting="music" /></label>
+          <h3 data-i18n="set_aids"></h3>
+          <label class="row"><span data-i18n="set_guide"></span><input type="checkbox" data-setting="guide" /></label>
+          <label class="row"><span data-i18n="set_rearcam"></span><input type="checkbox" data-setting="rearCam" /></label>
+          <div class="row"><span data-i18n="set_camera"></span>
+            <div class="seg" data-setting="camMode">
+              <button data-value="0" data-i18n="cam0"></button><button data-value="1" data-i18n="cam1"></button><button data-value="2" data-i18n="cam2"></button>
+            </div>
+          </div>
+          <h3 data-i18n="set_graphics"></h3>
+          <div class="row"><span data-i18n="set_quality"></span>
+            <div class="seg" data-setting="quality">
+              <button data-value="high" data-i18n="q_high"></button><button data-value="low" data-i18n="q_low"></button>
+            </div>
+          </div>
+          <h3 data-i18n="set_progress"></h3>
+          <div class="row"><span data-i18n="set_progressRow"></span><button class="btn small danger" data-action="reset" data-i18n="set_reset"></button></div>
+        </div>
+      </section>
+
+      <!-- Level intro -->
+      <section id="intro" class="screen dim">
+        <div class="panel card">
+          <div class="eyebrow" data-bind="introSite"></div>
+          <h2 data-bind="introTitle"></h2>
+          <p class="brief" data-bind="introBrief"></p>
+          <canvas class="rig" width="360" height="80"></canvas>
+          <div class="facts"><span data-bind="introTrailer"></span><span data-bind="introPar"></span><span data-bind="introBest"></span></div>
+          <ul class="goals">
+            <li><span class="star-i">★</span> <span data-i18n="goalPark"></span></li>
+            <li><span class="star-i">★</span> <span data-i18n="goalBumps"></span></li>
+            <li><span class="star-i">★</span> <span data-i18n="goalPar"></span></li>
+          </ul>
+          <div class="view-pick">
+            <div class="vp-title" data-i18n="viewTitle"></div>
+            <div class="vp-options">
+              <button class="vp" data-cam="0"><svg viewBox="0 0 48 32"><rect x="2" y="2" width="44" height="28" rx="4"/><path d="M14 22l10-12 10 12"/><circle cx="24" cy="18" r="3"/></svg><span data-i18n="cam0"></span></button>
+              <button class="vp" data-cam="1"><svg viewBox="0 0 48 32"><rect x="2" y="2" width="44" height="28" rx="4"/><path d="M8 26l16-18 16 18"/><rect x="19" y="16" width="10" height="8" rx="1"/></svg><span data-i18n="cam1"></span></button>
+              <button class="vp" data-cam="2"><svg viewBox="0 0 48 32"><rect x="2" y="2" width="44" height="28" rx="4"/><rect x="8" y="8" width="32" height="16" rx="1"/><circle cx="18" cy="16" r="2"/><rect x="28" y="12" width="6" height="8"/></svg><span data-i18n="cam2"></span></button>
+            </div>
+            <div class="vp-hint" data-i18n="viewHint"></div>
+          </div>
+          <div class="actions">
+            <button class="btn ghost" data-action="levels"><span data-i18n="levels"></span> <kbd>Esc</kbd></button>
+            <button class="btn primary" data-action="drive"><span data-i18n="drive"></span> <kbd>Enter</kbd></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pause -->
+      <section id="pause" class="screen dim">
+        <div class="panel card narrow">
+          <h2 data-i18n="paused"></h2>
+          <div class="menu-buttons">
+            <button class="btn primary" data-action="resume"><span data-i18n="resume"></span> <kbd>Esc</kbd></button>
+            <button class="btn" data-action="restart"><span data-i18n="restart"></span> <kbd>R</kbd></button>
+            <button class="btn" data-action="settings" data-i18n="settings"></button>
+            <button class="btn" data-action="levels" data-i18n="levels"></button>
+            <button class="btn ghost" data-action="main" data-i18n="mainMenu"></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Result -->
+      <section id="result" class="screen dim">
+        <div class="panel card">
+          <h2 class="ok" data-i18n="parked"></h2>
+          <div class="result-stars"><span class="rs">★</span><span class="rs">★</span><span class="rs">★</span></div>
+          <table class="rows"><tbody data-bind="resultRows"></tbody></table>
+          <div class="score-line"><span data-i18n="r_score"></span><b data-bind="resultScore">0</b><em data-bind="resultBest" data-i18n="newBest" class="best hidden"></em></div>
+          <div class="actions">
+            <button class="btn ghost" data-action="levels"><span data-i18n="levels"></span> <kbd>Esc</kbd></button>
+            <button class="btn" data-action="restart"><span data-i18n="retry"></span> <kbd>R</kbd></button>
+            <button class="btn primary" data-action="next"><span data-bind="nextLabel"></span> <kbd>Enter</kbd></button>
+          </div>
+        </div>
+      </section>
+
+      <div id="toast" class="toast"></div>
+    </div>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

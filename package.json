@@ -2,6 +2,9 @@
   "name": "newkrok-homepage",
   "version": "0.1.1",
   "private": true,
+  "workspaces": [
+    "games/*"
+  ],
   "dependencies": {
     "@babel/core": "^7.29.7",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.6.2",
@@ -57,8 +60,10 @@
   },
   "scripts": {
     "start": "node scripts/start.js",
-    "build": "node scripts/build.js",
-    "test": "node scripts/test.js --env=jsdom"
+    "build": "node scripts/build.js && node scripts/build-games.js",
+    "build:games": "node scripts/build-games.js",
+    "test": "node scripts/test.js --env=jsdom",
+    "preview": "node scripts/preview.js"
   },
   "homepage": "https://newkrok.com/",
   "browserslist": {
