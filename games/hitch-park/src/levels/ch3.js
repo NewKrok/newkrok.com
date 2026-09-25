@@ -139,6 +139,9 @@ function timberYard() {
       { kind: "logs", x: 1150, y: 235, w: 150, h: 50 }, { kind: "logs", x: 1150, y: 365, w: 150, h: 50 },
       { kind: "logs", x: 900, y: 200, w: 130, h: 44 }, { kind: "logs", x: 900, y: 560, w: 160, h: 50 },
       { kind: "logs", x: 1120, y: 560, w: 140, h: 44 },
+      // In front of the slot: no straight run-in from the far side of the yard.
+      { kind: "logs", x: 890, y: 300, w: 100, h: 36 },
+      { kind: "crates", x: 1030, y: 170, w: 44, h: 40 },
       building(760, 200, 180, 110, { height: 48, color: 0x8a6a45, roof: 0x3b3f45, sign: "SAWMILL", signColor: "#5a3f1e" }),
       { kind: "block", x: 980, y: 420, w: 28, h: 46, height: 30, color: 0xe8c547 },
       { kind: "hay", x: 700, y: 620, r: 6 },
