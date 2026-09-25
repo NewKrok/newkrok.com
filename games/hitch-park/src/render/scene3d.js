@@ -334,7 +334,10 @@ export class Scene3D {
       if (o.live) wheels.push({ lx, ly, front });
       else wheelParts(P, lx, ly);
     }
-    const body = P.merged();
+    // The shell sits in its own group so it can lean without the wheels.
+    const shell = P.merged();
+    const body = new T.Group();
+    body.add(shell);
     if (o.live) {
       for (const w of wheels) {
         const pivot = new T.Group();
@@ -357,7 +360,7 @@ export class Scene3D {
         w.pivot = pivot; w.spin = spin;
       }
     }
-    return { body, wheels, L, W, H, zb };
+    return { body, shell, wheels, L, W, H, zb };
   }
 
   // ── Trailer models ─────────────────────────────────────────────────────
@@ -1319,7 +1322,9 @@ export class Scene3D {
     const r = v.wheelR * M, ww = v.wheelW * M;
     const ax = v.wheelbase / 2 * M, wy = W / 2 - ww / 2 + 1.2;
     const wheels = [];
-    const body = P.merged();
+    const shell = P.merged();
+    const body = new T.Group();
+    body.add(shell);
     for (const [lx, ly, front] of [[ax, wy, true], [ax, -wy, true], [-ax, wy, false], [-ax, -wy, false]]) {
       const pivot = new T.Group();
       pivot.position.set(lx, ly, 0);
@@ -1340,7 +1345,7 @@ export class Scene3D {
       body.add(pivot);
       wheels.push({ pivot, spin, lx, ly, front });
     }
-    return { body, wheels, L, W };
+    return { body, shell, wheels, L, W };
   }
 
   // Semi-trailer: curtain-sider box on a chassis, three axles at the back.
@@ -1425,6 +1430,23 @@ export class Scene3D {
     const v = sim.veh, c = v.chassis, tb = v.trailer.body;
     const playing = view.phase === "play";
     this.placeOnGround(lv.car.body, c.position.x, c.position.y, c.rotation, v.spec.len / 2 * M);
+    // Body roll and pitch (looks only): the shell leans out of a turn by
+    // the lateral acceleration, dips under braking, squats a little under
+    // power. Smoothed like a damped suspension.
+    if (lv.car.shell) {
+      const dt = Math.max(1e-3, view.dt ?? 1 / 60);
+      const truckK = v.key === "truck" ? 0.6 : 1;
+      const aLat = v.speed * c.angularVel / M;                       // m/s²
+      const aLong = lv.prevSpeed == null ? 0 : (v.speed - lv.prevSpeed) / dt / M;
+      lv.prevSpeed = v.speed;
+      lv.aLong = (lv.aLong ?? 0) + (aLong - (lv.aLong ?? 0)) * Math.min(1, dt * 8);
+      const rollT = clamp(-aLat * 0.012 * truckK, -0.07, 0.07);
+      const pitchT = clamp(-lv.aLong * 0.006 * truckK, -0.035, 0.035);
+      const k = 1 - Math.exp(-dt * 7);
+      lv.roll = (lv.roll ?? 0) + (rollT - (lv.roll ?? 0)) * k;
+      lv.pitch = (lv.pitch ?? 0) + (pitchT - (lv.pitch ?? 0)) * k;
+      lv.car.shell.rotation.set(lv.roll, lv.pitch, 0);
+    }
     for (let i = 0; i < 4; i++) {
       const w3 = lv.car.wheels[i];
       // car.wheels order: FL(+y three), FR, RL, RR; physics: [0] y<0 front … three y = −ly.
