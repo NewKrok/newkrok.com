@@ -113,7 +113,12 @@ function delivery() {
     brief: "Morning delivery. Reverse the trailer off the high street, through the narrow gate, into the supermarket's service yard.",
     w: 2000, h: 1100, base: "asphalt", edge: "none", backdrop: "town",
     surfaces: [rect("pavement", 0, 560, 2000, 600), rect("pavement", 0, 820, 2000, 860), rect("concrete", 1110, 280, 1330, 560)],
-    paint: [line([[0, 710], [2000, 710]], { dash: [24, 20] }), paintBays([{ x: 1220, y: 440, a: PI / 2, w: 54, l: 190 }], YELLOW), text(1220, 580, "DELIVERIES ONLY", { size: 12, color: YELLOW }), zebra(900, 700, 0, 220, 26)],
+    paint: [
+      line([[0, 710], [860, 710]], { dash: [24, 20] }), line([[940, 710], [2000, 710]], { dash: [24, 20] }),
+      paintBays([{ x: 1220, y: 440, a: PI / 2, w: 54, l: 190 }], YELLOW), text(1220, 580, "DELIVERIES ONLY", { size: 12, color: YELLOW }),
+      // Pedestrian crossing across the street: stripes run with the traffic.
+      zebra(900, 710, PI / 2, 208, 40),
+    ],
     parked: kerbCars,
     statics: [
       ...shops, ...south,
@@ -122,6 +127,8 @@ function delivery() {
       { kind: "wall", x: 1345, y: 420, a: PI / 2, w: 290, h: 10, style: "brick", height: 26 },
       { kind: "kerb", x: 540, y: 598, w: 1080, h: 6 }, { kind: "kerb", x: 1690, y: 598, w: 620, h: 6 },
       { kind: "kerb", x: 1000, y: 820, w: 2000, h: 6 },
+      // A builder's skip on the far side of the gate: less room to pull forward.
+      { kind: "skip", x: 1560, y: 628, w: 60, h: 28, color: 0xe8c547 },
       ...[200, 600, 1000, 1500, 1900].map((x) => ({ kind: "lamp", x, y: 575 })),
       { kind: "barrier", x: 6, y: 710, w: 6, h: 210 }, { kind: "barrier", x: 1994, y: 710, w: 6, h: 210 },
     ],
@@ -138,7 +145,12 @@ function ferryDeck() {
     id: "ferrydeck", name: "Ferry terminal", title: "Last Aboard", vehicle: "truck", trailer: "semi", par: 150, sun: "night",
     brief: "The night ferry is waiting for you. Reverse the trailer up the stern ramp and onto the lorry deck, between the other trailers.",
     w: 2000, h: 1000, base: "concrete", edge: "rail", backdrop: "town",
-    surfaces: [rect("water", -600, -800, 2600, 470), rect("deck", 700, 60, 1300, 380), rect("ramp", 940, 380, 1060, 470)],
+    // The sea round the ship, leaving out its deck and the stern ramp.
+    surfaces: [
+      rect("water", -600, -800, 700, 470), rect("water", 1300, -800, 2600, 470), rect("water", 700, -800, 1300, 60),
+      rect("water", 700, 380, 940, 470), rect("water", 1060, 380, 1300, 470),
+      rect("deck", 700, 60, 1300, 380), rect("ramp", 940, 380, 1060, 470),
+    ],
     paint: [
       paintBays([{ x: 1000, y: 230, a: PI / 2, w: 58, l: 192 }], YELLOW), line([[0, 720], [2000, 720]], { dash: [28, 22] }),
       ...range(0, 6).map((r) => line([[200 + r * 280, 520], [200 + r * 280, 640]], { color: YELLOW })), text(1600, 900, "FREIGHT CHECK-IN", { size: 16, color: YELLOW }),

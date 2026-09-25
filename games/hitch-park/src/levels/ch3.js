@@ -103,7 +103,7 @@ function oldTown() {
     ],
     paint: [
       line([[0, 185], [1400, 185]], { dash: [16, 14] }), line([[0, 591], [1400, 591]], { dash: [16, 14] }),
-      arrow(630, 400, -PI / 2), arrow(300, 591, 0), zebra(630, 200, 0, 80, 24),
+      arrow(630, 400, -PI / 2), arrow(300, 591, 0), zebra(630, 290, 0, 136, 36),
     ],
     parked: [...kerbN, ...kerbS],
     statics: [
