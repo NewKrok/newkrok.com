@@ -168,22 +168,32 @@ export class Audio {
   #ensureEngine() {
     if (this.engine) return;
     const c = this.ctx;
+    // A soft, low engine: a sine at the firing rate, a sub an octave down
+    // and a little filtered noise for rumble — no buzzy saw or square.
     const lp = c.createBiquadFilter();
     lp.type = "lowpass";
-    lp.frequency.value = 600;
-    lp.Q.value = 2;
+    lp.frequency.value = 260;
+    lp.Q.value = 0.5;
     const gain = c.createGain();
     gain.gain.value = 0;
     lp.connect(gain).connect(this.sfx);
-    const o1 = c.createOscillator(); o1.type = "sawtooth";
-    const o2 = c.createOscillator(); o2.type = "square";
-    const g2 = c.createGain(); g2.gain.value = 0.35;
-    o1.connect(lp); o2.connect(g2).connect(lp);
-    // A slow wobble so the idle does not sound like a pure tone.
-    const lfo = c.createOscillator(); lfo.frequency.value = 7;
-    const lfoG = c.createGain(); lfoG.gain.value = 2.5;
+    const o1 = c.createOscillator(); o1.type = "sine";
+    const o2 = c.createOscillator(); o2.type = "sine";
+    const o3 = c.createOscillator(); o3.type = "triangle";
+    const g1 = c.createGain(); g1.gain.value = 0.7;
+    const g2 = c.createGain(); g2.gain.value = 0.55;
+    const g3 = c.createGain(); g3.gain.value = 0.16;
+    o1.connect(g1).connect(lp); o2.connect(g2).connect(lp); o3.connect(g3).connect(lp);
+    const rum = c.createBufferSource();
+    rum.buffer = this.noiseBuf; rum.loop = true;
+    const rbp = c.createBiquadFilter(); rbp.type = "bandpass"; rbp.frequency.value = 90; rbp.Q.value = 0.9;
+    const rg = c.createGain(); rg.gain.value = 0.35;
+    rum.connect(rbp).connect(rg).connect(lp);
+    // A slow, shallow wobble so the idle breathes a little.
+    const lfo = c.createOscillator(); lfo.frequency.value = 3.2;
+    const lfoG = c.createGain(); lfoG.gain.value = 0.6;
     lfo.connect(lfoG); lfoG.connect(o1.frequency); lfoG.connect(o2.frequency);
-    o1.start(); o2.start(); lfo.start();
+    o1.start(); o2.start(); o3.start(); rum.start(); lfo.start();
     // Tyre squeal: band-passed noise.
     const sq = c.createBufferSource();
     sq.buffer = this.noiseBuf; sq.loop = true;
@@ -191,7 +201,7 @@ export class Audio {
     const sg = c.createGain(); sg.gain.value = 0;
     sq.connect(bp).connect(sg).connect(this.sfx);
     sq.start();
-    this.engine = { o1, o2, lp, gain, sg, bp };
+    this.engine = { o1, o2, o3, lp, gain, sg, bp };
   }
 
   // state: { active, speed (px/s), throttle (−1…1), skid (0…1), reverse,
@@ -202,11 +212,12 @@ export class Audio {
     const e = this.engine, t = this.ctx.currentTime;
     const sp = Math.abs(s.speed) / 12;                 // m/s
     const load = Math.abs(s.throttle);
-    const rpm = s.truck ? 17 + sp * 5 + load * 9 : 26 + sp * 7 + load * 14;
-    e.o1.frequency.setTargetAtTime(rpm, t, 0.08);
-    e.o2.frequency.setTargetAtTime(rpm * 0.5, t, 0.08);
-    e.lp.frequency.setTargetAtTime(380 + load * 900 + sp * 60, t, 0.1);
-    e.gain.gain.setTargetAtTime(s.active ? 0.05 + load * 0.07 + sp * 0.004 : 0, t, 0.12);
+    const rpm = s.truck ? 38 + sp * 6 + load * 10 : 55 + sp * 9 + load * 16;
+    e.o1.frequency.setTargetAtTime(rpm, t, 0.12);
+    e.o2.frequency.setTargetAtTime(rpm * 0.5, t, 0.12);
+    e.o3.frequency.setTargetAtTime(rpm * 2, t, 0.12);
+    e.lp.frequency.setTargetAtTime(220 + load * 260 + sp * 18, t, 0.15);
+    e.gain.gain.setTargetAtTime(s.active ? 0.07 + load * 0.06 + sp * 0.003 : 0, t, 0.15);
     const sk = s.active ? clamp(s.skid * 1.4, 0, 1) * clamp(sp / 2, 0, 1) : 0;
     e.sg.gain.setTargetAtTime(sk * 0.12, t, 0.05);
     e.bp.frequency.setTargetAtTime(1700 + sk * 600, t, 0.1);

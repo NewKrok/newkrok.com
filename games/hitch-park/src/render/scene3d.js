@@ -327,7 +327,7 @@ export class Scene3D {
     const wheelParts = (PP, x, y) => {
       PP.add(g.cyl, g.tire, x, y, r, 0, r, ww, r);
       const side = Math.sign(y) || 1;
-      PP.add(g.disc, g.rimFlat, x, y + side * (ww / 2 + 0.06), r, 0, r * 0.64, r * 0.64, 1, side > 0 ? -Math.PI / 2 : Math.PI / 2);
+      PP.add(g.disc, g.rimFlat, x, y + side * (ww / 2 + 0.45), r, 0, r * 0.64, r * 0.64, 1, side > 0 ? -Math.PI / 2 : Math.PI / 2);
     };
     for (const [lx, ly, front] of [[axF, wy, true], [axF, -wy, true], [axR, wy, false], [axR, -wy, false]]) {
       if (o.live) wheels.push({ lx, ly, front });
@@ -343,7 +343,7 @@ export class Scene3D {
         const PP = this.parts();
         PP.add(g.cyl, g.tire, 0, 0, 0, 0, r, ww, r);
         const side = Math.sign(w.ly);
-        PP.add(g.disc, g.rim, 0, side * (ww / 2 + 0.06), 0, 0, r * 0.64, r * 0.64, 1, side > 0 ? -Math.PI / 2 : Math.PI / 2);
+        PP.add(g.disc, g.rim, 0, side * (ww / 2 + 0.45), 0, 0, r * 0.64, r * 0.64, 1, side > 0 ? -Math.PI / 2 : Math.PI / 2);
         for (const p of PP.list) {
           const mesh = new T.Mesh(p.geo, p.mat);
           mesh.matrixAutoUpdate = false;
@@ -449,7 +449,7 @@ export class Scene3D {
       tire.castShadow = true;
       const rim = new T.Mesh(g.disc, g.rim);
       const side = Math.sign(w.ly);
-      rim.position.y = side * (ww / 2 + 0.06);
+      rim.position.y = side * (ww / 2 + 0.45);
       rim.rotation.x = side > 0 ? -Math.PI / 2 : Math.PI / 2;
       rim.scale.set(r * 0.62, r * 0.62, 1);
       spin.add(tire, rim);
@@ -1298,7 +1298,7 @@ export class Scene3D {
       const PP = this.parts();
       PP.add(g.cyl, g.tire, 0, 0, 0, 0, r, ww, r);
       if (!front) PP.add(g.cyl, g.tire, 0, -Math.sign(ly) * (ww + 0.6), 0, 0, r, ww, r);
-      PP.add(g.disc, g.rimFlat, 0, Math.sign(ly) * (ww / 2 + 0.06), 0, 0, r * 0.6, r * 0.6, 1, ly > 0 ? -Math.PI / 2 : Math.PI / 2);
+      PP.add(g.disc, g.rimFlat, 0, Math.sign(ly) * (ww / 2 + 0.45), 0, 0, r * 0.6, r * 0.6, 1, ly > 0 ? -Math.PI / 2 : Math.PI / 2);
       for (const p of PP.list) {
         const mesh = new T.Mesh(p.geo, p.mat);
         mesh.matrixAutoUpdate = false;
@@ -1350,7 +1350,7 @@ export class Scene3D {
         tire.scale.set(r, ww * 1.8, r);
         tire.castShadow = true;
         const rim = new T.Mesh(g.disc, g.rimFlat);
-        rim.position.y = sd * (ww * 0.9 + 0.06);
+        rim.position.y = sd * (ww * 0.9 + 0.45);
         rim.rotation.x = sd > 0 ? -Math.PI / 2 : Math.PI / 2;
         rim.scale.set(r * 0.6, r * 0.6, 1);
         spin.add(tire, rim);
