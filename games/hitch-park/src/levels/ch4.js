@@ -1,7 +1,9 @@
 import {
   PI, level, hrow, angledRow, park, fill, car, rect, road, paintBays, line, arrow, text, hatch,
-  YELLOW, building, tree, shed, scatter, sample, wallLine, range,
+  YELLOW, building, tree, shed, scatter, wallLine, range, smooth, offsetLine, distToLine,
 } from "./kit.js";
+
+const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
 // ── Chapter 4 — Tight spots ──────────────────────────────────────────────
 
@@ -15,7 +17,8 @@ function construction() {
     w: 1200, h: 720, base: "dirt", edge: "rail", backdrop: "town",
     surfaces: [rect("concrete", 680, 180, 1120, 520), rect("gravel", 0, 560, 1200, 700), rect("mud", 300, 560, 420, 620, 20)],
     paint: [paintBays([{ x: 850, y: 300, a: PI / 2, w: 44, l: 70 }], YELLOW), text(850, 350, "BRICKS", { size: 12, color: YELLOW })],
-    parked: [car(160, 470, 0, "pickup", 0xf2f0e6), car(1110, 630, PI, "lorry", 0xd9a13a)],
+    // A mixer unloading right in front of the bay's column lane: no straight run in.
+    parked: [car(160, 470, 0, "pickup", 0xf2f0e6), car(1110, 630, PI, "lorry", 0xd9a13a), car(866, 588, 0, "lorry", 0x8a9099)],
     statics: [
       ...pillars,
       { kind: "wall", x: 900, y: 186, w: 440, h: 8, style: "site", height: 24 },
@@ -51,7 +54,12 @@ function dealer() {
     w: 1000, h: 620, edge: "wall", backdrop: "town",
     surfaces: [rect("pavement", 90, 140, 620, 165), rect("concrete", 740, 40, 860, 150)],
     paint: [paintBays([{ x: 800, y: 100, a: PI / 2, w: 44, l: 76 }], YELLOW), text(800, 175, "SERVICE", { size: 13, color: YELLOW }), arrow(300, 470, 0), arrow(700, 470, 0)],
-    parked: [...display, car(960, 560, PI / 2, "van", 0xf2f0e6), car(60, 560, -PI / 2, "hatch")],
+    parked: [
+      ...display, car(960, 560, PI / 2, "van", 0xf2f0e6), car(60, 560, -PI / 2, "hatch"),
+      // Customers' cars, left wherever they stopped.
+      car(390, 500, 0.3, "sedan"), car(560, 430, -0.35, "suv"), car(640, 580, 0.1, "wagon"),
+      car(760, 470, 0.9, "hatch"), car(900, 420, 1.9, "sedan"), car(470, 590, -0.1, "pickup"),
+    ],
     statics: [
       building(350, 70, 500, 140, { height: 42, color: 0xe8eef4, roof: 0x9aa3ab, glass: true, sign: "AUTO CENTRE", signColor: "#1f3a5a" }),
       ...shed(800, 90, PI / 2, 64, 100, { style: "white", height: 38 }),
@@ -65,38 +73,71 @@ function dealer() {
   });
 }
 
-// 18. Motorway services: the caravan bays are angled against the flow.
+// 18. Motorway services: off the slip road, round the roundabout, through
+// the car park and back along the caravan lane against the arrows.
 function services() {
-  const slip = [[-40, 780], [300, 770], [520, 700], [700, 640]];
-  const vanBays = angledRow(1000, 800, 10, -PI / 4, { w: 46, l: 100 });
+  const C = { x: 520, y: 730 }, R = 72;   // roundabout centre, ring centreline
+  const ring = range(0, 41).map((i) => [C.x + Math.cos((i / 40) * 2 * PI) * R, C.y + Math.sin((i / 40) * 2 * PI) * R]);
+  const slip = smooth([[-40, 850], [220, 848], [370, 825], [455, 756]]);
+  const north = smooth([[520, 662], [520, 480], [560, 412], [700, 410]]);
+  const angOff = (x, y, a0) => Math.abs(wrap(Math.atan2(y - C.y, x - C.x) - a0));
+  const hedge = { kind: "hedge", thick: 10, maxLen: 40 };
+  const nearRing = (x, y) => Math.hypot(x - C.x, y - C.y) < R + 44;
+  const vanBays = angledRow(1000, 800, 10, -3 * PI / 4, { w: 46, l: 100 });
   const target = 5;
-  const carRows = [hrow(420, 280, 18, -PI / 2), hrow(420, 340, 18, PI / 2), hrow(420, 480, 18, -PI / 2), hrow(420, 540, 18, PI / 2)];
+  const carRows = [hrow(680, 280, 15, -PI / 2), hrow(680, 340, 15, PI / 2), hrow(680, 480, 15, -PI / 2), hrow(680, 540, 15, PI / 2)];
   const lorryBays = angledRow(1340, 260, 6, -PI / 2 + 0.6, { w: 50, l: 200 });
+  const works = [1420, 560, 1540, 640];
+  const woods = scatter(181, 22, [30, 40, 620, 780], (x, y, r) => tree(x, y, 16 + r() * 8))
+    .filter((t) => distToLine(slip, t.x, t.y) > 70 && distToLine(north, t.x, t.y) > 62 && Math.hypot(t.x - C.x, t.y - C.y) > R + 70);
   return level({
-    id: "services", vehicle: "suv", name: "Motorway services", title: "Against the Flow", trailer: "caravan", par: 120, sun: "dusk",
-    brief: "Off the motorway and round to the caravan bays at the back. They slant against the traffic: drive past, then reverse in.",
-    w: 1800, h: 900, edge: "rail", backdrop: "fields",
-    surfaces: [road("asphalt", slip, 80), rect("grass", 0, 0, 380, 640), rect("pavement", 700, 170, 1100, 190)],
+    id: "services", vehicle: "suv", name: "Motorway services", title: "Against the Flow", trailer: "caravan", par: 150, sun: "dusk",
+    brief: "Off the slip road, round the roundabout and through the car park. The caravan bays are at the back, down a one-way lane: drive past, then reverse in.",
+    w: 1800, h: 900, base: "grass", edge: "rail", backdrop: "fields",
+    surfaces: [
+      rect("asphalt", 640, 150, 1780, 880), rect("pavement", 700, 170, 1100, 190),
+      road("asphalt", slip, 76), road("asphalt", ring, 62), road("asphalt", north, 64),
+      rect("gravel", ...works),
+    ],
     paint: [
       ...carRows.map((r) => paintBays(r)), paintBays(vanBays), paintBays(lorryBays), paintBays([{ ...vanBays[target], w: 48 }], YELLOW),
-      text(1300, 880, "CARAVANS · COACHES", { size: 13, color: YELLOW }), arrow(900, 680, 0), arrow(1500, 680, 0), arrow(1200, 620, PI),
-      text(1560, 90, "HGV", { size: 22, color: YELLOW }),
+      text(1300, 880, "CARAVANS · COACHES", { size: 13, color: YELLOW }), arrow(1640, 690, PI), arrow(1180, 690, PI), arrow(800, 690, PI),
+      arrow(900, 410, 0), arrow(1300, 410, 0), arrow(1680, 560, PI / 2),
+      text(1560, 90, "HGV", { size: 22, color: YELLOW }), hatch(...works),
     ],
     parked: [
-      ...carRows.flatMap((r, i) => park(r, fill(18, 0.8, 180 + i), 185 + i)),
+      ...carRows.flatMap((r, i) => park(r, fill(15, 0.8, 180 + i), 185 + i)),
       car(vanBays[1].x, vanBays[1].y, vanBays[1].a, "lorry", 0x2e86c1), car(vanBays[8].x, vanBays[8].y, vanBays[8].a, "lorry", 0xd9342b),
     ],
     statics: [
       building(900, 110, 400, 140, { height: 46, color: 0xe8e0d0, roof: 0x2f5f9a, sign: "SERVICES · FOOD · FUEL", signColor: "#2f5f9a", lit: true }),
       ...vanBays.filter((_, i) => [0, 3, 4, 6, 9].includes(i)).map((b) => ({ kind: "vancaravan", x: b.x, y: b.y, a: b.a })),
       ...lorryBays.filter((_, i) => i !== 2).map((b, i) => ({ kind: "parkedsemi", x: b.x - Math.cos(b.a) * 20, y: b.y - Math.sin(b.a) * 20, a: b.a, company: i === 1 ? "THREE.JS" : null, color: [0x3d6fb6, 0xf2f0e6, 0x2f6b4a, 0xd9a13a, 0x8a1f24, 0x2b2d31][Math.round(b.x) % 6] })),
-      ...[500, 800, 1100].map((x) => ({ kind: "lamp", x, y: 410 })), { kind: "lamp", x: 1200, y: 700 }, { kind: "lamp", x: 1600, y: 700 },
-      ...sample([[400, 640], [400, 20]], 60, 0).map((p) => tree(p.x - 40, p.y, 18)),
-      { kind: "planter", x: 1180, y: 410, w: 14, h: 280 },
+      // Roundabout, slip road and link road, hedged in.
+      { kind: "island", x: C.x, y: C.y, r: R - 32 }, tree(C.x, C.y, 14),
+      ...wallLine(range(0, 49).map((i) => [C.x + Math.cos((i / 48) * 2 * PI) * (R + 40), C.y + Math.sin((i / 48) * 2 * PI) * (R + 40)]),
+        { ...hedge, skip: (x, y) => angOff(x, y, -PI / 2) < 0.42 || angOff(x, y, 2.7) < 0.5 }),
+      ...wallLine(offsetLine(slip, 46), { ...hedge, skip: nearRing }), ...wallLine(offsetLine(slip, -46), { ...hedge, skip: nearRing }),
+      ...wallLine(offsetLine(north, 40), { ...hedge, skip: (x, y) => nearRing(x, y) || x > 632 }),
+      ...wallLine(offsetLine(north, -40), { ...hedge, skip: (x, y) => nearRing(x, y) || x > 632 }),
+      ...wallLine([[640, 160], [640, 370]], { ...hedge, maxLen: 60 }), ...wallLine([[640, 450], [640, 880]], { ...hedge, maxLen: 60 }),
+      // Planters close off the car rows from the lorry park.
+      { kind: "planter", x: 1160, y: 310, w: 14, h: 120 }, { kind: "planter", x: 1160, y: 510, w: 14, h: 120 },
+      // Road works in the turning area.
+      { kind: "barrier", x: works[0], y: (works[1] + works[3]) / 2, w: 6, h: works[3] - works[1] },
+      { kind: "barrier", x: works[2], y: (works[1] + works[3]) / 2, w: 6, h: works[3] - works[1] },
+      { kind: "barrier", x: (works[0] + works[2]) / 2, y: works[1], w: works[2] - works[0], h: 6 },
+      { kind: "barrier", x: (works[0] + works[2]) / 2, y: works[3], w: works[2] - works[0], h: 6 },
+      { kind: "digger", x: 1480, y: 600, a: 0.4, w: 50, h: 26, color: 0xe8a33a },
+      // Lamps stand on the planters, at the row ends and behind the caravans.
+      ...[258, 362, 458, 562].map((y) => ({ kind: "lamp", x: 1160, y, a: PI })),
+      { kind: "lamp", x: 654, y: 310 }, { kind: "lamp", x: 654, y: 510 },
+      ...[1080, 1370, 1640].map((x) => ({ kind: "lamp", x, y: 856, a: -PI / 2 })),
       ...wallLine([[930, 866], [1680, 866]], { kind: "hedge", thick: 10, maxLen: 60 }),
+      ...woods,
     ],
-    cones: [],
-    start: { x: 145, y: 774, a: -0.03 },
+    cones: [{ x: 1410, y: 552 }, { x: 1550, y: 552 }, { x: 1410, y: 648 }, { x: 1550, y: 648 }],
+    start: { x: 180, y: 848, a: 0 },
     bay: { ...vanBays[target], w: 48, l: 100 },
   });
 }
@@ -116,11 +157,15 @@ function riverside() {
     parked: [car(1010, 330, 0.2, "suv"), car(500, 330, -0.1, "wagon")],
     statics: [
       { kind: "water", x: 700, y: 85, w: 1400, h: 170 },
+      // A low fence along the beach: no sneaking in forwards from the water side.
+      ...wallLine([[0, 199], [1400, 199]], { kind: "fence", thick: 3, maxLen: 40 }),
       ...pitches.slice(0, -1).map((p) => tree(p.x + 50, 244, 20)),
       tree(250, 244, 20),
       ...pitches.filter((_, i) => [0, 2, 3, 5, 6, 8].includes(i)).map((p) => ({ kind: "vancaravan", x: p.x, y: 248, a: PI / 2 + ((p.x / 100) % 2 ? 0.03 : -0.03) })),
       ...pitches.filter((_, i) => [1, 7].includes(i)).map((p) => ({ kind: "tent", x: p.x, y: 250, w: 30, h: 36, a: 0.1 })),
-      { kind: "firepit", x: 700, y: 360 }, { kind: "table", x: 780, y: 330 },
+      // A boulder and a few oaks right in front of the free pitch.
+      { kind: "rock", x: 706, y: 382, r: 13 }, tree(622, 398, 20), tree(792, 420, 19), { kind: "table", x: 780, y: 330 },
+      { kind: "firepit", x: 900, y: 380 },
       building(1250, 560, 140, 90, { height: 30, color: 0x8a6a45, roof: 0x3b3f45, sign: "RECEPTION", signColor: "#5a3f1e" }),
       ...meadow,
     ],
@@ -148,7 +193,9 @@ function hangar() {
       ...hangars.flatMap((x) => shed(x, 170, PI / 2, 150, 170, { style: "hangar", height: 64, thick: 8 })),
       { kind: "plane", x: 720, y: 160, a: PI / 2, s: 0.8, color: 0xf2f2ee },
       { kind: "plane", x: 350, y: 170, a: PI / 2, s: 0.8, color: 0xd9342b },
-      { kind: "plane", x: 1000, y: 430, a: 0.4, color: 0x3d6fb6 }, { kind: "plane", x: 520, y: 420, a: -0.3, color: 0xe8c547 },
+      { kind: "plane", x: 1160, y: 420, a: 0.4, color: 0x3d6fb6 }, { kind: "plane", x: 520, y: 420, a: -0.3, color: 0xe8c547 },
+      // One parked across the straight run up to hangar 2, one where you'd swing round in front of it.
+      { kind: "plane", x: 790, y: 470, a: PI, s: 0.9, color: 0x8a1f24 }, { kind: "plane", x: 1010, y: 322, a: PI / 2, s: 0.85, color: 0x2f6b4a },
       { kind: "post", x: 1300, y: 720, r: 3, flag: 0xff7a1a },
       building(1400, 150, 150, 120, { height: 40, color: 0xe8eef4, roof: 0x9aa3ab, sign: "AERO CLUB", signColor: "#2f5f9a" }),
     ],

@@ -1,6 +1,6 @@
 import {
   PI, level, hrow, park, car, rect, road, disc, paintBays, line, YELLOW, building, tree,
-  pine, shed, scatter, offsetLine, wallLine, range,
+  pine, shed, scatter, offsetLine, wallLine, range, smooth,
 } from "./kit.js";
 
 // ── Chapter 5 — Master of the tow ────────────────────────────────────────
@@ -38,29 +38,39 @@ function mountain() {
   });
 }
 
-// 22. Harbour at night: parallel-park the caravan on the quay.
+// 22. Harbour at night: up the alley from the back street, then
+// parallel-park the caravan in the one tight gap on the quay.
 function harbourWall() {
-  const quayCars = [car(90, 182, 0, "van", 0xf2f0e6), car(200, 182, 0, "sedan"), car(330, 182, 0, "hatch"), car(470, 182, 0, "van", 0x3d6fb6),
-    car(820, 182, 0, "suv"), car(930, 182, 0, "van", 0xd9342b), car(1060, 182, 0, "wagon"), car(1190, 182, 0, "hatch")];
+  const quayCars = [
+    car(90, 182, 0, "van", 0xf2f0e6), car(200, 182, 0, "sedan"), car(310, 182, 0, "hatch"), car(420, 182, 0, "wagon"), car(535, 182, 0, "van", 0x3d6fb6),
+    car(772, 182, 0, "suv"), car(880, 182, 0, "van", 0xd9342b), car(985, 182, 0, "sedan"), car(1090, 182, 0, "wagon"), car(1200, 182, 0, "hatch"),
+  ];
+  const kerbCars = [[120, "sedan"], [230, "hatch"], [330, "wagon"], [560, "van"], [680, "sedan"], [790, "hatch"], [1000, "van"], [1110, "suv"], [1220, "hatch"]]
+    .map(([x, t]) => car(x, 372, PI, t));
+  const backCars = [[300, "sedan"], [620, "van"], [900, "wagon"], [1150, "hatch"]].map(([x, t]) => car(x, 728, 0, t));
+  const houses = [[120, 190], [310, 180], [570, 180], [800, 190], [1040, 190], [1230, 190]];
   return level({
-    id: "harbour", vehicle: "suv", name: "Fishing harbour", title: "Quayside", trailer: "caravan", par: 120, sun: "night",
-    brief: "The last space on the quay, under the lamps. Parallel-park the caravan between the vans — the harbour wall is right there.",
-    w: 1300, h: 600, base: "cobble", edge: "none", backdrop: "town",
-    surfaces: [rect("water", -500, -600, 1800, 150), rect("asphalt", 0, 160, 1300, 390), rect("pavement", 0, 390, 1300, 410)],
-    paint: [line([[0, 206], [1300, 206]], { dash: [10, 10], width: 1.5 }), line([[0, 300], [1300, 300]], { dash: [18, 16] })],
-    parked: [...quayCars, car(260, 372, PI, "hatch"), car(700, 372, PI, "sedan"), car(1000, 372, PI, "van")],
+    id: "harbour", vehicle: "suv", name: "Fishing harbour", title: "Quayside", trailer: "caravan", par: 150, sun: "night",
+    brief: "Up the narrow alley from the back street to the quay. The last space is a tight gap under the lamps: parallel-park the caravan between the vans — the harbour wall is right there.",
+    w: 1300, h: 760, base: "cobble", edge: "none", backdrop: "town",
+    surfaces: [
+      rect("water", -500, -600, 1800, 150), rect("asphalt", 0, 160, 1300, 390), rect("pavement", 0, 390, 1300, 410),
+      rect("pavement", 0, 598, 1300, 612), rect("asphalt", 0, 612, 1300, 760),
+    ],
+    paint: [line([[0, 206], [1300, 206]], { dash: [10, 10], width: 1.5 }), line([[0, 300], [1300, 300]], { dash: [18, 16] }), line([[0, 686], [1300, 686]], { dash: [18, 16] })],
+    parked: [...quayCars, ...kerbCars, ...backCars],
     statics: [
       { kind: "water", x: 650, y: 72, w: 1300, h: 146 },
       { kind: "quay", x: 650, y: 154, w: 1300, h: 8 },
       ...range(0, 12).map((i) => ({ kind: "bollard", x: 50 + i * 110, y: 164, r: 3.2 })),
-      ...range(0, 7).map((i) => ({ kind: "lamp", x: 90 + i * 190, y: 398 })),
-      ...[120, 330, 560, 800, 1040, 1230].map((x, i) => building(x, 505, 190, 180, { height: 40 + (i % 3) * 10, color: [0x3d6fb6, 0xd9342b, 0xf2f0e6, 0x2f6b4a, 0xd9a13a, 0x8e9aa6][i], roof: 0x3b3f45, lit: true })),
-      { kind: "crates", x: 640, y: 430, w: 50, h: 30 }, { kind: "barrel", x: 700, y: 428 },
+      ...[90, 300, 520, 740, 950, 1150].map((x) => ({ kind: "lamp", x, y: 398, a: -PI / 2 })),
+      ...houses.map(([x, w], i) => building(x, 505, w, 180, { height: 40 + (i % 3) * 10, color: [0x3d6fb6, 0xd9342b, 0xf2f0e6, 0x2f6b4a, 0xd9a13a, 0x8e9aa6][i], roof: 0x3b3f45, lit: true })),
+      { kind: "barrel", x: 410, y: 470 }, { kind: "bin", x: 470, y: 560 },
       { kind: "barrier", x: 6, y: 280, w: 6, h: 220 }, { kind: "barrier", x: 1294, y: 280, w: 6, h: 220 },
     ],
     decor: [{ kind: "boat", x: 300, y: 90, a: 0.05, len: 90 }, { kind: "boat", x: 720, y: 80, a: -0.05, len: 110 }, { kind: "boat", x: 1100, y: 95, a: 3.1, len: 80 }],
     cones: [],
-    start: { x: 145, y: 300, a: 0 },
+    start: { x: 170, y: 686, a: 0 },
     bay: { x: 620, y: 184, a: 0, w: 34, l: 76 },
   });
 }
@@ -93,29 +103,42 @@ function nightMarket() {
 
 // 24. Farm track: a long way to the machinery shed.
 function farmTrack() {
-  const track = [[-40, 820], [300, 800], [600, 700], [800, 540], [1000, 450], [1300, 430], [1420, 380]];
+  const track = [[-40, 820], [300, 800], [600, 700], [800, 540], [1000, 450], [1300, 430], [1420, 400]];
   const gaps = (x) => (x > 580 && x < 660) || (x > 1080 && x < 1160);
   const hedges = [
     ...wallLine(offsetLine(track, 48), { kind: "hedge", thick: 10, maxLen: 60, skip: (x) => gaps(x) || x > 1260 }),
     ...wallLine(offsetLine(track, -48), { kind: "hedge", thick: 10, maxLen: 60, skip: (x) => x > 1260 }),
   ];
-  const bales = [[500, 560], [520, 580], [700, 380], [720, 400], [1150, 620], [200, 650]].map(([x, y]) => ({ kind: "hay", x, y, r: 9 }));
+  // Loose bales: in the fields, and two knocked onto the verge of the track.
+  const bales = [[500, 560], [520, 580], [700, 380], [720, 400], [1150, 620], [200, 650], [964, 440], [412, 786]].map(([x, y]) => ({ kind: "hay", x, y, r: 9 }));
+  // The yard is fenced; the only way in is the gate at the end of the track.
+  const yardFence = [
+    ...wallLine([[1285, 225], [1285, 392]], { kind: "fence", thick: 3, maxLen: 40 }),
+    ...wallLine([[1285, 470], [1785, 470]], { kind: "fence", thick: 3, maxLen: 40 }),
+  ];
+  const stack = (x, y, w, h) => ({ kind: "block", x, y, w, h, height: 22, color: 0xd9b95a });
   return level({
-    id: "farm", vehicle: "pickup", name: "Farm track", title: "Harvest Home", trailer: "boat", par: 140, sun: "dusk",
-    brief: "Down the long farm track to the yard, then reverse the boat into the machinery shed beside the tractor.",
+    id: "farm", vehicle: "pickup", name: "Farm track", title: "Harvest Home", trailer: "boat", par: 170, sun: "dusk",
+    brief: "Down the long farm track, past the tractor in the hedge gap and through the gate. The yard is full of harvest: reverse the boat into the machinery shed beside the tractor.",
     w: 1800, h: 900, base: "grass", edge: "fence", backdrop: "fields",
     surfaces: [
       rect("dirt", 100, 100, 560, 520, 20), rect("dirt", 900, 560, 1500, 860, 20),
-      road("gravel", track, 64), rect("dirt", 1280, 230, 1780, 470, 30), rect("concrete", 1515, 55, 1685, 205),
+      road("gravel", track, 64), rect("dirt", 1280, 225, 1785, 470, 30), rect("concrete", 1515, 55, 1685, 205),
+      rect("mud", 770, 500, 880, 600, 20), rect("mud", 1560, 215, 1700, 300, 24),
     ],
     paint: [paintBays([{ x: 1640, y: 140, a: PI / 2, w: 44, l: 86 }], "rgba(236,200,70,0.6)")],
+    parked: [car(1352, 290, 1.25, "pickup", 0x6b3b2a)],
     statics: [
-      ...hedges,
+      ...hedges, ...yardFence,
       ...shed(1600, 130, PI / 2, 170, 150, { style: "barn", height: 52, thick: 8 }),
       { kind: "tractor", x: 1550, y: 130, a: PI / 2, color: 0xd9342b },
+      // A second tractor pulled into the hedge gap, its nose out on the track.
+      { kind: "tractor", x: 600, y: 656, a: -0.68, color: 0x2f7a3a },
+      { kind: "tractor", x: 1735, y: 340, a: PI / 2, color: 0x3d6fb6 },
       building(1400, 120, 160, 120, { height: 50, color: 0xefe6d2, roof: 0x7a3b2e, lit: true }),
       ...bales,
-      { kind: "block", x: 1320, y: 300, w: 40, h: 14, height: 8, color: 0x8a9099 },
+      stack(1468, 262, 40, 50), stack(1560, 440, 70, 26), stack(1750, 430, 40, 40),
+      { kind: "block", x: 1306, y: 246, w: 14, h: 36, height: 8, color: 0x8a9099 },
       tree(1260, 180, 22), tree(1720, 520, 20), tree(900, 300, 22), tree(300, 560, 20),
     ],
     cones: [],
@@ -124,33 +147,45 @@ function farmTrack() {
   });
 }
 
-// 25. Festival: the last pitch in the caravan field, at night.
+// 25. Festival: the back row of the caravan field, at night.
 function festival() {
-  const track = [[-40, 700], [300, 690], [500, 630], [650, 650], [1560, 650]];
-  const north = hrow(700, 540, 13, PI / 2, { w: 64, l: 92 });
-  const south = hrow(700, 770, 13, -PI / 2, { w: 64, l: 92 });
+  const track = [[-40, 800], [300, 790], [480, 745], [640, 790], [1560, 790]];
+  const lane = smooth([[560, 776], [590, 660], [660, 600], [1570, 600]]);
+  const back = hrow(700, 500, 13, PI / 2, { w: 64, l: 92 });    // behind the lane, the target row
+  const mid = hrow(700, 700, 13, PI / 2, { w: 64, l: 92 });     // between the lane and the track
+  const south = hrow(700, 880, 13, -PI / 2, { w: 64, l: 92 });
   const target = 8;
-  const fence = range(0, 22).map((i) => ({ kind: "fence", x: 700 + i * 40, y: 486, w: 42, h: 3 }));
-  const arena = scatter(251, 26, [60, 200, 1550, 470], (x, y, r) => (r() < 0.5 ? { kind: "tent", x, y, w: 26 + r() * 8, h: 30, a: r() * 3 } : { kind: "marquee", x, y, w: 60 + r() * 30, h: 50 }), [[560, 20, 1060, 190]]);
+  const fence = range(0, 22).map((i) => ({ kind: "fence", x: 700 + i * 40, y: 446, w: 42, h: 3 }));
+  const arena = scatter(251, 24, [60, 190, 1550, 420], (x, y, r) => (r() < 0.5 ? { kind: "tent", x, y, w: 26 + r() * 8, h: 30, a: r() * 3 } : { kind: "marquee", x, y, w: 60 + r() * 30, h: 50 }), [[560, 20, 1060, 190]]);
+  const divider = (row, y0, y1) => row.map((p) => line([[p.x - 32, y0], [p.x - 32, y1]], { dash: [6, 6], width: 1.5 }));
   return level({
-    id: "festival", vehicle: "suv", name: "Music festival", title: "Last Pitch", trailer: "caravan", par: 150, sun: "night",
-    brief: "The headliner is on. Crawl along the festival track and reverse the caravan into the last free pitch in the north row.",
-    w: 1600, h: 900, base: "grass", edge: "fence", backdrop: "forest",
-    surfaces: [road("gravel", track, 70), rect("mud", 800, 600, 900, 700, 30), rect("grass", 680, 490, 1540, 590)],
-    paint: [...north.map((p) => line([[p.x - 32, 494], [p.x - 32, 586]], { dash: [6, 6], width: 1.5 })), ...south.map((p) => line([[p.x - 32, 724], [p.x - 32, 816]], { dash: [6, 6], width: 1.5 })), paintBays([{ ...north[target], w: 46 }], YELLOW)],
-    parked: [car(1500, 540, PI / 2, "suv"), car(640, 770, -PI / 2, "wagon")],
+    id: "festival", vehicle: "suv", name: "Music festival", title: "Last Pitch", trailer: "caravan", par: 180, sun: "night",
+    brief: "The headliner is on. Leave the festival track for the narrow back lane and reverse the caravan into the last free pitch in the back row.",
+    w: 1600, h: 960, base: "grass", edge: "fence", backdrop: "forest",
+    surfaces: [
+      road("gravel", track, 70), road("gravel", lane, 64), rect("grass", 680, 450, 1540, 548), rect("grass", 680, 652, 1540, 748),
+      rect("mud", 960, 566, 1060, 634, 24), rect("mud", 800, 755, 900, 825, 30),
+    ],
+    paint: [...divider(back, 454, 546), ...divider(mid, 654, 746), ...divider(south, 834, 926), paintBays([{ ...back[target], w: 46 }], YELLOW)],
+    parked: [car(1500, 706, PI / 2, "suv"), car(640, 880, -PI / 2, "wagon")],
     statics: [
       { kind: "block", x: 810, y: 100, w: 400, h: 120, height: 60, color: 0x2b2d31, stage: true },
       ...fence,
-      ...north.filter((_, i) => i !== target && i !== 12).map((p) => ({ kind: "vancaravan", x: p.x, y: p.y - 4, a: PI / 2 })),
+      ...back.filter((_, i) => i !== target).map((p) => ({ kind: "vancaravan", x: p.x, y: p.y - 4, a: PI / 2 })),
+      ...mid.filter((_, i) => i % 4 !== 2 && ![8, 9, 12].includes(i)).map((p) => ({ kind: "vancaravan", x: p.x, y: p.y - 4, a: PI / 2 })),
+      ...mid.filter((_, i) => i % 4 === 2).map((p) => ({ kind: "tent", x: p.x, y: p.y - 10, w: 30, h: 34, a: 0.2 })),
       ...south.filter((_, i) => i % 3 !== 1).map((p) => ({ kind: "vancaravan", x: p.x, y: p.y + 4, a: -PI / 2 })),
       ...south.filter((_, i) => i % 3 === 1).map((p) => ({ kind: "tent", x: p.x, y: p.y + 10, w: 30, h: 34, a: 0.2 })),
-      ...range(0, 9).map((i) => ({ kind: "lamp", x: 300 + i * 150, y: 605 })),
+      { kind: "firepit", x: 1468, y: 690 }, { kind: "table", x: 1440, y: 720 },
+      // Lamps behind the back-row fence and between the mid-row caravans, arms over the lane.
+      ...range(0, 7).map((i) => ({ kind: "lamp", x: 732 + i * 128, y: 436, a: PI / 2 })),
+      ...[1, 4, 7, 10].map((i) => ({ kind: "lamp", x: 700 + i * 64 + 32, y: 644, a: -PI / 2 })),
+      { kind: "lamp", x: 300, y: 740, a: PI / 2 }, { kind: "lamp", x: 470, y: 840, a: -PI / 2 },
       ...arena,
     ],
     cones: [],
-    start: { x: 145, y: 698, a: 0 },
-    bay: { ...north[target], w: 46, l: 94 },
+    start: { x: 145, y: 798, a: 0 },
+    bay: { ...back[target], w: 46, l: 94 },
   });
 }
 

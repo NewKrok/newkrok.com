@@ -427,6 +427,7 @@ function drawStaticTop(p, def) {
     case "pine": circle(def.r * 0.8, 0x24502f); p.circle(x, y, def.r * 0.4, 0x2f6a3c); return;
     case "bush": circle(def.r, 0x4d7c30); return;
     case "rock": circle(def.r, 0x8a8f96); return;
+    case "island": circle(def.r, 0xa7a39a); circle(def.r - 3, 0x3f7a2c); return;
     case "hay": circle(def.r, 0xd9b95a); return;
     case "firepit": circle(7, 0x6d6a64); return;
     case "table": p.poly(box(12, 20), 0x8a6238); return;

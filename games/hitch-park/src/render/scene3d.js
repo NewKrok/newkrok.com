@@ -662,13 +662,14 @@ export class Scene3D {
         if (def.flag) P.add(g.box, this.paintMat(def.flag), x + 5, y, 31, 0, 10, 0.4, 7);
         return null;
       case "lamp": {
-        const H = 62;
+        // The arm reaches out along `a` (default: +x).
+        const H = 62, la = def.a ?? 0, cx = Math.cos(la), cy = Math.sin(la);
         P.add(g.cylZ, g.darkMetal, x, y, H / 2, 0, 1.3, 1.3, H);
         P.add(g.cylZ, g.darkMetal, x, y, 2, 0, 3, 3, 4);
-        P.add(g.box, g.darkMetal, x + 5, y, H, 0, 11, 1.4, 1.4);
-        P.add(g.box, g.darkMetal, x + 10, y, H - 0.6, 0, 7, 4.4, 1.8);
-        P.add(g.box, g.head, x + 10, y, H - 1.8, 0, 5.4, 3.2, 0.6);
-        lamps.push({ x: def.x + 10, y: def.y });
+        P.add(g.box, g.darkMetal, x + cx * 5, y + cy * 5, H, la, 11, 1.4, 1.4);
+        P.add(g.box, g.darkMetal, x + cx * 10, y + cy * 10, H - 0.6, la, 7, 4.4, 1.8);
+        P.add(g.box, g.head, x + cx * 10, y + cy * 10, H - 1.8, la, 5.4, 3.2, 0.6);
+        lamps.push({ x: def.x + cx * 10, y: def.y + cy * 10 });
         return null;
       }
       case "hydrant":
@@ -686,6 +687,11 @@ export class Scene3D {
       case "pine": trees.push({ x: def.x, y: def.y, r: def.r, pine: true }); return null;
       case "bush": P.add(g.ico, g.leaf[(def.x | 0) % 4], x, y, def.r * 0.45, def.x, def.r, def.r, def.r * 0.7); return null;
       case "rock": P.add(g.ico, lvl.base === "snow" ? g.white : g.darkConcrete, x, y, def.r * 0.3, def.x, def.r, def.r * 0.9, def.r * 0.7); return null;
+      case "island": // a kerbed roundabout island
+        P.add(g.cylZ, g.concrete, x, y, 2.5, 0, def.r, def.r, 5);
+        P.add(g.cylZ, this.matCached("islandGrass", () => new T.MeshStandardMaterial({ color: 0x4f8a34, roughness: 0.95 })), x, y, 5.2, 0, def.r - 3, def.r - 3, 0.6);
+        for (let i = 0; i < 7; i++) { const a = (i / 7) * Math.PI * 2; P.add(g.ico, g.leaf[i % 4], x + Math.cos(a) * def.r * 0.55, y + Math.sin(a) * def.r * 0.55, 8, a, 6, 6, 5); }
+        return null;
       case "hay":
         P.add(g.cylZ, this.matCached("hay", () => new T.MeshStandardMaterial({ color: 0xd9b95a, roughness: 0.95 })), x, y, def.r * 0.7, 0, def.r, def.r, def.r * 1.4);
         return null;

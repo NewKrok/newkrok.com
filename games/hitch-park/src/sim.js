@@ -73,7 +73,7 @@ export function createSim({ onEvent = () => {} } = {}) {
     const boxAt = (x, y, w, h) => b.shapes.add(new Polygon(Polygon.rect(x - w / 2, y - h / 2, w, h), MAT_STATIC));
     const circ = (r) => b.shapes.add(new Circle(r, undefined, MAT_STATIC));
     if (k === "pillar") box(def.s, def.s);
-    else if (k === "hay" || k === "rock") circ(def.r);
+    else if (k === "hay" || k === "rock" || k === "island") circ(def.r);
     else if (k === "bush") circ(def.r * 0.7);
     else if (k === "post") circ(def.r ?? 2.2);
     else if (k === "pine") circ(Math.max(2.5, def.r * 0.2));
