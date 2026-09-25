@@ -128,7 +128,7 @@ function delivery() {
       { kind: "kerb", x: 540, y: 598, w: 1080, h: 6 }, { kind: "kerb", x: 1690, y: 598, w: 620, h: 6 },
       { kind: "kerb", x: 1000, y: 820, w: 2000, h: 6 },
       // A builder's skip on the far side of the gate: less room to pull forward.
-      { kind: "skip", x: 1560, y: 628, w: 60, h: 28, color: 0xe8c547 },
+      { kind: "skip", x: 1640, y: 628, w: 60, h: 28, color: 0xe8c547 },
       ...[200, 600, 1000, 1500, 1900].map((x) => ({ kind: "lamp", x, y: 575 })),
       { kind: "barrier", x: 6, y: 710, w: 6, h: 210 }, { kind: "barrier", x: 1994, y: 710, w: 6, h: 210 },
     ],
