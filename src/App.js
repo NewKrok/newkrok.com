@@ -2,6 +2,7 @@ import "./App.css";
 
 import { BrowserRouter, Navigate, Routes } from "react-router-dom";
 
+import CookieConsent from "./ui/cookie-consent/cookie-consent";
 import DeveloperArea from "./components/developer-area/developer-area";
 import GamerZone from "./components/gamer-zone/gamer-zone";
 import { Route } from "react-router";
@@ -19,6 +20,7 @@ const App = () => {
             <Route path="*" element={<Navigate to="/gamer-zone" replace />} />
           </Routes>
         </div>
+        <CookieConsent />
       </div>
     </BrowserRouter>
   );
