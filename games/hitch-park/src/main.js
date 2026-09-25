@@ -5,6 +5,7 @@ import { Scene3D } from "./render/scene3d.js";
 import { drawLevelThumb, drawRigIcon } from "./render/topdown.js";
 import { Hud } from "./hud.js";
 import { Audio } from "./audio.js";
+import { track } from "./analytics.js";
 import {
   loadSettings, saveSettings, loadProgress, recordResult, isUnlocked, totalStars, firstUnfinished,
   saveProgress,
@@ -99,6 +100,7 @@ function renderMain() {
 }
 
 function goMain() {
+  trackQuit();
   G.phase = "menu";
   audio.setMusic(true);
   const idx = firstUnfinished(progress, LEVELS.length);
@@ -192,8 +194,16 @@ function openIntro(idx) {
   showScreen("intro");
 }
 
-function startDriving() {
+const cleared = () => progress.best.filter(Boolean).length;
+// Leaving a level from the pause menu: how far they got before giving up.
+function trackQuit() {
+  if (G.phase === "paused") track("level_quit", { ...levelInfo(LEVELS[G.levelIdx]), time_s: Math.round(G.clock), bumps: sim.hits + sim.crashes });
+}
+const levelInfo = (L) => ({ level_id: L.id, level_number: L.index + 1, chapter: L.chapter + 1, vehicle: L.vehicle });
+
+function startDriving({ retry = false } = {}) {
   if (G.phase !== "intro" && G.phase !== "play") return;
+  if (G.phase === "intro") track("level_start", { ...levelInfo(LEVELS[G.levelIdx]), retry });
   audio.setMusic(false);
   audio.play("go");
   G.phase = "play";
@@ -211,7 +221,7 @@ function restart() {
   G.clock = 0; G.hold = 0; G.result = null; G.shake = 0; G.resultAt = 0;
   hud.clearFx();
   G.phase = "intro";
-  startDriving();
+  startDriving({ retry: true });
 }
 
 function pause() {
@@ -237,6 +247,8 @@ function finishLevel() {
   const score = Math.max(0, SCORE.base + timeBonus + accBonus - penalty);
   const stars = 1 + (bumps === 0 ? 1 : 0) + (G.clock <= L.par ? 1 : 0);
   const rec = recordResult(progress, G.levelIdx, { stars, score, time: G.clock });
+  track("level_complete", { ...levelInfo(L), stars, score, time_s: Math.round(G.clock), bumps, first_clear: rec.first });
+  if (rec.first && cleared() === LEVELS.length) track("all_complete", { stars: totalStars(progress) });
   G.result = { score, stars, time: G.clock, hits: sim.hits, crashes: sim.crashes, cones: sim.coneHits, acc: ps.acc, timeBonus, accBonus, isBest: rec.isBest && !rec.first };
   G.phase = "done";
   sim.scoring = false;
@@ -277,6 +289,7 @@ function nextLevel() {
 }
 
 function openLevels() {
+  trackQuit();
   if (G.phase === "paused" || G.phase === "done" || G.phase === "intro") {
     G.phase = "menu";
     audio.setMusic(true);
@@ -331,7 +344,8 @@ function setCamMode(m, { announce = false } = {}) {
   renderViewPick();
   if (announce) toast(t("camToast", { mode: camName(m) }));
 }
-function cycleCamera() { setCamMode((G.camMode + 1) % 3, { announce: true }); }
+function cycleCamera() { setCamMode((G.camMode + 1) % 3, { announce: true }); trackCamera("in_game"); }
+const trackCamera = (from) => track("camera_change", { camera: ["follow", "chase", "overview"][G.camMode] ?? G.camMode, from, level_number: G.levelIdx + 1 });
 function updateCamLabel() { const el = $(".cam-label"); if (el) el.textContent = camName(G.camMode); }
 function renderViewPick() {
   for (const b of $$(".vp")) b.classList.toggle("on", Number(b.dataset.cam) === G.camMode);
@@ -400,7 +414,7 @@ app.addEventListener("click", (e) => {
     return;
   }
   const vp = e.target.closest(".vp");
-  if (vp) { audio.play("click"); G.introPreview = true; setCamMode(Number(vp.dataset.cam)); return; }
+  if (vp) { audio.play("click"); G.introPreview = true; setCamMode(Number(vp.dataset.cam)); trackCamera("intro"); return; }
   const btn = e.target.closest("[data-action]");
   if (!btn) return;
   const a = btn.dataset.action;
@@ -455,6 +469,7 @@ $("#menu-settings").addEventListener("change", (e) => {
   if (e.target.id !== "lang-select") return;
   settings.lang = e.target.value;
   setLang(settings.lang);
+  track("language_change", { lang: settings.lang });
   saveSettings(settings);
   renderMain();
   updateCamLabel();
@@ -470,7 +485,7 @@ $("#menu-settings").addEventListener("click", (e) => {
   if (!b) return;
   const k = b.closest("[data-setting]").dataset.setting;
   settings[k] = k === "camMode" ? Number(b.dataset.value) : b.dataset.value;
-  if (k === "camMode") { setCamMode(settings.camMode); return renderSettings(); }
+  if (k === "camMode") { setCamMode(settings.camMode); trackCamera("settings"); return renderSettings(); }
   if (k === "quality") { scene.setQuality(settings.quality); scene.lv && (scene.lv.gen = -1); }
   applySettings();
   renderSettings();
@@ -562,6 +577,7 @@ function boot() {
   new ResizeObserver(resize).observe(app);
   resize();
   goMain();
+  track("game_open", { lang: getLang(), returning: cleared() > 0, levels_cleared: cleared(), stars: totalStars(progress), embedded: window.parent !== window });
   requestAnimationFrame((t) => { last = t; frame(t); });
   // Let the first frames render behind the loader, then reveal.
   setTimeout(() => $("#loading").classList.remove("active"), 250);
