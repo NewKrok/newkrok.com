@@ -30,6 +30,14 @@ export default [
     },
   },
   {
-    ignores: ['build/', 'node_modules/', 'config/', 'scripts/'],
+    // Games (games/<slug>/): plain ES modules for the browser, Node scripts.
+    files: ['games/*/src/**/*.js', 'games/*/scripts/**/*.js', 'games/*/vite.config.js'],
+    languageOptions: {
+      sourceType: 'module',
+      globals: { ...globals.browser, ...globals.node, ...globals.es2022 },
+    },
+  },
+  {
+    ignores: ['build/', 'node_modules/', 'config/', 'scripts/', 'games/*/dist/', 'games/*/node_modules/'],
   },
 ];

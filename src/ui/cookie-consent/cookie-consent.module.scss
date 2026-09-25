@@ -1,0 +1,66 @@
+.Banner {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 2000;
+  max-width: 26rem;
+  padding: 1rem 1.25rem;
+  background: #1a1a1a;
+  color: var(--main-color--text);
+  border: 1px solid #333;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  font-family: "Kanit", sans-serif;
+  font-weight: 200;
+  text-align: left;
+
+  @media screen and (max-width: 600px) {
+    left: calc(3rem + 0.75rem);
+    right: 0.75rem;
+    bottom: 0.75rem;
+    max-width: none;
+  }
+}
+
+.Text {
+  margin: 0 0 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.Buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+
+  button {
+    font: inherit;
+    font-weight: 400;
+    padding: 0.45rem 1.1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color var(--animation-speed), color var(--animation-speed);
+  }
+}
+
+.Decline {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid #444;
+
+  &:hover {
+    color: #fff;
+    border-color: #666;
+  }
+}
+
+.Accept {
+  background: #fff;
+  color: #0d0d0d;
+  border: 1px solid #fff;
+
+  &:hover {
+    background: #ddd;
+  }
+}

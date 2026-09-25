@@ -31,19 +31,35 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Kanit:wght@100;200&display=swap"
     />
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-JPELFBHLSB"
-    ></script>
+    <!-- Google Analytics, only after cookie consent. Consent Mode starts
+         everything denied; the tag itself is loaded only once the visitor
+         has accepted (stored as "newkrok-consent" in localStorage, which
+         the games under /games/ read too). -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);
       }
+      gtag("consent", "default", {
+        analytics_storage: "denied",
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+      });
       gtag("js", new Date());
-
       gtag("config", "G-JPELFBHLSB");
+      window.newkrokGrantAnalytics = function () {
+        gtag("consent", "update", { analytics_storage: "granted" });
+        if (window.__gaLoaded) return;
+        window.__gaLoaded = true;
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://www.googletagmanager.com/gtag/js?id=G-JPELFBHLSB";
+        document.head.appendChild(s);
+      };
+      try {
+        if (localStorage.getItem("newkrok-consent") === "granted") window.newkrokGrantAnalytics();
+      } catch (e) {}
     </script>
     <!--
       Notice the use of %PUBLIC_URL% in the tag above.

@@ -5,6 +5,13 @@ import List from "../../ui/list/list";
 
 const games = [
   {
+    label: "Hitch & Park",
+    target: "hitch-park",
+    preview: "/games/hitch-park/media/preview.webp",
+    url: "/games/hitch-park/",
+    badge: "new",
+  },
+  {
     label: "Project Throttle",
     target: "project-throttle",
     preview: "/games/project-throttle/media/preview.webp",

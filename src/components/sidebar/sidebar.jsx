@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 
 import Icon from "../../ui/icon/icon";
+import { openCookieSettings } from "../../ui/cookie-consent/cookie-consent";
 import { useState } from "react";
 import styles from "./sidebar.module.scss";
 
@@ -73,6 +74,16 @@ const SideBar = () => {
           </Link>
         </div>
         <div className={styles.name}>NewKrok</div>
+        <button
+          type="button"
+          className={styles.cookies}
+          onClick={(e) => {
+            e.stopPropagation();
+            openCookieSettings();
+          }}
+        >
+          Cookies
+        </button>
       </div>
     </>
   );
