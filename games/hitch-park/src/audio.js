@@ -194,15 +194,25 @@ export class Audio {
     const lfoG = c.createGain(); lfoG.gain.value = 0.6;
     lfo.connect(lfoG); lfoG.connect(o1.frequency); lfoG.connect(o2.frequency);
     o1.start(); o2.start(); o3.start(); rum.start(); lfo.start();
-    // Tyre squeal on hard ground: a wavering tone, not a hiss.
-    const sqO = c.createOscillator(); sqO.type = "sawtooth"; sqO.frequency.value = 920;
-    const sqV = c.createOscillator(); sqV.frequency.value = 9;
-    const sqVG = c.createGain(); sqVG.gain.value = 45;
-    sqV.connect(sqVG).connect(sqO.frequency);
-    const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1150; bp.Q.value = 3;
+    // Tyre squeal on hard ground: noise rung through two narrow resonances
+    // (the rubber "singing"), their pitch drifting unevenly, with a flutter.
+    const sq = c.createBufferSource(); sq.buffer = this.noiseBuf; sq.loop = true;
+    const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1750; bp.Q.value = 16;
+    const bp2 = c.createBiquadFilter(); bp2.type = "bandpass"; bp2.frequency.value = 2600; bp2.Q.value = 20;
+    const bp2g = c.createGain(); bp2g.gain.value = 0.45;
+    for (const [f, depth, filt] of [[5.3, 70, bp], [7.7, 50, bp], [4.1, 90, bp2], [11.3, 40, bp2]]) {
+      const o = c.createOscillator(); o.frequency.value = f;
+      const g = c.createGain(); g.gain.value = depth;
+      o.connect(g).connect(filt.frequency); o.start();
+    }
+    const flutter = c.createGain(); flutter.gain.value = 1;
+    const flO = c.createOscillator(); flO.frequency.value = 13;
+    const flG = c.createGain(); flG.gain.value = 0.25;
+    flO.connect(flG).connect(flutter.gain); flO.start();
     const sg = c.createGain(); sg.gain.value = 0;
-    sqO.connect(bp).connect(sg).connect(this.sfx);
-    sqO.start(); sqV.start();
+    sq.connect(bp).connect(flutter); sq.connect(bp2).connect(bp2g).connect(flutter);
+    flutter.connect(sg).connect(this.sfx);
+    sq.start();
     // On loose ground a slide is a crunch of gravel / dirt.
     const cr = c.createBufferSource();
     cr.buffer = this.noiseBuf; cr.loop = true;
@@ -210,7 +220,7 @@ export class Audio {
     const cg = c.createGain(); cg.gain.value = 0;
     cr.connect(cbp).connect(cg).connect(this.sfx);
     cr.start();
-    this.engine = { o1, o2, o3, lp, gain, sg, bp, sqO, cg };
+    this.engine = { o1, o2, o3, lp, gain, sg, bp, bp2, cg };
   }
 
   // state: { active, speed (px/s), throttle (−1…1), skid (0…1), reverse,
@@ -228,8 +238,10 @@ export class Audio {
     e.lp.frequency.setTargetAtTime(220 + load * 260 + sp * 18, t, 0.15);
     e.gain.gain.setTargetAtTime(s.active ? (0.07 + load * 0.06 + sp * 0.003) * 1.15 : 0, t, 0.15);
     const sk = s.active ? clamp(s.skid, 0, 1) : 0;
-    e.sg.gain.setTargetAtTime(s.loose ? 0 : sk * 0.018, t, 0.05);
-    e.sqO.frequency.setTargetAtTime(820 + sk * 260 + sp * 12, t, 0.08);
+    // Soft onset: a light scrub barely sings, a real slide does.
+    e.sg.gain.setTargetAtTime(s.loose ? 0 : Math.pow(sk, 1.5) * 0.075, t, 0.06);
+    e.bp.frequency.setTargetAtTime(1600 + sk * 380 + sp * 6, t, 0.1);
+    e.bp2.frequency.setTargetAtTime(2450 + sk * 420 + sp * 8, t, 0.1);
     e.cg.gain.setTargetAtTime(s.loose ? sk * 0.041 : 0, t, 0.05);
 
     // Reversing / parking sensor: the closer the tail is to something, the
