@@ -174,6 +174,7 @@ function openIntro(idx) {
   hud.clearFx();
   audio.setMusic(true);
   G.camMode = settings.camMode;
+  G.introPreview = false;           // intro shows the whole site until a view is picked
   const root = $("#intro");
   const lt = levelText(L);
   bind("introSite", `${t("job", { n: idx + 1 })} · ${lt.name}`, root);
@@ -197,6 +198,7 @@ function startDriving() {
   audio.play("go");
   G.phase = "play";
   sim.scoring = true;
+  G.snapCam = true;                 // start in the chosen view, no glide from the overview
   hideScreens();
   hud.banner(t("banner_go"), "#7ee787", 0.9);
   updateCamLabel();
@@ -398,7 +400,7 @@ app.addEventListener("click", (e) => {
     return;
   }
   const vp = e.target.closest(".vp");
-  if (vp) { audio.play("click"); setCamMode(Number(vp.dataset.cam)); return; }
+  if (vp) { audio.play("click"); G.introPreview = true; setCamMode(Number(vp.dataset.cam)); return; }
   const btn = e.target.closest("[data-action]");
   if (!btn) return;
   const a = btn.dataset.action;
@@ -520,7 +522,8 @@ function frame(now) {
     ? [(Math.sin(G.time * 91) + Math.sin(G.time * 53)) * G.shake * 1.6, (Math.cos(G.time * 77) + Math.sin(G.time * 61)) * G.shake * 1.6]
     : [0, 0];
   const pip = scene.render(sim, {
-    phase: G.phase === "paused" || G.phase === "done" ? "play" : G.phase,
+    // In the intro, a picked view is previewed behind the card.
+    phase: G.phase === "paused" || G.phase === "done" || (G.phase === "intro" && G.introPreview) ? "play" : G.phase,
     time: G.time, dt, camMode: G.camMode, camDist: G.camDist,
     showGuide: settings.guide && G.phase === "play", rearCam: settings.rearCam && G.phase === "play",
     hold: G.hold, shake, snap: G.snapCam,
