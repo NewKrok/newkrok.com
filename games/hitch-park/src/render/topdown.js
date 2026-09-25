@@ -142,8 +142,10 @@ const TRACTOR_TOP = { ...VEHICLES.truck, tractor: true };
 export function drawRigTop(p, vehicle, trailer, x, y, a) {
   const v = VEHICLES[vehicle], t = TRAILERS[trailer];
   const d = (-v.hitchX + t.len / 2 + t.bar) * M;
-  drawTrailerTop(p, trailer, x - Math.cos(a) * d, y - Math.sin(a) * d, a, trailer === "semi" ? 0xe8e8e4 : undefined);
-  drawCarTop(p, vehicle === "truck" ? TRACTOR_TOP : CAR_TYPES[v.body ?? "wagon"], PLAYER_COLOR, x, y, a);
+  const drawTrailer = () => drawTrailerTop(p, trailer, x - Math.cos(a) * d, y - Math.sin(a) * d, a, trailer === "semi" ? 0xe8e8e4 : undefined);
+  const drawCar = () => drawCarTop(p, vehicle === "truck" ? TRACTOR_TOP : CAR_TYPES[v.body ?? "wagon"], PLAYER_COLOR, x, y, a);
+  // A semi-trailer's nose sits over the tractor's fifth wheel: tractor first.
+  if (trailer === "semi") { drawCar(); drawTrailer(); } else { drawTrailer(); drawCar(); }
 }
 
 // Car + trailer rig, centred on (x, y) and scaled to fit `maxW`.
@@ -387,9 +389,9 @@ function drawStaticTop(p, def) {
     case "vancaravan": drawTrailerTop(p, "caravan", x, y, a); return;
     case "parkedsemi": {
       const t = TRAILERS.semi, v = VEHICLES.truck;
-      drawTrailerTop(p, "semi", x, y, a, 0xe8e8e4);
       const d = (t.len / 2 + t.bar - v.hitchX) * M;
       drawCarTop(p, TRACTOR_TOP, def.color ?? 0x3d6fb6, x + Math.cos(a) * d, y + Math.sin(a) * d, a);
+      drawTrailerTop(p, "semi", x, y, a, 0xe8e8e4);
       return;
     }
     case "plane": {
