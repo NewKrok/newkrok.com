@@ -8,7 +8,9 @@ import {
 // driven rear axle, so the trailer answers much more slowly than a car's.
 
 const SEMI_COLORS = [0x3d6fb6, 0xf2f0e6, 0x2f6b4a, 0xd9a13a, 0x8a1f24, 0x2b2d31, 0x5b4a8a, 0xb8bcc2];
-const semiAt = (x, y, a, i) => parkedSemi(x, y, a, SEMI_COLORS[i % SEMI_COLORS.length]);
+// A few trailers carry an advert — a small easter egg.
+const ADS = { 1: "NAPE-JS PHYSICS", 4: "THREE.JS", 6: "NEWKROK GAMES" };
+const semiAt = (x, y, a, i, ad = ADS[i]) => parkedSemi(x, y, a, SEMI_COLORS[i % SEMI_COLORS.length], ad);
 
 // 26. Distribution centre: onto a free dock.
 function distribution() {
@@ -53,7 +55,7 @@ function truckStop() {
     paint: [paintBays(bays), paintBays([{ ...bays[target], w: 58 }], YELLOW), text(1100, 560, "HGV PARKING", { size: 22, color: YELLOW }), arrow(700, 640, 0), arrow(1300, 640, 0)],
     parked: [car(1650, 1060, 0, "sedan"), car(1720, 1060, 0, "hatch")],
     statics: [
-      ...bays.filter((_, i) => i !== target && i !== 3 && i !== 10).map((b, i) => semiAt(b.x - Math.cos(a) * 18, b.y - Math.sin(a) * 18, a, i + 2)),
+      ...bays.filter((_, i) => i !== target && i !== 3 && i !== 10).map((b, i) => semiAt(b.x - Math.cos(a) * 18, b.y - Math.sin(a) * 18, a, i + 2, i === 3 ? "NEWKROK GAMES" : i === 6 ? "THREE.JS" : null)),
       building(1720, 820, 360, 180, { height: 40, color: 0xd33a2c, roof: 0xf2f2ee, sign: "JOE'S DINER", signColor: "#ffffff", lit: true }),
       ...[1560, 1660, 1760, 1860].map((x) => ({ kind: "pump", x, y: 620, w: 16, h: 70 })),
       ...[400, 800, 1200].map((x) => ({ kind: "lamp", x, y: 720 })), { kind: "lamp", x: 1600, y: 1000 },
@@ -145,7 +147,7 @@ function ferryDeck() {
     statics: [
       ...wallLine(hull, { kind: "wall", style: "hull", thick: 12, height: 46, skip: (x, y) => y > 370 && x > 930 && x < 1070 }),
       { kind: "wall", x: 820, y: 382, w: 240, h: 12, style: "hull", height: 46 }, { kind: "wall", x: 1180, y: 382, w: 240, h: 12, style: "hull", height: 46 },
-      semiAt(820, 225, PI / 2, 1), semiAt(1180, 225, PI / 2, 3),
+      semiAt(820, 225, PI / 2, 1, "NAPE-JS PHYSICS"), semiAt(1180, 225, PI / 2, 3, "NEWKROK GAMES"),
       { kind: "water", x: 350, y: 235, w: 700, h: 470 }, { kind: "water", x: 1650, y: 235, w: 700, h: 470 },
       { kind: "water", x: 1000, y: 28, w: 600, h: 56 },
       { kind: "water", x: 820, y: 425, w: 240, h: 90 }, { kind: "water", x: 1180, y: 425, w: 240, h: 90 },

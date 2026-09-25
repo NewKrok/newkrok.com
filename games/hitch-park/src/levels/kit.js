@@ -177,7 +177,7 @@ export function containers(x0, x1, y, rows = 3, seed = 1, len = 145) {
 
 // A parked articulated lorry (tractor + trailer) whose trailer centre is at
 // (x, y), heading a.
-export const parkedSemi = (x, y, a, color = 0x3d6fb6) => ({ kind: "parkedsemi", x, y, a, color });
+export const parkedSemi = (x, y, a, color = 0x3d6fb6, company) => ({ kind: "parkedsemi", x, y, a, color, company });
 
 // Where the rig's trailer sits for a start pose (for sanity checks).
 export function trailerCentre(start, vehicle, trailer) {

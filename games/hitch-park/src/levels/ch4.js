@@ -89,7 +89,7 @@ function services() {
     statics: [
       building(900, 110, 400, 140, { height: 46, color: 0xe8e0d0, roof: 0x2f5f9a, sign: "SERVICES · FOOD · FUEL", signColor: "#2f5f9a", lit: true }),
       ...vanBays.filter((_, i) => [0, 3, 4, 6, 9].includes(i)).map((b) => ({ kind: "vancaravan", x: b.x, y: b.y, a: b.a })),
-      ...lorryBays.filter((_, i) => i !== 2).map((b) => ({ kind: "parkedsemi", x: b.x - Math.cos(b.a) * 20, y: b.y - Math.sin(b.a) * 20, a: b.a, color: [0x3d6fb6, 0xf2f0e6, 0x2f6b4a, 0xd9a13a, 0x8a1f24, 0x2b2d31][Math.round(b.x) % 6] })),
+      ...lorryBays.filter((_, i) => i !== 2).map((b, i) => ({ kind: "parkedsemi", x: b.x - Math.cos(b.a) * 20, y: b.y - Math.sin(b.a) * 20, a: b.a, company: i === 1 ? "THREE.JS" : null, color: [0x3d6fb6, 0xf2f0e6, 0x2f6b4a, 0xd9a13a, 0x8a1f24, 0x2b2d31][Math.round(b.x) % 6] })),
       ...[500, 800, 1100].map((x) => ({ kind: "lamp", x, y: 410 })), { kind: "lamp", x: 1200, y: 700 }, { kind: "lamp", x: 1600, y: 700 },
       ...sample([[400, 640], [400, 20]], 60, 0).map((p) => tree(p.x - 40, p.y, 18)),
       { kind: "planter", x: 1180, y: 410, w: 14, h: 280 },

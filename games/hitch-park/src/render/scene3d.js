@@ -1327,7 +1327,7 @@ export class Scene3D {
       c.fillStyle = "#" + col.toString(16).padStart(6, "0"); c.fillRect(0, 0, w, h);
       c.fillStyle = "rgba(0,0,0,0.08)";
       for (let x = 0; x < w; x += 16) c.fillRect(x, 0, 2, h);
-      if (o.company) { c.fillStyle = "#d9342b"; c.font = "900 30px system-ui, sans-serif"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(o.company, w / 2, h / 2 + 2); }
+      if (o.company) { c.fillStyle = { "NAPE-JS PHYSICS": "#e8762b", "THREE.JS": "#111111", "NEWKROK GAMES": "#2f5f9a" }[o.company] ?? "#d9342b"; c.font = "900 30px system-ui, sans-serif"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(o.company, w / 2, h / 2 + 2); }
     }) }));
     const box = new T.Mesh(g.box, [this.paintMat(0xd6d9de), this.paintMat(0xd6d9de), side, side, this.paintMat(0xcfd3d8), g.darkMetal]);
     box.scale.set(L, W, H - z0);
@@ -1453,7 +1453,7 @@ export class Scene3D {
       for (let i = 0; i < path.length; i++) {
         const q = path[i];
         const s = i % 3 === 0 ? 1.9 : 1.2;
-        d.position.set(q.x, -q.y, this.groundZAt(q.x, q.y) + 0.7);
+        d.position.set(q.rx, -q.ry, 0.7);
         d.rotation.set(0, 0, 0);
         d.scale.set(s, s, 1);
         d.updateMatrix();
@@ -1461,7 +1461,7 @@ export class Scene3D {
       }
       lv.guide.dots.count = path.length;
       lv.guide.dots.instanceMatrix.needsUpdate = true;
-      const last = path[Math.min(path.length - 1, 14)];
+      const last = path[path.length - 1];
       if (last) {
         const t = v.trailer.spec;
         const off = t.axle * M;

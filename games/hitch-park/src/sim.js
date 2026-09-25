@@ -435,7 +435,8 @@ export function createSim({ onEvent = () => {} } = {}) {
       const lx = dx * ca - dy * sa, ly = dx * sa + dy * ca;
       const ox = Math.abs(lx) - bay.l / 2, oy = Math.abs(ly) - bay.w / 2;
       const o = Math.max(ox, oy);
-      if (o > 0) inside = false;
+      // 1.5 px of slack: backing onto a wall pushes the tail a hair into it.
+      if (o > 1.5) inside = false;
       maxOut = Math.max(maxOut, o);
     }
     let angErr = Math.abs(wrapPi(tb.rotation - bay.a));
@@ -515,7 +516,10 @@ export function createSim({ onEvent = () => {} } = {}) {
       th += w * dt;
       ph += dph * dt;
       const hx = x - Math.cos(th) * b, hy = y - Math.sin(th) * b;
-      out.push({ x: hx - Math.cos(ph) * d, y: hy - Math.sin(ph) * d, a: ph });
+      // Axle position, and the trailer's tail (what the guide dots follow).
+      const ax = hx - Math.cos(ph) * d, ay = hy - Math.sin(ph) * d;
+      const back = t.spec.len / 2 * M + t.spec.axle * M;
+      out.push({ x: ax, y: ay, a: ph, rx: ax - Math.cos(ph) * back, ry: ay - Math.sin(ph) * back });
     }
     return out;
   }
