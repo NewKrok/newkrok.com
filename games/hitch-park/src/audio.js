@@ -217,7 +217,7 @@ export class Audio {
     e.o2.frequency.setTargetAtTime(rpm * 0.5, t, 0.12);
     e.o3.frequency.setTargetAtTime(rpm * 2, t, 0.12);
     e.lp.frequency.setTargetAtTime(220 + load * 260 + sp * 18, t, 0.15);
-    e.gain.gain.setTargetAtTime(s.active ? 0.07 + load * 0.06 + sp * 0.003 : 0, t, 0.15);
+    e.gain.gain.setTargetAtTime(s.active ? (0.07 + load * 0.06 + sp * 0.003) * 1.15 : 0, t, 0.15);
     const sk = s.active ? clamp(s.skid * 1.4, 0, 1) * clamp(sp / 2, 0, 1) : 0;
     e.sg.gain.setTargetAtTime(sk * 0.12, t, 0.05);
     e.bp.frequency.setTargetAtTime(1700 + sk * 600, t, 0.1);
