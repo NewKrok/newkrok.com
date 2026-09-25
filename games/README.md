@@ -23,6 +23,9 @@ the homepage too.)
 
 ## Adding a new game
 
+For the three.js + nape-js stack, read [GAME-DEV.md](GAME-DEV.md) first:
+patterns and pitfalls from building Hitch & Park.
+
 1. Create `games/<slug>/` with a `package.json` that has a `build` script
    writing to `dist/`, and a Vite config with `base: "./"` so the build works
    from any sub-folder.
