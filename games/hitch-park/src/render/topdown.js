@@ -285,6 +285,52 @@ function shapePath(ctx, s) {
   else ctx.rect(s.x0, s.y0, s.x1 - s.x0, s.y1 - s.y0);
 }
 
+// An irregular blob inscribed in a rectangle (mud patches).
+function blobPath(ctx, x0, y0, x1, y1, seed, shrink = 1) {
+  const rnd = lcg(seed);
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, rx = (x1 - x0) / 2 * shrink, ry = (y1 - y0) / 2 * shrink;
+  const n = 18, k = [];
+  for (let i = 0; i < n; i++) k.push(0.78 + rnd() * 0.22);
+  ctx.beginPath();
+  for (let i = 0; i <= n; i++) {
+    const a = (i / n) * Math.PI * 2, f = k[i % n];
+    const x = cx + Math.cos(a) * rx * f, y = cy + Math.sin(a) * ry * f;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+}
+
+// Mud: a wet, irregular patch with a puddle and tyre ruts through it.
+function drawMud(ctx, s, style) {
+  const seed = (s.x0 * 7 + s.y0 * 13) | 0;
+  ctx.fillStyle = style;
+  blobPath(ctx, s.x0, s.y0, s.x1, s.y1, seed);
+  ctx.fill();
+  ctx.fillStyle = "rgba(35,25,15,0.35)";
+  blobPath(ctx, s.x0, s.y0, s.x1, s.y1, seed + 1, 0.7);
+  ctx.fill();
+  ctx.fillStyle = "rgba(85,100,105,0.45)";
+  blobPath(ctx, s.x0, s.y0, s.x1, s.y1, seed + 2, 0.38);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.14)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // Two ruts across the long side.
+  const horiz = s.x1 - s.x0 >= s.y1 - s.y0;
+  ctx.save();
+  blobPath(ctx, s.x0, s.y0, s.x1, s.y1, seed);
+  ctx.clip();
+  ctx.strokeStyle = "rgba(25,18,10,0.45)";
+  ctx.lineWidth = 3;
+  for (const o of [-0.18, 0.18]) {
+    ctx.beginPath();
+    if (horiz) { const y = (s.y0 + s.y1) / 2 + o * (s.y1 - s.y0); ctx.moveTo(s.x0, y + 4); ctx.quadraticCurveTo((s.x0 + s.x1) / 2, y - 6, s.x1, y + 3); }
+    else { const x = (s.x0 + s.x1) / 2 + o * (s.x1 - s.x0); ctx.moveTo(x + 4, s.y0); ctx.quadraticCurveTo(x - 6, (s.y0 + s.y1) / 2, x + 3, s.y1); }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 // Draws the whole ground of a level into ctx (already scaled by S so that
 // one unit is one world px).
 export function drawGround(ctx, lvl, S = 1) {
@@ -303,6 +349,8 @@ export function drawGround(ctx, lvl, S = 1) {
       ctx.moveTo(s.pts[0][0], s.pts[0][1]);
       for (const [x, y] of s.pts.slice(1)) ctx.lineTo(x, y);
       ctx.stroke();
+    } else if (s.k === "mud" && s.x0 != null) {
+      drawMud(ctx, s, style);
     } else {
       ctx.fillStyle = style;
       shapePath(ctx, s);

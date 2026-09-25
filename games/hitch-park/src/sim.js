@@ -22,6 +22,7 @@ const MAT_WHEEL = new Material(0, 0.6, 0.8, 6, 0.001);
 const MAT_STATIC = new Material(0.15, 0.6, 0.8, 1, 0.001);
 const MAT_CONE = new Material(0.3, 0.5, 0.6, 0.35, 0.001);
 const MAT_HEAVY = new Material(0.12, 0.6, 0.8, 2.5, 0.001);
+const MAT_HAY = new Material(0.05, 0.8, 0.9, 0.9, 0.001);
 // Wheels never collide: they live inside the body outline, and the body is
 // what hits things.
 const FILTER_GHOST = () => new InteractionFilter(0, 0);
@@ -55,6 +56,7 @@ export function createSim({ onEvent = () => {} } = {}) {
     veh: null,
     parked: [],
     cones: [],
+    movables: [],          // loose props you can shove: { body, def }
     statics: [],           // { body, def } incl. boundary walls
     hits: 0, crashes: 0, coneHits: 0,
     scoring: false,        // bumps only count while this is on
@@ -127,6 +129,18 @@ export function createSim({ onEvent = () => {} } = {}) {
     const rec = { body: b, spec, type: p.type, color: p.color, hazard: 0, shoved: 0, x0: p.x, y0: p.y };
     b.userData._parked = rec;
     return rec;
+  }
+
+  // Props that sit loose on the ground (hay bales): pushed about by the rig,
+  // slowed by ground friction, and a knock counts as a bump.
+  const MOVABLE = new Set(["hay"]);
+  function createMovable(def) {
+    const b = new Body(BodyType.DYNAMIC, new Vec2(def.x, def.y));
+    b.shapes.add(new Circle(def.r, undefined, MAT_HAY));
+    b.cbTypes.add(cbThing);
+    b.space = space;
+    b.userData._movable = def;
+    return { body: b, def };
   }
 
   function createCone(c) {
@@ -287,10 +301,14 @@ export function createSim({ onEvent = () => {} } = {}) {
     installListeners();
     S.parked = [];
     S.cones = [];
+    S.movables = [];
     S.statics = [];
     cooldown = new Map();
     boundaryWalls(level.w, level.h, level.walls ?? "nsew");
-    for (const s of level.statics) staticBody(s);
+    for (const s of level.statics) {
+      if (MOVABLE.has(s.kind)) S.movables.push(createMovable(s));
+      else staticBody(s);
+    }
     for (const p of level.parked) S.parked.push(createParked(p));
     for (const c of level.cones) S.cones.push(createCone(c));
     S.veh = createVehicle(level.start, level.vehicle ?? "car", level.trailer);
@@ -401,6 +419,17 @@ export function createSim({ onEvent = () => {} } = {}) {
       const dw = dv / (p.spec.len * M * 0.3);
       b.angularVel = approach(b.angularVel, 0, dw);
       if (p.hazard > 0) p.hazard = Math.max(0, p.hazard - DT);
+    }
+    // Hay drags on the ground about like a parked car.
+    for (const m of S.movables) {
+      const b = m.body;
+      const vx = b.velocity.x, vy = b.velocity.y;
+      const sp = Math.hypot(vx, vy);
+      if (sp > 0) {
+        const k = sp <= dv * 0.8 ? 0 : (sp - dv * 0.8) / sp;
+        b.velocity.setxy(vx * k, vy * k);
+      }
+      b.angularVel *= 0.9;
     }
     const cv = CONE_MU * G * DT;
     for (const c of S.cones) {

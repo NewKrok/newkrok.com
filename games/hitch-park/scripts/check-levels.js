@@ -43,6 +43,7 @@ for (const lvl of LEVELS) {
     { name: "trailer", ...pos0(sim.veh.trailer.body) },
     ...sim.parked.map((p) => ({ name: `parked ${p.type}@${Math.round(p.x0)},${Math.round(p.y0)}`, ...pos0(p.body) })),
     ...sim.cones.map((c) => ({ name: `cone@${Math.round(c.body.position.x)},${Math.round(c.body.position.y)}`, ...pos0(c.body) })),
+    ...sim.movables.map((m) => ({ name: `${m.def.kind}@${Math.round(m.def.x)},${Math.round(m.def.y)}`, ...pos0(m.body) })),
   ];
   for (let i = 0; i < 90; i++) sim.step({ throttle: 0, steer: 0, brake: true });
   for (const tr of tracked) {

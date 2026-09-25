@@ -1177,6 +1177,24 @@ export class Scene3D {
       lv.group.add(yaw);
       lv.cones.push({ rec: c, yaw, tilt });
     }
+    // Loose hay bales: one small model each, moved every frame.
+    lv.movables = [];
+    const hayMat = this.matCached("hay", () => new T.MeshStandardMaterial({ color: 0xd9b95a, roughness: 0.95 }));
+    const hayEnd = this.matCached("hayEnd", () => new T.MeshStandardMaterial({ color: 0xc9a44a, roughness: 1 }));
+    for (const m of sim.movables) {
+      const r = m.def.r;
+      const grp = new T.Group();
+      const bale = new T.Mesh(g.cylZ, [hayMat, hayEnd, hayEnd]);
+      bale.scale.set(r, r, r * 1.4);
+      bale.position.z = r * 0.7;
+      bale.castShadow = true; bale.receiveShadow = true;
+      const band = new T.Mesh(g.cylZ, g.trim);
+      band.scale.set(r + 0.15, r + 0.15, 0.5);
+      band.position.z = r * 0.7;
+      grp.add(bale, band);
+      lv.group.add(grp);
+      lv.movables.push({ rec: m, grp });
+    }
 
     // Target bay: tinted decal, glowing curtain, progress strip.
     const bay = lvl.bay;
@@ -1419,6 +1437,11 @@ export class Scene3D {
       p.grp.rotation.z = -b.rotation;
       const on = p.rec.hazard > 0 && Math.floor(p.rec.hazard * 3) % 2 === 0;
       p.hz.emissiveIntensity = on ? 3.2 : 0.05;
+    }
+    for (const mv of lv.movables) {
+      const b = mv.rec.body;
+      mv.grp.position.set(b.position.x, -b.position.y, 0);
+      mv.grp.rotation.z = -b.rotation;
     }
     for (const cn of lv.cones) {
       const b = cn.rec.body;

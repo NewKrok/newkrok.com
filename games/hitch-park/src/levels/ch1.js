@@ -61,7 +61,7 @@ function barn() {
       tree(80, 80, 22), tree(90, 420, 20), tree(860, 300, 20), tree(850, 440, 18),
     ],
     cones: [],
-    start: { x: 312, y: 345, a: PI / 2 - 0.1 },
+    start: { x: 312, y: 345, a: PI / 2 + 0.16 },
     bay,
   });
 }
