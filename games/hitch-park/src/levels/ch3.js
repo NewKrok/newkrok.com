@@ -136,7 +136,7 @@ function timberYard() {
     surfaces: [road("dirt", road1, 70), rect("gravel", 600, 140, 1260, 660, 30)],
     paint: [],
     statics: [
-      { kind: "logs", x: 1150, y: 245, w: 150, h: 50 }, { kind: "logs", x: 1150, y: 355, w: 150, h: 50 },
+      { kind: "logs", x: 1150, y: 235, w: 150, h: 50 }, { kind: "logs", x: 1150, y: 365, w: 150, h: 50 },
       { kind: "logs", x: 900, y: 200, w: 130, h: 44 }, { kind: "logs", x: 900, y: 560, w: 160, h: 50 },
       { kind: "logs", x: 1120, y: 560, w: 140, h: 44 },
       building(760, 200, 180, 110, { height: 48, color: 0x8a6a45, roof: 0x3b3f45, sign: "SAWMILL", signColor: "#5a3f1e" }),
@@ -144,9 +144,9 @@ function timberYard() {
       { kind: "hay", x: 700, y: 620, r: 6 },
       ...forest,
     ],
-    cones: [{ x: 1060, y: 285 }, { x: 1060, y: 315 }],
+    cones: [{ x: 1062, y: 268 }, { x: 1062, y: 332 }],
     start: { x: 115, y: 630, a: -0.05 },
-    bay: { x: 1150, y: 300, a: PI, w: 40, l: 70 },
+    bay: { x: 1150, y: 300, a: PI, w: 46, l: 70 },
   });
 }
 
