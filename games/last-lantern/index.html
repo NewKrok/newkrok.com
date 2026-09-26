@@ -69,12 +69,14 @@
           <h2 data-i18n="chooseHero"></h2>
           <div class="ember-total"><img class="ico" data-icon="ember" alt="" /> <b data-bind="embers">0</b></div>
         </header>
+        <div class="scroll-body">
         <div id="heroes" class="hero-grid"></div>
         <h2 class="sub-h" data-i18n="chooseStage"></h2>
         <div id="stages" class="stage-list"></div>
         <div class="run-foot">
           <label class="blood-toggle"><input type="checkbox" id="blood" /> <span class="moon"></span> <span><b data-i18n="bloodMoon"></b><small data-bind="bloodDesc"></small></span></label>
           <button class="btn primary big" data-action="begin"><span data-i18n="begin"></span> <kbd>Enter</kbd></button>
+        </div>
         </div>
       </section>
 
@@ -151,8 +153,10 @@
           <h2 data-i18n="hearth"></h2>
           <div class="ember-total"><img class="ico" data-icon="ember" alt="" /> <b data-bind="embers">0</b></div>
         </header>
+        <div class="scroll-body">
         <p class="intro-line" data-i18n="hearthIntro"></p>
         <div id="hearth" class="hearth-grid"></div>
+        </div>
       </section>
 
       <!-- Journal -->
@@ -167,7 +171,9 @@
           <button class="tab" data-tab="bestiary" data-i18n="bestiary"></button>
           <button class="tab" data-tab="arsenal" data-i18n="arsenal"></button>
         </div>
+        <div class="scroll-body">
         <div id="journal" class="panel prose journal"></div>
+        </div>
       </section>
 
       <!-- How to play -->
@@ -177,6 +183,7 @@
           <h2 data-i18n="howto"></h2>
           <div></div>
         </header>
+        <div class="scroll-body">
         <div class="panel prose">
           <h3 data-i18n="h_goal"></h3><p data-i18n-html="p_goal"></p>
           <h3 data-i18n="h_grow"></h3><p data-i18n-html="p_grow"></p>
@@ -192,6 +199,7 @@
           <h3 data-i18n="h_tips"></h3>
           <ul><li data-i18n-html="tip1"></li><li data-i18n-html="tip2"></li><li data-i18n-html="tip3"></li><li data-i18n-html="tip4"></li></ul>
         </div>
+        </div>
       </section>
 
       <!-- Settings -->
@@ -201,6 +209,7 @@
           <h2 data-i18n="settings"></h2>
           <div></div>
         </header>
+        <div class="scroll-body">
         <div class="panel settings">
           <h3 data-i18n="set_language"></h3>
           <div class="row"><span data-i18n="set_language"></span><select data-setting="lang" id="lang-select"></select></div>
@@ -216,6 +225,7 @@
           <label class="row"><span data-i18n="set_shake"></span><input type="checkbox" data-setting="shake" /></label>
           <h3 data-i18n="set_progress"></h3>
           <div class="row"><span data-i18n="set_progressRow"></span><button class="btn small danger" data-action="reset" data-i18n="set_reset"></button></div>
+        </div>
         </div>
       </section>
 

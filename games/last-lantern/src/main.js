@@ -49,6 +49,7 @@ function showScreen(id, { push = false } = {}) {
   if (push && cur && cur.id !== id) stack.push(cur.id);
   if (!push) stack = [];
   $$(".screen:not(#loading)").forEach((s) => s.classList.toggle("active", s.id === id));
+  for (const b of $$(`#${id} .scroll-body`)) b.scrollTop = 0;
   updateIngame();
   const first = id && $(`#${id} .btn.primary, #${id} .lcard, #${id} .btn`);
   if (first && matchMedia("(hover: hover)").matches) first.focus({ preventScroll: true });
@@ -581,7 +582,7 @@ app.addEventListener("click", (e) => {
     case "pause": pause(); break;
     case "resume": resume(); break;
     case "abandon":
-      if (confirm(t("confirmAbandon"))) { G.phase = "play"; G.run.phase = "dead"; G.run.phaseT = 999; G.resultAt = G.time; hideScreens(); }
+      if (confirm(t("confirmAbandon"))) { track("run_abandon", { stage: G.run.stage.index + 1, hero: G.run.heroDef.id, time_s: Math.round(G.run.clock / FPS), level: G.run.hero.level }); G.phase = "play"; G.run.phase = "dead"; G.run.phaseT = 999; G.resultAt = G.time; hideScreens(); }
       break;
     case "active": G.run?.useActive(); break;
     case "reroll": doReroll(); break;
@@ -639,6 +640,7 @@ function frame(now) {
     if (R.phase === "chest" && G.shown !== "chest") { G.shown = "chest"; joy = null; showChest(); }
     if ((R.phase === "dead" || R.phase === "won") && !G.resultAt) G.resultAt = G.time + (R.phase === "won" ? 3.2 : 2.4);
     if (G.resultAt && G.time >= G.resultAt) { G.resultAt = 0; finishRun(); }
+    if (R.bossSpawned && !R.bossTracked) { R.bossTracked = true; track("boss_reached", { stage: R.stage.index + 1, hero: R.heroDef.id, level: R.hero.level, blood: R.blood }); }
     // Music heats up as the keeper nears.
     audio.setIntensity(R.bossSpawned ? 1 : R.clock / (R.stage.bossAt * FPS) * 0.95);
     // Ability button.

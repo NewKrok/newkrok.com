@@ -56,7 +56,7 @@ html, body {
 }
 .screen.active { display: flex; animation: fade-in 0.35s ease-out; }
 .screen.dim { background: radial-gradient(ellipse at center, rgba(10, 4, 8, 0.35), rgba(3, 1, 3, 0.85)); }
-.screen.scroll { justify-content: flex-start; overflow-y: auto; touch-action: pan-y; background: radial-gradient(ellipse at 50% 0%, rgba(40, 18, 14, 0.75), rgba(4, 2, 4, 0.94) 70%); }
+.screen.scroll { justify-content: flex-start; overflow: hidden; background: radial-gradient(ellipse at 50% 0%, rgba(40, 18, 14, 0.75), rgba(4, 2, 4, 0.94) 70%); }
 .screen.scroll-y { overflow-y: auto; touch-action: pan-y; justify-content: flex-start; }
 .screen.scroll-y > .card { margin: auto 0; }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
@@ -68,6 +68,13 @@ html, body {
 .loader .bar { width: 180px; height: 2px; background: rgba(212, 162, 76, 0.15); overflow: hidden; }
 .loader .bar i { display: block; width: 40%; height: 100%; background: var(--gold); animation: load 1s ease-in-out infinite alternate; }
 @keyframes load { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+
+/* Scroll screens: the header (and the journal's tabs) stay put, only the
+   body below them scrolls. */
+.screen.scroll > .bar-head, .screen.scroll > .tabs { flex-shrink: 0; }
+.scroll-body { flex: 1 1 auto; min-height: 0; width: 100%; overflow-y: auto; touch-action: pan-y; display: flex; flex-direction: column; align-items: center; padding: 8px 8px 24px; scrollbar-width: thin; scrollbar-color: var(--gold-lo) transparent; -webkit-mask-image: linear-gradient(transparent, #000 18px, #000 calc(100% - 18px), transparent); mask-image: linear-gradient(transparent, #000 18px, #000 calc(100% - 18px), transparent); }
+.scroll-body::-webkit-scrollbar { width: 8px; }
+.scroll-body::-webkit-scrollbar-thumb { background: var(--gold-lo); }
 
 /* ── Type ────────────────────────────────────────────────────────────── */
 .logo { font-family: var(--display); font-weight: 700; font-size: clamp(40px, 7vw, 76px); line-height: 0.95; letter-spacing: 0.02em; color: var(--ink); text-shadow: 0 0 30px rgba(0, 0, 0, 0.9), 0 3px 0 #1a0e08; }
@@ -133,6 +140,7 @@ kbd { display: inline-block; min-width: 1.7em; padding: 0 6px; border: 1px solid
 .active-btn > * { display: none; }
 
 /* ── Cards / generic panels ──────────────────────────────────────────── */
+.card::before { inset: 3px !important; }
 .card { padding: 30px 32px 24px; width: min(540px, 100%); text-align: center; animation: rise 0.35s ease-out; max-height: 100%; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; }
 .card.narrow { width: min(380px, 100%); }
 .card h2 { margin-bottom: 12px; }
