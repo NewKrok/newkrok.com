@@ -756,8 +756,8 @@ function titleStep(R) {
     const p = m.body.position, dx = tx - p.x, dy = ty - p.y, d = hyp(dx, dy);
     const v = m.body.velocity, sp = Math.min(m.def.speed * 0.5, d * 2);
     m.body.velocity = new Vec2(lerp(v.x, dx / d * sp, 0.1), lerp(v.y, dy / d * sp, 0.1));
-    m.face = R.rng() < 0.01 ? Math.atan2(s.y - p.y, s.x - p.x) : m.face;
-    if (d > 20) m.face = Math.atan2(dy, dx);
+    const nv = m.body.velocity;
+    if (nv.x * nv.x + nv.y * nv.y > 25) m.face = Math.atan2(nv.y, nv.x);
   }
   const hv = R.hero.body.velocity;
   R.hero.body.velocity = new Vec2(hv.x * 0.8, hv.y * 0.8);

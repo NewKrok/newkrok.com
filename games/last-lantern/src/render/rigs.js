@@ -40,7 +40,7 @@ function spec(def) {
       { g: "box", s: [r * 0.44, r * 0.06, r * 0.06], p: [0, r * 0.62, r * 1.52], c: 0xd8d0b8 },
       { g: "hang", s: [r * 0.3, r * 0.3, r * 1.25], p: [-r * 0.6, r * 0.6, r * 2.05], c, a: "armL", b: 1.45, k: 0.22 },
       { g: "hang", s: [r * 0.28, r * 0.28, r * 1.2], p: [r * 0.62, r * 0.4, r * 1.95], c, a: "armR", b: 0.35, k: 0.3 },
-      { g: "sph", s: [r * 0.2, r * 0.26, r * 0.14], p: [-r * 0.6, r * 1.8, r * 2.0], c },
+      { g: "sph", s: [r * 0.2, r * 0.26, r * 0.14], p: [-r * 0.6, r * 1.8, r * 2.0], c, on: "armL" },
       { g: "hang", s: [r * 0.34, r * 0.34, r * 1.0], p: [-r * 0.3, 0, r * 1.0], c: 0x3a3028, a: "legL", k: 0.55 },
       { g: "hang", s: [r * 0.34, r * 0.34, r * 1.0], p: [r * 0.3, 0, r * 1.0], c: 0x3a3028, a: "legR", k: 0.35 },
     ] };
@@ -57,9 +57,9 @@ function spec(def) {
       { g: "sph", s: [1.4, 1.4, 1.4], p: [r * 0.14, r * 0.38, r * 2.58], c: 0x7ad8ff, e: 1 },
       { g: "hang", s: [r * 0.14, r * 0.14, r * 1.0], p: [-r * 0.56, 0, r * 2.1], c, a: "armL", b: 0.6, k: 0.3 },
       { g: "hang", s: [r * 0.14, r * 0.14, r * 1.0], p: [r * 0.56, 0, r * 2.1], c, a: "armR", k: 0.8 },
-      { g: "cyl", s: [r * 0.62, r * 0.62, r * 0.12], p: [-r * 0.75, r * 0.55, r * 1.5], c: c2, rx: Math.PI / 2 },
-      { g: "sph", s: [r * 0.18, r * 0.1, r * 0.18], p: [-r * 0.75, r * 0.63, r * 1.5], c: 0x8a8a90 },
-      { g: "box", s: [r * 0.08, r * 1.0, r * 0.16], p: [r * 0.62, r * 0.62, r * 1.2], c: 0x9a9aa4 },
+      { g: "cyl", s: [r * 0.62, r * 0.62, r * 0.12], p: [-r * 0.75, r * 0.55, r * 1.5], c: c2, rx: Math.PI / 2, on: "armL" },
+      { g: "sph", s: [r * 0.18, r * 0.1, r * 0.18], p: [-r * 0.75, r * 0.63, r * 1.5], c: 0x8a8a90, on: "armL" },
+      { g: "box", s: [r * 0.08, r * 1.0, r * 0.16], p: [r * 0.62, r * 0.62, r * 1.2], c: 0x9a9aa4, on: "armR" },
       { g: "hang", s: [r * 0.16, r * 0.16, r * 1.0], p: [-r * 0.24, 0, r * 1.0], c, a: "legL", k: 0.8 },
       { g: "hang", s: [r * 0.16, r * 0.16, r * 1.0], p: [r * 0.24, 0, r * 1.0], c, a: "legR", k: 0.8 },
     ] };
@@ -74,7 +74,7 @@ function spec(def) {
       { g: "sph", s: [1.4, 1.4, 1.4], p: [r * 0.13, r * 0.4, r * 2.52], c: 0xa8ff7a, e: 1 },
       { g: "hang", s: [r * 0.13, r * 0.13, r * 1.0], p: [-r * 0.5, r * 0.1, r * 2.05], c, a: "armL", b: 1.5, k: 0.05 },
       { g: "hang", s: [r * 0.13, r * 0.13, r * 0.9], p: [r * 0.5, 0, r * 2.05], c, a: "armR", b: 1.2, k: 0.1 },
-      { g: "torusHalf", s: [r * 0.9, r * 0.9, r * 0.9], p: [-r * 0.5, r * 1.1, r * 2.0], c: 0x5a3a20, rz: Math.PI / 2, rx: Math.PI / 2 },
+      { g: "torusHalf", s: [r * 0.9, r * 0.9, r * 0.9], p: [-r * 0.5, r * 1.1, r * 2.0], c: 0x5a3a20, rz: Math.PI / 2, rx: Math.PI / 2, on: "armL" },
       { g: "cylUp", s: [r * 0.18, r * 0.18, r * 1.0], p: [r * 0.25, -r * 0.4, r * 1.6], c: 0x4a3020, rx: -0.3 },
       { g: "cone", s: [r * 0.06, r * 0.06, r * 0.3], p: [r * 0.3, -r * 0.62, r * 2.6], c: 0xe0e0e0 },
       { g: "hang", s: [r * 0.16, r * 0.16, r * 0.9], p: [-r * 0.22, 0, r * 0.95], c, a: "legL", k: 0.6 },
@@ -90,9 +90,9 @@ function spec(def) {
       { g: "sph", s: [2.2, 2.2, 2.2], p: [r * 0.14, r * 0.96, r * 2.45], c: 0xffaa3a, e: 1 },
       { g: "hang", s: [r * 0.4, r * 0.4, r * 1.3], p: [-r * 0.95, r * 0.3, r * 2.2], c, a: "armL", b: 0.5, k: 0.4 },
       { g: "hang", s: [r * 0.4, r * 0.4, r * 1.3], p: [r * 0.95, r * 0.3, r * 2.2], c, a: "armR", b: 0.9, k: 0.3 },
-      { g: "sph", s: [r * 0.3, r * 0.3, r * 0.3], p: [-r * 0.95, r * 0.9, r * 1.1], c },
-      { g: "cylUp", s: [r * 0.06, r * 0.06, r * 2.2], p: [r * 1.0, r * 0.8, r * 0.4], c: 0x5a3a20, rx: 0.5 },
-      { g: "box", s: [r * 0.5, r * 0.06, r * 0.6], p: [r * 1.0, r * 1.95, r * 2.3], c: 0x8a8a90, rx: 0.5 },
+      { g: "sph", s: [r * 0.3, r * 0.3, r * 0.3], p: [-r * 0.95, r * 0.9, r * 1.1], c, on: "armL" },
+      { g: "cylUp", s: [r * 0.06, r * 0.06, r * 2.2], p: [r * 1.0, r * 0.8, r * 0.4], c: 0x5a3a20, rx: 0.5, on: "armR" },
+      { g: "box", s: [r * 0.5, r * 0.06, r * 0.6], p: [r * 1.0, r * 1.95, r * 2.3], c: 0x8a8a90, rx: 0.5, on: "armR" },
       { g: "box", s: [r * 0.24, r * 0.24, r * 0.3], p: [r * 0.55, -r * 0.2, r * 1.2], c: 0x2a2a2a },
       { g: "box", s: [r * 0.16, r * 0.16, r * 0.2], p: [r * 0.55, -r * 0.2, r * 1.2], c: 0xffc070, e: 1 },
       { g: "hang", s: [r * 0.48, r * 0.48, r * 1.1], p: [-r * 0.42, 0, r * 1.1], c: 0x3a3028, a: "legL", k: 0.5 },
@@ -122,10 +122,10 @@ function spec(def) {
       { g: "hang", s: [r * 1.2, r * 0.1, r * 1.6], p: [0, -r * 0.42, r * 2.4], c: 0x3a1418, a: "tail", k: 0.18 },
       { g: "hang", s: [r * 0.32, r * 0.32, r * 1.1], p: [-r * 0.78, 0, r * 2.3], c, a: "armL", b: 0.7, k: 0.3 },
       { g: "hang", s: [r * 0.32, r * 0.32, r * 1.1], p: [r * 0.78, 0, r * 2.3], c, a: "armR", b: 1.2, k: 0.2 },
-      { g: "ico1", s: [r * 0.36, r * 0.36, r * 0.4], p: [-r * 0.95, r * 0.5, r * 1.4], c: 0x6a6e7e },
-      { g: "box", s: [r * 0.3, r * 0.04, r * 0.06], p: [-r * 0.95, r * 0.86, r * 1.45], c: c3, e: 1 },
-      { g: "box", s: [r * 0.1, r * 2.1, r * 0.2], p: [r * 0.78, r * 1.2, r * 1.3], c: 0xd8dde6 },
-      { g: "box", s: [r * 0.5, r * 0.1, r * 0.1], p: [r * 0.78, r * 0.2, r * 1.3], c: 0xc8a050 },
+      { g: "ico1", s: [r * 0.36, r * 0.36, r * 0.4], p: [-r * 0.95, r * 0.5, r * 1.4], c: 0x6a6e7e, on: "armL" },
+      { g: "box", s: [r * 0.3, r * 0.04, r * 0.06], p: [-r * 0.95, r * 0.86, r * 1.45], c: c3, e: 1, on: "armL" },
+      { g: "box", s: [r * 0.1, r * 2.1, r * 0.2], p: [r * 0.78, r * 1.2, r * 1.3], c: 0xd8dde6, on: "armR" },
+      { g: "box", s: [r * 0.5, r * 0.1, r * 0.1], p: [r * 0.78, r * 0.2, r * 1.3], c: 0xc8a050, on: "armR" },
       { g: "hang", s: [r * 0.38, r * 0.38, r * 1.05], p: [-r * 0.33, 0, r * 1.2], c, a: "legL", k: 0.6 },
       { g: "hang", s: [r * 0.38, r * 0.38, r * 1.05], p: [r * 0.33, 0, r * 1.2], c, a: "legR", k: 0.6 },
     ] };
@@ -146,8 +146,8 @@ function spec(def) {
       { g: "cone", s: [r * 0.12, r * 0.12, r * 0.8], p: [r * 0.42, 0, r * 3.8], c: c2, ry: 0.5 },
       { g: "ico1", s: [r * 0.2, r * 0.22, r * 0.2], p: [-r * 0.7, r * 0.1, r * 3.0], c },
       { g: "ico1", s: [r * 0.2, r * 0.22, r * 0.2], p: [r * 0.7, r * 0.1, r * 3.0], c },
-      { g: "cylUp", s: [r * 0.14, r * 0.14, r * 1.8], p: [r * 1.1, r * 0.6, r * 0.6], c: 0x6a5a40, rx: 0.4 },
-      { g: "ico1", s: [r * 0.36, r * 0.36, r * 0.36], p: [r * 1.1, r * 1.3, r * 2.25], c },
+      { g: "cylUp", s: [r * 0.14, r * 0.14, r * 1.8], p: [r * 1.1, r * 0.6, r * 0.6], c: 0x6a5a40, rx: 0.4, on: "armR" },
+      { g: "ico1", s: [r * 0.36, r * 0.36, r * 0.36], p: [r * 1.1, r * 1.3, r * 2.25], c, on: "armR" },
       { g: "hang", s: [r * 0.36, r * 0.36, r * 1.3], p: [-r * 0.45, 0, r * 1.3], c, a: "legL", k: 0.45 },
       { g: "hang", s: [r * 0.36, r * 0.36, r * 1.3], p: [r * 0.45, 0, r * 1.3], c, a: "legR", k: 0.45 },
       { g: "hang", s: [r * 0.3, r * 0.3, r * 1.6], p: [-r * 0.95, 0, r * 2.85], c, a: "armL", k: 0.45 },
@@ -183,7 +183,7 @@ function spec(def) {
       { g: "hang", s: [r * 0.28, r * 0.28, r * 1.0], p: [r * 0.3, 0, r * 1.0], c: c2, a: "legR", k: 0.8 },
       { g: "hang", s: [r * 0.22, r * 0.22, r * 1.0], p: [-r * 0.62, 0, r * 2.15], c: c2, a: "armL", k: 0.8 },
       { g: "hang", s: [r * 0.22, r * 0.22, r * 1.0], p: [r * 0.62, 0, r * 2.15], c: c2, a: "armR", k: 0.8 },
-      { g: "box", s: [r * 0.12, r * 0.9, r * 0.12], p: [r * 0.72, r * 0.5, r * 1.3], c: 0x8a8a90 },
+      { g: "box", s: [r * 0.12, r * 0.9, r * 0.12], p: [r * 0.72, r * 0.5, r * 1.3], c: 0x8a8a90, on: "armR" },
     ] };
     case "blob": return { parts: [
       { g: "sph", s: [r * 1.1, r * 1.2, r * 0.8], p: [0, 0, r * 0.9], c, a: "pulse", k: 0.05 },
@@ -230,8 +230,8 @@ function spec(def) {
       { g: "box", s: [r * 0.7, r * 0.7, r * 0.75], p: [0, 0, r * 2.85], c },
       { g: "box", s: [r * 0.1, r * 0.6, r * 0.35], p: [0, -r * 0.25, r * 3.35], c: c3 },
       { g: "box", s: [r * 0.5, r * 0.1, r * 0.12], p: [0, r * 0.36, r * 2.85], c: c3, e: 1 },
-      { g: "box", s: [r * 0.14, r * 0.9, r * 1.2], p: [-r * 0.85, r * 0.3, r * 1.9], c: c2 },
-      { g: "box", s: [r * 0.1, r * 0.25, r * 1.7], p: [r * 0.9, r * 0.35, r * 1.5], c: 0xd8dde6 },
+      { g: "box", s: [r * 0.14, r * 0.9, r * 1.2], p: [-r * 0.85, r * 0.3, r * 1.9], c: c2, on: "armL" },
+      { g: "box", s: [r * 0.1, r * 0.25, r * 1.7], p: [r * 0.9, r * 0.35, r * 1.5], c: 0xd8dde6, on: "armR" },
       { g: "box", s: [r * 1.4, r * 0.1, r * 1.6], p: [0, -r * 0.45, r * 1.6], c: c2, a: "tail", k: 0.08 },
       { g: "hang", s: [r * 0.38, r * 0.38, r * 1.05], p: [-r * 0.35, 0, r * 1.05], c: c2, a: "legL", k: 0.6 },
       { g: "hang", s: [r * 0.38, r * 0.38, r * 1.05], p: [r * 0.35, 0, r * 1.05], c: c2, a: "legR", k: 0.6 },
@@ -353,7 +353,7 @@ function spec(def) {
       { g: "hang", s: [r * 0.34, r * 0.34, r * 1.0], p: [r * 0.32, 0, r * 1.0], c: 0x3a3a4e, a: "legR", k: 0.6 },
       { g: "hang", s: [r * 0.26, r * 0.26, r * 1.1], p: [-r * 0.72, 0, r * 2.2], c, a: "armL", k: 0.5 },
       { g: "hang", s: [r * 0.26, r * 0.26, r * 1.1], p: [r * 0.72, 0, r * 2.2], c, a: "armR", k: 0.5 },
-      { g: "box", s: [r * 0.08, r * 1.3, r * 0.08], p: [r * 0.8, r * 0.5, r * 1.3], c: c2, e: 1 },
+      { g: "box", s: [r * 0.08, r * 1.3, r * 0.08], p: [r * 0.8, r * 0.5, r * 1.3], c: c2, e: 1, on: "armR" },
     ] };
     case "bogmother": return { parts: [
       { g: "sph", s: [r * 1.15, r * 1.25, r * 0.8], p: [0, 0, r * 0.7], c, a: "pulse", k: 0.04 },
@@ -417,8 +417,8 @@ function spec(def) {
       { g: "cone", s: [r * 0.07, r * 0.07, r * 0.45], p: [0, -r * 0.28, r * 3.5], c: 0xc0c8ff, e: 1 },
       { g: "hang", s: [r * 0.22, r * 0.22, r * 1.3], p: [-r * 0.75, 0, r * 2.35], c, a: "armL", b: 0.6, k: 0.3 },
       { g: "hang", s: [r * 0.22, r * 0.22, r * 1.3], p: [r * 0.75, 0, r * 2.35], c, a: "armR", b: 0.6, k: 0.3 },
-      { g: "box", s: [r * 0.06, r * 0.06, r * 2.8], p: [r * 1.0, r * 0.3, r * 1.4], c: 0x8a8aa0 },
-      { g: "sph", s: [r * 0.2, r * 0.2, r * 0.2], p: [r * 1.0, r * 0.3, r * 2.9], c: c2, e: 1, a: "pulse", k: 0.3 },
+      { g: "box", s: [r * 0.06, r * 0.06, r * 2.8], p: [r * 1.0, r * 0.3, r * 1.4], c: 0x8a8aa0, on: "armR" },
+      { g: "sph", s: [r * 0.2, r * 0.2, r * 0.2], p: [r * 1.0, r * 0.3, r * 2.9], c: c2, e: 1, a: "pulse", k: 0.3, on: "armR" },
     ] };
     case "candle": return { parts: [
       { g: "cylUp", s: [r * 0.9, r * 0.9, 6], p: [0, 0, 0], c: 0x3a3230 },
@@ -433,6 +433,12 @@ function spec(def) {
     ] };
     default: return { parts: [{ g: "sph", s: [r, r, r], p: [0, 0, r], c }] };
   }
+}
+
+// The swing of a limb part at animation time t (matches the switch below).
+function limbAngle(L, t) {
+  const sgn = L.a === "legL" || L.a === "armR" ? 1 : -1;
+  return (L.b || 0) + sgn * Math.sin(t) * L.k;
 }
 
 const RIG_GEO = {
@@ -451,6 +457,7 @@ export class Rigs {
     this.root = new T.Matrix4();
     this.pm = new T.Matrix4();
     this.col = new T.Color();
+    this.am = new T.Matrix4(); this.ar = new T.Matrix4(); this.at = new T.Matrix4();
     this.shadows = new T.InstancedMesh(GEO.disc, new T.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.34, depthWrite: false }), MAX_MON + 80);
     this.shadows.frustumCulled = false;
     this.shadows.renderOrder = 2;
@@ -463,6 +470,7 @@ export class Rigs {
     if (rig) return rig;
     const def = MON[id];
     const sp = spec(def);
+    for (const ps of sp.parts) if (ps.on) ps.onPart = sp.parts.find((q) => q.a === ps.on && q.g === "hang");
     const cap = def.boss ? 2 : def.elite ? 8 : id === "wormseg" ? 20 : id === "candle" ? 24 : ["crow", "shambler", "gravebound", "leech", "drowned", "imp", "frostbat", "iceskel", "gargoyle", "hollow"].includes(id) ? MAX_MON + 20 : 200;
     const sc = def.scale || 1;
     const parts = sp.parts.map((ps) => {
@@ -507,7 +515,13 @@ export class Rigs {
       if (m.hidden > 0) { sink = m.def.ai === "king" ? Math.abs(m.hidden - 20) / 20 : 0.05; z -= m.def.ai === "king" ? 0 : m.def.r * 1.2; }
       const born = Math.min(1, (R.frame - m.born) / 20);
       const s = rig.sc * (m.def.boss || m.def.elite ? 1 : 0.4 + born * 0.6) * (m.def.ai === "king" ? Math.max(0.05, sink) : 1);
-      this.root.makeRotationZ(-m.face - Math.PI / 2);
+      // Turn toward the sim's facing instead of snapping to it.
+      if (m.faceVis === undefined) m.faceVis = m.face;
+      else {
+        const da = Math.atan2(Math.sin(m.face - m.faceVis), Math.cos(m.face - m.faceVis));
+        m.faceVis += da * Math.min(1, (m.def.boss ? 0.08 : 0.18) * (m.dash > 0 ? 3 : 1));
+      }
+      this.root.makeRotationZ(-m.faceVis - Math.PI / 2);
       if (m.stun > 0 || R.freeze > 0) this.root.multiply(new T.Matrix4().makeRotationX(Math.sin(time * 20) * 0.04));
       this.root.scale(new T.Vector3(s, s, s));
       this.root.setPosition(p.x + jx, -p.y + jy, z);
@@ -534,7 +548,16 @@ export class Rigs {
         }
         d.scale.set(sx, sy, sz);
         d.updateMatrix();
-        this.pm.multiplyMatrices(this.root, d.matrix);
+        if (ps.on) {
+          // Held things (hands, weapons, shields) swing with their limb: the
+          // limb's rotation applied about the limb's shoulder pivot.
+          const L = ps.onPart;
+          this.am.makeTranslation(L.p[0], L.p[1], L.p[2]);
+          this.am.multiply(this.ar.makeRotationX(limbAngle(L, t) - (L.b || 0)));
+          this.am.multiply(this.at.makeTranslation(-L.p[0], -L.p[1], -L.p[2]));
+          this.am.multiply(d.matrix);
+          this.pm.multiplyMatrices(this.root, this.am);
+        } else this.pm.multiplyMatrices(this.root, d.matrix);
         mesh.setMatrixAt(i, this.pm);
         const want = flash ? 0xffffff : frozen && !ps.e ? 0x9fd8ff : ps.c;
         if (m.lastCol?.[mesh.id] !== want || m.slotCheck !== i) {
