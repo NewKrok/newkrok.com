@@ -170,7 +170,7 @@ export function recomputeStats(R) {
     cdMul: Math.max(0.35, (1 - 0.07 * lv("tome")) * (1 - 0.04 * hl("haste"))),
     dmgMul: d.might * (1 + 0.1 * lv("fist")) * (1 + 0.05 * hl("might")),
     armor: d.armor + lv("plate") + hl("armor"),
-    regen: 0.4 * lv("root") + 0.2 * hl("recovery"),
+    regen: 0.3 * lv("root") + 0.2 * hl("recovery"),
     area: d.area * (1 + 0.1 * lv("oil")),
     luck: 1 + 0.1 * lv("clover") + 0.08 * hl("luck"),
     amount: lv("quiver"),
@@ -178,7 +178,7 @@ export function recomputeStats(R) {
     greed: (1 + 0.1 * hl("greed")) * (R.blood ? BLOOD.embers : 1),
     crit: 0.05 * (1 + 0.1 * lv("clover") + 0.08 * hl("luck")),
   };
-  const newMax = d.hp + 20 * lv("heart") + 10 * hl("vitality");
+  const newMax = d.hp + 15 * lv("heart") + 10 * hl("vitality");
   if (newMax !== h.maxHp) {
     if (h.maxHp === 100 && h.level === 1 && h.xp === 0) h.hp = newMax;
     else h.hp += Math.max(0, newMax - h.maxHp);

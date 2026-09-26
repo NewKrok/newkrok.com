@@ -160,13 +160,14 @@ export class Scene3D {
     const lw = new T.Vector3();
     this.hero.lanternAt.getWorldPosition(lw);
     this.heroLight.position.set(lw.x, lw.y, Math.max(70, lw.z + 40));
-    const flare = R.hero.flareT > 0 ? R.hero.flareT / 40 : 0;
+    const flare = R.hero.flareT > 0 && !opts.calm ? R.hero.flareT / 40 : 0;
     this.heroLight.intensity = (R.hero.dig > 0 ? 4000 : 17000 * (0.94 + Math.sin(time * 11) * 0.04)) * (1 + flare * 3) * (R.eclipse ? 0.85 : 1);
     this.heroLight.distance = 620 * (R.eclipse ? 0.8 : 1);
     this.ambient.intensity = LOOKS[R.stage.look].ambI * (R.eclipse ? 0.45 : 1) * (1 + (R.beaconLit || 0) * 0.6);
     // Visible world rect for culling the instanced effects.
     const halfW = dist * 1.2, halfH = dist * 1.1;
-    this.fx.sync(R, time, pitch, { x0: fx - halfW, x1: fx + halfW, y0: fy - halfH * 1.3, y1: fy + halfH });
+    this.fx.sync(R, time, pitch, { x0: fx - halfW, x1: fx + halfW, y0: fy - halfH * 1.3, y1: fy + halfH }, opts.calm);
+    this.bloom.strength = LOOKS[R.stage.look].bloom * (opts.calm ? 0.55 : 1);
 
     if (this.useBloom) this.composer.render(dt);
     else this.renderer.render(this.scene, this.camera);

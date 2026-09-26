@@ -12,7 +12,8 @@ export const HU = {
   unlockStage: "Gyújtsd meg a(z) {n}. jelzőtüzet", unlockLevel: "Érd el a(z) {n}. szintet egy menetben", unlockKills: "Ölj meg összesen {n} szörnyet (eddig {have})",
   active: "Képesség", startsWith: "Kezdőfegyver", hp: "Életerő", speed: "Sebesség", perk: "Jellemző",
   set_language: "Nyelv", set_sound: "Hang", set_master: "Fő hangerő", set_sfx: "Effektek", set_music: "Zene",
-  set_graphics: "Grafika", set_quality: "Minőség", q_high: "Magas", q_low: "Alacsony", set_numbers: "Sebzésszámok", set_shake: "Képernyőrázás",
+  set_graphics: "Grafika", set_quality: "Minőség", q_high: "Magas", q_low: "Alacsony", set_numbers: "Sebzésszámok", set_calm: "Villanások csökkentése (fényérzékenység)",
+  safety_eyebrow: "Mielőtt elkezded", safety_title: "Fényérzékenységi figyelmeztetés", safety_text: "A játékban erős fényvillanások, villámok és gyorsan mozgó effektek vannak. Kevés embernél a villódzó fény rohamot válthat ki. Ha nálad vagy a családodban előfordult epilepszia, vagy játék közben szédülsz, rosszul érzed magad, azonnal hagyd abba. A villanások csökkentését most vagy bármikor a Beállításokban bekapcsolhatod.", safety_ok: "Tovább", safety_calm: "Villanások csökkentése", set_shake: "Képernyőrázás",
   set_progress: "Előrehaladás", set_progressRow: "Parázs, fejlesztések, feloldások", set_reset: "Előrehaladás törlése",
   confirmReset: "Minden jelzőtűz, parázs és fejlesztés törlődik. Biztos?", progressReset: "Előrehaladás törölve",
   h_goal: "Az éjszaka", p_goal: "Minden fegyver magától lő — te csak mozogsz. Éld túl az éjszaka hullámait, amíg meg nem érkezik a <b>jelzőtűz őrzője</b>, aztán győzd le, hogy meggyújtsd a tüzet és megnyerd a pályát.",
@@ -89,9 +90,9 @@ HU.weapons = {
 };
 
 HU.passives = {
-  boots: ["Fürge csizma", "+8% mozgási sebesség"], heart: ["Üres szív", "+20 max életerő"], magnet: ["Mágneskő", "+30% felszedési távolság"],
+  boots: ["Fürge csizma", "+8% mozgási sebesség"], heart: ["Üres szív", "+15 max életerő"], magnet: ["Mágneskő", "+30% felszedési távolság"],
   tome: ["Poros kódex", "−7% újratöltés"], fist: ["Vasököl", "+10% sebzés"], plate: ["Sírlap-vért", "−1 elszenvedett sebzés"],
-  root: ["Mandragóragyökér", "+0,4 életerő másodpercenként"], oil: ["Lámpaolaj", "+10% hatókör"], clover: ["Négylevelű lóhere", "+10% szerencse és kritikus találat"],
+  root: ["Mandragóragyökér", "+0,3 életerő másodpercenként"], oil: ["Lámpaolaj", "+10% hatókör"], clover: ["Négylevelű lóhere", "+10% szerencse és kritikus találat"],
   quiver: ["Mély tegez", "+1 lövedék minden fegyverhez"],
 };
 

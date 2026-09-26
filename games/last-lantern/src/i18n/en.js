@@ -15,7 +15,8 @@ export const EN = {
   active: "Ability", startsWith: "Starts with", hp: "Health", speed: "Speed", perk: "Trait",
   // Settings.
   set_language: "Language", set_sound: "Sound", set_master: "Master volume", set_sfx: "Effects", set_music: "Music",
-  set_graphics: "Graphics", set_quality: "Quality", q_high: "High", q_low: "Low", set_numbers: "Damage numbers", set_shake: "Screen shake",
+  set_graphics: "Graphics", set_quality: "Quality", q_high: "High", q_low: "Low", set_numbers: "Damage numbers", set_calm: "Reduce flashing (photosensitivity)",
+  safety_eyebrow: "Before you begin", safety_title: "Photosensitivity warning", safety_text: "This game has bright flashes of light, lightning and fast-moving effects. A small number of people may have seizures when exposed to flashing lights. If you or anyone in your family has epilepsy, or you feel dizzy or unwell while playing, stop at once. You can turn on reduced flashing now or any time in Settings.", safety_ok: "Continue", safety_calm: "Reduce flashing", set_shake: "Screen shake",
   set_progress: "Progress", set_progressRow: "Embers, upgrades and unlocks", set_reset: "Reset progress",
   confirmReset: "Reset every beacon, ember and upgrade?", progressReset: "Progress reset",
   // How to play.
@@ -101,9 +102,9 @@ EN.weapons = {
 };
 
 EN.passives = {
-  boots: ["Swift Boots", "+8% move speed"], heart: ["Hollow Heart", "+20 max health"], magnet: ["Lodestone", "+30% pickup range"],
+  boots: ["Swift Boots", "+8% move speed"], heart: ["Hollow Heart", "+15 max health"], magnet: ["Lodestone", "+30% pickup range"],
   tome: ["Dusty Tome", "−7% cooldowns"], fist: ["Iron Fist", "+10% damage"], plate: ["Grave Plate", "−1 damage taken"],
-  root: ["Mandrake Root", "+0.4 health per second"], oil: ["Lamp Oil", "+10% area"], clover: ["Four-leaf Clover", "+10% luck and crits"],
+  root: ["Mandrake Root", "+0.3 health per second"], oil: ["Lamp Oil", "+10% area"], clover: ["Four-leaf Clover", "+10% luck and crits"],
   quiver: ["Deep Quiver", "+1 projectile for every weapon"],
 };
 

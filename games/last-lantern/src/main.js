@@ -572,6 +572,13 @@ app.addEventListener("click", (e) => {
   switch (a) {
     case "play": if (!progress.storyRead) openStory(storyText().prologue, openRunSetup); else openRunSetup(); break;
     case "storyNext": storyNext(); break;
+    case "safetyOk": case "safetyCalm":
+      settings.safetySeen = true;
+      if (a === "safetyCalm") settings.calm = true;
+      saveSettings(settings);
+      track("safety_choice", { calm: settings.calm });
+      goMain();
+      break;
     case "begin": openIntro(); break;
     case "go": startRun(); break;
     case "hearth": renderHearth(); showScreen("menu-hearth", { push: true }); break;
@@ -653,7 +660,7 @@ function frame(now) {
 
   const shakeK = settings.shake ? R.shakeAmp * (R.shakeT > 0 ? 1 : 0) : 0;
   const shake = shakeK > 0 ? [(Math.sin(G.time * 91) + Math.sin(G.time * 53)) * shakeK * 0.5, (Math.cos(G.time * 77) + Math.sin(G.time * 61)) * shakeK * 0.5] : [0, 0];
-  scene.render(R, { time: G.time, dt, mode: R.title ? "title" : "play", shake });
+  scene.render(R, { time: G.time, dt, mode: R.title ? "title" : "play", shake, calm: settings.calm });
   hud.draw(R, {
     project: (x, y, z) => scene.project(x, y, z),
     joy: G.phase === "play" && R.phase === "play" ? joy : null,
@@ -686,6 +693,7 @@ function boot() {
   new ResizeObserver(resize).observe(app);
   resize();
   goMain();
+  if (!settings.safetySeen) showScreen("safety");
   track("game_open", { lang: getLang(), returning: progress.runs > 0, runs: progress.runs, beacons: progress.cleared.filter(Boolean).length, embedded: window.parent !== window });
   requestAnimationFrame((tm) => { last = tm; frame(tm); });
   setTimeout(() => $("#loading").classList.remove("active"), 300);

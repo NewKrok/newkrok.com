@@ -97,8 +97,9 @@ export class Fx {
   color(im, i, hex) { this.c.setHex(hex); im.setColorAt(i, this.c); }
   done(im, n) { im.count = n; im.visible = n > 0; im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; }
 
-  sync(R, time, camPitch, view) {
+  sync(R, time, camPitch, view, calm = false) {
     this.camPitch = camPitch;
+    this.calm = calm;
     const inV = (x, y, pad = 60) => x > view.x0 - pad && x < view.x1 + pad && y > view.y0 - pad && y < view.y1 + pad;
     // Gems.
     let n = 0;
@@ -243,7 +244,8 @@ export class Fx {
       m.rotation.set(0, 0, -a.a);
       m.scale.set(a.r * (0.7 + k * 0.3), a.r * (0.7 + k * 0.3), 1);
       m.material.color.setHex(a.color);
-      m.material.opacity = (1 - k) * 0.75;
+      // Ease in and out, so a swing is a sweep of light rather than a blink.
+      m.material.opacity = Math.sin(Math.min(1, k * 1.6) * Math.PI * 0.5 + (k > 0.6 ? 0 : 0)) * (1 - k) * (this.calm ? 0.28 : 0.55);
     }
     this.park(this.arcPool, i);
     // Shock rings.
@@ -253,7 +255,7 @@ export class Fx {
       m.position.set(r.x, -r.y, 3);
       m.scale.set(r.r, r.r, 1);
       m.material.color.setHex(r.color);
-      m.material.opacity = (1 - r.t / r.T) * 0.85;
+      m.material.opacity = (1 - r.t / r.T) * (this.calm ? 0.35 : 0.7);
     }
     this.park(this.ringPool, i);
     // Lightning and hook chains: polylines of thin additive boxes.
@@ -269,7 +271,7 @@ export class Fx {
       m.material.opacity = op;
     };
     for (const b of R.bolts) {
-      const op = 1 - b.t / b.T;
+      const op = (1 - b.t / b.T) * (this.calm ? 0.4 : 0.85);
       for (let k = 1; k < b.pts.length; k++) {
         const p0 = b.pts[k - 1], p1 = b.pts[k];
         seg(p0.x, p0.y, p0.z, p1.x, p1.y, p1.z, 3.2, b.color, op);
@@ -318,7 +320,7 @@ export class Fx {
       this.dome.material.opacity = 0.14 + Math.min(1, h.sanct / 30) * 0.1;
     }
     this.flashLight.position.set(p.x, -p.y, 120);
-    this.flashLight.intensity = R.flash * 260000;
+    this.flashLight.intensity = R.flash * (this.calm ? 15000 : 140000);
     const b = R.boss;
     if (b?.alive && b.def.ai === "king") {
       this.bossLight.position.set(b.body.position.x, -b.body.position.y, 90);

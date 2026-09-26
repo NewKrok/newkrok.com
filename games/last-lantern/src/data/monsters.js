@@ -15,8 +15,8 @@ export const MON = {
   archer:     { r: 11, hp: 30,   speed: 74,  dmg: 4,  xp: 3,  mass: 1,   ai: "ranged", rig: "archer",    c: 0xc0b69e, c2: 0x3a4a2a, spit: { dmg: 6, speed: 240, color: 0xe8e0c8, arrow: true } },
   digger:     { r: 22, hp: 170,  speed: 48,  dmg: 13, xp: 4,  mass: 4,   ai: "chase",  rig: "digger",    c: 0x8a7a6a, c2: 0x3a2e28, heavy: true },
   banshee:    { r: 10, hp: 40,   speed: 116, dmg: 7,  xp: 3,  mass: 0.8, ai: "chase",  rig: "banshee",   c: 0xcfe6f0, c2: 0x6a8aa8, ghost: true, fly: 10 },
-  headless:   { r: 20, hp: 750,  speed: 88,  dmg: 15, xp: 12, mass: 6,   ai: "charger", rig: "headless", c: 0x4a4e5e, c2: 0x2a2a34, c3: 0xff7a2a, elite: true },
-  colossus:   { r: 42, hp: 6000, speed: 56,  dmg: 24, xp: 40, mass: 40,  ai: "colossus", rig: "colossus", c: 0xb8ac94, c2: 0x8a7a5a, boss: true },
+  headless:   { r: 20, hp: 1000,  speed: 88,  dmg: 15, xp: 12, mass: 6,   ai: "charger", rig: "headless", c: 0x4a4e5e, c2: 0x2a2a34, c3: 0xff7a2a, elite: true },
+  colossus:   { r: 42, hp: 8500, speed: 56,  dmg: 24, xp: 40, mass: 40,  ai: "colossus", rig: "colossus", c: 0xb8ac94, c2: 0x8a7a5a, boss: true },
 
   // ── The drowned mill ──
   leech:    { r: 7,  hp: 7,    speed: 128, dmg: 3,  xp: 1,  mass: 0.5, ai: "wiggle", rig: "leech",    c: 0x6b3a4a, c2: 0x3a1c28 },

@@ -11,7 +11,7 @@ const KEY_SETTINGS = "last-lantern.settings.v1";
 const read = (key) => { try { return JSON.parse(localStorage.getItem(key) || "null"); } catch { return null; } };
 const write = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode */ } };
 
-export const DEFAULT_SETTINGS = { master: 0.8, sfx: 0.85, music: 0.55, quality: "high", numbers: true, shake: true, hero: "wren", stage: 0, blood: false };
+export const DEFAULT_SETTINGS = { master: 0.8, sfx: 0.85, music: 0.55, quality: "high", numbers: true, shake: true, calm: false, safetySeen: false, hero: "wren", stage: 0, blood: false };
 export function loadSettings() { return { ...DEFAULT_SETTINGS, ...(read(KEY_SETTINGS) ?? {}) }; }
 export function saveSettings(s) { write(KEY_SETTINGS, s); }
 

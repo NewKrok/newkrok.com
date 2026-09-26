@@ -45,7 +45,7 @@ export function spawnMonster(R, id, x, y, opts = {}) {
   body.allowRotation = false;
   body.space = R.space;
   const t = R.clock / (R.stage.bossAt * 60);
-  const grow = def.boss || prop ? 1 : 1 + Math.min(1.2, t) * 0.9;     // the night hardens
+  const grow = def.boss || prop ? 1 : 1 + Math.min(1.2, t) * 1.25;     // the night hardens
   // The stage's toughness comes in over the first half of the night, so a
   // fresh hero is not facing its full weight at 0:00.
   const stageK = def.boss || def.elite ? 1 : Math.min(1, 0.35 + t * 1.3);
@@ -208,7 +208,7 @@ export function hurtHero(R, dmg, sx, sy) {
   if (R.phase !== "play" || h.iframes > 0 || h.hp <= 0 || h.dig > 0 || h.sanct > 0) return;
   const real = Math.max(1, Math.round(dmg - h.stats.armor));
   h.hp -= real;
-  h.iframes = 36;
+  h.iframes = 30;
   h.hitFlash = 8;
   R.damageTaken += real;
   R.shake(Math.min(10, 3 + real * 0.3), 0.18);

@@ -54,6 +54,19 @@
         <footer class="credit"><div class="made" data-bind="madeBy"></div><div class="tech" data-bind="techLine"></div></footer>
       </section>
 
+      <!-- Photosensitivity notice, shown once -->
+      <section id="safety" class="screen dim">
+        <div class="panel card safety-card">
+          <div class="eyebrow" data-i18n="safety_eyebrow"></div>
+          <h2 data-i18n="safety_title"></h2>
+          <p class="brief" data-i18n="safety_text"></p>
+          <div class="actions">
+            <button class="btn" data-action="safetyCalm" data-i18n="safety_calm"></button>
+            <button class="btn primary" data-action="safetyOk" data-i18n="safety_ok"></button>
+          </div>
+        </div>
+      </section>
+
       <!-- Prologue -->
       <section id="story" class="screen dim">
         <div class="panel card story-card">
@@ -223,6 +236,7 @@
           </div>
           <label class="row"><span data-i18n="set_numbers"></span><input type="checkbox" data-setting="numbers" /></label>
           <label class="row"><span data-i18n="set_shake"></span><input type="checkbox" data-setting="shake" /></label>
+          <label class="row"><span data-i18n="set_calm"></span><input type="checkbox" data-setting="calm" /></label>
           <h3 data-i18n="set_progress"></h3>
           <div class="row"><span data-i18n="set_progressRow"></span><button class="btn small danger" data-action="reset" data-i18n="set_reset"></button></div>
         </div>

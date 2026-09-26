@@ -54,9 +54,9 @@ export class Hud {
     // A dark vignette frames the play field the way a lantern would.
     const vg = c.createRadialGradient(W / 2, H * 0.45, Math.min(W, H) * 0.42, W / 2, H * 0.45, Math.max(W, H) * 0.78);
     vg.addColorStop(0, "rgba(0,0,0,0)");
-    vg.addColorStop(1, low < 0.35 && R.phase === "play" ? `rgba(120,8,8,${0.35 + 0.25 * Math.sin(time * 6)})` : "rgba(0,0,0,0.5)");
+    vg.addColorStop(1, low < 0.35 && R.phase === "play" ? `rgba(120,8,8,${0.4 + (settings.calm ? 0 : 0.15 * Math.sin(time * 3))})` : "rgba(0,0,0,0.5)");
     c.fillStyle = vg; c.fillRect(0, 0, W, H);
-    if (h.hitFlash > 0) { c.fillStyle = `rgba(255,40,40,${h.hitFlash / 8 * 0.16})`; c.fillRect(0, 0, W, H); }
+    if (h.hitFlash > 0 && !settings.calm) { c.fillStyle = `rgba(255,40,40,${h.hitFlash / 8 * 0.16})`; c.fillRect(0, 0, W, H); }
 
     this.#floaters(R, project, settings);
 
@@ -74,7 +74,8 @@ export class Hud {
     this.#panel(R, time);
     this.#banners(R);
 
-    if (R.flash > 0.02) { c.fillStyle = `rgba(255,248,220,${R.flash * 0.5})`; c.fillRect(0, 0, W, H); }
+    // Screen flashes are soft and never strobe; none at all with reduced flashing.
+    if (R.flash > 0.02 && !settings.calm) { c.fillStyle = `rgba(255,248,220,${Math.min(0.3, R.flash * 0.3)})`; c.fillRect(0, 0, W, H); }
 
     if (joy) {
       c.save();

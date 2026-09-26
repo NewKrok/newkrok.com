@@ -18,7 +18,7 @@ export const WEAPONS = {
   // Lantern Flail: a burning arc toward the nearest monster in reach, else
   // where you face. Lv3 lashes behind you too.
   flail: {
-    stats: (lv) => ({ dmg: 14 + lv * 5, range: 100 + lv * 8, cd: 50 - lv * 3, arcs: lv >= 3 ? 2 : 1, width: lv >= 5 ? 1.35 : 1.15 }),
+    stats: (lv) => ({ dmg: 12 + lv * 4, range: 92 + lv * 7, cd: 50 - lv * 3, arcs: lv >= 3 ? 2 : 1, width: lv >= 5 ? 1.35 : 1.15 }),
     fire(R, w, s) { swing(R, w, s, false); },
   },
   sunflail: {
