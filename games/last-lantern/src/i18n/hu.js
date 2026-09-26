@@ -42,12 +42,12 @@ export const HU = {
   b_bossDown: "AZ ŐRZŐ ELBUKOTT", b_eliteDown: "ELIT LEGYŐZVE", b_magnet: "MÁGNES", b_flare: "NAPKITÖRÉS", b_freeze: "MEGÁLL AZ IDŐ",
   b_king2: "A KIRÁLY ELŐVESZI KASZÁIT", b_king3: "NAPFOGYATKOZÁS",
   ev_ring: "KÖRBEVESZNEK", ev_wall: "A HOLTAK FALA", ev_pack: "VADÁSZIK A FALKA", ev_elite: "ELIT KÖZELEDIK",
-  ev_ring_bat: "DENEVÉRFELHŐ", ev_ring_ghoul: "MEGNYÍLNAK A SÍROK", ev_ring_wraith: "SIKOLT A KÖD", ev_wall_skeleton: "CSONTFAL",
+  ev_ring_crow: "VARJÚRAJ", ev_ring_shambler: "MEGNYÍLNAK A SÍROK", ev_ring_banshee: "JAJGATNAK A BANSHEE-K", ev_wall_gravebound: "CSONTFAL",
   ev_ring_leech: "PIÓCÁKTÓL FORR A VÍZ", ev_wall_drowned: "FELKELNEK A VÍZBEFÚLTAK", ev_ring_bogslime: "MOZDUL A LÁP", ev_ring_wisp: "LIDÉRCFÉNYEK",
   ev_ring_imp: "SZIKRÁK A SZÉLBEN", ev_pack_ashwolf: "VADÁSZIK A FALKA", ev_ring_husk: "AZ ÉGŐ HOLTAK",
   ev_ring_frostbat: "FAGYOTT SZÁRNYAK", ev_wall_iceskel: "JÉGSEREG", ev_pack_snowwolf: "ÜVÖLTÉS A HÁGÓN", ev_ring_rime: "SUTTOG A HIDEG",
   ev_ring_gargoyle: "FELÉBREDNEK A VÍZKÖPŐK", ev_ring_hollow: "AZ ÜRESEK GYÜLEKEZETE", ev_wall_hollow: "A KIRÁLY SEREGE", ev_ring_specter: "A HAJÓ KÍSÉRTETEI",
-  ev_elite_knight: "FELKEL EGY SÍRLOVAG", ev_elite_sentinel: "VÍZBEFÚLT ŐRSZEM GÁZOL ELŐ", ev_elite_alpha: "HAMUERDŐ FALKAVEZÉRE", ev_elite_frostknight: "FAGYLOVAG ÉRKEZIK", ev_elite_moonknight: "HOLDLOVAG RÁNT KARDOT",
+  ev_elite_headless: "LOVAGOL A FEJETLEN LOVAG", ev_elite_sentinel: "VÍZBEFÚLT ŐRSZEM GÁZOL ELŐ", ev_elite_alpha: "HAMUERDŐ FALKAVEZÉRE", ev_elite_frostknight: "FAGYLOVAG ÉRKEZIK", ev_elite_moonknight: "HOLDLOVAG RÁNT KARDOT",
   boss_colossus: "A CSONTKOLOSSZUS", boss_bogmother: "A LÁPANYA", boss_stag: "A SZENESEDETT SZARVAS", boss_wormhead: "A ZÚZMARAFÉREG", boss_king: "AZ ÜRES KIRÁLY",
   unlockedToast: "Feloldva: {x}", notEnough: "Nincs elég parázs", bought: "{x} fejlesztve",
   webgl_title: "A WebGL nem érhető el", webgl_text: "A Last Lantern WebGL-t támogató böngészőt igényel. Próbálj másik böngészőt, vagy kapcsold be a hardveres gyorsítást.",
@@ -96,8 +96,8 @@ HU.passives = {
 };
 
 HU.stages = {
-  graveyard: ["Hollowmere", "A temető",
-    "Az első jelzőtűz Hollowmere temetője fölött áll, ahová a város négyszáz éve temeti a halottait. Mióta kialudt a nap, egyikük sem marad a sírjában. Tartsd égve a lámpást, amíg érte nem jön a Csontkolosszus.",
+  graveyard: ["Hollowmere", "A régi templomkert",
+    "Az első jelzőtűz Hollowmere romos kápolnája mögött áll, a templomkertben, ahová a város négyszáz éve temeti a halottait. Mióta kialudt a nap, egyikük sem marad a sírjában — és velük együtt a varjak is visszatértek. Tartsd égve a lámpást, amíg a csontházból elő nem mászik a Csontkolosszus.",
     "A Kolosszus régi csontok halmává omlik, és a jelzőtűz lángra kap. Száz éjszaka óta először ég fény a dombon, ami nem a tiéd. Messze délen valaki gyertyát gyújt egy ablakban."],
   mill: ["A vízbefúlt malom", "Az elárasztott völgy",
     "Azon az éjjelen, amikor a napot ellopták, a folyó kilépett a medréből, és a malom azóta fekete vízben áll. A tócsákban valami szaporodik — valami nagy. A második jelzőtűz a malom tetőgerincén vár.",
@@ -124,7 +124,7 @@ HU.story = {
 };
 
 HU.monsters = {
-  bat: "Denevér", ghoul: "Hullarabló", skeleton: "Csontváz", spitter: "Köpködő", brute: "Sírbika", wraith: "Lidérc", knight: "Sírlovag", colossus: "Csontkolosszus",
+  crow: "Dögvarjú", shambler: "Csoszogó holt", gravebound: "Sírhoz kötött", archer: "Csontíjász", digger: "Sírásó óriás", banshee: "Banshee", headless: "Fejetlen lovag", colossus: "Csontkolosszus",
   leech: "Pióca", drowned: "Vízbefúlt", toad: "Epevarangy", bogslime: "Lápnyálka", bogling: "Lápfióka", wisp: "Mocsári lidércfény", mirebrute: "Mocsárbika", sentinel: "Vízbefúlt őrszem", bogmother: "A Lápanya",
   imp: "Hamumanó", ashwolf: "Hamufarkas", husk: "Égő tetem", caller: "Lánghívó", treant: "Szenesedett fapásztor", cinder: "Parázslidérc", alpha: "Hamuerdő falkavezére", stag: "A Szenesedett Szarvas",
   frostbat: "Fagydenevér", iceskel: "Jégcsontváz", snowwolf: "Hófarkas", shard: "Szilánknyálka", shardling: "Szilánkfióka", yeti: "Jeti", rime: "Zúzmaralidérc", frostknight: "Fagylovag", wormhead: "A Zúzmaraféreg",

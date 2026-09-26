@@ -8,15 +8,15 @@
 // the stage's hpMul / dmgMul scale them.
 
 export const MON = {
-  // ── Hollowmere graveyard ──
-  bat:      { r: 8,  hp: 6,    speed: 135, dmg: 3,  xp: 1,  mass: 0.6, ai: "swoop",  rig: "bat",      c: 0xa371f7, c2: 0x4a3480, fly: 24 },
-  ghoul:    { r: 12, hp: 18,   speed: 62,  dmg: 5,  xp: 1,  mass: 1,   ai: "chase",  rig: "ghoul",    c: 0x5fbf73, c2: 0x3f8a52 },
-  skeleton: { r: 11, hp: 26,   speed: 94,  dmg: 6,  xp: 1,  mass: 1,   ai: "chase",  rig: "skeleton", c: 0xe6e1cf, c2: 0xb9b3a1 },
-  spitter:  { r: 12, hp: 34,   speed: 72,  dmg: 4,  xp: 3,  mass: 1.2, ai: "ranged", rig: "blob",     c: 0xb5d334, c2: 0x7f9a1e, spit: { dmg: 6, speed: 215, color: 0xb5d334 } },
-  brute:    { r: 22, hp: 170,  speed: 48,  dmg: 13, xp: 4,  mass: 4,   ai: "chase",  rig: "brute",    c: 0xb0703a, c2: 0x7a4a24, heavy: true },
-  wraith:   { r: 10, hp: 40,   speed: 116, dmg: 7,  xp: 3,  mass: 0.8, ai: "chase",  rig: "ghost",    c: 0x7fe3f0, c2: 0x3ca4b3, ghost: true, fly: 8 },
-  knight:   { r: 20, hp: 750,  speed: 88,  dmg: 15, xp: 12, mass: 6,   ai: "charger", rig: "knight",  c: 0x8b93b8, c2: 0x5a6280, c3: 0xf85149, elite: true },
-  colossus: { r: 42, hp: 6000, speed: 56,  dmg: 24, xp: 40, mass: 40,  ai: "colossus", rig: "colossus", c: 0xd9c9a3, c2: 0xa8996f, boss: true },
+  // ── Hollowmere churchyard ──
+  crow:       { r: 8,  hp: 6,    speed: 138, dmg: 3,  xp: 1,  mass: 0.6, ai: "swoop",  rig: "crow",      c: 0x1e1c26, c2: 0x3a3650, fly: 26 },
+  shambler:   { r: 12, hp: 18,   speed: 60,  dmg: 5,  xp: 1,  mass: 1,   ai: "chase",  rig: "shambler",  c: 0x7a8a6a, c2: 0x4a3a2e },
+  gravebound: { r: 11, hp: 28,   speed: 92,  dmg: 6,  xp: 1,  mass: 1.1, ai: "chase",  rig: "gravebound", c: 0xc8bea6, c2: 0x6a5a48, heavy: false, shield: true },
+  archer:     { r: 11, hp: 30,   speed: 74,  dmg: 4,  xp: 3,  mass: 1,   ai: "ranged", rig: "archer",    c: 0xc0b69e, c2: 0x3a4a2a, spit: { dmg: 6, speed: 240, color: 0xe8e0c8, arrow: true } },
+  digger:     { r: 22, hp: 170,  speed: 48,  dmg: 13, xp: 4,  mass: 4,   ai: "chase",  rig: "digger",    c: 0x8a7a6a, c2: 0x3a2e28, heavy: true },
+  banshee:    { r: 10, hp: 40,   speed: 116, dmg: 7,  xp: 3,  mass: 0.8, ai: "chase",  rig: "banshee",   c: 0xcfe6f0, c2: 0x6a8aa8, ghost: true, fly: 10 },
+  headless:   { r: 20, hp: 750,  speed: 88,  dmg: 15, xp: 12, mass: 6,   ai: "charger", rig: "headless", c: 0x4a4e5e, c2: 0x2a2a34, c3: 0xff7a2a, elite: true },
+  colossus:   { r: 42, hp: 6000, speed: 56,  dmg: 24, xp: 40, mass: 40,  ai: "colossus", rig: "colossus", c: 0xb8ac94, c2: 0x8a7a5a, boss: true },
 
   // ── The drowned mill ──
   leech:    { r: 7,  hp: 7,    speed: 128, dmg: 3,  xp: 1,  mass: 0.5, ai: "wiggle", rig: "leech",    c: 0x6b3a4a, c2: 0x3a1c28 },

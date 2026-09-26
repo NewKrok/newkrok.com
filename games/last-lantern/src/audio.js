@@ -13,7 +13,7 @@ const GAP = { hit: 0.05, kill: 0.06, gem: 0.03, whip: 0.08, bow: 0.07, knives: 0
 // Stage music: a minor key root, tempo and a lead colour.
 const SONGS = {
   menu: { root: 50, bpm: 64, scale: [0, 3, 5, 7, 10], lead: "triangle", prog: [0, -4, -2, -5] },
-  graveyard: { root: 45, bpm: 92, scale: [0, 2, 3, 7, 8], lead: "triangle", prog: [0, -4, -2, -5] },
+  churchyard: { root: 45, bpm: 92, scale: [0, 2, 3, 7, 8], lead: "triangle", prog: [0, -4, -2, -5] },
   mill: { root: 43, bpm: 84, scale: [0, 3, 5, 7, 10], lead: "sine", prog: [0, 3, -2, -4] },
   ashwood: { root: 47, bpm: 104, scale: [0, 1, 4, 5, 7, 8], lead: "sawtooth", prog: [0, 1, -4, 1] },
   pass: { root: 48, bpm: 88, scale: [0, 2, 3, 7, 10], lead: "sine", prog: [0, -3, -5, -2] },

@@ -15,6 +15,144 @@ const RED = 0xff4a3a, DARK = 0x14161c;
 function spec(def) {
   const r = def.r, c = def.c, c2 = def.c2 ?? c, c3 = def.c3 ?? RED;
   switch (def.rig) {
+    // ── Hollowmere ──
+    case "crow": return { fly: def.fly || 26, bobK: 3, parts: [
+      { g: "ico1", s: [r * 0.7, r * 1.2, r * 0.62], p: [0, 0, 0], c },
+      { g: "ico1", s: [r * 0.46, r * 0.5, r * 0.44], p: [0, r * 1.05, r * 0.28], c },
+      { g: "coneFwd", s: [r * 0.16, r * 0.62, r * 0.16], p: [0, r * 1.62, r * 0.2], c: 0x8a8070 },
+      { g: "sph", s: [1.3, 1.3, 1.3], p: [-r * 0.24, r * 1.3, r * 0.44], c: 0xff3a2a, e: 1 },
+      { g: "sph", s: [1.3, 1.3, 1.3], p: [r * 0.24, r * 1.3, r * 0.44], c: 0xff3a2a, e: 1 },
+      { g: "wing", s: [r * 1.7, r * 1.1, 0.8], p: [-r * 0.4, r * 0.1, r * 0.2], c: c2, a: "wingL" },
+      { g: "wing", s: [r * 1.7, r * 1.1, 0.8], p: [r * 0.4, r * 0.1, r * 0.2], c: c2, a: "wingR" },
+      { g: "wingTip", s: [r * 1.1, r * 0.8, 0.6], p: [-r * 0.4, r * 0.0, r * 0.2], c, a: "wingL", k: 1.7 },
+      { g: "wingTip", s: [r * 1.1, r * 0.8, 0.6], p: [r * 0.4, r * 0.0, r * 0.2], c, a: "wingR", k: 1.7 },
+      { g: "box", s: [r * 0.7, r * 0.9, 0.8], p: [0, -r * 1.2, 0], c, a: "tail", k: 0.2 },
+    ] };
+    case "shambler": return { parts: [
+      { g: "taperUp", s: [r * 0.75, r * 0.55, r * 1.25], p: [0, 0, r * 1.05], c: c2, rx: 0.45 },
+      { g: "box", s: [r * 1.0, r * 0.6, r * 0.5], p: [0, r * 0.35, r * 1.95], c: c2, rx: 0.45 },
+      { g: "box", s: [r * 0.9, r * 0.1, r * 0.5], p: [0, -r * 0.5, r * 1.1], c: 0x3a2c22, a: "tail", k: 0.25 },
+      { g: "ico1", s: [r * 0.44, r * 0.48, r * 0.46], p: [0, r * 0.75, r * 2.35], c },
+      { g: "box", s: [r * 0.36, r * 0.3, r * 0.14], p: [0, r * 1.02, r * 2.08], c: 0x5a6a4a, a: "jaw" },
+      { g: "sph", s: [1.7, 1.7, 1.7], p: [-r * 0.18, r * 1.14, r * 2.44], c: 0xc8ff8a, e: 1 },
+      { g: "sph", s: [1.4, 1.4, 1.4], p: [r * 0.2, r * 1.12, r * 2.4], c: 0xc8ff8a, e: 1 },
+      { g: "box", s: [r * 0.5, r * 0.06, r * 0.06], p: [0, r * 0.62, r * 1.7], c: 0xd8d0b8 },
+      { g: "box", s: [r * 0.44, r * 0.06, r * 0.06], p: [0, r * 0.62, r * 1.52], c: 0xd8d0b8 },
+      { g: "hang", s: [r * 0.3, r * 0.3, r * 1.25], p: [-r * 0.6, r * 0.6, r * 2.05], c, a: "armL", b: 1.45, k: 0.22 },
+      { g: "hang", s: [r * 0.28, r * 0.28, r * 1.2], p: [r * 0.62, r * 0.4, r * 1.95], c, a: "armR", b: 0.35, k: 0.3 },
+      { g: "sph", s: [r * 0.2, r * 0.26, r * 0.14], p: [-r * 0.6, r * 1.8, r * 2.0], c },
+      { g: "hang", s: [r * 0.34, r * 0.34, r * 1.0], p: [-r * 0.3, 0, r * 1.0], c: 0x3a3028, a: "legL", k: 0.55 },
+      { g: "hang", s: [r * 0.34, r * 0.34, r * 1.0], p: [r * 0.3, 0, r * 1.0], c: 0x3a3028, a: "legR", k: 0.35 },
+    ] };
+    case "gravebound": return { parts: [
+      { g: "box", s: [r * 0.14, r * 0.14, r * 0.9], p: [0, -r * 0.05, r * 1.45], c },
+      { g: "torus", s: [r * 0.42, r * 0.34, r * 0.42], p: [0, 0, r * 1.95], c, rx: Math.PI / 2 },
+      { g: "torus", s: [r * 0.38, r * 0.3, r * 0.38], p: [0, 0, r * 1.7], c, rx: Math.PI / 2 },
+      { g: "torus", s: [r * 0.32, r * 0.26, r * 0.32], p: [0, 0, r * 1.46], c, rx: Math.PI / 2 },
+      { g: "box", s: [r * 0.7, r * 0.4, r * 0.24], p: [0, 0, r * 1.05], c: 0xc8c0a8 },
+      { g: "ico1", s: [r * 0.36, r * 0.4, r * 0.38], p: [0, r * 0.05, r * 2.55], c },
+      { g: "box", s: [r * 0.3, r * 0.3, r * 0.1], p: [0, r * 0.25, r * 2.28], c, a: "jaw" },
+      { g: "sphHalf", s: [r * 0.42, r * 0.45, r * 0.4], p: [0, 0, r * 2.62], c: 0x6a5a48 },
+      { g: "sph", s: [1.4, 1.4, 1.4], p: [-r * 0.14, r * 0.38, r * 2.58], c: 0x7ad8ff, e: 1 },
+      { g: "sph", s: [1.4, 1.4, 1.4], p: [r * 0.14, r * 0.38, r * 2.58], c: 0x7ad8ff, e: 1 },
+      { g: "hang", s: [r * 0.14, r * 0.14, r * 1.0], p: [-r * 0.56, 0, r * 2.1], c, a: "armL", b: 0.6, k: 0.3 },
+      { g: "hang", s: [r * 0.14, r * 0.14, r * 1.0], p: [r * 0.56, 0, r * 2.1], c, a: "armR", k: 0.8 },
+      { g: "cyl", s: [r * 0.62, r * 0.62, r * 0.12], p: [-r * 0.75, r * 0.55, r * 1.5], c: c2, rx: Math.PI / 2 },
+      { g: "sph", s: [r * 0.18, r * 0.1, r * 0.18], p: [-r * 0.75, r * 0.63, r * 1.5], c: 0x8a8a90 },
+      { g: "box", s: [r * 0.08, r * 1.0, r * 0.16], p: [r * 0.62, r * 0.62, r * 1.2], c: 0x9a9aa4 },
+      { g: "hang", s: [r * 0.16, r * 0.16, r * 1.0], p: [-r * 0.24, 0, r * 1.0], c, a: "legL", k: 0.8 },
+      { g: "hang", s: [r * 0.16, r * 0.16, r * 1.0], p: [r * 0.24, 0, r * 1.0], c, a: "legR", k: 0.8 },
+    ] };
+    case "archer": return { parts: [
+      { g: "box", s: [r * 0.14, r * 0.14, r * 0.9], p: [0, 0, r * 1.45], c },
+      { g: "torus", s: [r * 0.4, r * 0.32, r * 0.4], p: [0, 0, r * 1.85], c, rx: Math.PI / 2 },
+      { g: "torus", s: [r * 0.34, r * 0.28, r * 0.34], p: [0, 0, r * 1.58], c, rx: Math.PI / 2 },
+      { g: "taperUp", s: [r * 0.8, r * 0.7, r * 1.2], p: [0, -r * 0.1, r * 0.9], c: c2 },
+      { g: "ico1", s: [r * 0.34, r * 0.38, r * 0.36], p: [0, r * 0.08, r * 2.5], c },
+      { g: "cone", s: [r * 0.5, r * 0.55, r * 0.9], p: [0, -r * 0.08, r * 2.62], c: c2 },
+      { g: "sph", s: [1.4, 1.4, 1.4], p: [-r * 0.13, r * 0.4, r * 2.52], c: 0xa8ff7a, e: 1 },
+      { g: "sph", s: [1.4, 1.4, 1.4], p: [r * 0.13, r * 0.4, r * 2.52], c: 0xa8ff7a, e: 1 },
+      { g: "hang", s: [r * 0.13, r * 0.13, r * 1.0], p: [-r * 0.5, r * 0.1, r * 2.05], c, a: "armL", b: 1.5, k: 0.05 },
+      { g: "hang", s: [r * 0.13, r * 0.13, r * 0.9], p: [r * 0.5, 0, r * 2.05], c, a: "armR", b: 1.2, k: 0.1 },
+      { g: "torusHalf", s: [r * 0.9, r * 0.9, r * 0.9], p: [-r * 0.5, r * 1.1, r * 2.0], c: 0x5a3a20, rz: Math.PI / 2, rx: Math.PI / 2 },
+      { g: "cylUp", s: [r * 0.18, r * 0.18, r * 1.0], p: [r * 0.25, -r * 0.4, r * 1.6], c: 0x4a3020, rx: -0.3 },
+      { g: "cone", s: [r * 0.06, r * 0.06, r * 0.3], p: [r * 0.3, -r * 0.62, r * 2.6], c: 0xe0e0e0 },
+      { g: "hang", s: [r * 0.16, r * 0.16, r * 0.9], p: [-r * 0.22, 0, r * 0.95], c, a: "legL", k: 0.6 },
+      { g: "hang", s: [r * 0.16, r * 0.16, r * 0.9], p: [r * 0.22, 0, r * 0.95], c, a: "legR", k: 0.6 },
+    ] };
+    case "digger": return { parts: [
+      { g: "ico1", s: [r * 0.9, r * 0.75, r * 0.95], p: [0, 0, r * 1.75], c: 0x5a4a3e },
+      { g: "box", s: [r * 1.2, r * 0.72, r * 0.9], p: [0, r * 0.22, r * 1.45], c: c2 },
+      { g: "box", s: [r * 0.9, r * 0.08, r * 0.8], p: [0, r * 0.6, r * 1.2], c: 0x5a4432 },
+      { g: "ico1", s: [r * 0.38, r * 0.4, r * 0.36], p: [0, r * 0.62, r * 2.4], c },
+      { g: "box", s: [r * 0.3, r * 0.16, r * 0.12], p: [0, r * 0.95, r * 2.24], c: 0x6a5040, a: "jaw" },
+      { g: "sph", s: [2.2, 2.2, 2.2], p: [-r * 0.14, r * 0.96, r * 2.45], c: 0xffaa3a, e: 1 },
+      { g: "sph", s: [2.2, 2.2, 2.2], p: [r * 0.14, r * 0.96, r * 2.45], c: 0xffaa3a, e: 1 },
+      { g: "hang", s: [r * 0.4, r * 0.4, r * 1.3], p: [-r * 0.95, r * 0.3, r * 2.2], c, a: "armL", b: 0.5, k: 0.4 },
+      { g: "hang", s: [r * 0.4, r * 0.4, r * 1.3], p: [r * 0.95, r * 0.3, r * 2.2], c, a: "armR", b: 0.9, k: 0.3 },
+      { g: "sph", s: [r * 0.3, r * 0.3, r * 0.3], p: [-r * 0.95, r * 0.9, r * 1.1], c },
+      { g: "cylUp", s: [r * 0.06, r * 0.06, r * 2.2], p: [r * 1.0, r * 0.8, r * 0.4], c: 0x5a3a20, rx: 0.5 },
+      { g: "box", s: [r * 0.5, r * 0.06, r * 0.6], p: [r * 1.0, r * 1.95, r * 2.3], c: 0x8a8a90, rx: 0.5 },
+      { g: "box", s: [r * 0.24, r * 0.24, r * 0.3], p: [r * 0.55, -r * 0.2, r * 1.2], c: 0x2a2a2a },
+      { g: "box", s: [r * 0.16, r * 0.16, r * 0.2], p: [r * 0.55, -r * 0.2, r * 1.2], c: 0xffc070, e: 1 },
+      { g: "hang", s: [r * 0.48, r * 0.48, r * 1.1], p: [-r * 0.42, 0, r * 1.1], c: 0x3a3028, a: "legL", k: 0.5 },
+      { g: "hang", s: [r * 0.48, r * 0.48, r * 1.1], p: [r * 0.42, 0, r * 1.1], c: 0x3a3028, a: "legR", k: 0.5 },
+    ] };
+    case "banshee": return { fly: def.fly || 10, bobK: 5, ghost: true, parts: [
+      { g: "coneDown", s: [r * 1.05, r * 1.0, r * 2.4], p: [0, -r * 0.1, r * 1.9], c, a: "pulse", k: 0.06 },
+      { g: "coneDown", s: [r * 0.8, r * 0.7, r * 2.0], p: [0, -r * 0.5, r * 1.9], c: c2, a: "tail", k: 0.3 },
+      { g: "ico1", s: [r * 0.42, r * 0.46, r * 0.5], p: [0, r * 0.1, r * 3.3], c: 0xe8f4ff },
+      { g: "box", s: [r * 0.7, r * 0.8, r * 1.6], p: [0, -r * 0.4, r * 2.9], c: 0x8aa8c8, a: "tail", k: 0.25 },
+      { g: "sph", s: [1.8, 1.8, 2.4], p: [-r * 0.16, r * 0.5, r * 3.4], c: 0xffffff, e: 1 },
+      { g: "sph", s: [1.8, 1.8, 2.4], p: [r * 0.16, r * 0.5, r * 3.4], c: 0xffffff, e: 1 },
+      { g: "sph", s: [r * 0.14, r * 0.05, r * 0.22], p: [0, r * 0.55, r * 3.1], c: 0x1a2030 },
+      { g: "hang", s: [r * 0.16, r * 0.16, r * 1.4], p: [-r * 0.55, r * 0.3, r * 2.8], c, a: "armL", b: 1.4, k: 0.25 },
+      { g: "hang", s: [r * 0.16, r * 0.16, r * 1.4], p: [r * 0.55, r * 0.3, r * 2.8], c, a: "armR", b: 1.4, k: 0.25 },
+    ] };
+    case "headless": return { parts: [
+      { g: "box", s: [r * 1.15, r * 0.75, r * 1.2], p: [0, 0, r * 1.85], c },
+      { g: "box", s: [r * 0.9, r * 0.1, r * 1.3], p: [0, r * 0.4, r * 1.7], c: c2 },
+      { g: "box", s: [r * 0.12, r * 0.12, r * 0.9], p: [0, r * 0.47, r * 1.8], c: 0xc8a050 },
+      { g: "box", s: [r * 0.5, r * 0.12, r * 0.12], p: [0, r * 0.47, r * 1.95], c: 0xc8a050 },
+      { g: "sph", s: [r * 0.42, r * 0.4, r * 0.3], p: [-r * 0.66, 0, r * 2.4], c },
+      { g: "sph", s: [r * 0.42, r * 0.4, r * 0.3], p: [r * 0.66, 0, r * 2.4], c },
+      { g: "cyl", s: [r * 0.22, r * 0.22, r * 0.18], p: [0, 0, r * 2.5], c: 0x2a1a14 },
+      { g: "sph", s: [r * 0.24, r * 0.24, r * 0.5], p: [0, 0, r * 2.75], c: c3, e: 1, a: "flick", k: 0.6 },
+      { g: "sph", s: [r * 0.14, r * 0.14, r * 0.3], p: [0, 0, r * 3.05], c: 0xffe0a0, e: 1, a: "flick", k: 0.8 },
+      { g: "hang", s: [r * 1.2, r * 0.1, r * 1.6], p: [0, -r * 0.42, r * 2.4], c: 0x3a1418, a: "tail", k: 0.18 },
+      { g: "hang", s: [r * 0.32, r * 0.32, r * 1.1], p: [-r * 0.78, 0, r * 2.3], c, a: "armL", b: 0.7, k: 0.3 },
+      { g: "hang", s: [r * 0.32, r * 0.32, r * 1.1], p: [r * 0.78, 0, r * 2.3], c, a: "armR", b: 1.2, k: 0.2 },
+      { g: "ico1", s: [r * 0.36, r * 0.36, r * 0.4], p: [-r * 0.95, r * 0.5, r * 1.4], c: 0x6a6e7e },
+      { g: "box", s: [r * 0.3, r * 0.04, r * 0.06], p: [-r * 0.95, r * 0.86, r * 1.45], c: c3, e: 1 },
+      { g: "box", s: [r * 0.1, r * 2.1, r * 0.2], p: [r * 0.78, r * 1.2, r * 1.3], c: 0xd8dde6 },
+      { g: "box", s: [r * 0.5, r * 0.1, r * 0.1], p: [r * 0.78, r * 0.2, r * 1.3], c: 0xc8a050 },
+      { g: "hang", s: [r * 0.38, r * 0.38, r * 1.05], p: [-r * 0.33, 0, r * 1.2], c, a: "legL", k: 0.6 },
+      { g: "hang", s: [r * 0.38, r * 0.38, r * 1.05], p: [r * 0.33, 0, r * 1.2], c, a: "legR", k: 0.6 },
+    ] };
+    case "colossus": return { parts: [
+      { g: "box", s: [r * 0.3, r * 0.3, r * 1.6], p: [0, -r * 0.15, r * 1.8], c: c2 },
+      { g: "box", s: [r * 1.0, r * 0.6, r * 0.45], p: [0, 0, r * 1.25], c },
+      { g: "torus", s: [r * 0.66, r * 0.5, r * 0.66], p: [0, 0, r * 2.65], c, rx: Math.PI / 2 },
+      { g: "torus", s: [r * 0.62, r * 0.48, r * 0.62], p: [0, 0, r * 2.35], c, rx: Math.PI / 2 },
+      { g: "torus", s: [r * 0.56, r * 0.44, r * 0.56], p: [0, 0, r * 2.05], c, rx: Math.PI / 2 },
+      { g: "torus", s: [r * 0.48, r * 0.38, r * 0.48], p: [0, 0, r * 1.78], c, rx: Math.PI / 2 },
+      { g: "ico1", s: [r * 0.3, r * 0.3, r * 0.3], p: [0, 0, r * 2.2], c: 0xff3a2a, e: 1, a: "pulse", k: 0.2 },
+      { g: "box", s: [r * 1.4, r * 0.5, r * 0.3], p: [0, -r * 0.05, r * 2.9], c },
+      { g: "ico1", s: [r * 0.5, r * 0.56, r * 0.52], p: [0, r * 0.25, r * 3.35], c },
+      { g: "box", s: [r * 0.46, r * 0.34, r * 0.16], p: [0, r * 0.55, r * 3.02], c: c2, a: "jaw" },
+      { g: "sph", s: [r * 0.1, r * 0.1, r * 0.1], p: [-r * 0.2, r * 0.72, r * 3.42], c: 0xff3b3b, e: 1 },
+      { g: "sph", s: [r * 0.1, r * 0.1, r * 0.1], p: [r * 0.2, r * 0.72, r * 3.42], c: 0xff3b3b, e: 1 },
+      { g: "cone", s: [r * 0.12, r * 0.12, r * 0.8], p: [-r * 0.42, 0, r * 3.8], c: c2, ry: -0.5 },
+      { g: "cone", s: [r * 0.12, r * 0.12, r * 0.8], p: [r * 0.42, 0, r * 3.8], c: c2, ry: 0.5 },
+      { g: "ico1", s: [r * 0.2, r * 0.22, r * 0.2], p: [-r * 0.7, r * 0.1, r * 3.0], c },
+      { g: "ico1", s: [r * 0.2, r * 0.22, r * 0.2], p: [r * 0.7, r * 0.1, r * 3.0], c },
+      { g: "cylUp", s: [r * 0.14, r * 0.14, r * 1.8], p: [r * 1.1, r * 0.6, r * 0.6], c: 0x6a5a40, rx: 0.4 },
+      { g: "ico1", s: [r * 0.36, r * 0.36, r * 0.36], p: [r * 1.1, r * 1.3, r * 2.25], c },
+      { g: "hang", s: [r * 0.36, r * 0.36, r * 1.3], p: [-r * 0.45, 0, r * 1.3], c, a: "legL", k: 0.45 },
+      { g: "hang", s: [r * 0.36, r * 0.36, r * 1.3], p: [r * 0.45, 0, r * 1.3], c, a: "legR", k: 0.45 },
+      { g: "hang", s: [r * 0.3, r * 0.3, r * 1.6], p: [-r * 0.95, 0, r * 2.85], c, a: "armL", k: 0.45 },
+      { g: "hang", s: [r * 0.3, r * 0.3, r * 1.6], p: [r * 0.95, 0, r * 2.85], c, a: "armR", b: 0.4, k: 0.3 },
+    ] };
     case "bat": return { fly: def.fly || 24, bobK: 3, parts: [
       { g: "sph", s: [r * 0.9, r * 1.1, r * 0.8], p: [0, 0, 0], c },
       { g: "sph", s: [r * 0.5, r * 0.5, r * 0.5], p: [0, r * 0.9, 1], c },
@@ -217,23 +355,6 @@ function spec(def) {
       { g: "hang", s: [r * 0.26, r * 0.26, r * 1.1], p: [r * 0.72, 0, r * 2.2], c, a: "armR", k: 0.5 },
       { g: "box", s: [r * 0.08, r * 1.3, r * 0.08], p: [r * 0.8, r * 0.5, r * 1.3], c: c2, e: 1 },
     ] };
-    case "colossus": return { parts: [
-      { g: "box", s: [r * 1.0, r * 0.6, r * 0.5], p: [0, 0, r * 1.3], c },
-      { g: "box", s: [r * 1.3, r * 0.7, r * 1.3], p: [0, 0, r * 2.2], c },
-      { g: "box", s: [r * 1.36, r * 0.76, r * 0.08], p: [0, 0, r * 1.85], c: c2 },
-      { g: "box", s: [r * 1.36, r * 0.76, r * 0.08], p: [0, 0, r * 2.1], c: c2 },
-      { g: "box", s: [r * 1.36, r * 0.76, r * 0.08], p: [0, 0, r * 2.35], c: c2 },
-      { g: "sph", s: [r * 0.55, r * 0.55, r * 0.55], p: [0, r * 0.1, r * 3.25], c },
-      { g: "box", s: [r * 0.45, r * 0.4, r * 0.18], p: [0, r * 0.3, r * 2.9], c: c2 },
-      { g: "sph", s: [r * 0.09, r * 0.09, r * 0.09], p: [-r * 0.2, r * 0.55, r * 3.3], c: 0xff3b3b, e: 1 },
-      { g: "sph", s: [r * 0.09, r * 0.09, r * 0.09], p: [r * 0.2, r * 0.55, r * 3.3], c: 0xff3b3b, e: 1 },
-      { g: "cone", s: [r * 0.35, r * 0.35, r * 0.45], p: [0, 0, r * 3.85], c: 0xffd166 },
-      { g: "box", s: [r * 0.3, r * 0.3, r * 1.9], p: [r * 1.1, r * 0.2, r * 1.5], c: 0x5a3a1e },
-      { g: "hang", s: [r * 0.42, r * 0.42, r * 1.3], p: [-r * 0.45, 0, r * 1.3], c, a: "legL", k: 0.45 },
-      { g: "hang", s: [r * 0.42, r * 0.42, r * 1.3], p: [r * 0.45, 0, r * 1.3], c, a: "legR", k: 0.45 },
-      { g: "hang", s: [r * 0.36, r * 0.36, r * 1.6], p: [-r * 0.95, 0, r * 2.8], c, a: "armL", k: 0.45 },
-      { g: "hang", s: [r * 0.36, r * 0.36, r * 1.6], p: [r * 0.95, 0, r * 2.8], c, a: "armR", k: 0.45 },
-    ] };
     case "bogmother": return { parts: [
       { g: "sph", s: [r * 1.15, r * 1.25, r * 0.8], p: [0, 0, r * 0.7], c, a: "pulse", k: 0.04 },
       { g: "sph", s: [r * 0.7, r * 0.6, r * 0.7], p: [0, r * 0.5, r * 1.3], c },
@@ -314,7 +435,13 @@ function spec(def) {
   }
 }
 
-const RIG_GEO = { ...GEO, taperUp: GEO.taper };
+const RIG_GEO = {
+  ...GEO, taperUp: GEO.taper,
+  ico1: new T.IcosahedronGeometry(1, 1),
+  sphHalf: new T.SphereGeometry(1, 10, 5, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2),
+  wingTip: new T.BoxGeometry(1, 1, 1).translate(1.2, -0.2, 0),
+  torusHalf: new T.TorusGeometry(1, 0.08, 4, 12, Math.PI),
+};
 
 export class Rigs {
   constructor(scene) {
@@ -336,14 +463,14 @@ export class Rigs {
     if (rig) return rig;
     const def = MON[id];
     const sp = spec(def);
-    const cap = def.boss ? 2 : def.elite ? 8 : id === "wormseg" ? 20 : id === "candle" ? 24 : ["bat", "ghoul", "skeleton", "leech", "drowned", "imp", "frostbat", "iceskel", "gargoyle", "hollow"].includes(id) ? MAX_MON + 20 : 200;
+    const cap = def.boss ? 2 : def.elite ? 8 : id === "wormseg" ? 20 : id === "candle" ? 24 : ["crow", "shambler", "gravebound", "leech", "drowned", "imp", "frostbat", "iceskel", "gargoyle", "hollow"].includes(id) ? MAX_MON + 20 : 200;
     const sc = def.scale || 1;
     const parts = sp.parts.map((ps) => {
       const mat = ps.e
         ? new T.MeshBasicMaterial({ color: 0xffffff, transparent: !!sp.ghost, opacity: sp.ghost ? 0.9 : 1 })
         : sp.ghost || ps.ghostMat
           ? new T.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: ps.ghostMat ? 0.82 : 0.72, depthWrite: !sp.ghost })
-          : new T.MeshLambertMaterial({ color: 0xffffff });
+          : new T.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
       const mesh = new T.InstancedMesh(RIG_GEO[ps.g], mat, cap);
       mesh.frustumCulled = false;
       mesh.count = 0;
@@ -388,15 +515,15 @@ export class Rigs {
       const frozen = R.freeze > 0 && !m.def.boss;
       for (const { mesh, spec: ps } of rig.parts) {
         d.position.set(ps.p[0], ps.p[1], ps.p[2]);
-        d.rotation.set(ps.rx || 0, ps.ry || 0, 0);
+        d.rotation.set(ps.rx || 0, ps.ry || 0, ps.rz || 0);
         let sx = ps.s[0], sy = ps.s[1], sz = ps.s[2];
         switch (ps.a) {
           case "legL": d.rotation.x = (ps.b || 0) + Math.sin(t) * ps.k; break;
           case "legR": d.rotation.x = (ps.b || 0) - Math.sin(t) * ps.k; break;
           case "armL": d.rotation.x = (ps.b || 0) - Math.sin(t) * ps.k; break;
           case "armR": d.rotation.x = (ps.b || 0) + Math.sin(t) * ps.k; break;
-          case "wingL": d.rotation.z = Math.PI; d.rotation.y = Math.sin(t * 3) * 0.7; break;
-          case "wingR": d.rotation.y = -Math.sin(t * 3) * 0.7; break;
+          case "wingL": d.rotation.z = Math.PI; d.rotation.y = Math.sin(t * 3) * 0.7 * (ps.k || 1); break;
+          case "wingR": d.rotation.y = -Math.sin(t * 3) * 0.7 * (ps.k || 1); break;
           case "pulse": { const q = 1 + Math.sin(t * 2) * ps.k; sx *= q; sy *= q; sz *= q; break; }
           case "flick": { const q = 1 + Math.sin(time * 17 + m.wobble) * ps.k * 0.5; sz *= q; break; }
           case "tail": d.rotation.z = Math.sin(t * 1.5) * ps.k; break;
@@ -454,81 +581,114 @@ export class Rigs {
 // driven by distance travelled. Each carries their weapon and a lantern of
 // the old sun (the light that walks with you).
 export function buildHero(heroDef) {
-  const lam = (c) => new T.MeshStandardMaterial({ color: c, roughness: 0.75 });
+  const lam = (c, o = {}) => new T.MeshStandardMaterial({ color: c, roughness: 0.75, flatShading: true, ...o });
   const g = new T.Group();
   const body = new T.Group();
   g.add(body);
   const u = 14;
-  const skin = lam(0xe8b48a), coat = lam(heroDef.color), trim = lam(heroDef.trim), dark = lam(0x1a1a20), boots = lam(0x3a2e28);
-  const part = (geo, mat, s, p, parent = body) => { const m = new T.Mesh(geo, mat); m.scale.set(...s); m.position.set(...p); m.castShadow = true; parent.add(m); return m; };
+  const id = heroDef.id;
+  const skin = lam(0xe0a882), coat = lam(heroDef.color), coatD = lam(darken(heroDef.color, 0.7)), trim = lam(heroDef.trim, { metalness: 0.4, roughness: 0.45 });
+  const dark = lam(0x1c1a20), boots = lam(0x3a2a22), leather = lam(0x5a3a24), hairM = lam(id === "mira" ? 0x6a3a1e : id === "sable" ? 0x1a1414 : 0x3a2a1e);
+  const part = (geo, mat, sc, p, parent = body, r) => { const m = new T.Mesh(geo, mat); m.scale.set(...sc); m.position.set(...p); if (r) m.rotation.set(...r); m.castShadow = true; parent.add(m); return m; };
   const joint = (p, parent = body) => { const j = new T.Group(); j.position.set(...p); parent.add(j); return j; };
-  // Legs.
-  const legL = joint([-u * 0.3, 0, u * 1.0]), legR = joint([u * 0.3, 0, u * 1.0]);
-  part(GEO.hang, dark, [u * 0.32, u * 0.34, u * 0.8], [0, 0, 0], legL);
-  part(GEO.hang, dark, [u * 0.32, u * 0.34, u * 0.8], [0, 0, 0], legR);
-  part(GEO.box, boots, [u * 0.36, u * 0.5, u * 0.26], [0, u * 0.08, -u * 0.86], legL);
-  part(GEO.box, boots, [u * 0.36, u * 0.5, u * 0.26], [0, u * 0.08, -u * 0.86], legR);
-  // Torso and coat.
-  part(GEO.box, coat, [u * 1.05, u * 0.62, u * 0.95], [0, 0, u * 1.45]);
-  const cape = joint([0, -u * 0.3, u * 1.9]);
-  part(GEO.hang, coat, [u * 1.2, u * 0.12, u * 1.35], [0, 0, 0], cape);
-  part(GEO.box, trim, [u * 1.08, u * 0.66, u * 0.14], [0, 0, u * 1.02]);
-  // Head.
-  const head = joint([0, 0, u * 2.2]);
-  part(GEO.sph, skin, [u * 0.36, u * 0.36, u * 0.38], [0, 0, 0], head);
+  const ico = new T.IcosahedronGeometry(1, 1);
+  // Legs with boots and cuffs.
+  const legL = joint([-u * 0.28, 0, u * 1.0]), legR = joint([u * 0.28, 0, u * 1.0]);
+  for (const L of [legL, legR]) {
+    part(GEO.hang, dark, [u * 0.3, u * 0.32, u * 0.55], [0, 0, 0], L);
+    part(GEO.hang, boots, [u * 0.34, u * 0.36, u * 0.42], [0, 0, -u * 0.5], L);
+    part(GEO.box, boots, [u * 0.38, u * 0.4, u * 0.1], [0, 0, -u * 0.52], L);
+    part(GEO.box, boots, [u * 0.34, u * 0.54, u * 0.18], [0, u * 0.1, -u * 0.86], L);
+  }
+  // Torso, belt, collar, shoulders.
+  part(GEO.box, coat, [u * 0.95, u * 0.58, u * 0.9], [0, 0, u * 1.5]);
+  part(GEO.box, coatD, [u * 0.62, u * 0.6, u * 0.5], [0, u * 0.02, u * 1.72]);
+  part(GEO.box, leather, [u * 1.0, u * 0.64, u * 0.14], [0, 0, u * 1.12]);
+  part(GEO.box, trim, [u * 0.2, u * 0.08, u * 0.16], [0, u * 0.33, u * 1.12]);
+  part(GEO.box, coatD, [u * 0.8, u * 0.5, u * 0.16], [0, -u * 0.02, u * 1.98]);
+  for (const sx of [-1, 1]) part(ico, coat, [u * 0.26, u * 0.26, u * 0.2], [sx * u * 0.52, 0, u * 1.9]);
+  // Coat tails that swing behind.
+  const cape = joint([0, -u * 0.28, u * 1.2]);
+  for (const sx of [-1, 1]) part(GEO.hang, coat, [u * 0.46, u * 0.1, u * 0.7], [sx * u * 0.24, 0, 0], cape);
+  // Head: face, nose, hair.
+  const head = joint([0, 0, u * 2.26]);
+  part(ico, skin, [u * 0.34, u * 0.34, u * 0.36], [0, 0, 0], head);
+  part(GEO.box, skin, [u * 0.08, u * 0.1, u * 0.1], [0, u * 0.34, -u * 0.02], head);
   const eyeM = new T.MeshBasicMaterial({ color: 0x14181d });
-  part(GEO.sph, eyeM, [1.4, 1.4, 1.6], [-u * 0.13, u * 0.32, u * 0.04], head);
-  part(GEO.sph, eyeM, [1.4, 1.4, 1.6], [u * 0.13, u * 0.32, u * 0.04], head);
-  // Arms.
-  const armL = joint([-u * 0.68, 0, u * 1.85]), armR = joint([u * 0.68, 0, u * 1.85]);
-  part(GEO.hang, coat, [u * 0.26, u * 0.26, u * 0.85], [0, 0, 0], armL);
-  part(GEO.hang, coat, [u * 0.26, u * 0.26, u * 0.85], [0, 0, 0], armR);
-  part(GEO.sph, skin, [u * 0.15, u * 0.15, u * 0.15], [0, 0, -u * 0.9], armL);
-  part(GEO.sph, skin, [u * 0.15, u * 0.15, u * 0.15], [0, 0, -u * 0.9], armR);
+  part(GEO.sph, eyeM, [1.3, 1.1, 1.5], [-u * 0.13, u * 0.3, u * 0.06], head);
+  part(GEO.sph, eyeM, [1.3, 1.1, 1.5], [u * 0.13, u * 0.3, u * 0.06], head);
+  part(ico, hairM, [u * 0.36, u * 0.34, u * 0.22], [0, -u * 0.06, u * 0.16], head);
+  // Arms with gloves.
+  const armL = joint([-u * 0.62, 0, u * 1.88]), armR = joint([u * 0.62, 0, u * 1.88]);
+  for (const A of [armL, armR]) {
+    part(GEO.hang, coat, [u * 0.24, u * 0.24, u * 0.5], [0, 0, 0], A);
+    part(GEO.hang, coatD, [u * 0.22, u * 0.22, u * 0.4], [0, 0, -u * 0.48], A);
+    part(GEO.box, trim, [u * 0.26, u * 0.26, u * 0.06], [0, 0, -u * 0.5], A);
+    part(ico, leather, [u * 0.14, u * 0.14, u * 0.14], [0, 0, -u * 0.9], A);
+  }
   const handR = joint([0, 0, -u * 0.9], armR), handL = joint([0, 0, -u * 0.9], armL);
   const glowM = new T.MeshBasicMaterial({ color: 0xffd28a });
+  const lantern = (parent, p, sc = 1) => {
+    const L = joint(p, parent);
+    part(GEO.box, lam(0x2b2f36, { metalness: 0.5 }), [u * 0.3 * sc, u * 0.3 * sc, u * 0.06], [0, 0, u * 0.2 * sc], L);
+    part(GEO.box, lam(0x2b2f36, { metalness: 0.5 }), [u * 0.3 * sc, u * 0.3 * sc, u * 0.06], [0, 0, -u * 0.2 * sc], L);
+    for (const [ox, oy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) part(GEO.box, trim, [1, 1, u * 0.4 * sc], [ox * u * 0.13 * sc, oy * u * 0.13 * sc, 0], L);
+    part(GEO.box, glowM, [u * 0.2 * sc, u * 0.2 * sc, u * 0.3 * sc], [0, 0, 0], L);
+    part(GEO.cone, lam(0x2b2f36), [u * 0.2 * sc, u * 0.2 * sc, u * 0.14], [0, 0, u * 0.28 * sc], L);
+    return L;
+  };
   let lanternAt = null;
-  // Per hero: hat and gear.
-  if (heroDef.id === "wren") {
-    // Wide-brimmed lamplighter's hat, a lantern on a staff.
-    part(GEO.cyl, dark, [u * 0.62, u * 0.62, u * 0.06], [0, 0, u * 0.28], head);
-    part(GEO.taper, dark, [u * 0.34, u * 0.34, u * 0.36], [0, 0, u * 0.3], head);
-    part(GEO.box, trim, [u * 0.36, u * 0.05, u * 0.08], [0, u * 0.3, u * 0.36], head);
-    part(GEO.cylUp, lam(0x4a3626), [1.3, 1.3, u * 2.6], [0, u * 0.1, -u * 0.6], handR);
-    const lan = joint([0, u * 0.1, u * 2.0], handR);
-    part(GEO.box, lam(0x2b2f36), [u * 0.34, u * 0.34, u * 0.44], [0, u * 0.3, -u * 0.2], lan);
-    part(GEO.box, glowM, [u * 0.24, u * 0.24, u * 0.32], [0, u * 0.3, -u * 0.2], lan);
-    lanternAt = lan;
-  } else if (heroDef.id === "mira") {
-    // Hood and a crossbow.
-    part(GEO.cone, coat, [u * 0.46, u * 0.46, u * 0.7], [0, -u * 0.08, u * 0.28], head);
-    part(GEO.box, lam(0x4a3626), [u * 0.14, u * 1.1, u * 0.14], [0, u * 0.5, -u * 0.05], handR);
-    part(GEO.box, lam(0x6a6a70), [u * 0.9, u * 0.1, u * 0.08], [0, u * 0.9, -u * 0.05], handR);
-    part(GEO.box, trim, [u * 0.3, u * 0.25, u * 0.7], [0, -u * 0.45, u * 1.65]);
-    lanternAt = joint([-u * 0.5, u * 0.1, u * 1.1]);
-    part(GEO.box, lam(0x2b2f36), [u * 0.26, u * 0.26, u * 0.34], [0, 0, 0], lanternAt);
-    part(GEO.box, glowM, [u * 0.18, u * 0.18, u * 0.24], [0, 0, 0], lanternAt);
-  } else if (heroDef.id === "oskar") {
-    // Monk's tonsure, a heavy robe and the bell.
-    part(GEO.sph, lam(0x5a3a2a), [u * 0.37, u * 0.37, u * 0.2], [0, -u * 0.05, u * 0.1], head);
-    part(GEO.box, coat, [u * 1.25, u * 0.8, u * 0.9], [0, 0, u * 0.75]);
-    part(GEO.box, lam(0x8a6a3a), [u * 1.12, u * 0.7, u * 0.1], [0, 0, u * 1.25]);
-    const bell = joint([0, u * 0.2, -u * 0.1], handR);
-    part(new T.CylinderGeometry(0.55, 1, 1, 10, 1).rotateX(Math.PI / 2), lam(0xc9a35a), [u * 0.34, u * 0.34, u * 0.44], [0, 0, -u * 0.2], bell);
+  if (id === "wren") {
+    // Wide-brimmed lamplighter's hat, a scarf, the lantern on a hooked staff.
+    part(GEO.cyl, dark, [u * 0.6, u * 0.6, u * 0.05], [0, 0, u * 0.3], head);
+    part(GEO.taper, dark, [u * 0.32, u * 0.32, u * 0.36], [0, 0, u * 0.3], head);
+    part(GEO.box, trim, [u * 0.34, u * 0.05, u * 0.08], [0, u * 0.3, u * 0.38], head);
+    part(GEO.box, lam(0xc8a04a), [u * 0.7, u * 0.64, u * 0.14], [0, 0, u * 2.05]);
+    part(GEO.hang, lam(0xc8a04a), [u * 0.16, u * 0.06, u * 0.6], [u * 0.2, -u * 0.34, u * 2.05]);
+    part(GEO.cylUp, leather, [1.2, 1.2, u * 2.8], [0, u * 0.1, -u * 0.6], handR);
+    part(GEO.box, trim, [1, u * 0.3, 1], [0, u * 0.24, u * 2.2], handR);
+    lanternAt = lantern(handR, [0, u * 0.38, u * 1.9]);
+  } else if (id === "mira") {
+    // Hooded green cloak, a quiver of bolts and the crossbow.
+    part(GEO.cone, coat, [u * 0.46, u * 0.46, u * 0.66], [0, -u * 0.06, u * 0.3], head);
+    part(ico, coat, [u * 0.4, u * 0.4, u * 0.36], [0, -u * 0.1, u * 0.02], head);
+    part(GEO.box, leather, [u * 0.14, u * 1.1, u * 0.14], [0, u * 0.5, -u * 0.05], handR);
+    part(GEO.box, lam(0x6a6a70, { metalness: 0.6 }), [u * 0.9, u * 0.1, u * 0.08], [0, u * 0.9, -u * 0.05], handR);
+    part(GEO.box, lam(0xd8d0c0), [u * 0.9, u * 0.02, u * 0.02], [0, u * 0.82, -u * 0.05], handR);
+    part(GEO.cylUp, leather, [u * 0.14, u * 0.14, u * 0.8], [u * 0.22, -u * 0.36, u * 1.3], body, [-0.35, 0, 0]);
+    for (const ox of [-2, 0, 2]) part(GEO.cone, lam(0xe0d8c8), [1.3, 1.3, u * 0.2], [u * 0.22 + ox, -u * 0.62, u * 2.05]);
+    lanternAt = lantern(body, [-u * 0.52, u * 0.12, u * 1.1], 0.8);
+  } else if (id === "oskar") {
+    // A friar's robe with a rope belt, the tonsure, the great bell.
+    part(ico, lam(0x4a2e22), [u * 0.35, u * 0.35, u * 0.16], [0, -u * 0.04, u * 0.12], head);
+    part(GEO.box, coat, [u * 1.2, u * 0.78, u * 0.9], [0, 0, u * 0.75]);
+    part(GEO.box, coatD, [u * 1.24, u * 0.8, u * 0.12], [0, 0, u * 0.35]);
+    part(GEO.cyl, lam(0xc8b080), [u * 0.52, u * 0.4, u * 0.06], [0, 0, u * 1.14]);
+    part(GEO.hang, lam(0xc8b080), [u * 0.05, u * 0.05, u * 0.6], [u * 0.3, u * 0.34, u * 1.12]);
+    part(ico, coatD, [u * 0.42, u * 0.3, u * 0.2], [0, -u * 0.26, u * 2.05]);
+    const bell = joint([0, u * 0.2, -u * 0.12], handR);
+    part(GEO.cylUp, leather, [1, 1, u * 0.2], [0, 0, 0], bell);
+    part(new T.CylinderGeometry(0.55, 1, 1, 12).rotateX(Math.PI / 2), trim, [u * 0.36, u * 0.36, u * 0.48], [0, 0, -u * 0.24], bell);
+    part(GEO.torus, trim, [u * 0.36, u * 0.36, u * 0.36], [0, 0, -u * 0.48], bell);
     lanternAt = joint([0, u * 0.45, u * 1.55]);
     part(GEO.sph, glowM, [u * 0.14, u * 0.14, u * 0.14], [0, 0, 0], lanternAt);
+    part(GEO.torus, trim, [u * 0.16, u * 0.16, u * 0.16], [0, 0, 0], lanternAt, [Math.PI / 2, 0, 0]);
   } else {
-    // Sable: a flat cap and a spade over the shoulder.
+    // Sable: flat cap, leather apron, spade over the shoulder.
     part(GEO.cyl, dark, [u * 0.42, u * 0.46, u * 0.14], [0, u * 0.05, u * 0.26], head);
     part(GEO.box, dark, [u * 0.36, u * 0.26, u * 0.04], [0, u * 0.4, u * 0.2], head);
-    part(GEO.cylUp, lam(0x4a3626), [1.2, 1.2, u * 1.6], [0, 0, -u * 0.2], handR);
-    part(GEO.box, lam(0x8a929e), [u * 0.34, u * 0.05, u * 0.44], [0, 0, u * 1.55], handR);
-    lanternAt = joint([u * 0.55, -u * 0.1, u * 1.1]);
-    part(GEO.box, lam(0x2b2f36), [u * 0.26, u * 0.26, u * 0.34], [0, 0, 0], lanternAt);
-    part(GEO.box, glowM, [u * 0.18, u * 0.18, u * 0.24], [0, 0, 0], lanternAt);
+    part(GEO.box, leather, [u * 0.8, u * 0.08, u * 1.0], [0, u * 0.32, u * 1.2]);
+    part(GEO.box, trim, [u * 0.4, u * 0.03, u * 0.3], [0, u * 0.37, u * 1.4]);
+    part(GEO.cylUp, leather, [1.2, 1.2, u * 1.7], [0, 0, -u * 0.2], handR);
+    part(GEO.box, lam(0x8a929e, { metalness: 0.7, roughness: 0.35 }), [u * 0.36, u * 0.05, u * 0.46], [0, 0, u * 1.6], handR);
+    part(GEO.box, leather, [u * 0.4, u * 0.08, u * 0.08], [0, 0, u * 1.46], handR);
+    lanternAt = lantern(body, [u * 0.56, -u * 0.12, u * 1.1], 0.8);
     void handL;
   }
   return { g, body, legL, legR, armL, armR, head, cape, lanternAt, handR, u };
+}
+function darken(hex, k) {
+  return (Math.round(((hex >> 16) & 255) * k) << 16) | (Math.round(((hex >> 8) & 255) * k) << 8) | Math.round((hex & 255) * k);
 }
 
 export function syncHero(H, R, time) {

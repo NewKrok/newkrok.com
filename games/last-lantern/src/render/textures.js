@@ -125,7 +125,7 @@ export function skyTexture(look) {
 }
 
 const SKIES = {
-  graveyard: {
+  churchyard: {
     grad: [[0, "#02040a"], [0.42, "#0a1020"], [0.6, "#1a2440"], [1, "#0a0e18"]], stars: 1400,
     moon: [1400, 230, 46, "rgba(232,238,255,1)"], far: "#050710",
     hills: (x) => 18 + Math.abs(Math.sin(x * 0.05) * 14 + Math.sin(x * 0.017) * 22) + (Math.sin(x * 0.31) > 0.93 ? 30 : 0),

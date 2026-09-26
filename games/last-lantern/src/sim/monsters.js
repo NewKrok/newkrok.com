@@ -206,7 +206,7 @@ const AI = {
     if (--m.dashCd <= 0 && d < 520 && d > 160) { m.dashCd = 330 + Math.floor(R.rng() * 120); m.wind = 40; m.windKind = "dash"; return; }
     if (--m.summonCd <= 0) {
       m.summonCd = enraged ? 360 : 480;
-      summonRing(R, "skeleton", p.x, p.y, 10, 70);
+      summonRing(R, "gravebound", p.x, p.y, 10, 70);
     }
     steer(m, hx, hy);
   },

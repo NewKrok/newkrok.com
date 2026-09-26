@@ -43,6 +43,8 @@ export class Fx {
     this.knives = inst(scene, GEO.coneFwd, new T.MeshStandardMaterial({ color: 0xe6edf3, metalness: 0.9, roughness: 0.25, emissive: 0x404850 }), 200, false);
     this.spits = inst(scene, GEO.sph, add({}), 260);
     this.spitGlow = inst(scene, GEO.plane, add({ map: glow, opacity: 0.7 }), 260);
+    this.arrows = inst(scene, GEO.box, new T.MeshStandardMaterial({ color: 0xd8ccb0, roughness: 0.6 }), 120, false);
+    this.arrowTips = inst(scene, GEO.coneFwd, new T.MeshStandardMaterial({ color: 0x9a9aa4, metalness: 0.7, roughness: 0.3 }), 120, false);
     this.spades = inst(scene, GEO.box, new T.MeshStandardMaterial({ color: 0xc9d4e0, metalness: 0.85, roughness: 0.3, emissive: 0x303a48 }), 12, false);
     this.spadeGlow = inst(scene, GEO.plane, add({ map: glow, color: 0xb0c8ff, opacity: 0.45 }), 12, false);
     this.parts = inst(scene, GEO.box, add({}), 640);
@@ -147,17 +149,23 @@ export class Fx {
     }
     this.done(this.bolts, nb); this.done(this.boltGlow, nb); this.done(this.knives, nk);
     // Monster spit.
-    let ns = 0;
+    let ns = 0, na = 0;
     for (const sp of R.spits) {
       if (!sp.body || ns >= 260) continue;
       const p = sp.body.position, r = sp.r * (sp.big ? 1.3 : 1);
+      if (sp.arrow && na < 120) {
+        this.set(this.arrows, na, p.x, p.y, 16, -sp.angle, 20, 1.4, 1.4);
+        this.set(this.arrowTips, na, p.x + Math.cos(sp.angle) * 11, p.y + Math.sin(sp.angle) * 11, 16, -sp.angle - Math.PI / 2, 2.2, 5, 2.2);
+        na++;
+        continue;
+      }
       this.set(this.spits, ns, p.x, p.y, 14, 0, r, r, r);
       this.color(this.spits, ns, sp.color);
       this.glow(this.spitGlow, ns, p.x, p.y, 14, r * 7);
       this.color(this.spitGlow, ns, sp.color);
       ns++;
     }
-    this.done(this.spits, ns); this.done(this.spitGlow, ns);
+    this.done(this.spits, ns); this.done(this.spitGlow, ns); this.done(this.arrows, na); this.done(this.arrowTips, na);
     // Spades.
     let no = 0;
     for (const o of R.orbs) {

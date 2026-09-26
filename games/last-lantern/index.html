@@ -14,7 +14,7 @@
       <canvas id="hud"></canvas>
 
       <div id="loading" class="screen active">
-        <div class="loader"><div class="logo small">LAST <span>LANTERN</span></div><div class="bar"><i></i></div></div>
+        <div class="loader"><div class="logo small">Last <span>Lantern</span></div><div class="bar"><i></i></div></div>
       </div>
 
       <!-- In-game buttons -->
@@ -28,7 +28,17 @@
       <!-- Main menu -->
       <section id="menu-main" class="screen">
         <div class="main-card">
-          <div class="logo">LAST <span>LANTERN</span></div>
+          <svg class="emblem" viewBox="0 0 64 84" aria-hidden="true">
+            <defs><radialGradient id="fl" cx="50%" cy="70%" r="60%"><stop offset="0" stop-color="#fff6d0"/><stop offset="0.45" stop-color="#ffb040"/><stop offset="1" stop-color="#c0400a"/></radialGradient></defs>
+            <path d="M24 10 L32 2 L40 10" fill="none" stroke="#d4a24c" stroke-width="3"/>
+            <rect x="16" y="12" width="32" height="8" rx="2" fill="#2a1e14" stroke="#d4a24c" stroke-width="2"/>
+            <path d="M18 20 H46 L50 66 H14 Z" fill="rgba(255,170,60,0.12)" stroke="#d4a24c" stroke-width="2.5"/>
+            <path d="M32 26 C42 38 40 52 32 58 C24 52 22 38 32 26 Z" fill="url(#fl)"/>
+            <path d="M24 20 V66 M40 20 V66" stroke="#7a5626" stroke-width="1.5"/>
+            <rect x="12" y="66" width="40" height="8" rx="2" fill="#2a1e14" stroke="#d4a24c" stroke-width="2"/>
+            <path d="M22 74 L32 82 L42 74" fill="none" stroke="#d4a24c" stroke-width="2"/>
+          </svg>
+          <div class="logo">Last <span>Lantern</span></div>
           <p class="tagline" data-i18n="tagline"></p>
           <div class="ember-total"><img class="ico" data-icon="ember" alt="" /> <b data-bind="embers">0</b></div>
           <div class="menu-buttons">

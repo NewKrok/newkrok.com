@@ -16,14 +16,14 @@ export const STAGES = [
     boss: "colossus",
     hpMul: 1, dmgMul: 0.85, rate: 0.95,
     mix: [
-      ["bat", 0, 5, 2], ["ghoul", 0, 5, 4], ["skeleton", 40, 3, 5],
-      ["spitter", 90, 1.2, 1.6], ["brute", 130, 0.5, 1.1], ["wraith", 180, 0.8, 1.5],
+      ["crow", 0, 5, 2], ["shambler", 0, 5, 4], ["gravebound", 40, 3, 5],
+      ["archer", 90, 1.2, 1.6], ["digger", 130, 0.5, 1.1], ["banshee", 180, 0.8, 1.5],
     ],
     events: [
-      [60, "ring", "bat", 36], [105, "elite", "knight", 1], [150, "ring", "ghoul", 44],
-      [210, "elite", "knight", 1], [240, "wall", "skeleton", 40], [275, "ring", "wraith", 24],
+      [60, "ring", "crow", 36], [105, "elite", "headless", 1], [150, "ring", "shambler", 44],
+      [210, "elite", "headless", 1], [240, "wall", "gravebound", 40], [275, "ring", "banshee", 24],
     ],
-    look: "graveyard",
+    look: "churchyard",
   },
   {
     id: "mill",
@@ -84,11 +84,11 @@ export const STAGES = [
     hpMul: 2.3, dmgMul: 1.4, rate: 1.2,
     mix: [
       ["gargoyle", 0, 4, 3], ["hollow", 0, 5, 4], ["cultist", 60, 1.2, 1.8],
-      ["specter", 120, 0.8, 1.6], ["bellgolem", 160, 0.5, 1.1], ["skeleton", 0, 2, 2],
+      ["specter", 120, 0.8, 1.6], ["bellgolem", 160, 0.5, 1.1], ["gravebound", 0, 2, 2],
     ],
     events: [
       [60, "ring", "gargoyle", 40], [110, "elite", "moonknight", 1], [170, "ring", "hollow", 50],
-      [230, "elite", "knight", 2], [290, "wall", "hollow", 48], [340, "elite", "moonknight", 1],
+      [230, "elite", "headless", 2], [290, "wall", "hollow", 48], [340, "elite", "moonknight", 1],
       [390, "ring", "specter", 36],
     ],
     look: "cathedral",

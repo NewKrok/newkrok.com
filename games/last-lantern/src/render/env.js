@@ -2,6 +2,8 @@ import * as T from "three";
 import { mulberry } from "../config.js";
 import { Batch, GEO, tiltTo } from "./batch.js";
 import { canvas, tex, skyTexture, detailTexture, glowTexture, flameTexture, mistTexture } from "./textures.js";
+import { at, local, limb, light } from "./propkit.js";
+import { CHURCHYARD } from "./churchyard.js";
 
 // ── Stage environments ───────────────────────────────────────────────────
 // World (x, y) px → three (x, −y, z) with z up. Built once when a run
@@ -11,7 +13,7 @@ import { canvas, tex, skyTexture, detailTexture, glowTexture, flameTexture, mist
 // particles (fireflies, ash, snow, dust) and the beacon.
 
 export const LOOKS = {
-  graveyard: { fog: 0x0a0e1a, fogD: 0.00058, amb: 0x2c3a5c, ambI: 2.1, hemiSky: 0x5a6aa0, hemiGnd: 0x1a1a14, moon: 0xb8c8ff, moonI: 1.7, outer: 0x1a2620, bloom: 0.7 },
+  churchyard: { fog: 0x0a0e1a, fogD: 0.00058, amb: 0x2c3a5c, ambI: 2.1, hemiSky: 0x5a6aa0, hemiGnd: 0x1a1a14, moon: 0xb8c8ff, moonI: 1.7, outer: 0x1a2620, bloom: 0.7 },
   mill:      { fog: 0x0b1410, fogD: 0.00075, amb: 0x2a3c34, ambI: 2.0, hemiSky: 0x5a7a6a, hemiGnd: 0x141a10, moon: 0xc8e0c8, moonI: 1.4, outer: 0x18221a, bloom: 0.7 },
   ashwood:   { fog: 0x160e0c, fogD: 0.00058, amb: 0x3e3634, ambI: 2.4, hemiSky: 0x6a5a52, hemiGnd: 0x1a100c, moon: 0xffc8a8, moonI: 1.2, outer: 0x1a1210, bloom: 0.55 },
   pass:      { fog: 0x223048, fogD: 0.0005, amb: 0x2a3a5a, ambI: 1.5, hemiSky: 0x6a88b8, hemiGnd: 0x2a3444, moon: 0xc8d8ff, moonI: 1.1, outer: 0x5a6a80, bloom: 0.35 },
@@ -19,6 +21,8 @@ export const LOOKS = {
 };
 
 const std = (o) => new T.MeshStandardMaterial({ roughness: 0.9, metalness: 0, ...o });
+// Stages with their own prop modules plug in here.
+const PLUG = { churchyard: CHURCHYARD };
 
 export function buildEnv(scene, R, quality) {
   const look = R.stage.look;
@@ -86,9 +90,9 @@ export function buildEnv(scene, R, quality) {
   WALLS[look](B, world, rnd, env);
   OUTSIDE[look]?.(B, world, rnd);
   for (const d of world.decor) DECOR[d.kind]?.(B, d, rnd);
-  const stoneMesh = bStone.build(std({ vertexColors: true, roughness: 0.92 }));
-  const woodMesh = bWood.build(std({ vertexColors: true, roughness: 0.95 }));
-  const leafMesh = bFoliage.build(std({ vertexColors: true, roughness: 1 }));
+  const stoneMesh = bStone.build(std({ vertexColors: true, roughness: 0.92, flatShading: true }));
+  const woodMesh = bWood.build(std({ vertexColors: true, roughness: 0.85, flatShading: true }));
+  const leafMesh = bFoliage.build(std({ vertexColors: true, roughness: 1, flatShading: true }));
   const glowMesh = bGlow.build(new T.MeshBasicMaterial({ vertexColors: true, fog: false }));
   for (const m of [stoneMesh, woodMesh, leafMesh]) if (m) { m.castShadow = hi; m.receiveShadow = true; group.add(m); }
   if (glowMesh) group.add(glowMesh);
@@ -226,7 +230,7 @@ function path(c, k, pts, width, col) {
 }
 
 const PAINT = {
-  graveyard(c, k, w, rnd) {
+  churchyard(c, k, w, rnd) {
     const gw = c.canvas.width, gh = c.canvas.height;
     c.fillStyle = "#34503f"; c.fillRect(0, 0, gw, gh);
     speckle(c, gw, gh, rnd, 14000, ["rgba(150,200,150,0.08)", "rgba(0,0,0,0.12)", "rgba(70,130,95,0.14)", "rgba(90,80,50,0.1)"], 2, 12);
@@ -336,19 +340,6 @@ function paintZones(c, k, w) {
 
 // ── Static props ─────────────────────────────────────────────────────────
 // Each adds parts to the batches in world space (three coords).
-const at = (o, z = 0) => [o.x, -o.y, z];
-function local(o, lx, ly, lz) {
-  const a = -(o.rot || 0);
-  return [o.x + lx * Math.cos(a) - ly * Math.sin(a), -o.y + lx * Math.sin(a) + ly * Math.cos(a), lz];
-}
-function limb(b, base, dir, L, r0, color, geo = GEO.taper) {
-  const q = tiltTo(dir[0], dir[1], dir[2]);
-  b.add(geo, base, q, [r0, r0, L], color);
-  const d = Math.hypot(dir[0], dir[1], dir[2]);
-  return [base[0] + dir[0] / d * L, base[1] + dir[1] / d * L, base[2] + dir[2] / d * L];
-}
-function light(env, x, y, z, color, i, flicker = true, d = 420) { env.sources.push({ x, y, z, color, i, flicker, ph: Math.random() * 6, d }); }
-
 const PROPS = {
   stone(B, o, rnd) {
     const a = [0, 0, -(o.rot || 0)];
@@ -533,7 +524,7 @@ function alongWalls(W, H, step, fn) {
   for (let y = step; y < H; y += step) { fn(0, y, Math.PI / 2); fn(W, y, Math.PI / 2); }
 }
 const WALLS = {
-  graveyard(B, w) {
+  churchyard(B, w) {
     alongWalls(w.W, w.H, 22, (x, y) => {
       B.wood.add(GEO.cylUp, [x, -y, 0], null, [1.8, 1.8, 38], 0x2a2f38);
       B.wood.add(GEO.cone, [x, -y, 42], null, [3, 3, 8], 0x3a404a);
@@ -588,7 +579,7 @@ const WALLS = {
 
 // ── Beyond the wall ──────────────────────────────────────────────────────
 const OUTSIDE = {
-  graveyard(B, w, rnd) {
+  churchyard(B, w, rnd) {
     for (let i = 0; i < 70; i++) {
       const side = i % 4, d = 90 + rnd() * 500;
       const x = side < 2 ? rnd() * w.W : side === 2 ? -d : w.W + d;
@@ -699,7 +690,7 @@ function buildBeacon(group, b, look) {
 // ── Ambient particles ────────────────────────────────────────────────────
 function ambientPoints(look, W, H, rnd, hi) {
   const cfg = {
-    graveyard: { n: 90, color: 0xc6ff7a, size: 7, kind: "fly" },
+    churchyard: { n: 90, color: 0xc6ff7a, size: 7, kind: "fly" },
     mill: { n: 140, color: 0x9aff9a, size: 6, kind: "fly" },
     ashwood: { n: 420, color: 0xff9a40, size: 6, kind: "ember" },
     pass: { n: 700, color: 0xffffff, size: 5, kind: "snow" },
@@ -737,4 +728,14 @@ function ambientPoints(look, W, H, rnd, hi) {
     if (cfg.kind === "fly") mat.opacity = 0.7 + Math.sin(t * 2.2) * 0.3;
   };
   return { obj, update };
+}
+
+for (const [look, m] of Object.entries(PLUG)) {
+  LOOKS[look] = m.look;
+  PAINT[look] = m.paint;
+  WALLS[look] = m.walls;
+  OUTSIDE[look] = m.outside;
+  Object.assign(PROPS, m.props);
+  Object.assign(DECOR, m.decor);
+  Object.assign(PROP_MESH, m.propMesh);
 }

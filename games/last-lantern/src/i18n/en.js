@@ -50,12 +50,12 @@ export const EN = {
   b_bossDown: "THE KEEPER FALLS", b_eliteDown: "ELITE SLAIN", b_magnet: "MAGNET", b_flare: "SUNBURST", b_freeze: "TIME STANDS STILL",
   b_king2: "THE KING DRAWS HIS SCYTHES", b_king3: "ECLIPSE",
   ev_ring: "THEY SURROUND YOU", ev_wall: "A WALL OF THE DEAD", ev_pack: "THE PACK HUNTS", ev_elite: "AN ELITE APPROACHES",
-  ev_ring_bat: "A CLOUD OF BATS", ev_ring_ghoul: "THE GRAVES OPEN", ev_ring_wraith: "THE MIST SCREAMS", ev_wall_skeleton: "A WALL OF BONE",
+  ev_ring_crow: "A MURDER OF CROWS", ev_ring_shambler: "THE GRAVES OPEN", ev_ring_banshee: "THE BANSHEES WAIL", ev_wall_gravebound: "A WALL OF BONE",
   ev_ring_leech: "THE WATER BOILS WITH LEECHES", ev_wall_drowned: "THE DROWNED RISE", ev_ring_bogslime: "THE BOG HEAVES", ev_ring_wisp: "LIGHTS IN THE MARSH",
   ev_ring_imp: "SPARKS ON THE WIND", ev_pack_ashwolf: "THE PACK HUNTS", ev_ring_husk: "THE BURNING DEAD",
   ev_ring_frostbat: "FROZEN WINGS", ev_wall_iceskel: "AN ARMY OF ICE", ev_pack_snowwolf: "HOWLS ON THE PASS", ev_ring_rime: "THE COLD WHISPERS",
   ev_ring_gargoyle: "THE GARGOYLES WAKE", ev_ring_hollow: "THE HOLLOW CONGREGATION", ev_wall_hollow: "THE KING'S HOST", ev_ring_specter: "SPECTRES OF THE NAVE",
-  ev_elite_knight: "A GRAVE KNIGHT RISES", ev_elite_sentinel: "A DROWNED SENTINEL WADES IN", ev_elite_alpha: "THE ALPHA OF ASHWOOD", ev_elite_frostknight: "A FROST KNIGHT DESCENDS", ev_elite_moonknight: "A MOON KNIGHT DRAWS STEEL",
+  ev_elite_headless: "THE HEADLESS KNIGHT RIDES", ev_elite_sentinel: "A DROWNED SENTINEL WADES IN", ev_elite_alpha: "THE ALPHA OF ASHWOOD", ev_elite_frostknight: "A FROST KNIGHT DESCENDS", ev_elite_moonknight: "A MOON KNIGHT DRAWS STEEL",
   boss_colossus: "THE BONE COLOSSUS", boss_bogmother: "THE BOG MOTHER", boss_stag: "THE CHARRED STAG", boss_wormhead: "THE RIMEWORM", boss_king: "THE HOLLOW KING",
   // Toasts.
   unlockedToast: "Unlocked: {x}", notEnough: "Not enough embers", bought: "{x} upgraded",
@@ -109,8 +109,8 @@ EN.passives = {
 
 // Stages: name, place, intro, outro.
 EN.stages = {
-  graveyard: ["Hollowmere", "The graveyard",
-    "The first beacon stands over Hollowmere's graveyard, where the town buried its dead for four hundred years. Since the sun went out, none of them stay buried. Keep the lantern burning until the Bone Colossus comes for it.",
+  graveyard: ["Hollowmere", "The old churchyard",
+    "The first beacon stands behind the ruined chapel of Hollowmere, in the churchyard where the town has buried its dead for four hundred years. Since the sun went out, none of them stay buried — and the crows came back with them. Keep the lantern burning until the Bone Colossus climbs out of the ossuary.",
     "The Colossus falls apart into a heap of old bones, and the beacon catches. For the first time in a hundred nights, a light burns on the hill that is not yours. Far to the south, someone lights a candle in a window."],
   mill: ["The Drowned Mill", "The flooded valley",
     "The river broke its banks the night the sun was stolen, and the mill has stood in black water ever since. Something breeds in the pools — something big. The second beacon waits on the mill's roof beam.",
@@ -137,7 +137,7 @@ EN.story = {
 };
 
 EN.monsters = {
-  bat: "Bat", ghoul: "Ghoul", skeleton: "Skeleton", spitter: "Spitter", brute: "Grave Brute", wraith: "Wraith", knight: "Grave Knight", colossus: "Bone Colossus",
+  crow: "Carrion Crow", shambler: "Shambler", gravebound: "Gravebound", archer: "Bone Archer", digger: "Gravedigger Brute", banshee: "Banshee", headless: "Headless Knight", colossus: "Bone Colossus",
   leech: "Leech", drowned: "Drowned", toad: "Bile Toad", bogslime: "Bog Slime", bogling: "Bogling", wisp: "Marsh Wisp", mirebrute: "Mire Brute", sentinel: "Drowned Sentinel", bogmother: "The Bog Mother",
   imp: "Cinder Imp", ashwolf: "Ash Wolf", husk: "Burning Husk", caller: "Flame Caller", treant: "Charred Treant", cinder: "Ember Wisp", alpha: "Alpha of Ashwood", stag: "The Charred Stag",
   frostbat: "Frost Bat", iceskel: "Ice Skeleton", snowwolf: "Snow Wolf", shard: "Shard Slime", shardling: "Shardling", yeti: "Yeti", rime: "Rime Wraith", frostknight: "Frost Knight", wormhead: "The Rimeworm",

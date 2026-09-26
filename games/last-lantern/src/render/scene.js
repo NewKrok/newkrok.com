@@ -49,7 +49,7 @@ export class Scene3D {
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
-    this.bloom = new UnrealBloomPass(new T.Vector2(512, 512), 0.7, 0.55, 0.72);
+    this.bloom = new UnrealBloomPass(new T.Vector2(512, 512), 0.7, 0.5, 0.9);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
 
@@ -161,7 +161,7 @@ export class Scene3D {
     this.hero.lanternAt.getWorldPosition(lw);
     this.heroLight.position.set(lw.x, lw.y, Math.max(70, lw.z + 40));
     const flare = R.hero.flareT > 0 ? R.hero.flareT / 40 : 0;
-    this.heroLight.intensity = (R.hero.dig > 0 ? 5000 : 26000 * (0.94 + Math.sin(time * 11) * 0.04)) * (1 + flare * 3) * (R.eclipse ? 0.85 : 1);
+    this.heroLight.intensity = (R.hero.dig > 0 ? 4000 : 17000 * (0.94 + Math.sin(time * 11) * 0.04)) * (1 + flare * 3) * (R.eclipse ? 0.85 : 1);
     this.heroLight.distance = 620 * (R.eclipse ? 0.8 : 1);
     this.ambient.intensity = LOOKS[R.stage.look].ambI * (R.eclipse ? 0.45 : 1) * (1 + (R.beaconLit || 0) * 0.6);
     // Visible world rect for culling the instanced effects.

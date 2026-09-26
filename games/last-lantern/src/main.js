@@ -1,5 +1,6 @@
 import { DT, FPS, fmtSec, clamp } from "./config.js";
 import { createRun, runSummary } from "./sim/run.js";
+import { spawnMonster } from "./sim/core.js";
 import { STAGES } from "./data/stages.js";
 import { HEROES, HEARTH, hearthCost, WEAPON_IDS, WEAPON_META, PASSIVE_IDS } from "./data/meta.js";
 import { MON } from "./data/monsters.js";
@@ -8,6 +9,7 @@ import { Hud } from "./hud.js";
 import { Audio } from "./audio.js";
 import { track } from "./analytics.js";
 import { iconURL } from "./icons.js";
+import { heroPortraits, stageVignette } from "./render/portraits.js";
 import {
   loadSettings, saveSettings, loadProgress, saveProgress, resetProgress, heroUnlocked, stageUnlocked,
   unlockedWeapons, recordRun,
@@ -129,12 +131,13 @@ function openStory(lines, then) {
 function renderRunSetup() {
   bind("embers", progress.embers);
   const hroot = $("#heroes");
-  hroot.innerHTML = HEROES.map((h) => {
+  const ports = heroPortraits();
+  const roman = ["I", "II", "III", "IV"];
+  hroot.innerHTML = HEROES.map((h, i) => {
     const tx = heroText(h.id), open = heroUnlocked(progress, h);
-    const lockNote = !open ? `<div class="lock-note"><img src="${iconURL("lock", 32)}" width="16" alt="">${esc(t("unlockStage", { n: h.unlock.stage + 1 }))}</div>` : "";
-    const col = `#${h.color.toString(16).padStart(6, "0")}`;
+    const lockNote = !open ? `<div class="lock-note"><img src="${iconURL("lock", 32)}" width="14" alt="">${esc(t("unlockStage", { n: h.unlock.stage + 1 }))}</div>` : "";
     return `<button class="hero ${open ? "" : "locked"} ${settings.hero === h.id ? "on" : ""}" data-hero="${h.id}">
-      <div class="swatch" style="background:${col}"><img src="${iconURL(h.active, 48)}" alt=""></div>
+      <div class="port"><span class="roman">${roman[i]}</span>${ports[h.id] ? `<img src="${ports[h.id]}" alt="">` : ""}</div>
       <div class="nm">${esc(tx.name)}</div><div class="ep">${esc(tx.epithet)}</div>
       <div class="ln keep"><img src="${iconURL(h.weapon, 32)}" alt=""><span><b>${esc(weaponText(h.weapon).name)}</b></span></div>
       <div class="ln"><img src="${iconURL(h.active, 32)}" alt=""><span><b>${esc(tx.active)}</b> — ${esc(tx.activeDesc)}</span></div>
@@ -146,8 +149,8 @@ function renderRunSetup() {
     const tx = stageText(s.id), open = stageUnlocked(progress, i), b = progress.best[i];
     const lit = progress.cleared[i], blood = progress.clearedBlood[i];
     const best = b ? t("best", { t: fmtSec(b.time), k: b.kills }) : "";
-    return `<button class="stage ${open ? "" : "locked"} ${lit ? "lit" : ""} ${blood ? "blood" : ""} ${settings.stage === i ? "on" : ""}" data-stage="${i}">
-      <div class="art art-${s.look}"><span class="num">${esc(t("stageN", { n: i + 1 }))}</span><span class="flame"></span></div>
+    return `<button class="stage ${open ? "" : "locked"} ${settings.stage === i ? "on" : ""}" data-stage="${i}">
+      <div class="art" style="background-image:url(${stageVignette(s.look, !!lit, !!blood)})"><span class="num">${esc(t("stageN", { n: i + 1 }))}</span></div>
       <div class="meta"><div class="nm">${esc(tx.name)}</div><div class="pl">${esc(open ? tx.place : t("unlockStage", { n: i }))}</div>
       <div class="bst">${esc(best)}</div></div></button>`;
   }).join("");
@@ -218,8 +221,8 @@ function cardHTML(c, i) {
   }
   return `<button class="lcard" data-card="${i}" style="--c:${c.color}">
     <kbd class="key">${i + 1}</kbd>
-    <div class="top"><div class="ic"><img src="${iconURL(icon, 64)}" alt=""></div><div><div class="nm">${esc(name)}</div>${tag}</div></div>
-    <div class="ds">${esc(desc)}</div>${extra}</button>`;
+    <div class="ic"><img src="${iconURL(icon, 96)}" alt=""></div><div class="txt"><div class="nm">${esc(name)}</div>${tag}
+    <div class="ds">${esc(desc)}</div></div>${extra}</button>`;
 }
 function fmtStat(k, v) {
   if (k === "cd") return `${(v / FPS).toFixed(2)}s`;
@@ -639,10 +642,11 @@ function frame(now) {
     // Music heats up as the keeper nears.
     audio.setIntensity(R.bossSpawned ? 1 : R.clock / (R.stage.bossAt * FPS) * 0.95);
     // Ability button.
-    const btn = $(".active-btn");
-    const k = R.hero.activeCd / Math.max(1, R.hero.activeMax * R.hero.stats.cdMul);
-    btn.style.setProperty("--cd", clamp(k, 0, 1).toFixed(3));
-    btn.classList.toggle("ready", R.hero.activeCd <= 0);
+    const btn = $(".active-btn"), ar = hud.activeRect();
+    if (btn.dataset.at !== `${ar.x}|${ar.y}|${ar.size}`) {
+      btn.dataset.at = `${ar.x}|${ar.y}|${ar.size}`;
+      Object.assign(btn.style, { left: `${ar.x}px`, top: `${ar.y}px`, width: `${ar.size}px`, height: `${ar.size}px` });
+    }
   }
 
   const shakeK = settings.shake ? R.shakeAmp * (R.shakeT > 0 ? 1 : 0) : 0;
@@ -685,7 +689,7 @@ function boot() {
   setTimeout(() => $("#loading").classList.remove("active"), 300);
 }
 
-if (import.meta.env.DEV) window.__lastLantern = { G, progress, settings, startRun, openIntro, goMain, keys, get scene() { return scene; } };
+if (import.meta.env.DEV) window.__lastLantern = { G, progress, settings, startRun, openIntro, goMain, keys, get scene() { return scene; }, spawn: (id, x, y) => spawnMonster(G.run, id, x, y) };
 
 boot();
 window.focus();

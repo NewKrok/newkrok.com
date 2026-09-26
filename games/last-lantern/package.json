@@ -10,6 +10,9 @@
     "bot": "node scripts/bot.js"
   },
   "dependencies": {
+    "@fontsource/cinzel": "^5.3.0",
+    "@fontsource/cinzel-decorative": "^5.3.0",
+    "@fontsource/crimson-pro": "^5.3.0",
     "@newkrok/nape-js": "^3.42.3",
     "three": "^0.186.1"
   },

@@ -82,27 +82,70 @@ export function buildWorld(space, stage) {
 }
 
 const LAYOUTS = {
-  // Hollowmere: plots of crooked stones, a mausoleum, dead trees, lanterns.
-  graveyard({ W, H, rnd, box, circle, prop, candle, free, nearStart }) {
-    const MX = W / 2, MY = H * 0.28;
-    box("mausoleum", MX, MY, 190, 130);
-    for (const sx of [-1, 1]) circle("column", MX + sx * 66, MY + 90, 10);
-    const plots = [[330, 360], [W - 880, 360], [330, H - 620], [W - 880, H - 620]];
-    for (const [x0, y0] of plots) {
-      for (let r = 0; r < 3; r++) for (let c = 0; c < 5; c++) {
-        if (rnd() < 0.2) continue;
-        const x = x0 + c * 110 + (rnd() - 0.5) * 24, y = y0 + r * 120 + (rnd() - 0.5) * 20;
-        if (nearStart(x, y, 220)) continue;
-        const cross = rnd() < 0.3;
-        box(cross ? "cross" : "stone", x, y, cross ? 22 : 30 + rnd() * 10, cross ? 12 : 14, (rnd() - 0.5) * 0.3, { tall: 26 + rnd() * 14 });
+  // Hollowmere: an old village churchyard on a hill. A ruined chapel with its
+  // bell tower, dry-stone walls splitting the plots, box tombs, Celtic
+  // crosses, open graves, yews, one great oak, and crook-lamps on the paths.
+  churchyard({ W, H, rnd, box, circle, prop, candle, free, nearStart, decor }) {
+    const C = { x: W / 2, y: 470 };
+    // The chapel: broken walls with a door to the south, the tower at a corner.
+    box("chapelwall", C.x, C.y - 90, 340, 18, 0, { seed: rnd() });
+    box("chapelwall", C.x - 170, C.y, 18, 196, 0, { seed: rnd() });
+    box("chapelwall", C.x + 170, C.y + 34, 18, 128, 0, { seed: rnd() });
+    box("chapelwall", C.x - 108, C.y + 90, 142, 18, 0, { seed: rnd() });
+    box("chapelwall", C.x + 108, C.y + 90, 142, 18, 0, { seed: rnd() });
+    box("belltower", C.x + 176, C.y - 96, 74, 74);
+    box("chapelaltar", C.x, C.y - 56, 70, 26);
+    for (const sx of [-1, 1]) circle("brokenpillar", C.x + sx * 70, C.y - 10, 11, { seed: rnd() });
+    // Dry-stone walls along lines, built from short courses with gaps.
+    const wallLine = (pts, gapAt = []) => {
+      for (let i = 1; i < pts.length; i++) {
+        const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+        const L = Math.hypot(x1 - x0, y1 - y0), n = Math.max(1, Math.round(L / 90));
+        for (let k = 0; k < n; k++) {
+          if (gapAt.includes(`${i}:${k}`)) continue;
+          const t0 = k / n, t1 = (k + 1) / n;
+          const ax = x0 + (x1 - x0) * (t0 + t1) / 2, ay = y0 + (y1 - y0) * (t0 + t1) / 2;
+          box("drywall", ax, ay, L / n + 4, 20, Math.atan2(y1 - y0, x1 - x0), { seed: rnd() });
+        }
+      }
+    };
+    wallLine([[140, 820], [520, 800], [960, 840]], ["1:2"]);
+    wallLine([[1640, 840], [2080, 800], [2460, 820]], ["2:1"]);
+    wallLine([[760, 1180], [740, 1450], [780, 1700]], ["1:1"]);
+    wallLine([[1840, 1180], [1860, 1450], [1820, 1700]], ["2:1"]);
+    // Graves in the four plots.
+    const plots = [[260, 300, 5, 4], [W - 760, 300, 5, 4], [240, 980, 4, 5], [W - 640, 980, 4, 5]];
+    for (const [x0, y0, cols, rows] of plots) {
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        if (rnd() < 0.18) continue;
+        const x = x0 + c * 108 + (rnd() - 0.5) * 26, y = y0 + r * 118 + (rnd() - 0.5) * 22;
+        if (nearStart(x, y, 230)) continue;
+        const roll = rnd(), rot = (rnd() - 0.5) * 0.35;
+        if (roll < 0.12) box("tomb", x, y + 10, 66, 34, rot * 0.3, { seed: rnd() });
+        else if (roll < 0.26) box("celtic", x, y, 26, 12, rot, { tall: 52 + rnd() * 16 });
+        else if (roll < 0.36) box("marker", x, y, 16, 8, rot * 1.6, { tall: 26 + rnd() * 10 });
+        else if (roll < 0.42) box("opengrave", x, y + 14, 34, 54, rot * 0.3, { seed: rnd() });
+        else box("headstone", x, y, 28 + rnd() * 12, 12, rot, { tall: 28 + rnd() * 18, shape: Math.floor(rnd() * 4), seed: rnd() });
       }
     }
-    for (const [x, y] of [[180, 200], [W - 200, 240], [220, H - 220], [W - 180, H - 260], [900, 250], [1700, 300], [640, 900], [1960, 900], [1120, 1560], [1480, 1500], [420, 780], [2180, 760], [1300, 700]]) {
-      if (!nearStart(x, y, 200)) circle("deadtree", x, y, 15 + rnd() * 6, { seed: rnd() });
+    // Yews along the paths, one great oak in each lower plot.
+    for (const [x, y] of [[1150, 700], [1450, 700], [1130, 1450], [1480, 1500], [980, 1060], [1640, 1040], [300, 700], [2300, 690], [160, 1700], [2440, 1720], [640, 200], [1960, 200]]) {
+      if (!nearStart(x, y, 200)) circle("yew", x, y, 20 + rnd() * 6, { seed: rnd() });
     }
-    for (const [x, y] of [[560, 560], [W - 560, 560], [560, H - 560], [W - 560, H - 560], [MX, MY + 210]]) circle("lamppost", x, y, 6, { phase: rnd() * 6.28 });
-    for (let i = 0; i < 6; i++) { const p = free(20); if (p) prop("coffin", p.x, p.y, { w: 44, h: 20 }, 1.6, { rot: rnd() * 3 }); }
+    circle("greatoak", 470, 1420, 26, { seed: rnd() });
+    circle("greatoak", W - 420, 1380, 26, { seed: rnd() });
+    // Crook-lamps: a lantern hanging from an iron crook, by the paths.
+    for (const [x, y, a] of [[1240, 1580, 0], [1370, 1270, Math.PI], [1240, 900, 0], [1370, 680, Math.PI], [700, 900, 0], [1900, 900, Math.PI], [520, 560, 0], [2080, 560, Math.PI]]) {
+      circle("crooklamp", x, y, 6, { a, phase: rnd() * 6.28 });
+    }
+    // The lych-gate over the south path.
+    for (const sx of [-1, 1]) circle("gatepost", C.x + sx * 60, H - 40, 12, { gate: sx });
+    // Loose coffins and urns.
+    for (let i = 0; i < 5; i++) { const p = free(22); if (p) prop("coffin", p.x, p.y, { w: 46, h: 20 }, 1.6, { rot: rnd() * 3 }); }
+    for (let i = 0; i < 6; i++) { const p = free(12); if (p) prop("urn", p.x, p.y, { r: 9 }, 1.8); }
     for (let i = 0; i < 14; i++) { const p = free(12); if (p) candle(p.x, p.y); }
+    // Ground dressing: tufts, mushrooms, scattered bones and leaves.
+    for (let i = 0; i < 260; i++) decor.push({ kind: rnd() < 0.7 ? "tuft" : rnd() < 0.6 ? "mushroom" : "bones", x: 40 + rnd() * (W - 80), y: 40 + rnd() * (H - 80), s: rnd() });
   },
 
   // The drowned mill: black water pools that slow everything, a mill with its
