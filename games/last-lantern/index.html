@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#07090f" />
+    <meta name="description" content="Last Lantern — carry the last fire of a stolen sun through five nights of the dead. A physics survivor roguelite by NewKrok." />
+    <title>Last Lantern</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%2307090f%22/%3E%3Crect x=%2222%22 y=%2220%22 width=%2220%22 height=%2228%22 rx=%224%22 fill=%22none%22 stroke=%22%23c9a35a%22 stroke-width=%224%22/%3E%3Cpath d=%22M32 26c5 6 4 12 0 16c-4-4-5-10 0-16z%22 fill=%22%23ffd166%22/%3E%3Cpath d=%22M26 20l6-8l6 8%22 fill=%22none%22 stroke=%22%23c9a35a%22 stroke-width=%224%22/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="hud"></canvas>
+
+      <div id="loading" class="screen active">
+        <div class="loader"><div class="logo small">LAST <span>LANTERN</span></div><div class="bar"><i></i></div></div>
+      </div>
+
+      <!-- In-game buttons -->
+      <div id="ingame" class="hidden">
+        <button class="icon-btn pause-btn" data-action="pause" aria-label="Pause">
+          <svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        </button>
+        <button class="active-btn" data-action="active" aria-label="Ability"><img alt="" /><span class="cd"></span><kbd data-i18n="hud_space"></kbd></button>
+      </div>
+
+      <!-- Main menu -->
+      <section id="menu-main" class="screen">
+        <div class="main-card">
+          <div class="logo">LAST <span>LANTERN</span></div>
+          <p class="tagline" data-i18n="tagline"></p>
+          <div class="ember-total"><img class="ico" data-icon="ember" alt="" /> <b data-bind="embers">0</b></div>
+          <div class="menu-buttons">
+            <button class="btn primary" data-action="play" data-i18n="play"></button>
+            <button class="btn" data-action="hearth" data-i18n="hearth"></button>
+            <button class="btn" data-action="journal" data-i18n="journal"></button>
+            <div class="row2">
+              <button class="btn" data-action="howto" data-i18n="howto"></button>
+              <button class="btn" data-action="settings" data-i18n="settings"></button>
+            </div>
+          </div>
+        </div>
+        <footer class="credit"><div class="made" data-bind="madeBy"></div><div class="tech" data-bind="techLine"></div></footer>
+      </section>
+
+      <!-- Prologue -->
+      <section id="story" class="screen dim">
+        <div class="panel card story-card">
+          <div class="story-lines"></div>
+          <div class="actions"><button class="btn primary" data-action="storyNext"><span data-i18n="r_continue"></span> <kbd>Enter</kbd></button></div>
+        </div>
+      </section>
+
+      <!-- Run setup: hero and beacon -->
+      <section id="menu-run" class="screen scroll">
+        <header class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="chooseHero"></h2>
+          <div class="ember-total"><img class="ico" data-icon="ember" alt="" /> <b data-bind="embers">0</b></div>
+        </header>
+        <div id="heroes" class="hero-grid"></div>
+        <h2 class="sub-h" data-i18n="chooseStage"></h2>
+        <div id="stages" class="stage-list"></div>
+        <div class="run-foot">
+          <label class="blood-toggle"><input type="checkbox" id="blood" /> <span class="moon"></span> <span><b data-i18n="bloodMoon"></b><small data-bind="bloodDesc"></small></span></label>
+          <button class="btn primary big" data-action="begin"><span data-i18n="begin"></span> <kbd>Enter</kbd></button>
+        </div>
+      </section>
+
+      <!-- Stage intro -->
+      <section id="intro" class="screen dim">
+        <div class="panel card intro-card">
+          <div class="eyebrow" data-bind="introEyebrow"></div>
+          <h2 data-bind="introTitle"></h2>
+          <p class="brief" data-bind="introText"></p>
+          <div class="facts"><span data-bind="introBoss"></span><span data-bind="introBlood" class="blood-tag"></span></div>
+          <div class="actions"><button class="btn primary" data-action="go"><span data-i18n="begin"></span> <kbd>Enter</kbd></button></div>
+        </div>
+      </section>
+
+      <!-- Level up -->
+      <section id="levelup" class="screen dim">
+        <div class="lv-wrap">
+          <h2 class="lv-title" data-i18n="levelUp"></h2>
+          <div class="lv-sub" data-bind="lvSub"></div>
+          <div id="cards" class="cards"></div>
+          <div class="lv-actions">
+            <button class="btn small" data-action="reroll"><span data-bind="rerollLabel"></span> <kbd>R</kbd></button>
+            <button class="btn small" data-action="banish"><span data-bind="banishLabel"></span> <kbd>B</kbd></button>
+            <button class="btn small ghost" data-action="skip"><span data-i18n="skip"></span> <kbd>S</kbd></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Chest -->
+      <section id="chest" class="screen dim">
+        <div class="panel card chest-card">
+          <div class="chest-art"><i></i></div>
+          <h2 data-bind="chestTitle"></h2>
+          <div class="chest-items"></div>
+          <div class="chest-gold" data-bind="chestGold"></div>
+          <div class="actions"><button class="btn primary" data-action="chestOk"><span data-i18n="chestOk"></span> <kbd>Enter</kbd></button></div>
+        </div>
+      </section>
+
+      <!-- Pause -->
+      <section id="pause" class="screen dim">
+        <div class="panel card narrow">
+          <h2 data-i18n="paused"></h2>
+          <div class="pause-belt"></div>
+          <div class="menu-buttons">
+            <button class="btn primary" data-action="resume"><span data-i18n="resume"></span> <kbd>Esc</kbd></button>
+            <button class="btn" data-action="settings" data-i18n="settings"></button>
+            <button class="btn ghost" data-action="abandon" data-i18n="abandon"></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Result -->
+      <section id="result" class="screen dim scroll-y">
+        <div class="panel card result-card">
+          <h2 data-bind="resultTitle"></h2>
+          <p class="brief outro" data-bind="resultOutro"></p>
+          <div class="stat-row"></div>
+          <h3 data-i18n="r_weapons"></h3>
+          <table class="weapons-table"><tbody></tbody></table>
+          <div class="unlocks"></div>
+          <div class="actions">
+            <button class="btn ghost" data-action="toMain" data-i18n="mainMenu"></button>
+            <button class="btn" data-action="hearth" data-i18n="r_toHearth"></button>
+            <button class="btn primary" data-action="again"><span data-i18n="r_again"></span> <kbd>Enter</kbd></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Hearth -->
+      <section id="menu-hearth" class="screen scroll">
+        <header class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="hearth"></h2>
+          <div class="ember-total"><img class="ico" data-icon="ember" alt="" /> <b data-bind="embers">0</b></div>
+        </header>
+        <p class="intro-line" data-i18n="hearthIntro"></p>
+        <div id="hearth" class="hearth-grid"></div>
+      </section>
+
+      <!-- Journal -->
+      <section id="menu-journal" class="screen scroll">
+        <header class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="journal"></h2>
+          <div></div>
+        </header>
+        <div class="tabs">
+          <button class="tab on" data-tab="story" data-i18n="storyTab"></button>
+          <button class="tab" data-tab="bestiary" data-i18n="bestiary"></button>
+          <button class="tab" data-tab="arsenal" data-i18n="arsenal"></button>
+        </div>
+        <div id="journal" class="panel prose journal"></div>
+      </section>
+
+      <!-- How to play -->
+      <section id="menu-howto" class="screen scroll">
+        <header class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="howto"></h2>
+          <div></div>
+        </header>
+        <div class="panel prose">
+          <h3 data-i18n="h_goal"></h3><p data-i18n-html="p_goal"></p>
+          <h3 data-i18n="h_grow"></h3><p data-i18n-html="p_grow"></p>
+          <h3 data-i18n="h_embers"></h3><p data-i18n-html="p_embers"></p>
+          <h3 data-i18n="h_keys"></h3>
+          <table class="keys">
+            <tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> · <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd></td><td data-i18n="k_move"></td></tr>
+            <tr><td><kbd>Space</kbd></td><td data-i18n="k_active"></td></tr>
+            <tr><td><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd></td><td data-i18n="k_pick"></td></tr>
+            <tr><td><kbd>Esc</kbd> · <kbd>P</kbd></td><td data-i18n="k_pause"></td></tr>
+          </table>
+          <h3 data-i18n="h_touch"></h3><p data-i18n-html="p_touch"></p>
+          <h3 data-i18n="h_tips"></h3>
+          <ul><li data-i18n-html="tip1"></li><li data-i18n-html="tip2"></li><li data-i18n-html="tip3"></li><li data-i18n-html="tip4"></li></ul>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section id="menu-settings" class="screen scroll">
+        <header class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="settings"></h2>
+          <div></div>
+        </header>
+        <div class="panel settings">
+          <h3 data-i18n="set_language"></h3>
+          <div class="row"><span data-i18n="set_language"></span><select data-setting="lang" id="lang-select"></select></div>
+          <h3 data-i18n="set_sound"></h3>
+          <label class="row"><span data-i18n="set_master"></span><input type="range" min="0" max="1" step="0.05" data-setting="master" /></label>
+          <label class="row"><span data-i18n="set_sfx"></span><input type="range" min="0" max="1" step="0.05" data-setting="sfx" /></label>
+          <label class="row"><span data-i18n="set_music"></span><input type="range" min="0" max="1" step="0.05" data-setting="music" /></label>
+          <h3 data-i18n="set_graphics"></h3>
+          <div class="row"><span data-i18n="set_quality"></span>
+            <div class="seg" data-setting="quality"><button data-value="high" data-i18n="q_high"></button><button data-value="low" data-i18n="q_low"></button></div>
+          </div>
+          <label class="row"><span data-i18n="set_numbers"></span><input type="checkbox" data-setting="numbers" /></label>
+          <label class="row"><span data-i18n="set_shake"></span><input type="checkbox" data-setting="shake" /></label>
+          <h3 data-i18n="set_progress"></h3>
+          <div class="row"><span data-i18n="set_progressRow"></span><button class="btn small danger" data-action="reset" data-i18n="set_reset"></button></div>
+        </div>
+      </section>
+
+      <div id="toast" class="toast"></div>
+    </div>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

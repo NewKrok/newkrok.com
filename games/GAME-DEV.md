@@ -117,3 +117,29 @@ chromium.launch({ executablePath, args: ["--use-gl=angle", "--use-angle=swiftsha
 Open a level through the debug handle, switch to the overview camera, take
 a screenshot and look at it. This caught most layout mistakes before anyone
 played them. Stop the dev server and the browser when done.
+
+## Notes from Last Lantern
+
+`last-lantern` (a survivor roguelite grown out of nape-js' Swarm Night demo)
+uses the same split: `sim/` is render-free (`run.js` lifecycle, `core.js`
+spawning / damage / drops, `monsters.js` AI and bosses, `weapons.js`,
+`world.js` arenas), `render/` reads the run's arrays every frame.
+
+- The crowd is the contact solver: monsters only blend a desired velocity
+  into their body's own, so knockback, slams and shoved props survive into
+  the next frame. Every random number comes from the run's seeded `R.rng`.
+- `npm run bot -w games/last-lantern -- <stage> <hero> [seed]` plays a stage
+  headless (`GOD=1` for boss-fight timing, `HEARTH='{"might":3}'` for meta
+  upgrades). Weapons that pick targets must prefer the boss, or a kiting
+  player never hurts it.
+- Remove a body's joints before the body: nape throws "Constraints must have
+  each body within the same space" on the next step otherwise (the worm).
+- One NaN in an instance colour turns the whole frame black through the
+  bloom pass. Every zone with a `life` needs its `T`.
+- Monsters are `InstancedMesh` rigs per type, created lazily, with unlit
+  parts for eyes and fire so bloom picks them up; static props are merged
+  per material (`render/batch.js`); a small pool of point lights follows the
+  hero between the stage's light sources.
+- `scripts/shot.mjs`, `boss-shots.mjs`, `ui-shots.mjs` screenshot the dev
+  server through `window.__lastLantern` (see `scripts/browser.mjs` for the
+  Chromium paths).

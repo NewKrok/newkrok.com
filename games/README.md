@@ -53,3 +53,4 @@ sub-domain, like MX Dash or Life of a Fish.
 | Slug         | Engine                | Notes                                                        |
 | ------------ | --------------------- | ------------------------------------------------------------ |
 | `hitch-park` | three.js + nape-js    | Trailer and lorry parking, 30 levels in 6 chapters, 6 languages. Levels are data built with `src/levels/kit.js`; `npm run check-levels -w games/hitch-park` and `npm run solve-levels -w games/hitch-park` validate them. |
+| `last-lantern` | three.js + nape-js  | Survivor roguelite: 5 stages with bosses, 4 heroes, 8 weapons with evolutions, the Hearth (meta upgrades), EN/HU. `npm run bot -w games/last-lantern -- <stage> <hero> [seed]` plays a stage headless for balancing. |

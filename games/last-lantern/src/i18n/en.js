@@ -1,0 +1,145 @@
+// ── English ──────────────────────────────────────────────────────────────
+// {name}-style placeholders are filled in by t().
+
+export const EN = {
+  // Menus.
+  title: "Last Lantern",
+  tagline: "The sun was stolen. Carry the last of its fire through the night.",
+  play: "Play", continue: "Continue", hearth: "The Hearth", journal: "Journal", howto: "How to play", settings: "Settings",
+  back: "← Back", embers: "embers", emberCount: "{n} embers",
+  madeBy: "Made by {name}, with the help of Claude", techLine: "A {nape} physics game · {three}",
+  chooseHero: "Choose your lantern-bearer", chooseStage: "Choose a beacon", begin: "Light the way", locked: "Locked",
+  bloodMoon: "Blood Moon", bloodMoonDesc: "Stronger, faster, more of them. ×1.75 embers.", bloodLocked: "Light this beacon first",
+  stageN: "Beacon {n}", bossAt: "The keeper comes at {t}", cleared: "Lit", clearedBlood: "Lit under the Blood Moon", best: "Best: {t} · {k} kills",
+  unlockStage: "Light beacon {n} to unlock", unlockLevel: "Reach level {n} in a run", unlockKills: "Slay {n} monsters in total ({have} so far)",
+  active: "Ability", startsWith: "Starts with", hp: "Health", speed: "Speed", perk: "Trait",
+  // Settings.
+  set_language: "Language", set_sound: "Sound", set_master: "Master volume", set_sfx: "Effects", set_music: "Music",
+  set_graphics: "Graphics", set_quality: "Quality", q_high: "High", q_low: "Low", set_numbers: "Damage numbers", set_shake: "Screen shake",
+  set_progress: "Progress", set_progressRow: "Embers, upgrades and unlocks", set_reset: "Reset progress",
+  confirmReset: "Reset every beacon, ember and upgrade?", progressReset: "Progress reset",
+  // How to play.
+  h_goal: "The night", p_goal: "Every weapon fires on its own — you only move. Survive the night's waves until the <b>keeper of the beacon</b> comes, then destroy it to light the beacon and win the stage.",
+  h_grow: "Growing stronger", p_grow: "Monsters drop <b>soul gems</b>. A full bar lets you pick a new weapon, a passive or an upgrade. Elites and bosses drop <b>chests</b>: a weapon at its top level together with its partner passive <b>evolves</b> when you open one.",
+  h_embers: "Embers", p_embers: "<b>Embers</b> are kept even when the night takes you. Spend them at <b>the Hearth</b> on upgrades that last for every run. Lit beacons unlock new lantern-bearers and weapons.",
+  h_keys: "Controls", k_move: "Move", k_active: "Use your ability", k_pick: "Pick a card", k_pause: "Pause",
+  h_touch: "Touch", p_touch: "Drag anywhere to move — the stick appears under your thumb. Tap the round button for your ability.",
+  h_tips: "Tips",
+  tip1: "Candelabras around the arena break open: they hide bread, flares, magnets, hourglasses and embers.",
+  tip2: "The crowd is physical. Crates, barrels and pews block, knockback throws monsters into each other, and the grave hook hurls them like bowling balls.",
+  tip3: "Mud slows everything that walks, ice makes you slide — ghosts and flyers ignore both.",
+  tip4: "Red circles on the ground mean a slam or a charge is coming. Move.",
+  // HUD.
+  hud_lv: "LV {n}", hud_kills: "{n}", hud_boss: "The keeper", hud_ready: "READY", hud_space: "SPACE",
+  // Cards.
+  levelUp: "Level up!", chooseOne: "Choose one", newTag: "New", lvTag: "Level {n}", maxTag: "Max",
+  reroll: "Reroll ({n})", banish: "Banish ({n})", skip: "Skip", banishMode: "Pick a card to banish it for the rest of the run",
+  card_gold: "A pouch of embers", card_goldDesc: "+10 embers", card_heal: "Bread and wine", card_healDesc: "Restore 30 health",
+  evoHint: "Evolves with {p} at max level",
+  st_dmg: "Damage", st_range: "Reach", st_cd: "Cooldown", st_arcs: "Lashes", st_width: "Width", st_n: "Count", st_pierce: "Pierce",
+  st_radius: "Radius", st_knock: "Knockback", st_speed: "Speed", st_chain: "Chains", st_dur: "Duration",
+  chestTitle: "A chest!", chestEvolve: "{a} became {b}!", chestItems: "Inside:", chestGold: "+{n} embers", chestOk: "Take it",
+  // Pause / results.
+  paused: "Paused", resume: "Resume", restart: "Restart", abandon: "Abandon the run", mainMenu: "Main menu",
+  confirmAbandon: "Give up this run? You keep the embers you carry.",
+  wonTitle: "The beacon burns", lostTitle: "The night takes you",
+  r_time: "Time survived", r_kills: "Monsters slain", r_level: "Level reached", r_embers: "Embers gathered", r_weapons: "Your arsenal",
+  r_dmg: "damage", r_kills2: "kills", r_newUnlock: "Unlocked: {x}", r_again: "Again", r_toHearth: "The Hearth", r_continue: "Continue",
+  // Banners.
+  b_start: "SURVIVE UNTIL THE KEEPER COMES", b_dead: "THE NIGHT TAKES YOU", b_beacon: "THE BEACON IS LIT", b_revive: "THE EMBER REKINDLES",
+  b_bossDown: "THE KEEPER FALLS", b_eliteDown: "ELITE SLAIN", b_magnet: "MAGNET", b_flare: "SUNBURST", b_freeze: "TIME STANDS STILL",
+  b_king2: "THE KING DRAWS HIS SCYTHES", b_king3: "ECLIPSE",
+  ev_ring: "THEY SURROUND YOU", ev_wall: "A WALL OF THE DEAD", ev_pack: "THE PACK HUNTS", ev_elite: "AN ELITE APPROACHES",
+  ev_ring_bat: "A CLOUD OF BATS", ev_ring_ghoul: "THE GRAVES OPEN", ev_ring_wraith: "THE MIST SCREAMS", ev_wall_skeleton: "A WALL OF BONE",
+  ev_ring_leech: "THE WATER BOILS WITH LEECHES", ev_wall_drowned: "THE DROWNED RISE", ev_ring_bogslime: "THE BOG HEAVES", ev_ring_wisp: "LIGHTS IN THE MARSH",
+  ev_ring_imp: "SPARKS ON THE WIND", ev_pack_ashwolf: "THE PACK HUNTS", ev_ring_husk: "THE BURNING DEAD",
+  ev_ring_frostbat: "FROZEN WINGS", ev_wall_iceskel: "AN ARMY OF ICE", ev_pack_snowwolf: "HOWLS ON THE PASS", ev_ring_rime: "THE COLD WHISPERS",
+  ev_ring_gargoyle: "THE GARGOYLES WAKE", ev_ring_hollow: "THE HOLLOW CONGREGATION", ev_wall_hollow: "THE KING'S HOST", ev_ring_specter: "SPECTRES OF THE NAVE",
+  ev_elite_knight: "A GRAVE KNIGHT RISES", ev_elite_sentinel: "A DROWNED SENTINEL WADES IN", ev_elite_alpha: "THE ALPHA OF ASHWOOD", ev_elite_frostknight: "A FROST KNIGHT DESCENDS", ev_elite_moonknight: "A MOON KNIGHT DRAWS STEEL",
+  boss_colossus: "THE BONE COLOSSUS", boss_bogmother: "THE BOG MOTHER", boss_stag: "THE CHARRED STAG", boss_wormhead: "THE RIMEWORM", boss_king: "THE HOLLOW KING",
+  // Toasts.
+  unlockedToast: "Unlocked: {x}", notEnough: "Not enough embers", bought: "{x} upgraded",
+  webgl_title: "WebGL is not available", webgl_text: "Last Lantern needs a browser with WebGL. Try another browser or turn on hardware acceleration.",
+  // Hearth.
+  hearthIntro: "Warm your hands and spend the embers you carried back. Upgrades last for every run.",
+  h_might: "Might", hd_might: "+5% damage", h_vitality: "Vitality", hd_vitality: "+10 max health", h_armor: "Iron Skin", hd_armor: "−1 damage taken",
+  h_recovery: "Recovery", hd_recovery: "+0.2 health per second", h_swift: "Swiftness", hd_swift: "+5% move speed", h_reach: "Reach", hd_reach: "+20% pickup range",
+  h_growth: "Growth", hd_growth: "+5% experience", h_greed: "Greed", hd_greed: "+10% embers", h_luck: "Fortune", hd_luck: "+8% luck",
+  h_haste: "Haste", hd_haste: "−4% cooldowns", h_reroll: "Second Thoughts", hd_reroll: "+1 reroll per run", h_banish: "Exorcism", hd_banish: "+1 banish per run",
+  h_revival: "Rekindle", hd_revival: "Come back once per run at half health", buy: "Upgrade · {n}", maxed: "Maxed",
+  // Journal.
+  journalIntro: "Pages gathered along the way.", jn_locked: "Light the beacon to read on.",
+  storyTab: "Story", evoFrom: "{w} at max level + {p}",
+  bestiary: "Bestiary", arsenal: "Arsenal", story: "Story", seen: "Met", notSeen: "Not yet met",
+};
+
+// Heroes: name, epithet, ability name, ability text, trait.
+EN.heroes = {
+  wren: ["Wren", "the Lamplighter", "Sunflare", "A burst of the old sun: hurts, stuns and hurls back everything near you.", "+10% area"],
+  mira: ["Mira", "the Warden", "Tumble", "Roll through the crowd untouchable, loosing a ring of bolts as you rise.", "Quick on her feet, but frail"],
+  oskar: ["Brother Oskar", "the Bellringer", "Sanctuary", "Three seconds of holy ground: nothing can hurt you, a quarter of your health returns, the crowd is thrown back.", "+35 health, 1 armour, slow"],
+  sable: ["Sable", "the Gravedigger", "Dig", "Burrow under the earth, move fast and untouchable, and burst out with a slam that stuns.", "+12% damage"],
+};
+
+EN.weapons = {
+  flail: ["Lantern Flail", "A burning arc toward the nearest monster. Lashes behind you too at level 3."],
+  crossbow: ["Warden's Crossbow", "Bolts at the nearest monsters, piercing through."],
+  knives: ["Throwing Knives", "A fan of knives the way you run."],
+  bell: ["Chapel Bell", "Tolls around you: hurts and shoves back whatever comes close."],
+  spades: ["Grave Spades", "Spades circle you and strike whatever they pass through."],
+  storm: ["Storm Call", "Lightning finds monsters near you, and later chains between them."],
+  water: ["Holy Water", "Flasks thrown into the crowd leave burning pools behind."],
+  hook: ["Grave Hook", "Hooks a monster and hurls it into the rest of the crowd."],
+  sunflail: ["Sunflail", "Evolved. Two blazing lashes that set the dead alight."],
+  dawnbreaker: ["Dawnbreaker", "Evolved. Bolts of dawn pierce everything and burst where they end."],
+  edges: ["Thousand Edges", "Evolved. An endless storm of knives in every direction."],
+  toll: ["Cathedral Toll", "Evolved. A great ring; every fifth toll shakes the whole night."],
+  halo: ["Iron Halo", "Evolved. Eight heavy spades that throw the dead aside."],
+  wrath: ["Wrath of Heaven", "Evolved. Six strikes at once, each chaining three times."],
+  font: ["Font of Dawn", "Evolved. Four wide, long-burning pools."],
+  reaper: ["Reaper's Chain", "Evolved. Four monsters at a time, and they explode where they land."],
+};
+
+EN.passives = {
+  boots: ["Swift Boots", "+8% move speed"], heart: ["Hollow Heart", "+20 max health"], magnet: ["Lodestone", "+30% pickup range"],
+  tome: ["Dusty Tome", "−7% cooldowns"], fist: ["Iron Fist", "+10% damage"], plate: ["Grave Plate", "−1 damage taken"],
+  root: ["Mandrake Root", "+0.4 health per second"], oil: ["Lamp Oil", "+10% area"], clover: ["Four-leaf Clover", "+10% luck and crits"],
+  quiver: ["Deep Quiver", "+1 projectile for every weapon"],
+};
+
+// Stages: name, place, intro, outro.
+EN.stages = {
+  graveyard: ["Hollowmere", "The graveyard",
+    "The first beacon stands over Hollowmere's graveyard, where the town buried its dead for four hundred years. Since the sun went out, none of them stay buried. Keep the lantern burning until the Bone Colossus comes for it.",
+    "The Colossus falls apart into a heap of old bones, and the beacon catches. For the first time in a hundred nights, a light burns on the hill that is not yours. Far to the south, someone lights a candle in a window."],
+  mill: ["The Drowned Mill", "The flooded valley",
+    "The river broke its banks the night the sun was stolen, and the mill has stood in black water ever since. Something breeds in the pools — something big. The second beacon waits on the mill's roof beam.",
+    "The Bog Mother sinks for the last time and does not come back up. The water stills. On the beacon's light the mill wheel starts turning again, slowly, for no one."],
+  ashwood: ["Ashwood", "The burning forest",
+    "The Hollow King set fire to Ashwood so no one could cross it. It has been burning for a hundred nights without burning out. The third beacon is in a clearing at its heart, guarded by the stag that was once the forest's lord.",
+    "The Charred Stag kneels, and the fire in its antlers goes out. The trees keep smouldering, but the beacon burns brighter than all of them. You can see the mountains from here."],
+  pass: ["Frostfang Pass", "The mountain road",
+    "The only road to the Moon Cathedral crosses Frostfang Pass. The cold here is the King's, not winter's. Under the ice something long is waiting, and it has not eaten since the sun went out.",
+    "The Rimeworm shatters like a frozen river in spring. The fourth beacon throws your shadow a mile down the mountain. Above, on the cliff, the cathedral's windows are watching you."],
+  cathedral: ["The Moon Cathedral", "Where the sun is kept",
+    "The Hollow King keeps the sun in his cathedral on the moon-cliff, a cold white coal on the altar. The last beacon is the altar itself. Everything the night has left is here. So is he.",
+    "The Hollow King breaks like a mirror. On the altar the white coal takes your lantern's fire and turns gold, then too bright to look at. The cathedral roof falls away and the sky above Emberhollow goes pale, then blue. Morning. It has been a long time."],
+};
+
+EN.story = {
+  prologue: [
+    "For a hundred nights the sun has not risen over Emberhollow.",
+    "The Hollow King took it — reached up from his cathedral on the moon-cliff and closed his hand around it — and without it, the dead walk.",
+    "The lamplighters kept the town's lanterns burning as long as there was oil. Now there is one lantern left, and it does not burn with oil. It burns with the last spark of the old sun.",
+    "Five beacons stand between the town and the cathedral. Light them, and the night goes back a step. Light them all, and you can take back the dawn.",
+  ],
+  ending: "The sun rises over Emberhollow. You blow out your lantern. You won't need it now.",
+};
+
+EN.monsters = {
+  bat: "Bat", ghoul: "Ghoul", skeleton: "Skeleton", spitter: "Spitter", brute: "Grave Brute", wraith: "Wraith", knight: "Grave Knight", colossus: "Bone Colossus",
+  leech: "Leech", drowned: "Drowned", toad: "Bile Toad", bogslime: "Bog Slime", bogling: "Bogling", wisp: "Marsh Wisp", mirebrute: "Mire Brute", sentinel: "Drowned Sentinel", bogmother: "The Bog Mother",
+  imp: "Cinder Imp", ashwolf: "Ash Wolf", husk: "Burning Husk", caller: "Flame Caller", treant: "Charred Treant", cinder: "Ember Wisp", alpha: "Alpha of Ashwood", stag: "The Charred Stag",
+  frostbat: "Frost Bat", iceskel: "Ice Skeleton", snowwolf: "Snow Wolf", shard: "Shard Slime", shardling: "Shardling", yeti: "Yeti", rime: "Rime Wraith", frostknight: "Frost Knight", wormhead: "The Rimeworm",
+  gargoyle: "Gargoyle", hollow: "Hollow Knight", cultist: "Moon Cultist", bellgolem: "Bell Golem", specter: "Spectre", moonknight: "Moon Knight", king: "The Hollow King",
+};
