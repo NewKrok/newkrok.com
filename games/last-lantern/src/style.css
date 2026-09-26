@@ -285,6 +285,8 @@ kbd { display: inline-block; min-width: 1.7em; padding: 0 6px; border: 1px solid
 .chest-item b { font: 700 15px var(--serif); color: var(--gold-hi); }
 .chest-item small { display: block; color: var(--ink-dim); font-size: 14px; }
 .chest-item.evo { border-color: var(--gold); background: radial-gradient(ellipse at left, rgba(255, 180, 60, 0.18), rgba(0, 0, 0, 0.35)); box-shadow: 0 0 28px rgba(255, 170, 50, 0.3); }
+.chest-item.relic { border-color: #c8a0ff; background: radial-gradient(ellipse at left, rgba(180, 120, 255, 0.2), rgba(0, 0, 0, 0.35)); box-shadow: 0 0 28px rgba(160, 110, 255, 0.3); }
+.chest-item.relic b { color: #e0c8ff; }
 .chest-gold { color: #ffc27a; font: 700 15px var(--serif); margin-bottom: 8px; }
 
 /* ── Pause / result ──────────────────────────────────────────────────── */

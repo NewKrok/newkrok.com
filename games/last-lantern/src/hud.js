@@ -242,6 +242,15 @@ export class Hud {
     }
     const ps = Object.keys(h.passives), pz = 24, prow = MAX_PASSIVES * (pz + gap) - gap;
     x0 = PW / 2 - prow / 2; y0 = 88;
+    // Relics: two gold-rimmed diamonds either side of the relic row.
+    for (let i = 0; i < 2; i++) {
+      const id = R.relics[i], cx = i === 0 ? x0 - 24 : x0 + prow + 24, cy = y0 + pz / 2;
+      c.save(); c.translate(cx, cy); c.rotate(Math.PI / 4);
+      c.fillStyle = id ? "#2a1e14" : "#120c0e"; c.fillRect(-11, -11, 22, 22);
+      c.strokeStyle = id ? "#ffd166" : "rgba(212,162,76,0.35)"; c.lineWidth = id ? 2 : 1.2; c.strokeRect(-11, -11, 22, 22);
+      c.restore();
+      if (id) drawIcon(c, id, cx, cy, 20);
+    }
     for (let i = 0; i < MAX_PASSIVES; i++) {
       const id = ps[i], x = x0 + i * (pz + gap);
       slot(c, x, y0, pz, !!id);

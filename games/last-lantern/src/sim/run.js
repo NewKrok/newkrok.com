@@ -7,7 +7,7 @@ import {
   clamp, lerp, hyp, mulberry, xpFor,
 } from "../config.js";
 import { STAGES, BLOOD } from "../data/stages.js";
-import { HEROES, ACTIVES, WEAPON_IDS, PASSIVE_IDS, WEAPON_META } from "../data/meta.js";
+import { HEROES, ACTIVES, WEAPON_IDS, PASSIVE_IDS, WEAPON_META, RELIC_IDS, MAX_RELICS } from "../data/meta.js";
 import { buildWorld } from "./world.js";
 import {
   F, heroX, heroY, spawnMonster, killMonster, damageMonster, hurtHero, killSpit, gemTier,
@@ -16,7 +16,7 @@ import {
 import { tickMonsters, spawnPoint, spawnBoss, contactDamage, slam } from "./monsters.js";
 import {
   WEAPONS, addWeapon, tickWeapons, tickShots, onShotHit, onOrbHit, onThrownHit, landThrown,
-  evolvable, evolve, clearOrbs, tickHolyZone, weaponStats,
+  evolvable, evolve, clearOrbs, clearCensers, tickHolyZone, weaponStats,
 } from "./weapons.js";
 
 // ── A run ────────────────────────────────────────────────────────────────
@@ -42,7 +42,7 @@ export function createRun({ stageIndex = 0, heroId = "wren", hearth = {}, blood 
     hpMul: stage.hpMul * (blood ? BLOOD.hp : 1),
     dmgMul: stage.dmgMul * (blood ? BLOOD.dmg : 1),
     rateMul: stage.rate * (blood ? BLOOD.rate : 1),
-    monsters: [], byBody: new Map(), shots: [], spits: [], orbs: [], gems: [], pickups: [],
+    monsters: [], byBody: new Map(), shots: [], spits: [], orbs: [], gems: [], pickups: [], censers: [], ravens: [], relics: [], relicPending: 0, martyrT: 0,
     particles: [], floaters: [], arcs: [], bolts: [], rings: [], beams: [], banners: [], globs: [], hazards: [],
     zones: [], elites: [], boss: null, bossSpawned: false, bossKilledAt: 0,
     kills: 0, embers: 0, damageTaken: 0, dmgBy: {}, killsBy: {}, weaponsSeen: new Set(), evolved: [],
@@ -174,11 +174,18 @@ export function recomputeStats(R) {
     area: d.area * (1 + 0.1 * lv("oil")),
     luck: 1 + 0.1 * lv("clover") + 0.08 * hl("luck"),
     amount: lv("quiver"),
-    growth: 1 + 0.05 * hl("growth"),
+    growth: 1 + 0.05 * hl("growth") + 0.1 * lv("feather"),
+    dur: 1 + 0.15 * lv("chrism"),
+    proj: 1 + 0.1 * lv("chrism"),
     greed: (1 + 0.1 * hl("greed")) * (R.blood ? BLOOD.embers : 1),
     crit: 0.05 * (1 + 0.1 * lv("clover") + 0.08 * hl("luck")),
   };
-  const newMax = d.hp + 15 * lv("heart") + 10 * hl("vitality");
+  // Relics bend the numbers.
+  const rel = (id) => R.relics.includes(id);
+  if (rel("bloodseal")) h.stats.dmgMul *= 1.3;
+  if (rel("hourglass")) h.stats.cdMul = Math.max(0.3, h.stats.cdMul * 0.75);
+  if (rel("pilgrim")) h.stats.speed *= 1.1;
+  const newMax = Math.round((d.hp + 15 * lv("heart") + 10 * hl("vitality")) * (R.relics.includes("hourglass") ? 0.8 : 1));
   if (newMax !== h.maxHp) {
     if (h.maxHp === 100 && h.level === 1 && h.xp === 0) h.hp = newMax;
     else h.hp += Math.max(0, newMax - h.maxHp);
@@ -232,6 +239,7 @@ function tickHero(R, input) {
   }
   const nv = h.body.velocity;
   h.speedNow = Math.hypot(nv.x, nv.y);
+  h.stillT = h.speedNow < 25 && len < 0.05 ? (h.stillT || 0) + 1 : 0;
   h.dist += h.speedNow * DT;
 
   if (st.regen > 0 && h.hp < h.maxHp) {
@@ -511,6 +519,7 @@ function usePickup(R, p) {
     R.sfx.push(["freeze"]);
   } else if (p.kind === "chest") {
     R.chestQueue++;
+    if (p.relic && R.relics.length + R.relicPending < MAX_RELICS) R.relicPending++;
     R.sfx.push(["chestGet"]);
   }
 }
@@ -651,11 +660,29 @@ function openChest(R) {
     }
     R.cards = [];
   }
+  // A relic, if this chest carried one and there is room.
+  if (R.relicPending > 0) {
+    R.relicPending--;
+    const pool = RELIC_IDS.filter((id) => !R.relics.includes(id));
+    if (R.relics.length < MAX_RELICS && pool.length) {
+      const id = pool[Math.floor(R.rng() * pool.length)];
+      gainRelic(R, id);
+      items.unshift({ kind: "relic", id });
+    }
+  }
   const gold = Math.round((15 + R.stage.index * 5) * h.stats.greed);
   R.embers += gold;
   R.chest = { items, gold, t: 0 };
   R.phase = "chest";
-  R.sfx.push(["chest", items[0]?.kind === "evolve" ? 1 : 0]);
+  R.sfx.push(["chest", items[0]?.kind === "evolve" || items[0]?.kind === "relic" ? 1 : 0]);
+}
+
+function gainRelic(R, id) {
+  R.relics.push(id);
+  R.relicsSeen = R.relicsSeen || new Set();
+  R.relicsSeen.add(id);
+  if (id === "saintsbone") R.hero.revives++;
+  recomputeStats(R);
 }
 function closeChest(R) {
   if (R.phase !== "chest") return;
@@ -817,7 +844,7 @@ export function runSummary(R) {
   return {
     stage: R.stage.index, stageId: R.stage.id, hero: R.heroDef.id, blood: R.blood,
     won: R.phase === "won", time: R.clock / FPS, kills: R.kills, level: R.hero.level, embers: R.embers,
-    weapons, passives: { ...R.hero.passives }, damageTaken: R.damageTaken, evolved: [...R.evolved],
+    weapons, passives: { ...R.hero.passives }, relics: [...R.relics], damageTaken: R.damageTaken, evolved: [...R.evolved],
   };
 }
 

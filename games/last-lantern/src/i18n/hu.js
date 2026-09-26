@@ -32,7 +32,8 @@ export const HU = {
   card_gold: "Egy erszény parázs", card_goldDesc: "+10 parázs", card_heal: "Kenyér és bor", card_healDesc: "30 életerő vissza",
   evoHint: "Max szinten továbbfejlődik ezzel: {p}",
   st_dmg: "Sebzés", st_range: "Hatótáv", st_cd: "Újratöltés", st_arcs: "Csapások", st_width: "Szélesség", st_n: "Darab", st_pierce: "Átütés",
-  st_radius: "Sugár", st_knock: "Visszalökés", st_speed: "Sebesség", st_chain: "Láncolás", st_dur: "Időtartam",
+  st_radius: "Sugár", st_knock: "Visszalökés", st_speed: "Sebesség", st_chain: "Láncolás", st_dur: "Időtartam", st_blast: "Robbanás", st_reach: "Dobás",
+  relicTag: "Ereklye", relics: "Ereklyék", boostLine: "A meggyújtott jelzőtüzek ereje: +{n} szint", boostIntro: "{n} extra szinttel indulsz",
   chestTitle: "Egy láda!", chestEvolve: "{a} → {b}!", chestItems: "Benne volt:", chestGold: "+{n} parázs", chestOk: "Elteszem",
   paused: "Szünet", resume: "Folytatás", restart: "Újrakezdés", abandon: "Menet feladása", mainMenu: "Főmenü",
   confirmAbandon: "Feladod ezt a menetet? A nálad lévő parazsat megtartod.",
@@ -41,7 +42,7 @@ export const HU = {
   r_dmg: "sebzés", r_kills2: "ölés", r_newUnlock: "Feloldva: {x}", r_again: "Még egyszer", r_toHearth: "A Tűzhely", r_continue: "Tovább",
   b_start: "ÉLD TÚL, AMÍG MEGJÖN AZ ŐRZŐ", b_dead: "ELNYELT AZ ÉJSZAKA", b_beacon: "ÉG A JELZŐTŰZ", b_revive: "ÚJRA FELIZZIK A PARÁZS",
   b_bossDown: "AZ ŐRZŐ ELBUKOTT", b_eliteDown: "ELIT LEGYŐZVE", b_magnet: "MÁGNES", b_flare: "NAPKITÖRÉS", b_freeze: "MEGÁLL AZ IDŐ",
-  b_king2: "A KIRÁLY ELŐVESZI KASZÁIT", b_king3: "NAPFOGYATKOZÁS",
+  b_martyr: "FELLOBBAN A GYERTYA", b_king2: "A KIRÁLY ELŐVESZI KASZÁIT", b_king3: "NAPFOGYATKOZÁS",
   ev_ring: "KÖRBEVESZNEK", ev_wall: "A HOLTAK FALA", ev_pack: "VADÁSZIK A FALKA", ev_elite: "ELIT KÖZELEDIK",
   ev_ring_crow: "VARJÚRAJ", ev_ring_shambler: "MEGNYÍLNAK A SÍROK", ev_ring_banshee: "JAJGATNAK A BANSHEE-K", ev_wall_gravebound: "CSONTFAL",
   ev_ring_leech: "PIÓCÁKTÓL FORR A VÍZ", ev_wall_drowned: "FELKELNEK A VÍZBEFÚLTAK", ev_ring_bogslime: "MOZDUL A LÁP", ev_ring_wisp: "LIDÉRCFÉNYEK",
@@ -87,13 +88,21 @@ HU.weapons = {
   wrath: ["Az ég haragja", "Továbbfejlesztve. Hat villám egyszerre, mindegyik háromszor ugrik tovább."],
   font: ["A hajnal forrása", "Továbbfejlesztve. Négy széles, sokáig égő tócsa."],
   reaper: ["A kaszás lánca", "Továbbfejlesztve. Egyszerre négy szörny, és ahol földet érnek, felrobbannak."],
+  wisps: ["Lidércmécsesek", "Kis lángok, amelyek ívben a legközelebbi szörny után fordulnak, és becsapódáskor szétrobbannak."],
+  choir: ["Lidérckórus", "Továbbfejlesztve. Egyszerre öt lidérc; mindegyik szétrobban, aztán újabb célt keres."],
+  sickle: ["Aratósarló", "A legközelebbi szörny felé dobod, lelassul, megfordul és visszajön, mindkét irányban mindenen átvág."],
+  harvest: ["Aratóhold", "Továbbfejlesztve. Négy nagy sarló minden irányba."],
+  censer: ["Lengő füstölő", "Láncon lengő nehéz füstölő, ami körülötted lendülve feldönti a tömeget; a 3. szinttől lassító tömjénfüstöt húz maga után."],
+  thurible: ["A hajnal füstölője", "Továbbfejlesztve. Két füstölő, szélesebb lendület és égető tömjén."],
+  raven: ["Hollótárs", "Egy holló köröz feletted, lecsap a közeli legerősebb szörnyre, és elhozza a távoli lélekköveket."],
+  unkindness: ["Hollósereg", "Továbbfejlesztve. Négy holló, amelyek becsapódáskor robbannak."],
 };
 
 HU.passives = {
   boots: ["Fürge csizma", "+8% mozgási sebesség"], heart: ["Üres szív", "+15 max életerő"], magnet: ["Mágneskő", "+30% felszedési távolság"],
   tome: ["Poros kódex", "−7% újratöltés"], fist: ["Vasököl", "+10% sebzés"], plate: ["Sírlap-vért", "−1 elszenvedett sebzés"],
   root: ["Mandragóragyökér", "+0,3 életerő másodpercenként"], oil: ["Lámpaolaj", "+10% hatókör"], clover: ["Négylevelű lóhere", "+10% szerencse és kritikus találat"],
-  quiver: ["Mély tegez", "+1 lövedék minden fegyverhez"],
+  quiver: ["Mély tegez", "+1 lövedék minden fegyverhez"], chrism: ["Krizmás fiola", "+15% időtartam, +10% lövedéksebesség"], feather: ["Hollótoll", "+10% tapasztalat"],
 };
 
 HU.stages = {
@@ -122,6 +131,17 @@ HU.story = {
     "Öt jelzőtűz áll a város és a katedrális között. Gyújtsd meg őket, és az éjszaka hátrál egy lépést. Gyújtsd meg mindet, és visszaveheted a hajnalt.",
   ],
   ending: "Felkel a nap Emberhollow fölött. Elfújod a lámpásodat. Már nem lesz rá szükséged.",
+};
+
+HU.relics = {
+  martyr: ["A mártír gyertyája", "30% életerő alatt a régi nap fellobbanása gyógyít, és megperzsel mindent a közelben. Percenként egyszer."],
+  ravenskull: ["Hollókoponya", "Minden 150. legyőzött szörny után egy láda."],
+  bloodseal: ["Vérhold-pecsét", "+30% sebzés, de 20%-kal több sebzést is kapsz."],
+  pilgrim: ["Zarándokbot", "Egy pillanatig állva: +40% sebzés. Mozgás közben: +10% sebesség."],
+  hourglass: ["Repedt homokóra", "−25% újratöltés, −20% max életerő."],
+  saintsbone: ["A szent ujjperccsontja", "Egyszer visszatérsz fél életerővel."],
+  thorns: ["Tövises lepel", "Ami hozzád ér, kétszeres sebzést kap vissza, és elrepül."],
+  mirror: ["Holdtükör", "A lövedékek 25% eséllyel kétszer indulnak."],
 };
 
 HU.monsters = {

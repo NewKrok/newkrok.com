@@ -72,6 +72,43 @@ const D = {
     poly(c, [[0.2, 0.7], [0.0, 0.52], [0.3, 0.5]], "#d2a8ff");
   },
   reaper(c) { D.hook(c); circ(c, 0.55, -0.5, 0.2, "#e8c8ff"); },
+  wisps(c) {
+    for (const [x, y, r] of [[-0.35, 0.25, 0.3], [0.3, -0.2, 0.38], [0.1, 0.55, 0.22]]) {
+      c.fillStyle = "#ff8a3a"; c.beginPath(); c.moveTo(x, y - r * 1.8); c.quadraticCurveTo(x + r, y - r * 0.2, x, y + r); c.quadraticCurveTo(x - r, y - r * 0.2, x, y - r * 1.8); c.fill();
+      circ(c, x, y + r * 0.1, r * 0.45, "#fff0c0");
+    }
+  },
+  choir(c) { D.wisps(c); c.strokeStyle = "#ffd8a0"; c.lineWidth = 0.06; c.beginPath(); c.arc(0, 0, 0.92, 0, TAU); c.stroke(); },
+  sickle(c) {
+    c.strokeStyle = "#d8e0e8"; c.lineWidth = 0.2; c.lineCap = "round";
+    c.beginPath(); c.arc(0.05, -0.1, 0.62, -2.6, 0.2); c.stroke();
+    line(c, [[0.62, 0.0], [0.25, 0.85]], 0.14, "#6a4020");
+  },
+  harvest(c) { for (let i = 0; i < 3; i++) { c.save(); c.rotate((i / 3) * TAU); c.strokeStyle = "#ffffff"; c.lineWidth = 0.14; c.beginPath(); c.arc(0, -0.3, 0.5, -2.8, -0.2); c.stroke(); c.restore(); } circ(c, 0, 0, 0.14, "#ffd166"); },
+  censer(c) {
+    line(c, [[0, -0.95], [0, -0.45]], 0.06, "#8b949e");
+    poly(c, [[-0.2, -0.45], [0.2, -0.45], [0.35, -0.25], [-0.35, -0.25]], "#b08a40");
+    c.fillStyle = "#c9a35a"; c.beginPath(); c.arc(0, 0.12, 0.45, 0, TAU); c.fill();
+    for (const x of [-0.2, 0, 0.2]) circ(c, x, 0.12, 0.07, "#ffb050");
+    c.strokeStyle = "rgba(200,190,210,0.7)"; c.lineWidth = 0.08; c.beginPath(); c.moveTo(0.4, 0.5); c.quadraticCurveTo(0.8, 0.3, 0.6, 0.0); c.quadraticCurveTo(0.45, -0.2, 0.75, -0.4); c.stroke();
+  },
+  thurible(c) { c.save(); c.translate(-0.3, 0); c.scale(0.7, 0.7); D.censer(c); c.restore(); c.save(); c.translate(0.35, 0.1); c.scale(0.7, 0.7); D.censer(c); c.restore(); },
+  raven(c) {
+    c.fillStyle = "#2a2a3a";
+    c.beginPath(); c.moveTo(-0.9, -0.1); c.quadraticCurveTo(-0.4, -0.6, 0, -0.15); c.quadraticCurveTo(0.4, -0.6, 0.9, -0.1); c.quadraticCurveTo(0.4, -0.2, 0.15, 0.2); c.lineTo(0, 0.7); c.lineTo(-0.15, 0.2); c.quadraticCurveTo(-0.4, -0.2, -0.9, -0.1); c.fill();
+    poly(c, [[-0.06, -0.2], [0.06, -0.2], [0, -0.42]], "#8a8070");
+    circ(c, 0.04, -0.12, 0.04, "#ffd060");
+  },
+  unkindness(c) { c.save(); c.translate(-0.3, -0.25); c.scale(0.6, 0.6); D.raven(c); c.restore(); c.save(); c.translate(0.35, 0.05); c.scale(0.6, 0.6); D.raven(c); c.restore(); c.save(); c.translate(-0.15, 0.45); c.scale(0.5, 0.5); D.raven(c); c.restore(); },
+  // Relics.
+  martyr(c) { poly(c, [[-0.22, -0.2], [0.22, -0.2], [0.26, 0.85], [-0.26, 0.85]], "#e8e0d0"); line(c, [[-0.26, 0.4], [0.26, 0.5]], 0.08, "#c05050"); c.fillStyle = "#ffd166"; c.beginPath(); c.moveTo(0, -0.95); c.quadraticCurveTo(0.25, -0.5, 0, -0.25); c.quadraticCurveTo(-0.25, -0.5, 0, -0.95); c.fill(); },
+  ravenskull(c) { D.skull(c); c.fillStyle = "#2a2a3a"; c.beginPath(); c.moveTo(-0.7, -0.6); c.quadraticCurveTo(0, -1.05, 0.7, -0.6); c.quadraticCurveTo(0, -0.8, -0.7, -0.6); c.fill(); poly(c, [[-0.08, 0.1], [0.08, 0.1], [0, 0.5]], "#8a8070"); },
+  bloodseal(c) { circ(c, 0, 0, 0.8, "#8a1418"); circ(c, 0, 0, 0.62, "#b8262a"); c.fillStyle = "#ffb0a0"; c.beginPath(); c.arc(0.1, -0.05, 0.36, 0, TAU); c.fill(); c.fillStyle = "#b8262a"; c.beginPath(); c.arc(0.26, -0.12, 0.3, 0, TAU); c.fill(); },
+  pilgrim(c) { line(c, [[-0.5, 0.9], [0.35, -0.7]], 0.12, "#8a6a4a"); c.strokeStyle = "#8a6a4a"; c.lineWidth = 0.12; c.beginPath(); c.arc(0.5, -0.6, 0.2, Math.PI, 0.3); c.stroke(); circ(c, 0.05, -0.1, 0.16, "#d8c8a0"); },
+  hourglass(c) { poly(c, [[-0.5, -0.8], [0.5, -0.8], [0.08, 0], [0.5, 0.8], [-0.5, 0.8], [-0.08, 0]], "#9fd8ff"); poly(c, [[-0.3, -0.6], [0.3, -0.6], [0, -0.2]], "#ffd166"); poly(c, [[-0.35, 0.72], [0.35, 0.72], [0, 0.35]], "#ffd166"); line(c, [[-0.6, -0.85], [0.6, -0.85]], 0.1, "#8a6a3a"); line(c, [[-0.6, 0.85], [0.6, 0.85]], 0.1, "#8a6a3a"); line(c, [[-0.3, -0.5], [0.3, 0.5]], 0.04, "#2a2a3a"); },
+  saintsbone(c) { c.save(); c.rotate(-0.7); poly(c, [[-0.12, -0.6], [0.12, -0.6], [0.12, 0.6], [-0.12, 0.6]], "#e8e0c8"); for (const y of [-0.62, 0.62]) { circ(c, -0.14, y, 0.17, "#e8e0c8"); circ(c, 0.14, y, 0.17, "#e8e0c8"); } c.restore(); c.strokeStyle = "#ffd166"; c.lineWidth = 0.06; c.beginPath(); c.arc(0, 0, 0.9, 0, TAU); c.stroke(); },
+  thorns(c) { c.strokeStyle = "#6a4a8a"; c.lineWidth = 0.12; c.beginPath(); c.arc(0, 0, 0.6, 0, TAU); c.stroke(); for (let i = 0; i < 10; i++) { c.save(); c.rotate((i / 10) * TAU); poly(c, [[0.55, -0.06], [0.95, 0], [0.55, 0.06]], "#c8a0ff"); c.restore(); } },
+  mirror(c) { c.fillStyle = "#6a6a80"; c.beginPath(); c.ellipse(0, -0.1, 0.55, 0.7, 0, 0, TAU); c.fill(); c.fillStyle = "#c8d4ff"; c.beginPath(); c.ellipse(0, -0.1, 0.42, 0.56, 0, 0, TAU); c.fill(); c.fillStyle = "#f0f4ff"; c.beginPath(); c.arc(-0.12, -0.3, 0.14, 0, TAU); c.fill(); line(c, [[0, 0.6], [0, 0.95]], 0.14, "#6a6a80"); },
   // Passives.
   boots(c) { poly(c, [[-0.35, -0.8], [0.15, -0.8], [0.15, 0.3], [0.7, 0.45], [0.7, 0.8], [-0.35, 0.8]], "#7ee787"); line(c, [[-0.8, -0.2], [-0.5, -0.2]], 0.08, "#ffffff"); line(c, [[-0.9, 0.2], [-0.5, 0.2]], 0.08, "#ffffff"); },
   heart(c) { c.fillStyle = "#ff7b72"; c.beginPath(); c.moveTo(0, 0.8); c.bezierCurveTo(-1, 0.1, -0.6, -0.9, 0, -0.35); c.bezierCurveTo(0.6, -0.9, 1, 0.1, 0, 0.8); c.fill(); circ(c, 0, 0.05, 0.2, "#3a1a1a"); },
@@ -82,6 +119,8 @@ const D = {
   root(c) { poly(c, [[-0.2, -0.5], [0.2, -0.5], [0.35, 0.1], [0.1, 0.9], [-0.1, 0.9], [-0.35, 0.1]], "#c9a36a"); line(c, [[0, -0.5], [-0.35, -0.9]], 0.1, "#3fb950"); line(c, [[0, -0.5], [0.35, -0.9]], 0.1, "#3fb950"); line(c, [[0, -0.5], [0, -0.95]], 0.1, "#3fb950"); },
   oil(c) { poly(c, [[-0.5, -0.1], [0.5, -0.1], [0.6, 0.8], [-0.6, 0.8]], "#8a6a3a"); line(c, [[0, -0.1], [0, -0.45]], 0.14, "#8a6a3a"); c.fillStyle = "#ffd166"; c.beginPath(); c.moveTo(0, -0.95); c.quadraticCurveTo(0.25, -0.6, 0, -0.5); c.quadraticCurveTo(-0.25, -0.6, 0, -0.95); c.fill(); },
   clover(c) { for (let i = 0; i < 4; i++) { const a = (i / 4) * TAU + 0.785; circ(c, Math.cos(a) * 0.38, Math.sin(a) * 0.38 - 0.1, 0.32, "#56d364"); } line(c, [[0, -0.1], [0.25, 0.85]], 0.1, "#3a8a44"); },
+  chrism(c) { poly(c, [[-0.18, -0.9], [0.18, -0.9], [0.18, -0.5], [0.5, -0.1], [0.45, 0.8], [-0.45, 0.8], [-0.5, -0.1], [-0.18, -0.5]], "#f0c070"); poly(c, [[-0.4, 0.1], [0.4, 0.1], [0.38, 0.72], [-0.38, 0.72]], "#c89040"); circ(c, 0, 0.4, 0.14, "#fff0c0"); },
+  feather(c) { c.save(); c.rotate(0.6); c.fillStyle = "#3a3a50"; c.beginPath(); c.moveTo(0, -0.95); c.quadraticCurveTo(0.45, -0.1, 0, 0.8); c.quadraticCurveTo(-0.45, -0.1, 0, -0.95); c.fill(); line(c, [[0, -0.8], [0, 0.95]], 0.05, "#8a8aa8"); c.restore(); },
   quiver(c) { poly(c, [[-0.3, -0.3], [0.3, -0.3], [0.25, 0.9], [-0.25, 0.9]], "#8a5a2b"); for (const x of [-0.18, 0, 0.18]) { line(c, [[x, -0.3], [x, -0.8]], 0.06, "#c9d1d9"); poly(c, [[x, -0.95], [x + 0.1, -0.75], [x - 0.1, -0.75]], "#e3b341"); } },
   // Abilities.
   flare(c) { for (let i = 0; i < 12; i++) { c.save(); c.rotate((i / 12) * TAU); poly(c, [[0, -0.95], [0.1, -0.5], [-0.1, -0.5]], "#ffe9a8"); c.restore(); } circ(c, 0, 0, 0.45, "#ffd166"); circ(c, 0, 0, 0.25, "#fffbe0"); },

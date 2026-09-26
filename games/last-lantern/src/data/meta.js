@@ -20,7 +20,7 @@ export const ACTIVES = {
 
 // Weapons (fire logic in sim/weapons.js). `evo` names the passive that turns
 // a max-level weapon into its evolved form when you open a chest.
-export const WEAPON_IDS = ["flail", "crossbow", "knives", "bell", "spades", "storm", "water", "hook"];
+export const WEAPON_IDS = ["flail", "crossbow", "knives", "bell", "spades", "storm", "water", "hook", "wisps", "sickle", "censer", "raven"];
 export const WEAPON_META = {
   flail:    { color: "#ffd166", evo: "oil",    into: "sunflail" },
   crossbow: { color: "#79c0ff", evo: "tome",   into: "dawnbreaker" },
@@ -30,6 +30,10 @@ export const WEAPON_META = {
   storm:    { color: "#ffe066", evo: "clover", into: "wrath", unlock: { stage: 0 } },
   water:    { color: "#7ad8ff", evo: "root",   into: "font",  unlock: { level: 25 } },
   hook:     { color: "#d2a8ff", evo: "fist",   into: "reaper", unlock: { kills: 2500 } },
+  wisps:    { color: "#ffb86a", evo: "chrism", into: "choir" },
+  sickle:   { color: "#d8e0e8", evo: "quiver", into: "harvest" },
+  censer:   { color: "#c9a35a", evo: "magnet", into: "thurible", unlock: { stage: 0 } },
+  raven:    { color: "#8a8aa8", evo: "feather", into: "unkindness", unlock: { level: 15 } },
   // Evolved forms.
   sunflail:    { color: "#ffb347", evolved: true },
   dawnbreaker: { color: "#bfe3ff", evolved: true },
@@ -39,9 +43,13 @@ export const WEAPON_META = {
   wrath:       { color: "#fff3a0", evolved: true },
   font:        { color: "#b8f0ff", evolved: true },
   reaper:      { color: "#e8c8ff", evolved: true },
+  choir:       { color: "#ffd8a0", evolved: true },
+  harvest:     { color: "#ffffff", evolved: true },
+  thurible:    { color: "#ffe0a0", evolved: true },
+  unkindness:  { color: "#b8b8e0", evolved: true },
 };
 
-export const PASSIVE_IDS = ["boots", "heart", "magnet", "tome", "fist", "plate", "root", "oil", "clover", "quiver"];
+export const PASSIVE_IDS = ["boots", "heart", "magnet", "tome", "fist", "plate", "root", "oil", "clover", "quiver", "chrism", "feather"];
 export const PASSIVE_META = {
   boots:  { color: "#7ee787" },
   heart:  { color: "#ff7b72" },
@@ -53,7 +61,14 @@ export const PASSIVE_META = {
   oil:    { color: "#ffd166" },
   clover: { color: "#56d364" },
   quiver: { color: "#e3b341" },
+  chrism: { color: "#f0c070" },
+  feather: { color: "#8a8aa8" },
 };
+
+// Relics: one-off finds from elites' chests, at most two per run. Each has
+// a single strong effect that bends a build; the numbers live in sim/run.js.
+export const RELIC_IDS = ["martyr", "ravenskull", "bloodseal", "pilgrim", "hourglass", "saintsbone", "thorns", "mirror"];
+export const MAX_RELICS = 2;
 
 // The Hearth: permanent upgrades bought with embers between runs.
 export const HEARTH = [

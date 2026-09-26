@@ -1,6 +1,6 @@
 import { Body, BodyType, Vec2, Circle, Material, InteractionFilter } from "@newkrok/nape-js";
 import {
-  G_HERO, G_MON, G_SOLID, G_SHOT, G_SPIT, G_ORB, G_PROP, G_THROWN,
+  G_HERO, G_MON, G_SOLID, G_SHOT, G_SPIT, G_ORB, G_PROP, G_THROWN, G_CENSER,
   S_HERO, S_MON, S_SPIT, S_SHOT, S_ORB,
   HERO_R, MAX_MON, clamp, hyp,
 } from "../config.js";
@@ -14,7 +14,7 @@ import { MON } from "../data/monsters.js";
 export const F = {
   hero: () => new InteractionFilter(G_HERO, G_MON | G_SOLID | G_PROP, S_HERO, S_SPIT),
   heroDig: () => new InteractionFilter(G_HERO, G_SOLID, S_HERO, 0),
-  mon: () => new InteractionFilter(G_MON, G_HERO | G_MON | G_SOLID | G_PROP | G_THROWN, S_MON, S_SHOT | S_ORB),
+  mon: () => new InteractionFilter(G_MON, G_HERO | G_MON | G_SOLID | G_PROP | G_THROWN | G_CENSER, S_MON, S_SHOT | S_ORB),
   ghost: () => new InteractionFilter(G_MON, G_HERO, S_MON, S_SHOT | S_ORB),
   worm: () => new InteractionFilter(G_MON, G_HERO | G_MON | G_PROP | G_THROWN, S_MON, S_SHOT | S_ORB),
   thrown: () => new InteractionFilter(G_THROWN, G_MON | G_SOLID | G_PROP, S_MON, S_SHOT | S_ORB),
@@ -23,6 +23,7 @@ export const F = {
   spit: () => new InteractionFilter(G_SPIT, 0, S_SPIT, S_HERO),
   orb: () => new InteractionFilter(G_ORB, 0, S_ORB, S_MON),
   none: () => new InteractionFilter(0, 0, 0, 0),
+  censer: () => new InteractionFilter(G_CENSER, G_MON | G_PROP, 0, 0),
 };
 
 export const heroX = (R) => R.hero.body.position.x;
@@ -90,6 +91,8 @@ export function killMonster(R, m, silent = false) {
     return;
   }
   R.kills++;
+  // The Raven Skull: a chest every 150 kills.
+  if (R.relics.includes("ravenskull") && R.kills % 150 === 0) R.pickups.push({ kind: "chest", x, y, t: 0 });
   R.killsBy[m.lastSrc] = (R.killsBy[m.lastSrc] || 0) + 1;
   burst(R, x, y, def.boss ? 70 : def.elite ? 30 : 5, def.c, def.boss ? 4 : 2);
   if (def.xp) dropGem(R, x, y, def.xp);
@@ -104,7 +107,7 @@ export function killMonster(R, m, silent = false) {
   }
   if (def.explode) explode(R, x, y, def.explode.r, def.explode.dmg * R.dmgMul, 0xff7a3a, true);
   if (def.elite || def.boss) {
-    R.pickups.push({ kind: "chest", x, y, t: 0 });
+    R.pickups.push({ kind: "chest", x, y, t: 0, relic: def.boss || R.rng() < 0.45 });
     R.banner(def.boss ? "b_bossDown" : "b_eliteDown", def.boss ? "#ffd166" : "#ffd166", 150);
     R.shake(def.boss ? 18 : 8, 0.5);
     R.sfx.push([def.boss ? "bossDie" : "eliteDie"]);
@@ -128,7 +131,8 @@ export function damageMonster(R, m, dmg, kx = 0, ky = 0, knock = 0, color = "#ff
   if (m.hidden > 0) return 0;
   const st = R.hero.stats;
   const crit = R.rng() < st.crit;
-  const real = Math.max(1, Math.round(dmg * st.dmgMul * (0.9 + R.rng() * 0.2) * (crit ? 2 : 1)));
+  const still = R.relics.includes("pilgrim") && R.hero.stillT > 45 ? 1.4 : 1;
+  const real = Math.max(1, Math.round(dmg * st.dmgMul * still * (0.9 + R.rng() * 0.2) * (crit ? 2 : 1)));
   m.hp -= real;
   m.hitFlash = 6;
   m.lastSrc = src;
@@ -203,10 +207,15 @@ export function nearestMonsters(R, n, maxD, fromX = heroX(R), fromY = heroY(R)) 
 }
 
 // ── The hero getting hurt ────────────────────────────────────────────────
-export function hurtHero(R, dmg, sx, sy) {
+export function hurtHero(R, dmg, sx, sy, src) {
   const h = R.hero;
   if (R.phase !== "play" || h.iframes > 0 || h.hp <= 0 || h.dig > 0 || h.sanct > 0) return;
-  const real = Math.max(1, Math.round(dmg - h.stats.armor));
+  const real = Math.max(1, Math.round(dmg * (R.relics.includes("bloodseal") ? 1.2 : 1) - h.stats.armor));
+  // The Thorned Shroud answers every touch.
+  if (src?.alive && R.relics.includes("thorns")) {
+    const dx = src.body.position.x - heroX(R), dy = src.body.position.y - heroY(R), d = hyp(dx, dy);
+    damageMonster(R, src, real * 2 + 10, dx / d, dy / d, 260, "#c8a0ff", "thorns");
+  }
   h.hp -= real;
   h.iframes = 30;
   h.hitFlash = 8;
@@ -218,6 +227,13 @@ export function hurtHero(R, dmg, sx, sy) {
   if (sx !== undefined) {
     const dx = heroX(R) - sx, dy = heroY(R) - sy, d = hyp(dx, dy);
     h.body.applyImpulse(new Vec2((dx / d) * 90 * h.body.mass, (dy / d) * 90 * h.body.mass));
+  }
+  // The Martyr's Candle: a burst of the old sun when you are nearly gone.
+  if (h.hp > 0 && h.hp < h.maxHp * 0.3 && R.relics.includes("martyr") && R.frame > R.martyrT) {
+    R.martyrT = R.frame + 60 * 60;
+    h.hp = Math.min(h.maxHp, h.hp + 20);
+    R.banner("b_martyr", "#ffd166", 90);
+    explode(R, heroX(R), heroY(R), 380, 140, 0xffd166, false, "martyr");
   }
   if (h.hp <= 0) R.heroDown();
 }

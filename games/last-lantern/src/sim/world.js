@@ -1,5 +1,5 @@
 import { Body, BodyType, Vec2, Circle, Polygon, Material, InteractionFilter } from "@newkrok/nape-js";
-import { mulberry, G_SOLID, G_PROP, G_HERO, G_MON, G_THROWN, S_PROP } from "../config.js";
+import { mulberry, G_SOLID, G_PROP, G_HERO, G_MON, G_THROWN, G_CENSER, S_PROP } from "../config.js";
 
 // ── Arenas ───────────────────────────────────────────────────────────────
 // Every stage is a walled rectangle dressed with static obstacles the crowd
@@ -9,7 +9,7 @@ import { mulberry, G_SOLID, G_PROP, G_HERO, G_MON, G_THROWN, S_PROP } from "../c
 // same every run and the renderer can build its meshes from the same list.
 
 const F_SOLID = () => new InteractionFilter(G_SOLID, ~0, 1 << 20, 0);
-const F_PROP = () => new InteractionFilter(G_PROP, G_HERO | G_MON | G_SOLID | G_PROP | G_THROWN, S_PROP, 0);
+const F_PROP = () => new InteractionFilter(G_PROP, G_HERO | G_MON | G_SOLID | G_PROP | G_THROWN | G_CENSER, S_PROP, 0);
 
 export function buildWorld(space, stage) {
   const [W, H] = stage.world;

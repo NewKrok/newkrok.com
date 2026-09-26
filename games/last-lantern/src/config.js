@@ -27,6 +27,7 @@ export const G_SPIT = 1 << 5;
 export const G_ORB = 1 << 6;
 export const G_PROP = 1 << 7;         // loose crates, barrels, pews
 export const G_THROWN = 1 << 8;       // a monster hurled by the grave hook
+export const G_CENSER = 1 << 9;       // the swinging censer
 export const S_HERO = 1 << 10;
 export const S_MON = 1 << 11;
 export const S_SPIT = 1 << 12;

@@ -38,7 +38,8 @@ export const EN = {
   card_gold: "A pouch of embers", card_goldDesc: "+10 embers", card_heal: "Bread and wine", card_healDesc: "Restore 30 health",
   evoHint: "Evolves with {p} at max level",
   st_dmg: "Damage", st_range: "Reach", st_cd: "Cooldown", st_arcs: "Lashes", st_width: "Width", st_n: "Count", st_pierce: "Pierce",
-  st_radius: "Radius", st_knock: "Knockback", st_speed: "Speed", st_chain: "Chains", st_dur: "Duration",
+  st_radius: "Radius", st_knock: "Knockback", st_speed: "Speed", st_chain: "Chains", st_dur: "Duration", st_blast: "Burst", st_reach: "Throw",
+  relicTag: "Relic", relics: "Relics", boostLine: "The lit beacons lend you strength: +{n} levels", boostIntro: "You start with {n} extra levels",
   chestTitle: "A chest!", chestEvolve: "{a} became {b}!", chestItems: "Inside:", chestGold: "+{n} embers", chestOk: "Take it",
   // Pause / results.
   paused: "Paused", resume: "Resume", restart: "Restart", abandon: "Abandon the run", mainMenu: "Main menu",
@@ -49,7 +50,7 @@ export const EN = {
   // Banners.
   b_start: "SURVIVE UNTIL THE KEEPER COMES", b_dead: "THE NIGHT TAKES YOU", b_beacon: "THE BEACON IS LIT", b_revive: "THE EMBER REKINDLES",
   b_bossDown: "THE KEEPER FALLS", b_eliteDown: "ELITE SLAIN", b_magnet: "MAGNET", b_flare: "SUNBURST", b_freeze: "TIME STANDS STILL",
-  b_king2: "THE KING DRAWS HIS SCYTHES", b_king3: "ECLIPSE",
+  b_martyr: "THE CANDLE FLARES", b_king2: "THE KING DRAWS HIS SCYTHES", b_king3: "ECLIPSE",
   ev_ring: "THEY SURROUND YOU", ev_wall: "A WALL OF THE DEAD", ev_pack: "THE PACK HUNTS", ev_elite: "AN ELITE APPROACHES",
   ev_ring_crow: "A MURDER OF CROWS", ev_ring_shambler: "THE GRAVES OPEN", ev_ring_banshee: "THE BANSHEES WAIL", ev_wall_gravebound: "A WALL OF BONE",
   ev_ring_leech: "THE WATER BOILS WITH LEECHES", ev_wall_drowned: "THE DROWNED RISE", ev_ring_bogslime: "THE BOG HEAVES", ev_ring_wisp: "LIGHTS IN THE MARSH",
@@ -99,13 +100,21 @@ EN.weapons = {
   wrath: ["Wrath of Heaven", "Evolved. Six strikes at once, each chaining three times."],
   font: ["Font of Dawn", "Evolved. Four wide, long-burning pools."],
   reaper: ["Reaper's Chain", "Evolved. Four monsters at a time, and they explode where they land."],
+  wisps: ["Will-o'-Wisp Lanterns", "Little flames that curve after the nearest monster and burst where they strike."],
+  choir: ["Choir of Wisps", "Evolved. Five wisps at a time; each bursts, then hunts another."],
+  sickle: ["Reaper's Sickle", "Thrown at the nearest monster, it slows, turns and comes back, cutting through everything both ways."],
+  harvest: ["Harvest Moon", "Evolved. Four great sickles in every direction."],
+  censer: ["Swinging Censer", "A heavy censer on a chain swings round you and bowls the crowd over; from level 3 it trails slowing incense."],
+  thurible: ["Thurible of Dawn", "Evolved. Two censers, a wider swing, and incense that burns."],
+  raven: ["Raven Familiar", "A raven circles over you, dives at the strongest monster near and fetches far-off soul gems."],
+  unkindness: ["An Unkindness of Ravens", "Evolved. Four ravens whose dives burst on impact."],
 };
 
 EN.passives = {
   boots: ["Swift Boots", "+8% move speed"], heart: ["Hollow Heart", "+15 max health"], magnet: ["Lodestone", "+30% pickup range"],
   tome: ["Dusty Tome", "−7% cooldowns"], fist: ["Iron Fist", "+10% damage"], plate: ["Grave Plate", "−1 damage taken"],
   root: ["Mandrake Root", "+0.3 health per second"], oil: ["Lamp Oil", "+10% area"], clover: ["Four-leaf Clover", "+10% luck and crits"],
-  quiver: ["Deep Quiver", "+1 projectile for every weapon"],
+  quiver: ["Deep Quiver", "+1 projectile for every weapon"], chrism: ["Chrism Vial", "+15% duration, +10% projectile speed"], feather: ["Raven Feather", "+10% experience"],
 };
 
 // Stages: name, place, intro, outro.
@@ -135,6 +144,17 @@ EN.story = {
     "Five beacons stand between the town and the cathedral. Light them, and the night goes back a step. Light them all, and you can take back the dawn.",
   ],
   ending: "The sun rises over Emberhollow. You blow out your lantern. You won't need it now.",
+};
+
+EN.relics = {
+  martyr: ["Martyr's Candle", "Below 30% health, a burst of the old sun heals you and scorches everything near. Once a minute."],
+  ravenskull: ["Raven Skull", "A chest for every 150 monsters slain."],
+  bloodseal: ["Blood Moon Seal", "+30% damage, but you take 20% more."],
+  pilgrim: ["Pilgrim's Staff", "Stand still for a moment: +40% damage. On the move: +10% speed."],
+  hourglass: ["Cracked Hourglass", "−25% cooldowns, −20% max health."],
+  saintsbone: ["Saint's Knucklebone", "Come back once at half health."],
+  thorns: ["Thorned Shroud", "Whatever touches you takes twice the damage back and is thrown off."],
+  mirror: ["Moon Mirror", "Projectiles have a 25% chance to fire twice."],
 };
 
 EN.monsters = {

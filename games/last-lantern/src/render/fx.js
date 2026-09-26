@@ -48,6 +48,24 @@ export class Fx {
     this.spades = inst(scene, GEO.box, new T.MeshStandardMaterial({ color: 0xc9d4e0, metalness: 0.85, roughness: 0.3, emissive: 0x303a48 }), 12, false);
     this.spadeGlow = inst(scene, GEO.plane, add({ map: glow, color: 0xb0c8ff, opacity: 0.45 }), 12, false);
     this.parts = inst(scene, GEO.box, add({}), 640);
+    // Wisps: a hot core in a soft flame glow.
+    this.wisps = inst(scene, GEO.sph, add({ color: 0xfff0c0 }), 120, false);
+    this.wispGlow = inst(scene, GEO.plane, add({ map: glow, color: 0xff9a40, opacity: 0.9 }), 120, false);
+    // Sickles: a curved blade that spins.
+    this.sickles = inst(scene, new T.TorusGeometry(1, 0.13, 3, 14, Math.PI * 1.25), new T.MeshStandardMaterial({ color: 0xd8e0e8, metalness: 0.85, roughness: 0.25, emissive: 0x303844, flatShading: true }), 40, false);
+    this.sickleHafts = inst(scene, GEO.box, new T.MeshStandardMaterial({ color: 0x4a3020, roughness: 0.7 }), 40, false);
+    // The censer and its chain.
+    const brass = new T.MeshStandardMaterial({ color: 0xb08a40, metalness: 0.8, roughness: 0.3, flatShading: true });
+    this.censers = inst(scene, new T.IcosahedronGeometry(1, 1), brass, 4, false);
+    this.censerCaps = inst(scene, GEO.cone, brass, 4, false);
+    this.censerGlow = inst(scene, GEO.plane, add({ map: glow, color: 0xffa050, opacity: 0.7 }), 4, false);
+    this.links = inst(scene, GEO.torus, new T.MeshStandardMaterial({ color: 0x6a6070, metalness: 0.8, roughness: 0.4 }), 80, false);
+    // Ravens: body, head, beak and two flapping wings.
+    const black = new T.MeshLambertMaterial({ color: 0x1a1a24, flatShading: true });
+    this.ravenBody = inst(scene, new T.IcosahedronGeometry(1, 0), black, 6, false);
+    this.ravenWing = inst(scene, new T.BoxGeometry(1, 1, 1).translate(0.5, 0, 0), black, 12, false);
+    this.ravenBeak = inst(scene, GEO.coneFwd, new T.MeshLambertMaterial({ color: 0x8a8070 }), 6, false);
+    this.ravenEye = inst(scene, GEO.sph, new T.MeshBasicMaterial({ color: 0xffd060 }), 12, false);
     this.globs = inst(scene, GEO.sph, new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 }), 40);
     this.pools = inst(scene, GEO.disc, add({ opacity: 0.35 }), 80);
     this.poolRings = inst(scene, GEO.thinRing, add({ opacity: 0.6 }), 80);
@@ -133,10 +151,26 @@ export class Fx {
     for (const k of Object.keys(this.pick)) this.done(this.pick[k], (cnt[k] ?? -1) + 1);
     this.done(this.pickGlow, ng);
     // Bolts and knives.
-    let nb = 0, nk = 0;
+    let nb = 0, nk = 0, nb2 = 0, ns2 = 0;
     for (const s of R.shots) {
       if (!s.body) continue;
       const p = s.body.position;
+      if (s.kind === "wisp") {
+        if (nb2 >= 120) continue;
+        const f = 1 + Math.sin(time * 30 + nb2) * 0.15;
+        this.set(this.wisps, nb2, p.x, p.y, 18, 0, 3.4 * f, 3.4 * f, 4.2 * f);
+        this.glow(this.wispGlow, nb2, p.x, p.y, 18, 34 * f);
+        nb2++;
+        continue;
+      }
+      if (s.kind === "sickle") {
+        if (ns2 >= 40) continue;
+        const spin = -time * 16 - ns2, sc = s.r * 1.25;
+        this.set(this.sickles, ns2, p.x, p.y, 16, spin, sc, sc, sc);
+        this.set(this.sickleHafts, ns2, p.x - Math.cos(-spin) * sc * 0.2, p.y + Math.sin(-spin) * sc * 0.2, 16, spin + Math.PI / 2, 2.4, sc * 0.9, 2.4);
+        ns2++;
+        continue;
+      }
       if (s.kind === "bolt") {
         if (nb >= 160) continue;
         const big = s.blast ? 1.5 : 1;
@@ -149,6 +183,47 @@ export class Fx {
       }
     }
     this.done(this.bolts, nb); this.done(this.boltGlow, nb); this.done(this.knives, nk);
+    this.done(this.wisps, nb2); this.done(this.wispGlow, nb2); this.done(this.sickles, ns2); this.done(this.sickleHafts, ns2);
+    // The censer on its chain.
+    let nc = 0, nk2 = 0;
+    const hp = R.hero.body.position;
+    for (const c of R.censers) {
+      if (c.hidden || nc >= 4) continue;
+      const p = c.body.position;
+      const swing = Math.sin(time * 9 + nc) * 0.3;
+      this.set(this.censers, nc, p.x, p.y, 20, time * 3, 10, 10, 9);
+      this.set(this.censerCaps, nc, p.x, p.y, 30, 0, 7, 7, 7);
+      this.glow(this.censerGlow, nc, p.x, p.y, 22, 46);
+      const L = Math.hypot(p.x - hp.x, p.y - hp.y), n = Math.min(18, Math.max(4, Math.round(L / 9)));
+      for (let k = 1; k < n && nk2 < 80; k++) {
+        const t = k / n, x = hp.x + (p.x - hp.x) * t, y = hp.y + (p.y - hp.y) * t, z = 26 - Math.sin(t * Math.PI) * 4;
+        this.set(this.links, nk2, x, y, z, -Math.atan2(p.y - hp.y, p.x - hp.x), 3.2, 3.2, 3.2, k % 2 ? Math.PI / 2 + swing : swing);
+        nk2++;
+      }
+      nc++;
+    }
+    this.done(this.censers, nc); this.done(this.censerCaps, nc); this.done(this.censerGlow, nc); this.done(this.links, nk2);
+    // Ravens.
+    let nr = 0;
+    for (const rv of R.ravens) {
+      if (nr >= 6) break;
+      const f = rv.face ?? 0, flap = Math.sin(time * 18 + nr) * 0.8, z = rv.z;
+      this.d.position.set(rv.x, -rv.y, z); this.d.rotation.set(0, 0, -f); this.d.scale.set(9, 5, 4.5); this.d.updateMatrix(); this.ravenBody.setMatrixAt(nr, this.d.matrix);
+      const fx = Math.cos(f), fy = Math.sin(f);
+      this.d.position.set(rv.x + fx * 9, -(rv.y + fy * 9), z + 2); this.d.rotation.set(0, 0, -f - Math.PI / 2); this.d.scale.set(1.6, 6, 1.6); this.d.updateMatrix(); this.ravenBeak.setMatrixAt(nr, this.d.matrix);
+      for (const side of [-1, 1]) {
+        this.d.position.set(rv.x, -rv.y, z + 1);
+        this.d.rotation.set(0, 0, 0);
+        this.d.quaternion.setFromEuler(new T.Euler(side * flap, 0, -f - Math.PI / 2 + (side < 0 ? Math.PI : 0), "ZYX"));
+        this.d.scale.set(14, 6, 0.8); this.d.updateMatrix();
+        this.ravenWing.setMatrixAt(nr * 2 + (side > 0 ? 1 : 0), this.d.matrix);
+        this.d.quaternion.identity();
+        this.d.position.set(rv.x + fx * 6 - fy * side * 2.2, -(rv.y + fy * 6 + fx * side * 2.2), z + 3.2); this.d.scale.set(1.1, 1.1, 1.1); this.d.updateMatrix();
+        this.ravenEye.setMatrixAt(nr * 2 + (side > 0 ? 1 : 0), this.d.matrix);
+      }
+      nr++;
+    }
+    this.done(this.ravenBody, nr); this.done(this.ravenBeak, nr); this.done(this.ravenWing, nr * 2); this.done(this.ravenEye, nr * 2);
     // Monster spit.
     let ns = 0, na = 0;
     for (const sp of R.spits) {
@@ -206,13 +281,13 @@ export class Fx {
     for (const z of R.zones) {
       if (z.life === undefined || nz >= 80) continue;
       const fade = Math.min(1, z.life / 30, ((z.T ?? z.life) - z.life + 1) / 10);
-      const col = z.kind === "holy" ? 0x3aa8e0 : z.kind === "fire" ? 0xff6a20 : 0x3a5a2a;
+      const col = z.kind === "holy" ? 0x3aa8e0 : z.kind === "fire" ? 0xff6a20 : z.kind === "smoke" ? 0x8a7a9a : 0x3a5a2a;
       const r = z.r * (z.kind === "holy" ? 0.9 + 0.1 * Math.sin(time * 6 + z.x) : 1);
       this.set(this.pools, nz, z.x, z.y, 1.2 + nz * 0.01, 0, r, r, 1);
-      this.c.setHex(col).multiplyScalar(fade * (z.kind === "mud" ? 0.6 : 1));
+      this.c.setHex(col).multiplyScalar(fade * (z.kind === "mud" ? 0.6 : z.kind === "smoke" ? 0.28 : 1));
       this.pools.setColorAt(nz, this.c);
       this.set(this.poolRings, nz, z.x, z.y, 1.4, 0, r, r, 1);
-      this.c.setHex(z.kind === "holy" ? 0xb8f0ff : z.kind === "fire" ? 0xffc070 : 0x5a7a3a).multiplyScalar(fade);
+      this.c.setHex(z.kind === "holy" ? 0xb8f0ff : z.kind === "fire" ? 0xffc070 : z.kind === "smoke" ? 0x2a2432 : 0x5a7a3a).multiplyScalar(fade);
       this.poolRings.setColorAt(nz, this.c);
       nz++;
     }

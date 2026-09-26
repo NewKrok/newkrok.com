@@ -17,7 +17,7 @@ export function saveSettings(s) { write(KEY_SETTINGS, s); }
 
 const blank = () => ({
   embers: 0, hearth: {}, cleared: [], clearedBlood: [], best: [],
-  totalKills: 0, maxLevel: 0, runs: 0, seenMonsters: [], seenWeapons: [], storyRead: 0,
+  totalKills: 0, maxLevel: 0, runs: 0, seenMonsters: [], seenWeapons: [], seenRelics: [], storyRead: 0,
 });
 export function loadProgress() { return { ...blank(), ...(read(KEY_PROGRESS) ?? {}) }; }
 export function saveProgress(p) { write(KEY_PROGRESS, p); }
@@ -52,6 +52,8 @@ export function recordRun(p, s) {
   if (!b || s.won && !b.won || (s.won === !!b.won && s.time > b.time)) p.best[s.stage] = { time: Math.round(s.time), kills: s.kills, won: s.won };
   for (const id of s.monstersSeen || []) if (!p.seenMonsters.includes(id)) p.seenMonsters.push(id);
   for (const id of s.weaponsSeen || []) if (!p.seenWeapons.includes(id)) p.seenWeapons.push(id);
+  p.seenRelics = p.seenRelics || [];
+  for (const id of s.relicsSeen || []) if (!p.seenRelics.includes(id)) p.seenRelics.push(id);
   saveProgress(p);
   const unlocked = [];
   for (const h of HEROES) if (heroUnlocked(p, h) && !before.heroes.includes(h.id)) unlocked.push({ kind: "hero", id: h.id });

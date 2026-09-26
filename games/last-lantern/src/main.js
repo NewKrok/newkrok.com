@@ -2,7 +2,7 @@ import { DT, FPS, fmtSec, clamp } from "./config.js";
 import { createRun, runSummary } from "./sim/run.js";
 import { spawnMonster } from "./sim/core.js";
 import { STAGES } from "./data/stages.js";
-import { HEROES, HEARTH, hearthCost, WEAPON_IDS, WEAPON_META, PASSIVE_IDS } from "./data/meta.js";
+import { HEROES, HEARTH, hearthCost, WEAPON_IDS, WEAPON_META, PASSIVE_IDS, RELIC_IDS } from "./data/meta.js";
 import { MON } from "./data/monsters.js";
 import { Scene3D } from "./render/scene.js";
 import { Hud } from "./hud.js";
@@ -15,7 +15,7 @@ import {
   unlockedWeapons, recordRun,
 } from "./storage.js";
 import {
-  t, setLang, detectLang, getLang, LANGS, heroText, weaponText, passiveText, stageText, monsterName, storyText, applyDom,
+  t, setLang, detectLang, getLang, LANGS, heroText, weaponText, passiveText, stageText, monsterName, storyText, applyDom, relicText,
 } from "./i18n/index.js";
 
 // ── Last Lantern ─────────────────────────────────────────────────────────
@@ -178,6 +178,7 @@ function openIntro() {
   bind("introText", tx.intro);
   bind("introBoss", t("bossAt", { t: fmtSec(s.bossAt) }));
   bind("introBlood", blood ? t("bloodMoon") : "");
+  bind("introBoost", s.index > 0 ? t("boostIntro", { n: s.index * 2 }) : "");
   G.phase = "intro";
   showScreen("intro");
 }
@@ -230,6 +231,7 @@ function fmtStat(k, v) {
   if (k === "dur") return `${(v / FPS).toFixed(1)}s`;
   if (k === "width") return `${Math.round(v * 115)}°`;
   if (k === "speed") return v.toFixed(1);
+  if (k === "reach") return `${(v / FPS).toFixed(2)}s`;
   if (k === "pierce" && v >= 99) return "∞";
   return String(Math.round(v * 10) / 10);
 }
@@ -244,7 +246,8 @@ function showLevelUp() {
   $("[data-action=banish]").disabled = R.banishes <= 0;
   G.banishMode = false;
   $("#levelup").classList.remove("banish-mode");
-  bind("lvSub", R.levelUpQueue > 1 ? `${t("chooseOne")} · ×${R.levelUpQueue}` : t("chooseOne"));
+  const boost = R.startBoost && R.clock < 90 ? `${t("boostLine", { n: R.startBoost })} · ` : "";
+  bind("lvSub", boost + (R.levelUpQueue > 1 ? `${t("chooseOne")} · ×${R.levelUpQueue}` : t("chooseOne")));
   showScreen("levelup");
 }
 function pickCard(i) {
@@ -267,6 +270,11 @@ function showChest() {
   const R = G.run, ch = R.chest;
   const nm = (id) => (WEAPON_META[id] ? weaponText(id).name : passiveText(id).name);
   const items = ch.items.map((it, k) => {
+    if (it.kind === "relic") {
+      track("relic", { relic: it.id, stage: R.stage.index + 1 });
+      const rt = relicText(it.id);
+      return `<div class="chest-item evo relic" style="animation-delay:${0.2 + k * 0.2}s"><img src="${iconURL(it.id, 64)}" alt=""><div><b>${esc(t("relicTag"))} · ${esc(rt.name)}</b><small>${esc(rt.desc)}</small></div></div>`;
+    }
     if (it.kind === "evolve") {
       track("evolve", { weapon: it.id, from: it.from, stage: R.stage.index + 1 });
       return `<div class="chest-item evo" style="animation-delay:${0.2 + k * 0.2}s"><img src="${iconURL(it.id, 64)}" alt=""><div><b>${esc(t("chestEvolve", { a: nm(it.from), b: nm(it.id) }))}</b><small>${esc(weaponText(it.id).desc)}</small></div></div>`;
@@ -290,7 +298,7 @@ function closeChest() {
 // ── Pause ────────────────────────────────────────────────────────────────
 function renderPause() {
   const R = G.run;
-  const belt = [...R.hero.weapons.map((w) => [w.id, w.evolved ? "★" : w.level, weaponText(w.id).name]), ...Object.entries(R.hero.passives).map(([id, lv]) => [id, lv, passiveText(id).name])];
+  const belt = [...R.hero.weapons.map((w) => [w.id, w.evolved ? "★" : w.level, weaponText(w.id).name]), ...Object.entries(R.hero.passives).map(([id, lv]) => [id, lv, passiveText(id).name]), ...R.relics.map((id) => [id, "◆", `${relicText(id).name} — ${relicText(id).desc}`])];
   $("#pause .pause-belt").innerHTML = belt.map(([id, lv, name]) => `<span title="${esc(name)}"><img src="${iconURL(id, 40)}" alt="">${lv}</span>`).join("");
 }
 function pause() {
@@ -313,6 +321,7 @@ function finishRun() {
   const s = runSummary(R);
   s.monstersSeen = [...new Set(R.seenIds)];
   s.weaponsSeen = [...R.weaponsSeen];
+  s.relicsSeen = [...(R.relicsSeen || [])];
   const unlocked = recordRun(progress, s);
   track("run_end", { stage: s.stage + 1, hero: s.hero, blood: s.blood, won: s.won, time_s: Math.round(s.time), kills: s.kills, level: s.level, embers: s.embers, weapons: s.weapons.map((w) => w.id).join(",") });
   for (const u of unlocked) track("unlock", { kind: u.kind, id: u.id });
@@ -398,7 +407,11 @@ function renderJournal() {
       return `<div class="jcell ${open ? "" : "unseen"}"><img src="${iconURL(open ? id : "lock", 48)}" alt=""><div>${esc(open ? weaponText(id).name : "???")}<small>${esc(sub)}</small></div></div>`;
     });
     const pas = PASSIVE_IDS.map((id) => `<div class="jcell"><img src="${iconURL(id, 48)}" alt=""><div>${esc(passiveText(id).name)}<small>${esc(passiveText(id).desc)}</small></div></div>`);
-    root.innerHTML = `<h3>${esc(t("arsenal"))}</h3><div class="jgrid">${cells.join("")}</div><h3>—</h3><div class="jgrid">${pas.join("")}</div>`;
+    const rel = RELIC_IDS.map((id) => {
+      const seen = (progress.seenRelics || []).includes(id), rt = relicText(id);
+      return `<div class="jcell ${seen ? "" : "unseen"}"><img src="${iconURL(seen ? id : "lock", 48)}" alt=""><div>${esc(seen ? rt.name : "???")}<small>${esc(seen ? rt.desc : t("notSeen"))}</small></div></div>`;
+    });
+    root.innerHTML = `<h3>${esc(t("arsenal"))}</h3><div class="jgrid">${cells.join("")}</div><h3>—</h3><div class="jgrid">${pas.join("")}</div><h3>${esc(t("relics"))}</h3><div class="jgrid">${rel.join("")}</div>`;
   }
 }
 function unlockText(rule) {

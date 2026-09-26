@@ -38,10 +38,12 @@ const brake = (m, k = 0.8) => { const v = m.body.velocity; m.body.velocity = new
 
 // Surfaces under a walker: mud pools slow, ash beds a little.
 function surfaceSlow(R, m) {
-  if (m.def.fly || m.def.ghost || m.def.boss) return 1;
+  if (m.def.boss) return 1;
   const p = m.body.position;
   let s = 1;
   for (const z of R.zones) {
+    if (z.kind === "smoke") { const dx = p.x - z.x, dy = p.y - z.y; if (dx * dx + dy * dy < z.r * z.r) s = Math.min(s, 0.5); continue; }
+    if (m.def.fly || m.def.ghost) continue;
     if (z.kind !== "mud" && z.kind !== "ash") continue;
     const dx = p.x - z.x, dy = p.y - z.y;
     if (dx * dx + dy * dy < z.r * z.r) s = Math.min(s, z.kind === "mud" ? 0.55 : 0.82);
@@ -448,7 +450,7 @@ export function contactDamage(R) {
   for (const m of R.monsters) {
     if (m.alive && m.touchFrame === R.frame - 1 && m.hidden <= 0 && (!best || m.def.dmg > best.def.dmg)) best = m;
   }
-  if (best) hurtHero(R, best.def.dmg * R.dmgMul, best.body.position.x, best.body.position.y);
+  if (best) hurtHero(R, best.def.dmg * R.dmgMul, best.body.position.x, best.body.position.y, best);
   // Scythes and burning ground.
   const hx = heroX(R), hy = heroY(R);
   for (const z of R.hazards) {
