@@ -33,7 +33,7 @@ export const STAGES = [
     hpMul: 1.9, dmgMul: 1.55, rate: 1.2,
     mix: [
       ["leech", 0, 6, 3], ["drowned", 0, 5, 4], ["toad", 60, 1.2, 1.8],
-      ["bogslime", 100, 1, 1.6], ["wisp", 150, 0.8, 1.4], ["mirebrute", 170, 0.5, 1.1], ["bogwitch", 70, 0.5, 0.9],
+      ["bogslime", 100, 1, 1.6], ["wisp", 150, 0.8, 1.4], ["mirebrute", 200, 0.3, 0.6], ["bogwitch", 70, 0.5, 0.9],
     ],
     events: [
       [55, "ring", "leech", 48], [110, "elite", "sentinel", 1], [160, "wall", "drowned", 40],

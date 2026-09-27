@@ -7,6 +7,7 @@ import {
   clamp, lerp, hyp, mulberry, xpFor,
 } from "../config.js";
 import { STAGES, BLOOD } from "../data/stages.js";
+import { MON } from "../data/monsters.js";
 import { HEROES, ACTIVES, WEAPON_IDS, PASSIVE_IDS, WEAPON_META, RELIC_IDS, MAX_RELICS } from "../data/meta.js";
 import { buildWorld } from "./world.js";
 import {
@@ -423,12 +424,19 @@ function tickSpawns(R) {
   for (const m of R.monsters) if (m.alive && !m.def.prop) alive++;
   if (alive >= MAX_MON) rate = 0;
   R.spawnAcc += rate * DT;
+  // Types with a cap (brutes, healers, shooters: the kinds that pile up
+  // because they are slow to die or hang back) sit out while at it.
+  const count = {};
+  if (R.spawnAcc >= 1) for (const m of R.monsters) if (m.alive) count[m.id] = (count[m.id] || 0) + 1;
   const w = [];
-  for (const [id, from, w0, w1] of st.mix) if (sec >= from) w.push([id, lerp(w0, w1, t)]);
-  while (R.spawnAcc >= 1 && alive < MAX_MON) {
+  for (const [id, from, w0, w1] of st.mix) if (sec >= from && !(MON[id].cap && (count[id] || 0) >= MON[id].cap)) w.push([id, lerp(w0, w1, t)]);
+  while (R.spawnAcc >= 1 && alive < MAX_MON && w.length) {
     R.spawnAcc -= 1;
     const s = spawnPoint(R);
-    spawnMonster(R, weightedPick(R, w), s.x, s.y);
+    const id = weightedPick(R, w);
+    spawnMonster(R, id, s.x, s.y);
+    count[id] = (count[id] || 0) + 1;
+    if (MON[id].cap && count[id] >= MON[id].cap) w.splice(w.findIndex((e) => e[0] === id), 1);
     alive++;
   }
   // Scripted events.
