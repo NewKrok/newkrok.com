@@ -159,11 +159,11 @@ export const WEAPONS = {
   // A raven companion: it circles over you, dives at the strongest monster
   // near, and fetches soul gems from far away.
   raven: {
-    stats: (lv) => ({ dmg: 28 + lv * 10, n: 1 + (lv >= 4 ? 1 : 0) + (lv >= 7 ? 1 : 0), cd: 96 - lv * 6 }),
+    stats: (lv) => ({ dmg: 44 + lv * 16, n: 1 + (lv >= 4 ? 1 : 0) + (lv >= 7 ? 1 : 0), cd: 60 - lv * 4 }),
     tick(R, w, s) { tickRavens(R, w, s, false); },
   },
   unkindness: {
-    stats: () => ({ dmg: 70, n: 4, cd: 42 }),
+    stats: () => ({ dmg: 110, n: 4, cd: 30 }),
     tick(R, w, s) { tickRavens(R, w, s, true); },
   },
 };
@@ -546,18 +546,31 @@ export function clearCensers(R) {
   R.censers.length = 0;
 }
 
+// Birds with momentum: steer toward a wanted velocity, but never change
+// speed or heading faster than `acc` px/frame² allows.
+function flyToward(rv, tx, ty, speed, acc) {
+  const dx = tx - rv.x, dy = ty - rv.y, d = hyp(dx, dy);
+  const sp = Math.min(speed, d * 0.12 + speed * 0.25);
+  const wx = dx / d * sp - rv.vx, wy = dy / d * sp - rv.vy, wl = hyp(wx, wy);
+  const k = Math.min(1, acc / wl);
+  rv.vx += wx * k; rv.vy += wy * k;
+  return d;
+}
+
 function tickRavens(R, w, s, flock) {
   const h = R.hero, hx = heroX(R), hy = heroY(R);
   const n = s.n + (flock ? 0 : h.stats.amount);
-  while (R.ravens.length < n) R.ravens.push({ x: hx, y: hy, z: 70, vx: 0, vy: 0, a: R.rng() * 6.28, state: "circle", cd: 30 + R.ravens.length * 20, target: null, gem: null });
+  while (R.ravens.length < n) R.ravens.push({ x: hx, y: hy, z: 70, vx: 0, vy: 0, a: R.rng() * 6.28, state: "circle", cd: 30 + R.ravens.length * 20, target: null, gem: null, fp: 0, t: 0 });
   while (R.ravens.length > n) R.ravens.pop();
   const cd = Math.max(20, Math.round(s.cd * h.stats.cdMul));
   R.ravens.forEach((rv, i) => {
-    rv.a += 0.035 * (i % 2 ? -1 : 1);
+    rv.t++;
     if (rv.state === "circle") {
-      const tx = hx + Math.cos(rv.a + i) * 46, ty = hy + Math.sin(rv.a + i) * 46;
-      rv.vx += (tx - rv.x) * 0.08; rv.vy += (ty - rv.y) * 0.08; rv.vx *= 0.8; rv.vy *= 0.8;
-      rv.z += (70 - rv.z) * 0.1;
+      // A slow, wide glide over the hero.
+      rv.a += 0.016 * (i % 2 ? -1 : 1);
+      const tx = hx + Math.cos(rv.a + i * 1.7) * 62, ty = hy + Math.sin(rv.a + i * 1.7) * 62;
+      flyToward(rv, tx, ty, 5, 0.18);
+      rv.z += (72 - rv.z) * 0.04;
       if (--rv.cd <= 0) {
         // The boss or an elite first, else the toughest monster near.
         let best = null, score = 0;
@@ -568,7 +581,7 @@ function tickRavens(R, w, s, flock) {
           const sc = (m.def.boss ? 1e6 : m.def.elite ? 1e5 : m.hp) / (1 + d / 200);
           if (sc > score) { score = sc; best = m; }
         }
-        if (best) { rv.state = "dive"; rv.target = best; }
+        if (best) { rv.state = "dive"; rv.target = best; rv.t = 0; }
         else {
           // Nothing to hit: fetch the furthest gem out of reach.
           let g = null, gd = h.stats.magnet;
@@ -579,26 +592,41 @@ function tickRavens(R, w, s, flock) {
       }
     } else if (rv.state === "dive") {
       const m = rv.target;
-      if (!m?.alive) { rv.state = "circle"; rv.cd = 20; return; }
-      const q = m.body.position, dx = q.x - rv.x, dy = q.y - rv.y, d = hyp(dx, dy);
-      rv.vx = dx / d * 720 * DT; rv.vy = dy / d * 720 * DT;
-      rv.z = Math.max(8, rv.z - 4);
-      if (d < m.def.r + 10) {
-        damageMonster(R, m, s.dmg, dx / d, dy / d, 160, "#b8b8e0", w.id);
+      if (!m?.alive) { rv.state = "return"; rv.t = 0; return; }
+      // The dive gathers speed: a short wind-up, then a fast stoop.
+      const q = m.body.position;
+      const speed = Math.min(12, 4 + rv.t * 0.35);
+      const d = flyToward(rv, q.x, q.y, speed, 0.9);
+      rv.z = Math.max(8, rv.z - 1.6 - rv.t * 0.05);
+      if (d < m.def.r + 12) {
+        const dx = q.x - rv.x, dy = q.y - rv.y, dd = hyp(dx, dy);
+        damageMonster(R, m, s.dmg, dx / dd, dy / dd, 160, "#b8b8e0", w.id);
         if (flock) explode(R, q.x, q.y, 50, s.dmg * 0.4, 0x8a8aa8, false, w.id);
         burst(R, q.x, q.y, 6, 0x2a2a3a, 2.4);
         R.sfx.push(["caw"]);
-        rv.state = "circle"; rv.cd = cd;
-      }
+        rv.state = "return"; rv.t = 0; rv.cd = cd;
+      } else if (rv.t > 120) { rv.state = "return"; rv.t = 0; }
+    } else if (rv.state === "return") {
+      // Pull up and glide home in a wide arc, slowing as it comes.
+      const tx = hx + Math.cos(rv.a + i * 1.7) * 62, ty = hy + Math.sin(rv.a + i * 1.7) * 62;
+      const d = flyToward(rv, tx, ty, 4.2, 0.12);
+      rv.z += (72 - rv.z) * 0.03;
+      if (d < 30) rv.state = "circle";
     } else {
       const g = rv.gem;
-      if (!g || !R.gems.includes(g) || g.pull) { rv.state = "circle"; rv.cd = 20; return; }
-      const dx = g.x - rv.x, dy = g.y - rv.y, d = hyp(dx, dy);
-      rv.vx = dx / d * 600 * DT; rv.vy = dy / d * 600 * DT;
-      if (d < 16) { g.pull = true; rv.state = "circle"; rv.cd = 20; }
+      if (!g || !R.gems.includes(g) || g.pull) { rv.state = "return"; rv.t = 0; return; }
+      const d = flyToward(rv, g.x, g.y, 8, 0.35);
+      rv.z += (40 - rv.z) * 0.05;
+      if (d < 18) { g.pull = true; rv.state = "return"; rv.t = 0; }
     }
     rv.x += rv.vx; rv.y += rv.vy;
-    rv.face = Math.atan2(rv.vy, rv.vx);
+    const sp = hyp(rv.vx, rv.vy);
+    if (sp > 0.3) {
+      const want = Math.atan2(rv.vy, rv.vx);
+      rv.face = rv.face === undefined ? want : rv.face + Math.atan2(Math.sin(want - rv.face), Math.cos(want - rv.face)) * 0.2;
+    }
+    // Wings beat hard when climbing or stooping, lazily when gliding.
+    rv.fp += rv.state === "circle" ? 0.12 + (rv.t % 90 < 30 ? 0.18 : 0) : rv.state === "dive" ? 0.1 : 0.32;
   });
 }
 

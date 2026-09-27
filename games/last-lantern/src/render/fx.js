@@ -207,7 +207,7 @@ export class Fx {
     let nr = 0;
     for (const rv of R.ravens) {
       if (nr >= 6) break;
-      const f = rv.face ?? 0, flap = Math.sin(time * 18 + nr) * 0.8, z = rv.z;
+      const f = rv.face ?? 0, flap = rv.state === "dive" ? -0.9 : Math.sin(rv.fp) * 0.8, z = rv.z;
       this.d.position.set(rv.x, -rv.y, z); this.d.rotation.set(0, 0, -f); this.d.scale.set(9, 5, 4.5); this.d.updateMatrix(); this.ravenBody.setMatrixAt(nr, this.d.matrix);
       const fx = Math.cos(f), fy = Math.sin(f);
       this.d.position.set(rv.x + fx * 9, -(rv.y + fy * 9), z + 2); this.d.rotation.set(0, 0, -f - Math.PI / 2); this.d.scale.set(1.6, 6, 1.6); this.d.updateMatrix(); this.ravenBeak.setMatrixAt(nr, this.d.matrix);
