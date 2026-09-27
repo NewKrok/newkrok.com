@@ -130,20 +130,24 @@ const AI = {
     else { const side = Math.sin(R.frame * 0.015 + m.wobble) > 0 ? 1 : -1; steer(m, p.x - dy * side, p.y + dx * side, 0.4); m.face = Math.atan2(dy, dx); }
     if (m.wind > 0) m.wind--;
     if (--m.spitCd <= 0) {
-      m.spitCd = 170 + Math.floor(R.rng() * 50);
+      m.spitCd = (m.def.healCd || 170) + Math.floor(R.rng() * 50);
+      const hr = m.def.healR || 170;
       let n = 0;
       for (const o of R.monsters) {
         if (!o.alive || o === m || o.def.prop || o.def.part || o.hp >= o.maxHp) continue;
+        // Mended at most once every few seconds, however many healers are near.
+        if ((o.healedAt || -1e9) > R.frame - 240) continue;
         const q = o.body.position;
-        if ((q.x - p.x) ** 2 + (q.y - p.y) ** 2 > 170 * 170) continue;
-        const heal = o.maxHp * (o.def.boss ? 0.02 : o.def.elite ? 0.08 : m.def.heal);
+        if ((q.x - p.x) ** 2 + (q.y - p.y) ** 2 > hr * hr) continue;
+        o.healedAt = R.frame;
+        const heal = o.maxHp * (o.def.boss ? m.def.heal * 0.08 : o.def.elite ? m.def.heal * 0.3 : m.def.heal);
         o.hp = Math.min(o.maxHp, o.hp + heal);
         particle(R, q.x, q.y, 0, 0, m.def.c3, 26, 2.6, o.def.r * 2, 70);
         if (heal > 30) floater(R, q.x, q.y - o.def.r - 6, `+${Math.round(heal)}`, "#9aff7a", 0.8);
         n++;
       }
       if (n) {
-        R.rings.push({ x: p.x, y: p.y, r: 10, max: 170, t: 0, T: 26, color: m.def.c3 });
+        R.rings.push({ x: p.x, y: p.y, r: 10, max: hr, t: 0, T: 26, color: m.def.c3 });
         m.wind = 20;
         R.sfx.push(["mend"]);
       }

@@ -26,7 +26,7 @@ export const MON = {
   bogling:  { r: 8,  hp: 14,   speed: 96,  dmg: 3,  xp: 1,  mass: 0.7, ai: "chase",  rig: "slime",    c: 0x6faa7a, c2: 0x3f7a4a },
   wisp:     { r: 9,  hp: 36,   speed: 120, dmg: 6,  xp: 3,  mass: 0.7, ai: "swoop",  rig: "wisp",     c: 0x9ff0c0, c2: 0x3fb080, ghost: true, fly: 14 },
   mirebrute:{ r: 23, hp: 220,  speed: 46,  dmg: 14, xp: 4,  mass: 4.5, ai: "chase",  rig: "brute",    c: 0x5a6a4a, c2: 0x3a4a2a, heavy: true },
-  bogwitch: { r: 12, hp: 70,   speed: 64,  dmg: 5,  xp: 4,  mass: 1.2, ai: "healer", rig: "witch",    c: 0x3a4a32, c2: 0x5a6a3a, c3: 0x9aff7a, heal: 0.25 },
+  bogwitch: { r: 12, hp: 70,   speed: 64,  dmg: 5,  xp: 4,  mass: 1.2, ai: "healer", rig: "witch",    c: 0x3a4a32, c2: 0x5a6a3a, c3: 0x9aff7a, heal: 0.07, healCd: 300, healR: 130 },
   sentinel: { r: 20, hp: 950,  speed: 86,  dmg: 16, xp: 12, mass: 6,   ai: "charger", rig: "knight",  c: 0x5f8a86, c2: 0x3a5a58, c3: 0x9fcf4a, elite: true },
   bogmother:{ r: 46, hp: 6400, speed: 58,  dmg: 24, xp: 40, mass: 45,  ai: "bogmother", rig: "bogmother", c: 0x4f6a3a, c2: 0x6b3a4a, boss: true },
 
