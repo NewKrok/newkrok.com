@@ -44,6 +44,7 @@ export const weaponText = (id) => { const w = pick("weapons", id); return { name
 export const passiveText = (id) => { const w = pick("passives", id); return { name: w[0], desc: w[1] }; };
 export const stageText = (id) => { const s = pick("stages", id); return { name: s[0], place: s[1], intro: s[2], outro: s[3] }; };
 export const monsterName = (id) => pick("monsters", id) ?? id;
+export const monsterLore = (id) => pick("monsterLore", id) ?? "";
 export const relicText = (id) => { const r = pick("relics", id); return { name: r[0], desc: r[1] }; };
 export const storyText = () => P().story ?? EN.story;
 

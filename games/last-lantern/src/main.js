@@ -15,7 +15,7 @@ import {
   unlockedWeapons, recordRun,
 } from "./storage.js";
 import {
-  t, setLang, detectLang, getLang, LANGS, heroText, weaponText, passiveText, stageText, monsterName, storyText, applyDom, relicText,
+  t, setLang, detectLang, getLang, LANGS, heroText, weaponText, passiveText, stageText, monsterName, monsterLore, storyText, applyDom, relicText,
 } from "./i18n/index.js";
 
 // ── Last Lantern ─────────────────────────────────────────────────────────
@@ -393,7 +393,7 @@ function renderJournal() {
       const seen = progress.seenMonsters.includes(id), d = MON[id];
       const tier = d.boss ? t("tierBoss") : d.elite ? t("tierElite") : "";
       return `<div class="beast ${seen ? "" : "unseen"} ${d.boss ? "boss" : d.elite ? "elite" : ""}"><div class="bport">${ports[id] ? `<img src="${ports[id]}" alt="">` : ""}</div>
-        <div class="bn">${esc(seen ? monsterName(id) : "???")}</div><small>${esc(seen ? `${tier ? tier + " · " : ""}${Math.round(d.hp)} HP` : t("notSeen"))}</small></div>`;
+        <div class="bn">${esc(seen ? monsterName(id) : "???")}</div><small>${esc(seen ? `${tier ? tier + " · " : ""}${Math.round(d.hp)} HP` : t("notSeen"))}</small>${seen ? `<p class="lore">${esc(monsterLore(id))}</p>` : ""}</div>`;
     }).join("")}</div>`).join("");
   } else {
     const owned = unlockedWeapons(progress);
