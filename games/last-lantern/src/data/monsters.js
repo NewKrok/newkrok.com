@@ -32,12 +32,12 @@ export const MON = {
 
   // ── Ashwood ──
   imp:      { r: 8,  hp: 10,   speed: 140, dmg: 4,  xp: 1,  mass: 0.6, ai: "swoop",  rig: "imp",      c: 0xff7a3a, c2: 0x8a2a10, fly: 20 },
-  ashwolf:  { r: 12, hp: 30,   speed: 92,  dmg: 6,  xp: 2,  mass: 1.2, ai: "lunge",  rig: "wolf",     c: 0x5a5250, c2: 0xff8a3a },
+  ashwolf:  { r: 12, hp: 28,   speed: 92,  dmg: 6,  xp: 2,  mass: 1.2, ai: "lunge",  rig: "wolf",     c: 0x5a5250, c2: 0xff8a3a },
   husk:     { r: 12, hp: 28,   speed: 70,  dmg: 5,  xp: 2,  mass: 1,   ai: "chase",  rig: "husk",     c: 0x5a4238, c2: 0xff6a20, explode: { r: 70, dmg: 14 } },
   caller:   { r: 12, hp: 44,   speed: 70,  dmg: 5,  xp: 3,  mass: 1.2, ai: "ranged", rig: "cultist",  c: 0x6a2a20, c2: 0xffb04a, spit: { dmg: 9, speed: 235, color: 0xff8a3a, home: 0.026 } , cap: 16 },
   treant:   { r: 25, hp: 300,  speed: 40,  dmg: 15, xp: 5,  mass: 5,   ai: "chase",  rig: "treant",   c: 0x5a4030, c2: 0xff6a20, heavy: true, cap: 7 },
   cinder:   { r: 9,  hp: 40,   speed: 124, dmg: 7,  xp: 3,  mass: 0.7, ai: "chase",  rig: "wisp",     c: 0xffb04a, c2: 0xff5a20, ghost: true, fly: 12 },
-  ashshaman:{ r: 12, hp: 90,   speed: 66,  dmg: 6,  xp: 4,  mass: 1.2, ai: "healer", rig: "witch",    c: 0x4a2a20, c2: 0x7a3a1a, c3: 0xffb04a, heal: 0.25 , cap: 4 },
+  ashshaman:{ r: 12, hp: 45,   speed: 66,  dmg: 6,  xp: 4,  mass: 1.2, ai: "healer", rig: "witch",    c: 0x4a2a20, c2: 0x7a3a1a, c3: 0xffb04a, heal: 0.07, healCd: 300, healR: 130, cap: 4 },
   alpha:    { r: 19, hp: 1200, speed: 104, dmg: 17, xp: 12, mass: 5,   ai: "lunge",  rig: "wolf",     c: 0x2a2220, c2: 0xff5a20, elite: true, scale: 1.6 },
   stag:     { r: 40, hp: 8000, speed: 70,  dmg: 26, xp: 40, mass: 40,  ai: "stag",   rig: "stag",     c: 0x4a3428, c2: 0xff6a20, boss: true },
 
