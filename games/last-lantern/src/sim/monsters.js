@@ -2,7 +2,7 @@ import { Vec2, DistanceJoint } from "@newkrok/nape-js";
 import { DT, HERO_R, RECYCLE_DIST, SPAWN_MIN, SPAWN_MAX, clamp, lerp, hyp, wrapPi } from "../config.js";
 import { MON, WORM_SEGMENTS, WORM_SEG_R } from "../data/monsters.js";
 import {
-  F, heroX, heroY, spawnMonster, spawnSpit, hurtHero, burst, particle, pushProps, damageMonster,
+  F, heroX, heroY, spawnMonster, spawnSpit, hurtHero, burst, particle, pushProps, damageMonster, floater,
 } from "./core.js";
 
 // ── Monster behaviour ────────────────────────────────────────────────────
@@ -119,6 +119,35 @@ const AI = {
       R.sfx.push(["spit"]);
     }
     if (m.wind > 0) m.wind--;
+  },
+
+  // Healers hang back behind the crowd and, every few seconds, mend the
+  // monsters around them. Kill them first.
+  healer(R, m, dx, dy, d, hx, hy) {
+    const p = m.body.position;
+    if (d > 300) steer(m, hx, hy, 0.9);
+    else if (d < 220) steer(m, p.x - dx, p.y - dy, 0.9);
+    else { const side = Math.sin(R.frame * 0.015 + m.wobble) > 0 ? 1 : -1; steer(m, p.x - dy * side, p.y + dx * side, 0.4); m.face = Math.atan2(dy, dx); }
+    if (m.wind > 0) m.wind--;
+    if (--m.spitCd <= 0) {
+      m.spitCd = 170 + Math.floor(R.rng() * 50);
+      let n = 0;
+      for (const o of R.monsters) {
+        if (!o.alive || o === m || o.def.prop || o.def.part || o.hp >= o.maxHp) continue;
+        const q = o.body.position;
+        if ((q.x - p.x) ** 2 + (q.y - p.y) ** 2 > 170 * 170) continue;
+        const heal = o.maxHp * (o.def.boss ? 0.02 : o.def.elite ? 0.08 : m.def.heal);
+        o.hp = Math.min(o.maxHp, o.hp + heal);
+        particle(R, q.x, q.y, 0, 0, m.def.c3, 26, 2.6, o.def.r * 2, 70);
+        if (heal > 30) floater(R, q.x, q.y - o.def.r - 6, `+${Math.round(heal)}`, "#9aff7a", 0.8);
+        n++;
+      }
+      if (n) {
+        R.rings.push({ x: p.x, y: p.y, r: 10, max: 170, t: 0, T: 26, color: m.def.c3 });
+        m.wind = 20;
+        R.sfx.push(["mend"]);
+      }
+    }
   },
 
   // Wolves stalk, crouch and leap at where you will be.

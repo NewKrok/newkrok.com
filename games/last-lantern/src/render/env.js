@@ -407,7 +407,15 @@ const PROPS = {
     B.stone.add(GEO.boxUp, [x, y, 0], null, [o.w, o.h, 34], 0x5a5a52);
     B.wood.add(GEO.boxUp, [x, y, 34], null, [o.w - 8, o.h - 8, 60], 0x5a4632);
     // Pitched roof: two slabs.
-    for (const s of [-1, 1]) B.wood.add(GEO.box, [x, y + s * o.h * 0.26, 116], [s * 0.62, 0, 0], [o.w + 20, o.h * 0.62, 8], 0x6a4a3a);
+    for (const s of [-1, 1]) {
+      B.wood.add(GEO.box, [x, y + s * o.h * 0.26, 116], [-s * 0.62, 0, 0], [o.w + 20, o.h * 0.62, 8], 0x7a5a44);
+      // Rows of shingles down each slope, laid on the slab's top face.
+      const th = -s * 0.62, cy = y + s * o.h * 0.26;
+      for (let k = 0; k < 5; k++) {
+        const u = ((k + 0.5) / 5 - 0.5) * o.h * 0.62;
+        B.wood.add(GEO.box, [x, cy + u * Math.cos(th) - 4.4 * Math.sin(th), 116 + u * Math.sin(th) + 4.4 * Math.cos(th)], [th, 0, 0], [o.w + 22, 3, 1.5], 0x4a3226);
+      }
+    }
     B.wood.add(GEO.box, [x, y, 128], null, [o.w + 24, 8, 8], 0x4a3226);
     B.wood.add(GEO.boxUp, [x - o.w * 0.3, y - 10, 110], null, [18, 18, 40], 0x4a4a44);
     for (const s of [-1, 1]) B.glow.add(GEO.box, [x + s * 50, y - o.h / 2 - 0.5, 64], null, [18, 1, 20], 0xffc070);

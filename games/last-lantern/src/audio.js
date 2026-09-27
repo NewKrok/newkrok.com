@@ -170,6 +170,7 @@ export class Audio {
       case "shards": N(0.4, { type: "highpass", freq: 4000, gain: 0.1 }); break;
       case "blink": S(0.4, { freq: 1200, freqEnd: 200, gain: 0.07, verb: 0.5 }); break;
       case "orbs": S(0.5, { type: "triangle", freq: 440, freqEnd: 880, gain: 0.06, verb: 0.5 }); break;
+      case "mend": [72, 76, 79].forEach((n, i) => at(i * 0.07, (tt) => this.#tone(d, tt, 0.5, { type: "sine", freq: hz(n), gain: 0.05, verb: 0.6 }))); break;
       case "summon": S(0.8, { type: "sawtooth", freq: 80, freqEnd: 160, gain: 0.07, verb: 0.5 }); break;
       case "elite": case "horde": S(1.4, { type: "sawtooth", freq: name === "elite" ? 98 : 73, gain: 0.08, verb: 0.7, attack: 0.2 }); S(1.4, { type: "sawtooth", freq: name === "elite" ? 147 : 110, gain: 0.05, verb: 0.7, attack: 0.2, detune: 10 }); break;
       case "bossArrive": [0, 0.5, 1].forEach((dt) => at(dt, (tt) => { this.#tone(d, tt, 0.9, { freq: 55, freqEnd: 40, gain: 0.35, verb: 0.6 }); this.#noise(d, tt, 0.6, { type: "lowpass", freq: 300, gain: 0.25 }); })); S(3, { type: "sawtooth", freq: 110, freqEnd: 104, gain: 0.07, verb: 0.8, attack: 0.5 }); break;

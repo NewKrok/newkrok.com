@@ -250,7 +250,7 @@ export function spawnSpit(R, x, y, angle, spec) {
   body.shapes.add(shape);
   body.velocity = new Vec2(Math.cos(angle) * spec.speed, Math.sin(angle) * spec.speed);
   body.space = R.space;
-  R.spits.push({ body, dmg: spec.dmg * R.dmgMul, life: spec.life || 150, angle, color: spec.color, r: spec.r || 5, big: spec.big, arrow: spec.arrow });
+  R.spits.push({ body, dmg: spec.dmg * R.dmgMul, life: spec.life || 150, angle, color: spec.color, r: spec.r || 5, big: spec.big, arrow: spec.arrow, home: spec.home || 0 });
 }
 export function killSpit(sp) {
   if (sp.body?.space) sp.body.space = null;

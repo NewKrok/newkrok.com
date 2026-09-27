@@ -750,6 +750,14 @@ function tickEffects(R) {
 function tickSpits(R) {
   for (let i = R.spits.length - 1; i >= 0; i--) {
     const sp = R.spits[i];
+    // Some spit bends after you, a little each step.
+    if (sp.body && sp.home) {
+      const p = sp.body.position, v = sp.body.velocity, speed = Math.hypot(v.x, v.y);
+      const want = Math.atan2(heroY(R) - p.y, heroX(R) - p.x);
+      const a = sp.angle + Math.max(-sp.home, Math.min(sp.home, Math.atan2(Math.sin(want - sp.angle), Math.cos(want - sp.angle))));
+      sp.angle = a;
+      sp.body.velocity = new Vec2(Math.cos(a) * speed, Math.sin(a) * speed);
+    }
     if (sp.body && --sp.life <= 0) killSpit(sp);
     if (!sp.body) R.spits.splice(i, 1);
   }

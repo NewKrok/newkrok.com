@@ -163,5 +163,5 @@ EN.monsters = {
   leech: "Leech", drowned: "Drowned", toad: "Bile Toad", bogslime: "Bog Slime", bogling: "Bogling", wisp: "Marsh Wisp", mirebrute: "Mire Brute", sentinel: "Drowned Sentinel", bogmother: "The Bog Mother",
   imp: "Cinder Imp", ashwolf: "Ash Wolf", husk: "Burning Husk", caller: "Flame Caller", treant: "Charred Treant", cinder: "Ember Wisp", alpha: "Alpha of Ashwood", stag: "The Charred Stag",
   frostbat: "Frost Bat", iceskel: "Ice Skeleton", snowwolf: "Snow Wolf", shard: "Shard Slime", shardling: "Shardling", yeti: "Yeti", rime: "Rime Wraith", frostknight: "Frost Knight", wormhead: "The Rimeworm",
-  gargoyle: "Gargoyle", hollow: "Hollow Knight", cultist: "Moon Cultist", bellgolem: "Bell Golem", specter: "Spectre", moonknight: "Moon Knight", king: "The Hollow King",
+  bogwitch: "Bog Witch", ashshaman: "Ash Shaman", frostseer: "Frost Seer", hollowpriest: "Hollow Priest", gargoyle: "Gargoyle", hollow: "Hollow Knight", cultist: "Moon Cultist", bellgolem: "Bell Golem", specter: "Spectre", moonknight: "Moon Knight", king: "The Hollow King",
 };

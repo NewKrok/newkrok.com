@@ -150,5 +150,5 @@ HU.monsters = {
   leech: "Pióca", drowned: "Vízbefúlt", toad: "Epevarangy", bogslime: "Lápnyálka", bogling: "Lápfióka", wisp: "Mocsári lidércfény", mirebrute: "Mocsárbika", sentinel: "Vízbefúlt őrszem", bogmother: "A Lápanya",
   imp: "Hamumanó", ashwolf: "Hamufarkas", husk: "Égő tetem", caller: "Lánghívó", treant: "Szenesedett fapásztor", cinder: "Parázslidérc", alpha: "Hamuerdő falkavezére", stag: "A Szenesedett Szarvas",
   frostbat: "Fagydenevér", iceskel: "Jégcsontváz", snowwolf: "Hófarkas", shard: "Szilánknyálka", shardling: "Szilánkfióka", yeti: "Jeti", rime: "Zúzmaralidérc", frostknight: "Fagylovag", wormhead: "A Zúzmaraféreg",
-  gargoyle: "Vízköpő", hollow: "Üres lovag", cultist: "Holdkultista", bellgolem: "Harang-gólem", specter: "Kísértet", moonknight: "Holdlovag", king: "Az Üres Király",
+  bogwitch: "Lápboszorka", ashshaman: "Hamusámán", frostseer: "Fagylátó", hollowpriest: "Üres pap", gargoyle: "Vízköpő", hollow: "Üres lovag", cultist: "Holdkultista", bellgolem: "Harang-gólem", specter: "Kísértet", moonknight: "Holdlovag", king: "Az Üres Király",
 };

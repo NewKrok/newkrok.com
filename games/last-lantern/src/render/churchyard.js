@@ -302,7 +302,7 @@ export const CHURCHYARD = {
       if (o.gate === 1) {
         // The lych-gate roof between the two posts.
         const cx = x - 60;
-        for (let s = -1; s <= 1; s += 2) B.wood.add(GEO.box, [cx, y + s * 16, 96], [s * 0.7, 0, 0], [160, 38, 4], 0x4a3a30);
+        for (let s = -1; s <= 1; s += 2) B.wood.add(GEO.box, [cx, y + s * 16, 96], [-s * 0.7, 0, 0], [160, 38, 4], 0x4a3a30);
         B.wood.add(GEO.box, [cx, y, 108], null, [166, 5, 5], 0x3a2a20);
         B.wood.add(GEO.box, [cx, y, 80], null, [150, 6, 6], WOOD);
         for (const u of [-50, 50]) B.wood.add(GEO.box, [cx + u, y, 90], [0, u > 0 ? 0.5 : -0.5, 0], [4, 4, 26], WOOD);

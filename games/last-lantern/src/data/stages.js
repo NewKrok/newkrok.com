@@ -30,10 +30,10 @@ export const STAGES = [
     world: [2800, 1900],
     bossAt: 330,
     boss: "bogmother",
-    hpMul: 1.25, dmgMul: 1.1, rate: 1.05,
+    hpMul: 1.9, dmgMul: 1.55, rate: 1.2,
     mix: [
       ["leech", 0, 6, 3], ["drowned", 0, 5, 4], ["toad", 60, 1.2, 1.8],
-      ["bogslime", 100, 1, 1.6], ["wisp", 150, 0.8, 1.4], ["mirebrute", 170, 0.5, 1.1],
+      ["bogslime", 100, 1, 1.6], ["wisp", 150, 0.8, 1.4], ["mirebrute", 170, 0.5, 1.1], ["bogwitch", 70, 0.5, 0.9],
     ],
     events: [
       [55, "ring", "leech", 48], [110, "elite", "sentinel", 1], [160, "wall", "drowned", 40],
@@ -47,10 +47,10 @@ export const STAGES = [
     world: [2800, 2000],
     bossAt: 360,
     boss: "stag",
-    hpMul: 1.55, dmgMul: 1.2, rate: 1.1,
+    hpMul: 2.5, dmgMul: 1.75, rate: 1.25,
     mix: [
       ["imp", 0, 5, 3], ["ashwolf", 0, 3, 4], ["husk", 45, 2, 3],
-      ["caller", 100, 1.2, 1.8], ["treant", 150, 0.5, 1.1], ["cinder", 200, 0.8, 1.5],
+      ["caller", 100, 1.2, 1.8], ["treant", 150, 0.5, 1.1], ["cinder", 200, 0.8, 1.5], ["ashshaman", 60, 0.5, 0.9],
     ],
     events: [
       [60, "ring", "imp", 40], [120, "elite", "alpha", 1], [170, "pack", "ashwolf", 16],
@@ -64,10 +64,10 @@ export const STAGES = [
     world: [2600, 2200],
     bossAt: 390,
     boss: "wormhead",
-    hpMul: 1.9, dmgMul: 1.3, rate: 1.15,
+    hpMul: 3.1, dmgMul: 1.95, rate: 1.3,
     mix: [
       ["frostbat", 0, 5, 2], ["iceskel", 0, 5, 4], ["snowwolf", 50, 2, 3.5],
-      ["shard", 100, 1, 1.6], ["yeti", 150, 0.5, 1.1], ["rime", 200, 0.8, 1.6],
+      ["shard", 100, 1, 1.6], ["yeti", 150, 0.5, 1.1], ["rime", 200, 0.8, 1.6], ["frostseer", 60, 0.6, 1],
     ],
     events: [
       [60, "ring", "frostbat", 44], [120, "elite", "frostknight", 1], [180, "wall", "iceskel", 44],
@@ -81,10 +81,10 @@ export const STAGES = [
     world: [2400, 2400],
     bossAt: 450,
     boss: "king",
-    hpMul: 2.3, dmgMul: 1.4, rate: 1.2,
+    hpMul: 3.8, dmgMul: 2.15, rate: 1.35,
     mix: [
       ["gargoyle", 0, 4, 3], ["hollow", 0, 5, 4], ["cultist", 60, 1.2, 1.8],
-      ["specter", 120, 0.8, 1.6], ["bellgolem", 160, 0.5, 1.1], ["gravebound", 0, 2, 2],
+      ["specter", 120, 0.8, 1.6], ["bellgolem", 160, 0.5, 1.1], ["gravebound", 0, 2, 2], ["hollowpriest", 50, 0.6, 1.1],
     ],
     events: [
       [60, "ring", "gargoyle", 40], [110, "elite", "moonknight", 1], [170, "ring", "hollow", 50],
