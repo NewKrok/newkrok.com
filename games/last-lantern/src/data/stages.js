@@ -30,7 +30,7 @@ export const STAGES = [
     world: [2800, 1900],
     bossAt: 330,
     boss: "bogmother",
-    hpMul: 1.9, dmgMul: 1.55, rate: 1.2,
+    hpMul: 1.71, dmgMul: 1.55, rate: 1.2,
     mix: [
       ["leech", 0, 6, 3], ["drowned", 0, 5, 4], ["toad", 60, 1.2, 1.8],
       ["bogslime", 100, 1, 1.6], ["wisp", 150, 0.8, 1.4], ["mirebrute", 170, 0.5, 1.1], ["bogwitch", 70, 0.5, 0.9],
