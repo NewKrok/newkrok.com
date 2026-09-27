@@ -130,7 +130,7 @@ export class Hud {
     };
     for (const e of R.elites) if (e.alive) arrow(e.body.position.x, e.body.position.y, "#ff9a5a");
     if (R.boss?.alive) arrow(R.boss.body.position.x, R.boss.body.position.y, "#e0302a", true);
-    for (const p of R.pickups) if (p.kind === "chest") arrow(p.x, p.y, "#ffd166");
+    for (const p of R.pickups) if (p.kind === "chest") arrow(p.x, p.y, p.relic ? "#c8a0ff" : "#ffd166", p.relic);
   }
 
   // ── Top plaque: the clock and the keeper's approach, or the keeper ──

@@ -165,12 +165,12 @@ export function recomputeStats(R) {
   const lv = (id) => h.passives[id] || 0;
   const hl = (id) => H[id] || 0;
   h.stats = {
-    speed: d.speed * (1 + 0.08 * lv("boots") + 0.05 * hl("swift")),
+    speed: d.speed * (1 + 0.08 * lv("boots") + 0.06 * hl("swift")),
     magnet: 90 * (1 + 0.3 * lv("magnet") + 0.2 * hl("reach")),
     cdMul: Math.max(0.35, (1 - 0.07 * lv("tome")) * (1 - 0.04 * hl("haste"))),
-    dmgMul: d.might * (1 + 0.1 * lv("fist")) * (1 + 0.05 * hl("might")),
+    dmgMul: 0.82 * d.might * (1 + 0.1 * lv("fist")) * (1 + 0.08 * hl("might")),
     armor: d.armor + lv("plate") + hl("armor"),
-    regen: 0.3 * lv("root") + 0.2 * hl("recovery"),
+    regen: 0.3 * lv("root") + 0.3 * hl("recovery"),
     area: d.area * (1 + 0.1 * lv("oil")),
     luck: 1 + 0.1 * lv("clover") + 0.08 * hl("luck"),
     amount: lv("quiver"),
@@ -185,7 +185,7 @@ export function recomputeStats(R) {
   if (rel("bloodseal")) h.stats.dmgMul *= 1.3;
   if (rel("hourglass")) h.stats.cdMul = Math.max(0.3, h.stats.cdMul * 0.75);
   if (rel("pilgrim")) h.stats.speed *= 1.1;
-  const newMax = Math.round((d.hp + 15 * lv("heart") + 10 * hl("vitality")) * (R.relics.includes("hourglass") ? 0.8 : 1));
+  const newMax = Math.round((d.hp + 15 * lv("heart") + 15 * hl("vitality")) * (R.relics.includes("hourglass") ? 0.8 : 1));
   if (newMax !== h.maxHp) {
     if (h.maxHp === 100 && h.level === 1 && h.xp === 0) h.hp = newMax;
     else h.hp += Math.max(0, newMax - h.maxHp);
@@ -362,6 +362,10 @@ function heroDown(R) {
   }
   h.hp = 0;
   R.phase = "dead";
+  // The night's tithe: even a lost run brings embers home, more the longer
+  // you held out.
+  R.tithe = Math.round((Math.floor(R.clock / FPS / 5) + h.level * 3) * h.stats.greed);
+  R.embers += R.tithe;
   R.phaseT = 0;
   R.shake(18, 0.6);
   burst(R, heroX(R), heroY(R), 40, 0xe5484d, 4);
@@ -497,7 +501,7 @@ function usePickup(R, p) {
     if (v > 2) floater(R, hx, hy - 24, `+${v}`, "#ffb347", 0.9);
     R.sfx.push(["ember"]);
   } else if (p.kind === "bread") {
-    const heal = Math.round(h.maxHp * 0.3);
+    const heal = Math.round(h.maxHp * 0.2);
     h.hp = Math.min(h.maxHp, h.hp + heal);
     floater(R, hx, hy - 24, `+${heal}`, "#7ee787", 1.1);
     burst(R, hx, hy, 10, 0x7ee787, 2);
@@ -843,7 +847,7 @@ export function runSummary(R) {
   const weapons = R.hero.weapons.map((w) => ({ id: w.id, level: w.level, dmg: Math.round(R.dmgBy[w.id] || 0), kills: R.killsBy[w.id] || 0 }));
   return {
     stage: R.stage.index, stageId: R.stage.id, hero: R.heroDef.id, blood: R.blood,
-    won: R.phase === "won", time: R.clock / FPS, kills: R.kills, level: R.hero.level, embers: R.embers,
+    won: R.phase === "won", time: R.clock / FPS, kills: R.kills, level: R.hero.level, embers: R.embers, tithe: R.tithe || 0,
     weapons, passives: { ...R.hero.passives }, relics: [...R.relics], damageTaken: R.damageTaken, evolved: [...R.evolved],
   };
 }

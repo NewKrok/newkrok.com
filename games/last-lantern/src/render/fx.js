@@ -146,7 +146,7 @@ export class Fx {
       const s = p.kind === "chest" ? 14 : p.kind === "ember" ? 5 + Math.min(4, (p.v || 1) * 0.3) : 8;
       const rz = p.kind === "chest" ? 0.3 : time * 2 + p.x;
       this.set(im, i, p.x, p.y, z, rz, s, s, s, p.kind === "ember" ? Math.PI / 2 : p.kind === "magnet" ? -Math.PI / 2 : 0);
-      if (ng < 240) { this.glow(this.pickGlow, ng, p.x, p.y, z, p.kind === "chest" ? 90 : p.kind === "ember" ? 26 : 44); this.color(this.pickGlow, ng, PICK[p.kind]); ng++; }
+      if (ng < 240) { this.glow(this.pickGlow, ng, p.x, p.y, z, p.kind === "chest" ? (p.relic ? 130 : 90) : p.kind === "ember" ? 26 : 44); this.color(this.pickGlow, ng, p.relic ? 0xb07aff : PICK[p.kind]); ng++; }
     }
     for (const k of Object.keys(this.pick)) this.done(this.pick[k], (cnt[k] ?? -1) + 1);
     this.done(this.pickGlow, ng);

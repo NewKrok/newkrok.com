@@ -30,6 +30,7 @@ export const EN = {
   tip2: "The crowd is physical. Crates, barrels and pews block, knockback throws monsters into each other, and the grave hook hurls them like bowling balls.",
   tip3: "Mud slows everything that walks, ice makes you slide — ghosts and flyers ignore both.",
   tip4: "Red circles on the ground mean a slam or a charge is coming. Move.",
+  tip5: "Elites drop chests. The first elite's chest of every run holds a <b>relic</b> — a one-off item with a strong effect; a purple glow marks relic chests. You can carry two.",
   // HUD.
   hud_lv: "LV {n}", hud_kills: "{n}", hud_boss: "The keeper", hud_ready: "READY", hud_space: "SPACE",
   // Cards.
@@ -45,12 +46,12 @@ export const EN = {
   paused: "Paused", resume: "Resume", restart: "Restart", abandon: "Abandon the run", mainMenu: "Main menu",
   confirmAbandon: "Give up this run? You keep the embers you carry.",
   wonTitle: "The beacon burns", lostTitle: "The night takes you",
-  r_time: "Time survived", r_kills: "Monsters slain", r_level: "Level reached", r_embers: "Embers gathered", r_weapons: "Your arsenal",
+  r_time: "Time survived", r_kills: "Monsters slain", r_level: "Level reached", r_embers: "Embers gathered", r_tithe: "{n} from the night's tithe", r_weapons: "Your arsenal",
   r_dmg: "damage", r_kills2: "kills", r_newUnlock: "Unlocked: {x}", r_again: "Again", r_toHearth: "The Hearth", r_continue: "Continue",
   // Banners.
   b_start: "SURVIVE UNTIL THE KEEPER COMES", b_dead: "THE NIGHT TAKES YOU", b_beacon: "THE BEACON IS LIT", b_revive: "THE EMBER REKINDLES",
   b_bossDown: "THE KEEPER FALLS", b_eliteDown: "ELITE SLAIN", b_magnet: "MAGNET", b_flare: "SUNBURST", b_freeze: "TIME STANDS STILL",
-  b_martyr: "THE CANDLE FLARES", b_king2: "THE KING DRAWS HIS SCYTHES", b_king3: "ECLIPSE",
+  b_martyr: "THE CANDLE FLARES", b_relicChest: "A RELIC GLEAMS IN THE CHEST", b_king2: "THE KING DRAWS HIS SCYTHES", b_king3: "ECLIPSE",
   ev_ring: "THEY SURROUND YOU", ev_wall: "A WALL OF THE DEAD", ev_pack: "THE PACK HUNTS", ev_elite: "AN ELITE APPROACHES",
   ev_ring_crow: "A MURDER OF CROWS", ev_ring_shambler: "THE GRAVES OPEN", ev_ring_banshee: "THE BANSHEES WAIL", ev_wall_gravebound: "A WALL OF BONE",
   ev_ring_leech: "THE WATER BOILS WITH LEECHES", ev_wall_drowned: "THE DROWNED RISE", ev_ring_bogslime: "THE BOG HEAVES", ev_ring_wisp: "LIGHTS IN THE MARSH",
@@ -64,8 +65,8 @@ export const EN = {
   webgl_title: "WebGL is not available", webgl_text: "Last Lantern needs a browser with WebGL. Try another browser or turn on hardware acceleration.",
   // Hearth.
   hearthIntro: "Warm your hands and spend the embers you carried back. Upgrades last for every run.",
-  h_might: "Might", hd_might: "+5% damage", h_vitality: "Vitality", hd_vitality: "+10 max health", h_armor: "Iron Skin", hd_armor: "−1 damage taken",
-  h_recovery: "Recovery", hd_recovery: "+0.2 health per second", h_swift: "Swiftness", hd_swift: "+5% move speed", h_reach: "Reach", hd_reach: "+20% pickup range",
+  h_might: "Might", hd_might: "+8% damage", h_vitality: "Vitality", hd_vitality: "+15 max health", h_armor: "Iron Skin", hd_armor: "−1 damage taken",
+  h_recovery: "Recovery", hd_recovery: "+0.3 health per second", h_swift: "Swiftness", hd_swift: "+6% move speed", h_reach: "Reach", hd_reach: "+20% pickup range",
   h_growth: "Growth", hd_growth: "+5% experience", h_greed: "Greed", hd_greed: "+10% embers", h_luck: "Fortune", hd_luck: "+8% luck",
   h_haste: "Haste", hd_haste: "−4% cooldowns", h_reroll: "Second Thoughts", hd_reroll: "+1 reroll per run", h_banish: "Exorcism", hd_banish: "+1 banish per run",
   h_revival: "Rekindle", hd_revival: "Come back once per run at half health", buy: "Upgrade · {n}", maxed: "Maxed",

@@ -334,7 +334,7 @@ function finishRun() {
   bind("resultOutro", outro, root);
   $(".outro", root).classList.toggle("hidden", !outro);
   $(".stat-row", root).innerHTML = [
-    [fmtSec(s.time), t("r_time")], [s.kills, t("r_kills")], [s.level, t("r_level")], [`+${s.embers}`, t("r_embers"), "emb"],
+    [fmtSec(s.time), t("r_time")], [s.kills, t("r_kills")], [s.level, t("r_level")], [`+${s.embers}`, s.tithe ? `${t("r_embers")} (${t("r_tithe", { n: s.tithe })})` : t("r_embers"), "emb"],
   ].map(([v, l, c]) => `<div class="${c || ""}"><b>${esc(v)}</b><small>${esc(l)}</small></div>`).join("");
   $(".weapons-table tbody", root).innerHTML = s.weapons.sort((a, b) => b.dmg - a.dmg).map((w) => `<tr><td><img src="${iconURL(w.id, 40)}" alt="">${esc(weaponText(w.id).name)}</td><td>${w.dmg.toLocaleString()} ${esc(t("r_dmg"))}</td><td>${w.kills} ${esc(t("r_kills2"))}</td></tr>`).join("");
   const uname = (u) => (u.kind === "hero" ? heroText(u.id).name : u.kind === "weapon" ? weaponText(u.id).name : stageText(u.id).name);

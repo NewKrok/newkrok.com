@@ -107,7 +107,9 @@ export function killMonster(R, m, silent = false) {
   }
   if (def.explode) explode(R, x, y, def.explode.r, def.explode.dmg * R.dmgMul, 0xff7a3a, true);
   if (def.elite || def.boss) {
-    R.pickups.push({ kind: "chest", x, y, t: 0, relic: def.boss || R.rng() < 0.45 });
+    const relic = !def.boss && R.relics.length + R.relicPending < 2 && (!R.relicDropped || R.rng() < 0.4);
+    if (relic) { R.relicDropped = true; R.banner("b_relicChest", "#c8a0ff", 150); }
+    R.pickups.push({ kind: "chest", x, y, t: 0, relic });
     R.banner(def.boss ? "b_bossDown" : "b_eliteDown", def.boss ? "#ffd166" : "#ffd166", 150);
     R.shake(def.boss ? 18 : 8, 0.5);
     R.sfx.push([def.boss ? "bossDie" : "eliteDie"]);
@@ -287,18 +289,18 @@ function dropPickup(R, m) {
   const r = R.rng(), luck = R.hero.stats.luck, def = m.def;
   const x = m.body.position.x, y = m.body.position.y;
   let kind = null;
-  if (def.heavy) kind = r < 0.3 * luck ? "bread" : null;
+  if (def.heavy) kind = r < 0.14 * luck ? "bread" : null;
   else if (def.ai === "ranged") kind = r < 0.06 * luck ? "magnet" : null;
   else if (def.ghost) kind = r < 0.045 * luck ? "flare" : null;
-  else kind = r < 0.012 * luck ? "bread" : r < 0.0145 * luck ? "hourglass" : null;
+  else kind = r < 0.006 * luck ? "bread" : r < 0.0085 * luck ? "hourglass" : null;
   if (kind) R.pickups.push({ kind, x, y, t: 0 });
-  if (R.rng() < (def.heavy ? 0.25 : 0.035) * luck) addEmbers(R, x, y, def.heavy ? 3 : 1);
+  if (R.rng() < (def.heavy ? 0.3 : 0.05) * luck) addEmbers(R, x, y, def.heavy ? 3 : 1);
 }
 
 function dropCandle(R, x, y) {
   const r = R.rng();
-  if (r < 0.28) R.pickups.push({ kind: "bread", x, y, t: 0 });
-  else if (r < 0.40) R.pickups.push({ kind: "magnet", x, y, t: 0 });
+  if (r < 0.14) R.pickups.push({ kind: "bread", x, y, t: 0 });
+  else if (r < 0.30) R.pickups.push({ kind: "magnet", x, y, t: 0 });
   else if (r < 0.50) R.pickups.push({ kind: "flare", x, y, t: 0 });
   else if (r < 0.58) R.pickups.push({ kind: "hourglass", x, y, t: 0 });
   else addEmbers(R, x, y, r < 0.64 ? 15 : 3 + Math.floor(R.rng() * 4));

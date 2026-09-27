@@ -14,7 +14,7 @@ export const STAGES = [
     world: [2600, 1800],
     bossAt: 300,
     boss: "colossus",
-    hpMul: 1.35, dmgMul: 1, rate: 1.15,
+    hpMul: 1.4, dmgMul: 1.3, rate: 1.15,
     mix: [
       ["crow", 0, 5, 2], ["shambler", 0, 5, 4], ["gravebound", 40, 3, 5],
       ["archer", 90, 1.2, 1.6], ["digger", 130, 0.5, 1.1], ["banshee", 180, 0.8, 1.5],

@@ -125,7 +125,7 @@ export const WEAPONS = {
   // Will-o'-wisp lanterns: little flames that curve after the nearest
   // monster and burst where they strike.
   wisps: {
-    stats: (lv) => ({ dmg: 10 + lv * 4, n: 1 + Math.floor(lv / 2), blast: 24 + lv * 3, cd: 80 - lv * 5 }),
+    stats: (lv) => ({ dmg: 8 + lv * 3, n: 1 + Math.floor(lv / 2), blast: 22 + lv * 2, cd: 84 - lv * 5 }),
     fire(R, w, s) { wisps(R, w, s, 0); },
   },
   choir: {
@@ -631,7 +631,7 @@ export function onShotHit(R, shot, m) {
   particle(R, m.body.position.x, m.body.position.y, 0, 0, cssHexInt(HIT_COLOR[shot.kind] || "#9fd0ff"), 12, 2, 10, 20);
   if (shot.kind === "wisp") {
     // A wisp bursts; a choir wisp bursts and looks for the next one.
-    if (shot.blast) explode(R, m.body.position.x, m.body.position.y, shot.blast, shot.dmg * 0.6, 0xffb86a, false, shot.w);
+    if (shot.blast) explode(R, m.body.position.x, m.body.position.y, shot.blast, shot.dmg * 0.4, 0xffb86a, false, shot.w);
     if (shot.pierce-- <= 0) { shot.blast = 0; killShot(R, shot); } else shot.homing = null;
     return;
   }
