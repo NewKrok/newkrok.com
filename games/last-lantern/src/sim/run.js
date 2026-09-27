@@ -69,8 +69,8 @@ export function createRun({ stageIndex = 0, heroId = "wren", hearth = {}, blood 
   for (const c of R.world.candles) spawnMonster(R, "candle", c.x, c.y);
   // The beacons behind you lend their strength: later stages start with a
   // few levels to spend.
-  if (!title && stage.index > 0) {
-    const extra = stage.index * 2;
+  const extra = title ? 0 : stage.index * 2 + 2 * (hearth.headstart || 0);
+  if (extra > 0) {
     R.hero.level += extra;
     R.hero.xpNext = xpFor(R.hero.level);
     R.levelUpQueue = extra;
@@ -172,9 +172,9 @@ export function recomputeStats(R) {
     dmgMul: 0.82 * d.might * (1 + 0.1 * lv("fist")) * (1 + 0.08 * hl("might")),
     armor: d.armor + lv("plate") + hl("armor"),
     regen: 0.3 * lv("root") + 0.3 * hl("recovery"),
-    area: d.area * (1 + 0.1 * lv("oil")),
+    area: d.area * (1 + 0.1 * lv("oil")) * (1 + 0.06 * hl("radiance")),
     luck: 1 + 0.1 * lv("clover") + 0.08 * hl("luck"),
-    amount: lv("quiver"),
+    amount: lv("quiver") + hl("legion"),
     growth: 1 + 0.05 * hl("growth") + 0.1 * lv("feather"),
     dur: 1 + 0.15 * lv("chrism"),
     proj: 1 + 0.1 * lv("chrism"),

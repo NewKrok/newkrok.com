@@ -40,7 +40,7 @@ export const EN = {
   evoHint: "Evolves with {p} at max level",
   st_dmg: "Damage", st_range: "Reach", st_cd: "Cooldown", st_arcs: "Lashes", st_width: "Width", st_n: "Count", st_pierce: "Pierce",
   st_radius: "Radius", st_knock: "Knockback", st_speed: "Speed", st_chain: "Chains", st_dur: "Duration", st_blast: "Burst", st_reach: "Throw",
-  relicTag: "Relic", relicsTab: "Relics", passivesTab: "Passives", tierBoss: "Keeper", tierElite: "Elite", boostLine: "The lit beacons lend you strength: +{n} levels", boostIntro: "You start with {n} extra levels",
+  relicTag: "Relic", relicsTab: "Relics", passivesTab: "Passives", tierBoss: "Keeper", tierElite: "Elite", boostLine: "You set out stronger: +{n} levels", boostIntro: "You start with {n} extra levels",
   chestTitle: "A chest!", chestEvolve: "{a} became {b}!", chestItems: "Inside:", chestGold: "+{n} embers", chestOk: "Take it",
   // Pause / results.
   paused: "Paused", resume: "Resume", restart: "Restart", abandon: "Abandon the run", mainMenu: "Main menu",
@@ -68,8 +68,9 @@ export const EN = {
   h_might: "Might", hd_might: "+8% damage", h_vitality: "Vitality", hd_vitality: "+15 max health", h_armor: "Iron Skin", hd_armor: "−1 damage taken",
   h_recovery: "Recovery", hd_recovery: "+0.3 health per second", h_swift: "Swiftness", hd_swift: "+6% move speed", h_reach: "Reach", hd_reach: "+20% pickup range",
   h_growth: "Growth", hd_growth: "+5% experience", h_greed: "Greed", hd_greed: "+10% embers", h_luck: "Fortune", hd_luck: "+8% luck",
-  h_haste: "Haste", hd_haste: "−4% cooldowns", h_reroll: "Second Thoughts", hd_reroll: "+1 reroll per run", h_banish: "Exorcism", hd_banish: "+1 banish per run",
-  h_revival: "Rekindle", hd_revival: "Come back once per run at half health", buy: "Upgrade · {n}", maxed: "Maxed",
+  h_haste: "Haste", hd_haste: "−4% cooldowns", h_reroll: "Second Thoughts", hd_reroll: "+1 reroll per run: swap all the offered cards for new ones", h_banish: "Exorcism", hd_banish: "+1 banish per run: shut an offered card out of the rest of the run",
+  h_revival: "Rekindle", hd_revival: "Come back at half health (once per level, per run)",
+  h_radiance: "Radiance", hd_radiance: "+6% area", h_headstart: "Head Start", hd_headstart: "Start every run 2 levels higher", h_legion: "Legion", hd_legion: "+1 projectile for every weapon", buy: "Upgrade · {n}", maxed: "Maxed",
   // Journal.
   journalIntro: "Pages gathered along the way.", jn_locked: "Light the beacon to read on.",
   storyTab: "Story", evoFrom: "{w} at max level + {p}",

@@ -178,7 +178,8 @@ function openIntro() {
   bind("introText", tx.intro);
   bind("introBoss", t("bossAt", { t: fmtSec(s.bossAt) }));
   bind("introBlood", blood ? t("bloodMoon") : "");
-  bind("introBoost", s.index > 0 ? t("boostIntro", { n: s.index * 2 }) : "");
+  const boostN = s.index * 2 + 2 * (progress.hearth.headstart || 0);
+  bind("introBoost", boostN > 0 ? t("boostIntro", { n: boostN }) : "");
   G.phase = "intro";
   showScreen("intro");
 }

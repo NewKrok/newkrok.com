@@ -142,7 +142,7 @@ const D = {
   // Hearth upgrades reuse the passive drawings where they fit.
   might(c) { D.fist(c); }, vitality(c) { D.heart(c); }, armor(c) { D.plate(c); }, recovery(c) { D.root(c); }, swift(c) { D.boots(c); },
   reach(c) { D.magnet(c); }, growth(c) { poly(c, [[0, -0.9], [0.55, -0.1], [0.2, -0.1], [0.2, 0.8], [-0.2, 0.8], [-0.2, -0.1], [-0.55, -0.1]], "#58a6ff"); },
-  greed(c) { D.ember(c); }, luck(c) { D.clover(c); }, haste(c) { c.strokeStyle = "#d2a8ff"; c.lineWidth = 0.14; c.beginPath(); c.arc(0, 0, 0.75, 0, TAU); c.stroke(); line(c, [[0, 0], [0, -0.5]], 0.12, "#d2a8ff"); line(c, [[0, 0], [0.35, 0.2]], 0.12, "#d2a8ff"); },
+  greed(c) { D.ember(c); }, radiance(c) { D.oil(c); }, legion(c) { D.quiver(c); }, headstart(c) { D.growth(c); c.fillStyle = "#ffd166"; c.beginPath(); c.arc(0, 0.62, 0.16, 0, TAU); c.fill(); }, luck(c) { D.clover(c); }, haste(c) { c.strokeStyle = "#d2a8ff"; c.lineWidth = 0.14; c.beginPath(); c.arc(0, 0, 0.75, 0, TAU); c.stroke(); line(c, [[0, 0], [0, -0.5]], 0.12, "#d2a8ff"); line(c, [[0, 0], [0.35, 0.2]], 0.12, "#d2a8ff"); },
   reroll(c) { c.strokeStyle = "#79c0ff"; c.lineWidth = 0.16; c.beginPath(); c.arc(0, 0, 0.6, 0.3, 5.2); c.stroke(); poly(c, [[0.62, -0.15], [0.95, 0.2], [0.35, 0.3]], "#79c0ff"); },
   banish(c) { D.skull(c); line(c, [[-0.85, -0.85], [0.85, 0.85]], 0.14, "#ff6b6b"); },
   revival(c) { c.fillStyle = "#ffd166"; c.beginPath(); c.moveTo(0, -0.95); c.bezierCurveTo(0.7, -0.3, 0.6, 0.6, 0, 0.9); c.bezierCurveTo(-0.6, 0.6, -0.7, -0.3, 0, -0.95); c.fill(); c.fillStyle = "#fff3c0"; c.beginPath(); c.moveTo(0, -0.3); c.bezierCurveTo(0.3, 0, 0.25, 0.5, 0, 0.6); c.bezierCurveTo(-0.25, 0.5, -0.3, 0, 0, -0.3); c.fill(); },

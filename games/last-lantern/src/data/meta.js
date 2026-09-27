@@ -72,18 +72,21 @@ export const MAX_RELICS = 2;
 
 // The Hearth: permanent upgrades bought with embers between runs.
 export const HEARTH = [
-  { id: "might",    max: 5, cost: 60 },    // +5 % damage
-  { id: "vitality", max: 5, cost: 50 },    // +10 max health
-  { id: "armor",    max: 3, cost: 120 },   // −1 damage taken
-  { id: "recovery", max: 5, cost: 70 },    // +0.2 health / s
-  { id: "swift",    max: 3, cost: 80 },    // +5 % move speed
-  { id: "reach",    max: 3, cost: 50 },    // +20 % pickup range
-  { id: "growth",   max: 5, cost: 90 },    // +5 % experience
-  { id: "greed",    max: 5, cost: 70 },    // +10 % embers
-  { id: "luck",     max: 3, cost: 100 },   // +8 % luck
-  { id: "haste",    max: 3, cost: 150 },   // −4 % cooldowns
-  { id: "reroll",   max: 3, cost: 120 },   // +1 reroll per run
-  { id: "banish",   max: 3, cost: 120 },   // +1 banish per run
-  { id: "revival",  max: 1, cost: 600 },   // come back once at half health
+  { id: "might",     max: 10, cost: 60 },    // +8 % damage
+  { id: "vitality",  max: 10, cost: 50 },    // +15 max health
+  { id: "armor",     max: 5,  cost: 120 },   // −1 damage taken
+  { id: "recovery",  max: 8,  cost: 70 },    // +0.3 health / s
+  { id: "swift",     max: 5,  cost: 80 },    // +6 % move speed
+  { id: "radiance",  max: 5,  cost: 90 },    // +6 % area
+  { id: "haste",     max: 6,  cost: 150 },   // −4 % cooldowns
+  { id: "reach",     max: 5,  cost: 50 },    // +20 % pickup range
+  { id: "growth",    max: 8,  cost: 90 },    // +5 % experience
+  { id: "headstart", max: 3,  cost: 220 },   // +2 levels at the start of every run
+  { id: "greed",     max: 8,  cost: 70 },    // +10 % embers
+  { id: "luck",      max: 5,  cost: 100 },   // +8 % luck
+  { id: "legion",    max: 1,  cost: 1200 },  // +1 projectile for every weapon
+  { id: "reroll",    max: 5,  cost: 120 },   // +1 reroll per run
+  { id: "banish",    max: 5,  cost: 120 },   // +1 banish per run
+  { id: "revival",   max: 2,  cost: 600 },   // come back at half health
 ];
 export const hearthCost = (u, lvl) => Math.round(u.cost * (1 + lvl * 0.9));
