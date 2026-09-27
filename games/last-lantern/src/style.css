@@ -236,7 +236,7 @@ kbd { display: inline-block; min-width: 1.7em; padding: 0 6px; border: 1px solid
 
 /* ── Level up: tarot draws ───────────────────────────────────────────── */
 #levelup { background: radial-gradient(ellipse at center, rgba(40, 20, 6, 0.4), rgba(3, 1, 3, 0.88)); }
-.lv-wrap { width: min(1040px, 100%); display: flex; flex-direction: column; align-items: center; animation: rise 0.25s ease-out; max-height: 100%; overflow-y: auto; }
+.lv-wrap { width: min(1040px, 100%); display: flex; flex-direction: column; align-items: center; animation: rise 0.25s ease-out; max-height: 100%; overflow-y: auto; overflow-x: hidden; padding: 10px 6px 12px; scrollbar-width: thin; scrollbar-color: var(--gold-lo) transparent; }
 .lv-title { font-family: var(--display); font-size: clamp(28px, 4vw, 42px); color: var(--gold-hi); text-shadow: 0 0 24px rgba(255, 150, 50, 0.5), 0 2px 0 #000; }
 .lv-sub { color: var(--ink-dim); margin: 2px 0 18px; font-size: 18px; font-style: italic; min-height: 20px; }
 .cards { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 240px)); gap: 20px; justify-content: center; width: 100%; }
