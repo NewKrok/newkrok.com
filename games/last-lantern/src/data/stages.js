@@ -47,7 +47,7 @@ export const STAGES = [
     world: [2800, 2000],
     bossAt: 360,
     boss: "stag",
-    hpMul: 2.5, dmgMul: 1.75, rate: 1.25,
+    hpMul: 2.5, dmgMul: 1.49, rate: 1.25,
     mix: [
       ["imp", 0, 5, 3], ["ashwolf", 0, 3, 4], ["husk", 45, 2, 3],
       ["caller", 100, 1.2, 1.8], ["treant", 150, 0.5, 1.1], ["cinder", 200, 0.8, 1.5], ["ashshaman", 60, 0.5, 0.9],
