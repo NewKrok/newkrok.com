@@ -34,7 +34,7 @@ export const HU = {
   evoHint: "Max szinten továbbfejlődik ezzel: {p}",
   st_dmg: "Sebzés", st_range: "Hatótáv", st_cd: "Újratöltés", st_arcs: "Csapások", st_width: "Szélesség", st_n: "Darab", st_pierce: "Átütés",
   st_radius: "Sugár", st_knock: "Visszalökés", st_speed: "Sebesség", st_chain: "Láncolás", st_dur: "Időtartam", st_blast: "Robbanás", st_reach: "Dobás",
-  relicTag: "Ereklye", relics: "Ereklyék", boostLine: "A meggyújtott jelzőtüzek ereje: +{n} szint", boostIntro: "{n} extra szinttel indulsz",
+  relicTag: "Ereklye", relicsTab: "Ereklyék", passivesTab: "Passzív tárgyak", tierBoss: "Őrző", tierElite: "Elit", boostLine: "A meggyújtott jelzőtüzek ereje: +{n} szint", boostIntro: "{n} extra szinttel indulsz",
   chestTitle: "Egy láda!", chestEvolve: "{a} → {b}!", chestItems: "Benne volt:", chestGold: "+{n} parázs", chestOk: "Elteszem",
   paused: "Szünet", resume: "Folytatás", restart: "Újrakezdés", abandon: "Menet feladása", mainMenu: "Főmenü",
   confirmAbandon: "Feladod ezt a menetet? A nálad lévő parazsat megtartod.",
@@ -143,6 +143,14 @@ HU.relics = {
   saintsbone: ["A szent ujjperccsontja", "Egyszer visszatérsz fél életerővel."],
   thorns: ["Tövises lepel", "Ami hozzád ér, kétszeres sebzést kap vissza, és elrepül."],
   mirror: ["Holdtükör", "A lövedékek 25% eséllyel kétszer indulnak."],
+  wick: ["Örökégő kanóc", "A képességed 40%-kal gyorsabban töltődik."],
+  souljar: ["Lélekkorsó", "+30% tapasztalat és +50% felszedési távolság."],
+  clapper: ["Repedt harangnyelv", "8 másodpercenként körülötted kondul, és visszalöki a tömeget."],
+  reliquary: ["Szent Parázs ereklyetartója", "Minden találat 15% eséllyel lángra lobbantja a szörnyet."],
+  keys: ["A sírásó kulcsai", "A ládákban eggyel több fejlesztés és 60%-kal több parázs van."],
+  leechtooth: ["Piócafog", "Minden harmadik ölés gyógyít egy keveset."],
+  stormglass: ["Viharüveg", "6 másodpercenként villám csap három közeli szörnybe."],
+  ghostlamp: ["Kísértetlámpás", "15% eséllyel sértetlenül átsiklasz egy ütés alatt."],
 };
 
 HU.monsters = {

@@ -9,7 +9,7 @@ import { Hud } from "./hud.js";
 import { Audio } from "./audio.js";
 import { track } from "./analytics.js";
 import { iconURL } from "./icons.js";
-import { heroPortraits, stageVignette } from "./render/portraits.js";
+import { heroPortraits, stageVignette, monsterPortraits } from "./render/portraits.js";
 import {
   loadSettings, saveSettings, loadProgress, saveProgress, resetProgress, heroUnlocked, stageUnlocked,
   unlockedWeapons, recordRun,
@@ -387,13 +387,14 @@ function renderJournal() {
     if (progress.cleared[STAGES.length - 1]) pages.push(`<div class="page"><h4>☀</h4><p>${esc(storyText().ending)}</p></div>`);
     root.innerHTML = pages.join("");
   } else if (journalTab === "bestiary") {
-    root.innerHTML = STAGES.map((s) => {
-      const ids = [...new Set([...s.mix.map((m) => m[0]), ...s.events.map((e) => e[2]), s.boss])];
-      return `<h3>${esc(stageText(s.id).name)}</h3><div class="jgrid">${ids.map((id) => {
-        const seen = progress.seenMonsters.includes(id), d = MON[id];
-        return `<div class="jcell ${seen ? "" : "unseen"}"><span class="dot" style="background:#${d.c.toString(16).padStart(6, "0")}"></span><div>${esc(seen ? monsterName(id) : "???")}<small>${esc(seen ? (d.boss ? "★★★" : d.elite ? "★★" : "") + ` ${Math.round(d.hp)} HP` : t("notSeen"))}</small></div></div>`;
-      }).join("")}</div>`;
-    }).join("");
+    const groups = STAGES.map((s) => [s, [...new Set([...s.mix.map((m) => m[0]), ...s.events.map((e) => e[2]), s.boss])]]);
+    const ports = monsterPortraits(groups.flatMap(([, ids]) => ids));
+    root.innerHTML = groups.map(([s, ids]) => `<h3>${esc(stageText(s.id).name)}</h3><div class="beast-grid">${ids.map((id) => {
+      const seen = progress.seenMonsters.includes(id), d = MON[id];
+      const tier = d.boss ? t("tierBoss") : d.elite ? t("tierElite") : "";
+      return `<div class="beast ${seen ? "" : "unseen"} ${d.boss ? "boss" : d.elite ? "elite" : ""}"><div class="bport">${ports[id] ? `<img src="${ports[id]}" alt="">` : ""}</div>
+        <div class="bn">${esc(seen ? monsterName(id) : "???")}</div><small>${esc(seen ? `${tier ? tier + " · " : ""}${Math.round(d.hp)} HP` : t("notSeen"))}</small></div>`;
+    }).join("")}</div>`).join("");
   } else {
     const owned = unlockedWeapons(progress);
     const cells = WEAPON_IDS.flatMap((id) => [id, WEAPON_META[id].into]).map((id) => {
@@ -411,7 +412,7 @@ function renderJournal() {
       const seen = (progress.seenRelics || []).includes(id), rt = relicText(id);
       return `<div class="jcell ${seen ? "" : "unseen"}"><img src="${iconURL(seen ? id : "lock", 48)}" alt=""><div>${esc(seen ? rt.name : "???")}<small>${esc(seen ? rt.desc : t("notSeen"))}</small></div></div>`;
     });
-    root.innerHTML = `<h3>${esc(t("arsenal"))}</h3><div class="jgrid">${cells.join("")}</div><h3>—</h3><div class="jgrid">${pas.join("")}</div><h3>${esc(t("relics"))}</h3><div class="jgrid">${rel.join("")}</div>`;
+    root.innerHTML = `<h3>${esc(t("arsenal"))}</h3><div class="jgrid">${cells.join("")}</div><h3>${esc(t("passivesTab"))}</h3><div class="jgrid">${pas.join("")}</div><h3>${esc(t("relicsTab"))}</h3><div class="jgrid">${rel.join("")}</div>`;
   }
 }
 function unlockText(rule) {

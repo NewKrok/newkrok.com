@@ -16,7 +16,7 @@ import {
 import { tickMonsters, spawnPoint, spawnBoss, contactDamage, slam } from "./monsters.js";
 import {
   WEAPONS, addWeapon, tickWeapons, tickShots, onShotHit, onOrbHit, onThrownHit, landThrown,
-  evolvable, evolve, clearOrbs, clearCensers, tickHolyZone, weaponStats,
+  evolvable, evolve, clearOrbs, clearCensers, tickHolyZone, weaponStats, relicStorm,
 } from "./weapons.js";
 
 // ── A run ────────────────────────────────────────────────────────────────
@@ -185,6 +185,8 @@ export function recomputeStats(R) {
   if (rel("bloodseal")) h.stats.dmgMul *= 1.3;
   if (rel("hourglass")) h.stats.cdMul = Math.max(0.3, h.stats.cdMul * 0.75);
   if (rel("pilgrim")) h.stats.speed *= 1.1;
+  if (rel("souljar")) { h.stats.growth *= 1.3; h.stats.magnet *= 1.5; }
+  h.stats.activeMul = rel("wick") ? 0.6 : 1;
   const newMax = Math.round((d.hp + 15 * lv("heart") + 15 * hl("vitality")) * (R.relics.includes("hourglass") ? 0.8 : 1));
   if (newMax !== h.maxHp) {
     if (h.maxHp === 100 && h.level === 1 && h.xp === 0) h.hp = newMax;
@@ -259,6 +261,17 @@ function tickHero(R, input) {
     if (h.dig === 0) activeEnd(R);
   }
   if (h.flareT > 0) h.flareT--;
+  // Relics that act on their own clock.
+  if (R.relics.includes("clapper") && R.clock % 480 === 0 && R.clock > 0) {
+    R.rings.push({ x: heroX(R), y: heroY(R), r: 10, max: 220, t: 0, T: 22, color: 0xe0c070 });
+    for (const m of R.monsters) {
+      if (!m.alive || m.def.prop) continue;
+      const p = m.body.position, dx = p.x - heroX(R), dy = p.y - heroY(R), d = hyp(dx, dy);
+      if (d < 220 + m.def.r) damageMonster(R, m, 24, dx / d, dy / d, 380, "#e0c070", "clapper");
+    }
+    R.sfx.push(["bigtoll"]);
+  }
+  if (R.relics.includes("stormglass") && R.clock % 360 === 180) relicStorm(R);
 }
 
 function pushRing(R, radius, kick) {
@@ -273,7 +286,7 @@ function pushRing(R, radius, kick) {
 function activeStart(R) {
   const h = R.hero, st = h.stats, x = heroX(R), y = heroY(R);
   const id = R.heroDef.active;
-  h.activeCd = Math.round(h.activeMax * st.cdMul);
+  h.activeCd = Math.round(h.activeMax * st.cdMul * st.activeMul);
   h.activeT = 30;
   R.sfx.push(["active_" + id]);
   if (id === "flare") {
@@ -654,7 +667,7 @@ function openChest(R) {
     items.push({ kind: "evolve", from, id: w.id });
   } else {
     const r = R.rng() * h.stats.luck;
-    const n = r > 1.05 ? 3 : r > 0.75 ? 2 : 1;
+    const n = (r > 1.05 ? 3 : r > 0.75 ? 2 : 1) + (R.relics.includes("keys") ? 1 : 0);
     for (let k = 0; k < n; k++) {
       rollCards(R);
       const c = R.cards.find((x) => x.kind === "weapon" && !x.isNew) || R.cards.find((x) => x.kind === "passive" && !x.isNew) || R.cards[0];
@@ -674,7 +687,7 @@ function openChest(R) {
       items.unshift({ kind: "relic", id });
     }
   }
-  const gold = Math.round((15 + R.stage.index * 5) * h.stats.greed);
+  const gold = Math.round((15 + R.stage.index * 5) * h.stats.greed * (R.relics.includes("keys") ? 1.6 : 1));
   R.embers += gold;
   R.chest = { items, gold, t: 0 };
   R.phase = "chest";

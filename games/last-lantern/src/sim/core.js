@@ -91,6 +91,8 @@ export function killMonster(R, m, silent = false) {
     return;
   }
   R.kills++;
+  // The Leech Tooth: a sip of health every third kill.
+  if (R.relics.includes("leechtooth") && R.kills % 3 === 0 && R.hero.hp < R.hero.maxHp) R.hero.hp = Math.min(R.hero.maxHp, R.hero.hp + 1);
   // The Raven Skull: a chest every 150 kills.
   if (R.relics.includes("ravenskull") && R.kills % 150 === 0) R.pickups.push({ kind: "chest", x, y, t: 0 });
   R.killsBy[m.lastSrc] = (R.killsBy[m.lastSrc] || 0) + 1;
@@ -137,6 +139,7 @@ export function damageMonster(R, m, dmg, kx = 0, ky = 0, knock = 0, color = "#ff
   const real = Math.max(1, Math.round(dmg * st.dmgMul * still * (0.9 + R.rng() * 0.2) * (crit ? 2 : 1)));
   m.hp -= real;
   m.hitFlash = 6;
+  if (src !== "burn" && R.relics.includes("reliquary") && R.rng() < 0.15) burnMonster(m, Math.max(4, real * 0.25), 120);
   m.lastSrc = src;
   R.dmgBy[src] = (R.dmgBy[src] || 0) + real;
   if (knock > 0 && !m.def.boss && !m.def.prop && m.body.type !== BodyType.STATIC) {
@@ -212,6 +215,11 @@ export function nearestMonsters(R, n, maxD, fromX = heroX(R), fromY = heroY(R)) 
 export function hurtHero(R, dmg, sx, sy, src) {
   const h = R.hero;
   if (R.phase !== "play" || h.iframes > 0 || h.hp <= 0 || h.dig > 0 || h.sanct > 0) return;
+  if (R.relics.includes("ghostlamp") && R.rng() < 0.15) {
+    h.iframes = 18;
+    floater(R, heroX(R), heroY(R) - 22, "✧", "#b8e0ff", 1.2);
+    return;
+  }
   const real = Math.max(1, Math.round(dmg * (R.relics.includes("bloodseal") ? 1.2 : 1) - h.stats.armor));
   // The Thorned Shroud answers every touch.
   if (src?.alive && R.relics.includes("thorns")) {

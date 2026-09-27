@@ -464,6 +464,38 @@ const RIG_GEO = {
   torusHalf: new T.TorusGeometry(1, 0.08, 4, 12, Math.PI),
 };
 
+// A monster as a plain group of meshes in one pose (for bestiary portraits):
+// the same parts, limbs and held things as the instanced rig.
+export function monsterFigure(id, t = 0.9) {
+  const def = MON[id], sp = spec(def);
+  const g = new T.Group();
+  const d = new T.Object3D(), am = new T.Matrix4(), ar = new T.Matrix4(), at = new T.Matrix4();
+  const hang = (a) => sp.parts.find((q) => q.a === a && q.g === "hang");
+  for (const ps of sp.parts) {
+    const mat = ps.e ? new T.MeshBasicMaterial({ color: ps.c }) : new T.MeshStandardMaterial({ color: ps.c, roughness: 0.8, flatShading: true, transparent: !!sp.ghost, opacity: sp.ghost ? 0.85 : 1 });
+    const mesh = new T.Mesh(RIG_GEO[ps.g], mat);
+    d.position.set(ps.p[0], ps.p[1], ps.p[2]);
+    d.rotation.set(ps.rx || 0, ps.ry || 0, ps.rz || 0);
+    if (ps.g === "hang" && /leg|arm/.test(ps.a || "")) d.rotation.x = limbAngle(ps, t);
+    if (ps.a === "wingL") { d.rotation.z = Math.PI; d.rotation.y = 0.35; }
+    if (ps.a === "wingR") d.rotation.y = -0.35;
+    if (ps.q) { const [x, y, z] = ps.q.map((v) => new T.Vector3(...v)); d.quaternion.setFromRotationMatrix(new T.Matrix4().makeBasis(x, y, z)); }
+    d.scale.set(ps.s[0], ps.s[1], ps.s[2]);
+    d.updateMatrix();
+    const L = ps.hold ? hang(ps.hold) : null;
+    if (L) {
+      am.makeTranslation(L.p[0], L.p[1], L.p[2]).multiply(ar.makeRotationX(limbAngle(L, t))).multiply(at.makeTranslation(0, 0, -L.s[2])).multiply(d.matrix);
+      mesh.matrix.copy(am);
+    } else mesh.matrix.copy(d.matrix);
+    mesh.matrixAutoUpdate = false;
+    g.add(mesh);
+  }
+  g.position.z = sp.fly || 0;
+  const s = def.scale || 1;
+  g.scale.setScalar(s);
+  return g;
+}
+
 export class Rigs {
   constructor(scene) {
     this.scene = scene;

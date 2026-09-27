@@ -40,7 +40,7 @@ export const EN = {
   evoHint: "Evolves with {p} at max level",
   st_dmg: "Damage", st_range: "Reach", st_cd: "Cooldown", st_arcs: "Lashes", st_width: "Width", st_n: "Count", st_pierce: "Pierce",
   st_radius: "Radius", st_knock: "Knockback", st_speed: "Speed", st_chain: "Chains", st_dur: "Duration", st_blast: "Burst", st_reach: "Throw",
-  relicTag: "Relic", relics: "Relics", boostLine: "The lit beacons lend you strength: +{n} levels", boostIntro: "You start with {n} extra levels",
+  relicTag: "Relic", relicsTab: "Relics", passivesTab: "Passives", tierBoss: "Keeper", tierElite: "Elite", boostLine: "The lit beacons lend you strength: +{n} levels", boostIntro: "You start with {n} extra levels",
   chestTitle: "A chest!", chestEvolve: "{a} became {b}!", chestItems: "Inside:", chestGold: "+{n} embers", chestOk: "Take it",
   // Pause / results.
   paused: "Paused", resume: "Resume", restart: "Restart", abandon: "Abandon the run", mainMenu: "Main menu",
@@ -156,6 +156,14 @@ EN.relics = {
   saintsbone: ["Saint's Knucklebone", "Come back once at half health."],
   thorns: ["Thorned Shroud", "Whatever touches you takes twice the damage back and is thrown off."],
   mirror: ["Moon Mirror", "Projectiles have a 25% chance to fire twice."],
+  wick: ["Everburning Wick", "Your ability recharges 40% faster."],
+  souljar: ["Soul Jar", "+30% experience and +50% pickup range."],
+  clapper: ["Cracked Bell Clapper", "Every 8 seconds a toll rings out around you and throws the crowd back."],
+  reliquary: ["Reliquary of St. Ember", "Every hit has a 15% chance to set the monster alight."],
+  keys: ["Sexton's Keys", "Chests hold one more upgrade and 60% more embers."],
+  leechtooth: ["Leech Tooth", "Every third kill heals you a little."],
+  stormglass: ["Storm Glass", "Every 6 seconds lightning finds three monsters near you."],
+  ghostlamp: ["Ghost Lantern", "A 15% chance to slip through a blow unharmed."],
 };
 
 EN.monsters = {

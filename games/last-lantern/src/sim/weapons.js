@@ -346,6 +346,13 @@ function lightning(R, w, s, radius) {
   for (let i = 0; i < n; i++) strike(R, w, big && i % 2 === 0 ? big : pool[Math.floor(R.rng() * pool.length)], s.dmg, s.chain);
   R.sfx.push(["thunder", w.id === "wrath" ? 1 : 0]);
 }
+// The Storm Glass relic: every few seconds, lightning on three monsters near.
+export function relicStorm(R) {
+  const hx = heroX(R), hy = heroY(R);
+  const pool = R.monsters.filter((m) => m.alive && !m.def.prop && Math.hypot(m.body.position.x - hx, m.body.position.y - hy) < 360);
+  for (let i = 0; i < Math.min(3, pool.length); i++) strike(R, { id: "stormglass" }, pool[Math.floor(R.rng() * pool.length)], 45, 1);
+  if (pool.length) R.sfx.push(["thunder", 0]);
+}
 function strike(R, w, m, dmg, chain) {
   const p = m.body.position;
   const pts = [];

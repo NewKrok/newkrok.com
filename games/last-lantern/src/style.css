@@ -333,6 +333,15 @@ kbd { display: inline-block; min-width: 1.7em; padding: 0 6px; border: 1px solid
 .journal .page p { margin: 4px 0; font-size: 18px; color: var(--ink); line-height: 1.55; }
 .journal .page.locked p { color: var(--ink-faint); font-style: italic; }
 .jgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-top: 8px; }
+.beast-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 8px; }
+.beast { text-align: center; padding: 8px 6px 10px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(122, 86, 38, 0.5); }
+.beast .bport { height: 110px; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 60%, rgba(255, 150, 60, 0.18), transparent 65%); }
+.beast .bport img { width: 110px; height: 110px; }
+.beast .bn { font: 700 14px var(--serif); color: var(--gold-hi); margin-top: 4px; }
+.beast small { color: var(--ink-dim); font-size: 13px; }
+.beast.elite { border-color: #b86a3a; } .beast.boss { border-color: var(--gold); box-shadow: 0 0 16px rgba(255, 150, 50, 0.25); }
+.beast.unseen .bport img { filter: brightness(0) drop-shadow(0 0 1px rgba(212, 162, 76, 0.7)); }
+.beast.unseen .bn, .beast.unseen small { opacity: 0.5; }
 .jcell { display: flex; gap: 10px; align-items: center; padding: 8px 10px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(122, 86, 38, 0.5); font: 600 15px var(--body); }
 .jcell.unseen { opacity: 0.4; }
 .jcell .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 2px #0a0608, 0 0 0 3px var(--gold-lo); }

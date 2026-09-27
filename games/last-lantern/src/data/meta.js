@@ -67,7 +67,7 @@ export const PASSIVE_META = {
 
 // Relics: one-off finds from elites' chests, at most two per run. Each has
 // a single strong effect that bends a build; the numbers live in sim/run.js.
-export const RELIC_IDS = ["martyr", "ravenskull", "bloodseal", "pilgrim", "hourglass", "saintsbone", "thorns", "mirror"];
+export const RELIC_IDS = ["martyr", "ravenskull", "bloodseal", "pilgrim", "hourglass", "saintsbone", "thorns", "mirror", "wick", "souljar", "clapper", "reliquary", "keys", "leechtooth", "stormglass", "ghostlamp"];
 export const MAX_RELICS = 2;
 
 // The Hearth: permanent upgrades bought with embers between runs.

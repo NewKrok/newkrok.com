@@ -1,5 +1,5 @@
 import * as T from "three";
-import { buildHero } from "./rigs.js";
+import { buildHero, monsterFigure } from "./rigs.js";
 import { HEROES } from "../data/meta.js";
 import { mulberry } from "../config.js";
 
@@ -41,6 +41,43 @@ export function heroPortraits() {
   r.dispose();
   r.forceContextLoss?.();
   cache.set("heroes", out);
+  return out;
+}
+
+// Bestiary portraits: each monster rig posed and rendered once, framed to
+// its own size.
+export function monsterPortraits(ids) {
+  const out = cache.get("monsters") || {};
+  const todo = ids.filter((id) => !out[id]);
+  if (!todo.length) return out;
+  const S = 150;
+  let r;
+  try { r = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); } catch { return out; }
+  r.setPixelRatio(1); r.setSize(S, S, false);
+  r.toneMapping = T.ACESFilmicToneMapping;
+  const cam = new T.PerspectiveCamera(28, 1, 1, 5000);
+  cam.up.set(0, 0, 1);
+  const box = new T.Box3(), c = new T.Vector3(), sz = new T.Vector3();
+  for (const id of todo) {
+    const scene = new T.Scene();
+    scene.add(new T.AmbientLight(0x8a7a9a, 1.8));
+    const key = new T.DirectionalLight(0xffd8a0, 2.4); key.position.set(-1, 2, 2); scene.add(key);
+    const rim = new T.DirectionalLight(0x8aa0ff, 1.6); rim.position.set(2, -1, 1.5); scene.add(rim);
+    const fig = monsterFigure(id);
+    const holder = new T.Group(); holder.add(fig); holder.rotation.z = 0.55;
+    scene.add(holder);
+    holder.updateMatrixWorld(true);
+    box.setFromObject(holder); box.getCenter(c); box.getSize(sz);
+    const radius = Math.max(sz.x, sz.y, sz.z) * 0.62 + 2;
+    const dist = radius / Math.tan((28 * Math.PI) / 360);
+    cam.position.set(c.x, c.y + dist * 0.88, c.z + dist * 0.45);
+    cam.lookAt(c);
+    r.render(scene, cam);
+    out[id] = r.domElement.toDataURL("image/png");
+    scene.traverse((o) => o.material?.dispose?.());
+  }
+  r.dispose(); r.forceContextLoss?.();
+  cache.set("monsters", out);
   return out;
 }
 
