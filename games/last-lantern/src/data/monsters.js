@@ -21,7 +21,7 @@ export const MON = {
   // ── The drowned mill ──
   leech:    { r: 7,  hp: 7,    speed: 128, dmg: 3,  xp: 1,  mass: 0.5, ai: "wiggle", rig: "leech",    c: 0x6b3a4a, c2: 0x3a1c28 },
   drowned:  { r: 12, hp: 24,   speed: 64,  dmg: 5,  xp: 1,  mass: 1.1, ai: "chase",  rig: "ghoul",    c: 0x6f8f8a, c2: 0x3f5a58 },
-  toad:     { r: 13, hp: 38,   speed: 70,  dmg: 5,  xp: 3,  mass: 1.3, ai: "ranged", rig: "toad",     c: 0x7a9a3a, c2: 0x4a6a1e, spit: { dmg: 7, speed: 215, color: 0x9fcf4a, home: 0.022 } },
+  toad:     { r: 13, hp: 38,   speed: 70,  dmg: 5,  xp: 3,  mass: 1.3, ai: "ranged", rig: "toad",     c: 0x7a9a3a, c2: 0x4a6a1e, spit: { dmg: 7, speed: 205, color: 0x9fcf4a, home: 0.009, life: 120 } },
   bogslime: { r: 15, hp: 60,   speed: 58,  dmg: 6,  xp: 2,  mass: 1.6, ai: "chase",  rig: "slime",    c: 0x4f8a5a, c2: 0x2f5a3a, split: "bogling" },
   bogling:  { r: 8,  hp: 14,   speed: 96,  dmg: 3,  xp: 1,  mass: 0.7, ai: "chase",  rig: "slime",    c: 0x6faa7a, c2: 0x3f7a4a },
   wisp:     { r: 9,  hp: 36,   speed: 120, dmg: 6,  xp: 3,  mass: 0.7, ai: "swoop",  rig: "wisp",     c: 0x9ff0c0, c2: 0x3fb080, ghost: true, fly: 14 },
