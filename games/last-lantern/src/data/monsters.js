@@ -51,7 +51,7 @@ export const MON = {
   rime:     { r: 10, hp: 52,   speed: 120, dmg: 8,  xp: 3,  mass: 0.8, ai: "chase",  rig: "ghost",    c: 0xc0e8ff, c2: 0x5a9ad0, ghost: true, fly: 8 },
   frostseer:{ r: 12, hp: 110,  speed: 64,  dmg: 7,  xp: 4,  mass: 1.2, ai: "healer", rig: "witch",    c: 0x4a5a78, c2: 0x8aa8c8, c3: 0x9fe0ff, heal: 0.25 , cap: 4 },
   frostknight: { r: 20, hp: 1500, speed: 84, dmg: 18, xp: 12, mass: 6, ai: "charger", rig: "knight",  c: 0xa8c8e8, c2: 0x5a7a9a, c3: 0x7ad8ff, elite: true },
-  wormhead: { r: 30, hp: 12000, speed: 150, dmg: 26, xp: 40, mass: 12, ai: "worm",  rig: "wormhead", c: 0x8ab0d0, c2: 0x2a4a6a, boss: true },
+  wormhead: { r: 30, hp: 9000, speed: 150, dmg: 26, xp: 40, mass: 12, ai: "worm",  rig: "wormhead", c: 0x8ab0d0, c2: 0x2a4a6a, boss: true },
 
   // ── The moon cathedral ──
   gargoyle: { r: 10, hp: 30,   speed: 120, dmg: 6,  xp: 2,  mass: 1,   ai: "diver",  rig: "gargoyle", c: 0x6a6f7a, c2: 0x3a3f4a, fly: 30 },

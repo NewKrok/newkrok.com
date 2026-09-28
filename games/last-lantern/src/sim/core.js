@@ -126,11 +126,23 @@ export function killMonster(R, m, silent = false) {
 export function damageMonster(R, m, dmg, kx = 0, ky = 0, knock = 0, color = "#ffffff", src = "") {
   if (!m.alive) return 0;
   if (m.def.part) {
-    // Worm segments share the head's health.
+    // Worm segments share the head's health. A blow that lands on many
+    // segments at once (a toll, a blast, lightning) must not multiply, so
+    // each source reaches the head through the body at most once every few
+    // frames, and only the strongest of those hits counts.
     m.hitFlash = 5;
     const head = m.parent;
     if (!head?.alive) return 0;
-    return damageMonster(R, head, dmg * 0.35, 0, 0, 0, color, src);
+    head.segHits = head.segHits || {};
+    const last = head.segHits[src];
+    if (last && R.frame - last.frame < 8) {
+      if (dmg <= last.dmg) return 0;
+      const extra = (dmg - last.dmg) * 0.6;
+      last.dmg = dmg;
+      return damageMonster(R, head, extra, 0, 0, 0, color, src);
+    }
+    head.segHits[src] = { frame: R.frame, dmg };
+    return damageMonster(R, head, dmg * 0.6, 0, 0, 0, color, src);
   }
   if (m.hidden > 0) return 0;
   const st = R.hero.stats;
