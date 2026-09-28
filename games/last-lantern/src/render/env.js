@@ -567,15 +567,16 @@ const WALLS = {
     for (const [x, y, sw, sd] of [[w.W / 2, -10, w.W + 40, 20], [w.W / 2, w.H + 10, w.W + 40, 20], [-10, w.H / 2, 20, w.H], [w.W + 10, w.H / 2, 20, w.H]]) {
       B.stone.add(GEO.boxUp, [x, -y, 0], null, [sw, sd, hgt], 0x3e3848);
     }
-    // Buttresses and tall windows glowing with moonlight.
+    // Buttresses and tall windows glowing with moonlight, set a hair in
+    // front of the wall's inner face so the two never share a plane.
     alongWalls(w.W, w.H, 240, (x, y, a) => {
       B.stone.add(GEO.boxUp, [x, -y, 0], [0, 0, a], [30, 30, hgt + 20], 0x4a4456);
     });
     for (let x = 120; x < w.W; x += 240) {
-      B.glow.add(GEO.box, [x, -w.H - 0.5, 60], null, [40, 1, 70], 0x4a5aa0);
-      B.glow.add(GEO.box, [x, 0.5, 60], null, [40, 1, 70], 0x7a4a8a);
+      B.glow.add(GEO.box, [x, -w.H + 1.4, 60], null, [40, 1, 70], 0x4a5aa0);
+      B.glow.add(GEO.box, [x, -1.4, 60], null, [40, 1, 70], 0x7a4a8a);
     }
-    for (let y = 120; y < w.H; y += 240) for (const x of [-0.5, w.W + 0.5]) B.glow.add(GEO.box, [x, -y, 60], null, [1, 40, 70], 0x5a4aa0);
+    for (let y = 120; y < w.H; y += 240) for (const x of [1.4, w.W - 1.4]) B.glow.add(GEO.box, [x, -y, 60], null, [1, 40, 70], 0x5a4aa0);
     // Wall sconces.
     for (let y = 200; y < w.H; y += 400) for (const x of [16, w.W - 16]) {
       B.wood.add(GEO.boxUp, [x, -y, 70], null, [8, 8, 14], 0x2a2430);
