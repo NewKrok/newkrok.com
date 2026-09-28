@@ -199,7 +199,14 @@ function startRun() {
   audio.setIntensity(0);
   const a = $(".active-btn img");
   a.src = iconURL(R.heroDef.active, 64);
-  track("run_start", { stage: s.index + 1, stage_id: s.id, hero: R.heroDef.id, blood, runs: progress.runs });
+  // Enough to see who plays what, how far they get, and whether other heroes
+  // and the Blood Moon get picked by those who could.
+  track("run_start", {
+    stage: s.index + 1, stage_id: s.id, hero: R.heroDef.id, blood, runs: progress.runs,
+    beacons: progress.cleared.filter(Boolean).length,
+    heroes_unlocked: HEROES.filter((h) => heroUnlocked(progress, h)).length,
+    blood_available: !!progress.cleared[s.index],
+  });
 }
 
 // ── Level-up cards ───────────────────────────────────────────────────────
@@ -323,8 +330,9 @@ function finishRun() {
   s.monstersSeen = [...new Set(R.seenIds)];
   s.weaponsSeen = [...R.weaponsSeen];
   s.relicsSeen = [...(R.relicsSeen || [])];
+  const firstClear = s.won && !progress.cleared[s.stage];
   const unlocked = recordRun(progress, s);
-  track("run_end", { stage: s.stage + 1, hero: s.hero, blood: s.blood, won: s.won, time_s: Math.round(s.time), kills: s.kills, level: s.level, embers: s.embers, weapons: s.weapons.map((w) => w.id).join(",") });
+  track("run_end", { stage: s.stage + 1, stage_id: s.stageId, hero: s.hero, blood: s.blood, won: s.won, first_clear: firstClear, time_s: Math.round(s.time), kills: s.kills, level: s.level, embers: s.embers, beacons: progress.cleared.filter(Boolean).length, runs: progress.runs, weapons: s.weapons.map((w) => w.id).join(",") });
   for (const u of unlocked) track("unlock", { kind: u.kind, id: u.id });
   const root = $("#result");
   const h2 = $("h2", root);
