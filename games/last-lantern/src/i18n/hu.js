@@ -64,7 +64,7 @@ export const HU = {
   m_wren_2: "Napfény-gyűrűt hagy a földön, ami megégeti, ami benne áll.", m_wren_3: "Szélesebb, erősebb villanás, ami 10%-ot is gyógyít rajtad.",
   m_mira_2: "Ahonnan elgurulsz, ott egy robbanás magába húzza és megsebzi a tömeget.", m_mira_3: "Nagyobb, erősebb robbanás, és kétszer annyi, messzebbre átütő nyílvessző.",
   m_oskar_2: "A szentély egy másodperccel tovább tart, és megégeti, ami nekifeszül.", m_oskar_3: "Egy hatalmas kondulással ér véget, ami visszalök és megsebez mindent a közelben.",
-  m_sable_2: "Markoló földet hagysz magad után, ami lassítja a tömeget.", m_sable_3: "Szélesebb, erősebb csapással török elő, ami tovább kábít.",
+  m_sable_2: "Markoló földet hagysz magad után, ami lassítja a tömeget.", m_sable_3: "Szélesebb, erősebb robbanással török elő, ami sokkal messzebbre dobja a tömeget, és tovább kábít.",
   h_radiance: "Ragyogás", hd_radiance: "+6% hatókör", h_headstart: "Előny", hd_headstart: "Minden menetet 2 szinttel magasabban kezdesz", h_legion: "Légió", hd_legion: "+1 lövedék minden fegyverhez", buy: "Fejlesztés · {n}", maxed: "Maximum",
   journalIntro: "Az úton összegyűjtött lapok.", jn_locked: "Gyújtsd meg a jelzőtüzet a folytatáshoz.",
   storyTab: "Történet", evoFrom: "{w} max szinten + {p}",

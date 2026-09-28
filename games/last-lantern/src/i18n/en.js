@@ -74,7 +74,7 @@ export const EN = {
   m_wren_2: "It leaves a ring of sunfire that burns whatever stands in it.", m_wren_3: "A wider, fiercer flare that also heals you 10%.",
   m_mira_2: "Where you roll from, a blast pulls the crowd in and hurts it.", m_mira_3: "A bigger, harder blast, and twice the bolts, piercing further.",
   m_oskar_2: "Sanctuary lasts a second longer and burns whatever presses on it.", m_oskar_3: "It ends with a great toll that throws back and hurts everything near.",
-  m_sable_2: "You leave grasping earth behind you that slows the crowd.", m_sable_3: "You burst out in a wider, harder slam that stuns for longer.",
+  m_sable_2: "You leave grasping earth behind you that slows the crowd.", m_sable_3: "You burst out in a wider, harder blast that throws the crowd much further and stuns for longer.",
   h_radiance: "Radiance", hd_radiance: "+6% area", h_headstart: "Head Start", hd_headstart: "Start every run 2 levels higher", h_legion: "Legion", hd_legion: "+1 projectile for every weapon", buy: "Upgrade · {n}", maxed: "Maxed",
   // Journal.
   journalIntro: "Pages gathered along the way.", jn_locked: "Light the beacon to read on.",

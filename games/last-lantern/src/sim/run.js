@@ -390,7 +390,7 @@ function activeEnd(R) {
       // The earth bursts outward: everything near is thrown clear, the
       // closest furthest, light ones more than heavy ones.
       if (!m.def.boss && !m.def.part) {
-        const k = (900 * (1 - d / (r + 40)) + 200) / Math.sqrt(m.def.mass);
+        const k = (900 * (1 - d / (r + 40)) + 200) * (ml >= 3 ? 1.6 : 1) / Math.sqrt(m.def.mass);
         m.body.applyImpulse(new Vec2(dx / d * k * m.body.mass, dy / d * k * m.body.mass));
         m.stun = ml >= 3 ? 130 : 70;
       }
