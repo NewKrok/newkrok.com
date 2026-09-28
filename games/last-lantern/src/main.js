@@ -351,12 +351,24 @@ function finishRun() {
 // ── Hearth ───────────────────────────────────────────────────────────────
 function renderHearth() {
   bind("embers", progress.embers);
-  $("#hearth").innerHTML = HEARTH.map((u) => {
+  const card = (u) => {
     const lv = progress.hearth[u.id] || 0, max = lv >= u.max, cost = hearthCost(u, lv);
+    const hero = u.hero && HEROES.find((h) => h.id === u.hero);
+    const locked = hero && !heroUnlocked(progress, hero);
+    const btn = locked
+      ? `<button class="btn ghost" disabled><img class="ico" src="${iconURL("lock", 32)}" alt=""> ${esc(t("unlockStage", { n: hero.unlock.stage + 1 }))}</button>`
+      : `<button class="btn ${max ? "ghost" : progress.embers >= cost ? "primary" : ""}" data-buy="${u.id}" ${max ? "disabled" : ""}>${max ? esc(t("maxed")) : `<img class="ico" src="${iconURL("ember", 32)}" alt=""> ${esc(t("buy", { n: cost }))}`}</button>`;
+    if (hero) {
+      const tx = heroText(hero.id);
+      const steps = [1, 2, 3].map((k) => `<li class="${k <= lv ? "on" : ""}">${esc(t(k === 1 ? "mastery1" : `m_${hero.id}_${k}`, { a: tx.active }))}</li>`).join("");
+      return `<div class="hup mastery ${locked ? "locked" : ""}"><div class="top"><img src="${iconURL(hero.active, 64)}" alt=""><div><div class="nm">${esc(tx.name)} · ${esc(tx.active)}</div><div class="ds">${esc(t("masteryOf"))}</div></div></div>
+        <ol class="steps">${steps}</ol>${btn}</div>`;
+    }
     return `<div class="hup"><div class="top"><img src="${iconURL(u.id, 64)}" alt=""><div><div class="nm">${esc(t("h_" + u.id))}</div><div class="ds">${esc(t("hd_" + u.id))}</div></div></div>
-      <div class="pips">${Array.from({ length: u.max }, (_, i) => `<i class="${i < lv ? "on" : ""}"></i>`).join("")}</div>
-      <button class="btn ${max ? "ghost" : progress.embers >= cost ? "primary" : ""}" data-buy="${u.id}" ${max ? "disabled" : ""}>${max ? esc(t("maxed")) : `<img class="ico" src="${iconURL("ember", 32)}" alt=""> ${esc(t("buy", { n: cost }))}`}</button></div>`;
-  }).join("");
+      <div class="pips">${Array.from({ length: u.max }, (_, i) => `<i class="${i < lv ? "on" : ""}"></i>`).join("")}</div>${btn}</div>`;
+  };
+  $("#hearth").innerHTML = HEARTH.filter((u) => !u.hero).map(card).join("") +
+    `<h3 class="hearth-h">${esc(t("masteryTitle"))}</h3>` + HEARTH.filter((u) => u.hero).map(card).join("");
 }
 function buy(id) {
   const u = HEARTH.find((x) => x.id === id);

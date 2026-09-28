@@ -255,10 +255,24 @@ function tickHero(R, input) {
     R.wantActive = false;
     if (h.activeCd <= 0) activeStart(R);
   }
-  if (h.sanct > 0) { h.sanct--; if (h.sanct % 10 === 0) pushRing(R, 150, 60); }
+  if (h.sanct > 0) {
+    h.sanct--;
+    if (h.sanct % 10 === 0) {
+      pushRing(R, 150, 60);
+      // Mastery 2: the holy ground burns whatever presses on it.
+      if (mastery(R) >= 2) for (const m of R.monsters) {
+        if (!m.alive || m.def.prop) continue;
+        const p = m.body.position;
+        if (Math.hypot(p.x - x, p.y - y) < 70 + m.def.r) damageMonster(R, m, 9 * masteryMul(mastery(R)), 0, 0, 0, "#ffe9a8", "sanctuary");
+      }
+    }
+    if (h.sanct === 0) activeEnd(R);
+  }
   if (h.dig > 0) {
     h.dig--;
     if (h.dig % 4 === 0) particle(R, x, y, (R.rng() - 0.5) * 60, (R.rng() - 0.5) * 60, 0x5a4a3a, 24, 3.5, 2, 60);
+    // Mastery 2: grasping earth behind you, which slows the crowd.
+    if (mastery(R) >= 2 && h.dig % 8 === 0) R.zones.push({ kind: "smoke", x, y, r: 42, life: 240, T: 240, earth: true });
     if (h.dig === 0) activeEnd(R);
   }
   if (h.flareT > 0) h.flareT--;
@@ -284,15 +298,38 @@ function pushRing(R, radius, kick) {
   }
 }
 
+// Mastery (bought at the Hearth): 1 = stronger and quicker, 2 = an extra
+// effect, 3 = the extra effect grows and something more.
+const mastery = (R) => R.hearthLv["m_" + R.heroDef.id] || 0;
+const masteryMul = (ml) => 1 + (ml >= 1 ? 0.4 : 0) + (ml >= 3 ? 0.3 : 0);
+
+// Pull everything near a point inward and hurt it (Mira's roll).
+function implode(R, x, y, radius, dmg) {
+  R.rings.push({ x, y, r: radius, max: 12, t: 0, T: 20, color: 0xb07aff });
+  burst(R, x, y, 18, 0xb07aff, 3);
+  for (const m of [...R.monsters]) {
+    if (!m.alive || m.def.prop) continue;
+    const p = m.body.position, dx = x - p.x, dy = y - p.y, d = hyp(dx, dy);
+    if (d > radius + m.def.r) continue;
+    damageMonster(R, m, dmg, 0, 0, 0, "#c8a0ff", "tumble");
+    if (m.alive && !m.def.boss && !m.def.part) {
+      const k = Math.min(420, d * 2.4) / Math.sqrt(m.def.mass);
+      m.body.applyImpulse(new Vec2(dx / d * k * m.body.mass, dy / d * k * m.body.mass));
+      m.stun = Math.max(m.stun, 30);
+    }
+  }
+  R.sfx.push(["boom", 0]);
+}
+
 function activeStart(R) {
   const h = R.hero, st = h.stats, x = heroX(R), y = heroY(R);
-  const id = R.heroDef.active;
-  h.activeCd = Math.round(h.activeMax * st.cdMul * st.activeMul);
+  const id = R.heroDef.active, ml = mastery(R), mm = masteryMul(ml);
+  h.activeCd = Math.round(h.activeMax * st.cdMul * st.activeMul * (ml >= 1 ? 0.9 : 1));
   h.activeT = 30;
   R.sfx.push(["active_" + id]);
   if (id === "flare") {
     // A burst of the old sun: hurts, stuns and throws everything near.
-    const r = 250 * st.area;
+    const r = 250 * st.area * (ml >= 3 ? 1.2 : 1);
     R.rings.push({ x, y, r: 10, max: r, t: 0, T: 22, color: 0xfff0b0 });
     R.flash = 0.9;
     h.flareT = 40;
@@ -300,18 +337,23 @@ function activeStart(R) {
       if (!m.alive) continue;
       const p = m.body.position, dx = p.x - x, dy = p.y - y, d = hyp(dx, dy);
       if (d > r + m.def.r) continue;
-      damageMonster(R, m, 40, dx / d, dy / d, 320, "#fff0b0", "flare");
+      damageMonster(R, m, 40 * mm, dx / d, dy / d, 320, "#fff0b0", "flare");
       if (m.alive && !m.def.boss) m.stun = 100;
     }
     pushProps(R, x, y, r, 300);
     R.shake(8, 0.3);
+    // Mastery: a ring of sunfire stays on the ground; at 3 it heals too.
+    if (ml >= 2) R.zones.push({ kind: "holy", x, y, r: r * 0.55, life: 200, T: 200, dmg: 10 * mm, src: "flare", sun: true });
+    if (ml >= 3) { const heal = Math.round(h.maxHp * 0.1); h.hp = Math.min(h.maxHp, h.hp + heal); floater(R, x, y - 26, `+${heal}`, "#7ee787", 1.1); }
   } else if (id === "tumble") {
     const a = h.moveX || h.moveY ? Math.atan2(h.moveY, h.moveX) : h.face;
     h.tumbleA = a;
     h.tumble = 12;
     h.iframes = Math.max(h.iframes, 26);
+    // Mastery: where you roll from, a blast pulls the crowd in.
+    if (ml >= 2) implode(R, x, y, ml >= 3 ? 250 : 190, (ml >= 3 ? 55 : 35) * mm);
   } else if (id === "sanctuary") {
-    h.sanct = 190;
+    h.sanct = 190 + (ml >= 2 ? 60 : 0);
     const heal = Math.round(h.maxHp * 0.25);
     h.hp = Math.min(h.maxHp, h.hp + heal);
     floater(R, x, y - 26, `+${heal}`, "#7ee787", 1.2);
@@ -326,31 +368,41 @@ function activeStart(R) {
 }
 function activeEnd(R) {
   const h = R.hero, id = R.heroDef.active, x = heroX(R), y = heroY(R);
+  const ml = mastery(R), mm = masteryMul(ml);
   if (id === "tumble") {
-    // Coming out of the roll: a ring of bolts.
-    for (let i = 0; i < 10; i++) {
-      const a = (i / 10) * Math.PI * 2;
-      spawnVolleyBolt(R, a);
-    }
+    // Coming out of the roll: a ring of bolts (twice as many, piercing, at mastery 3).
+    const n = ml >= 3 ? 20 : 10;
+    for (let i = 0; i < n; i++) spawnVolleyBolt(R, (i / n) * Math.PI * 2, 18 * mm, ml >= 3 ? 4 : 2);
     R.sfx.push(["bow", 0]);
   } else if (id === "dig") {
     h.body.shapes.at(0).filter = F.hero();
     h.iframes = Math.max(h.iframes, 30);
-    const r = 170 * h.stats.area;
+    const r = 170 * h.stats.area * (ml >= 3 ? 1.5 : 1);
     R.rings.push({ x, y, r: 10, max: r, t: 0, T: 20, color: 0xa08060 });
     burst(R, x, y, 30, 0x6a5a4a, 3.5);
     for (const m of [...R.monsters]) {
       if (!m.alive) continue;
       const p = m.body.position, dx = p.x - x, dy = p.y - y, d = hyp(dx, dy);
-      if (d < r + m.def.r) { damageMonster(R, m, 55, dx / d, dy / d, 380, "#d0b090", "dig"); if (m.alive && !m.def.boss) m.stun = 60; }
+      if (d < r + m.def.r) { damageMonster(R, m, 55 * mm, dx / d, dy / d, 380, "#d0b090", "dig"); if (m.alive && !m.def.boss) m.stun = ml >= 3 ? 130 : 60; }
     }
     pushProps(R, x, y, r, 340);
     R.shake(10, 0.35);
     R.sfx.push(["slam"]);
+  } else if (id === "sanctuary" && ml >= 3) {
+    // The sanctuary ends with a great toll.
+    R.rings.push({ x, y, r: 20, max: 280, t: 0, T: 26, color: 0xffe9a8 });
+    for (const m of [...R.monsters]) {
+      if (!m.alive) continue;
+      const p = m.body.position, dx = p.x - x, dy = p.y - y, d = hyp(dx, dy);
+      if (d < 280 + m.def.r) damageMonster(R, m, 80 * mm, dx / d, dy / d, 420, "#ffe9a8", "sanctuary");
+    }
+    pushProps(R, x, y, 280, 360);
+    R.shake(10, 0.4);
+    R.sfx.push(["bigtoll"]);
   }
 }
 // The tumble's bolt ring shares the crossbow's projectile code path.
-function spawnVolleyBolt(R, a) {
+function spawnVolleyBolt(R, a, dmg = 18, pierce = 2) {
   const body = new Body(BodyType.DYNAMIC, new Vec2(heroX(R) + Math.cos(a) * 18, heroY(R) + Math.sin(a) * 18));
   const shape = new Circle(5);
   shape.sensorEnabled = true;
@@ -359,7 +411,7 @@ function spawnVolleyBolt(R, a) {
   body.shapes.add(shape);
   body.velocity = new Vec2(Math.cos(a) * 560, Math.sin(a) * 560);
   body.space = R.space;
-  R.shots.push({ kind: "bolt", w: "tumble", body, angle: a, dmg: 18, pierce: 2, r: 5, life: 50, speed: 560, delay: 0, blast: 0, hit: new Set() });
+  R.shots.push({ kind: "bolt", w: "tumble", body, angle: a, dmg, pierce, r: 5, life: 50, speed: 560, delay: 0, blast: 0, hit: new Set() });
 }
 
 function heroDown(R) {

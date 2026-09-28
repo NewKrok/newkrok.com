@@ -281,13 +281,13 @@ export class Fx {
     for (const z of R.zones) {
       if (z.life === undefined || nz >= 80) continue;
       const fade = Math.min(1, z.life / 30, ((z.T ?? z.life) - z.life + 1) / 10);
-      const col = z.kind === "holy" ? 0x3aa8e0 : z.kind === "fire" ? 0xff6a20 : z.kind === "smoke" ? 0x8a7a9a : 0x3a5a2a;
+      const col = z.sun ? 0xffb040 : z.earth ? 0x6a4a2a : z.kind === "holy" ? 0x3aa8e0 : z.kind === "fire" ? 0xff6a20 : z.kind === "smoke" ? 0x8a7a9a : 0x3a5a2a;
       const r = z.r * (z.kind === "holy" ? 0.9 + 0.1 * Math.sin(time * 6 + z.x) : 1);
       this.set(this.pools, nz, z.x, z.y, 1.2 + nz * 0.01, 0, r, r, 1);
       this.c.setHex(col).multiplyScalar(fade * (z.kind === "mud" ? 0.6 : z.kind === "smoke" ? 0.28 : 1));
       this.pools.setColorAt(nz, this.c);
       this.set(this.poolRings, nz, z.x, z.y, 1.4, 0, r, r, 1);
-      this.c.setHex(z.kind === "holy" ? 0xb8f0ff : z.kind === "fire" ? 0xffc070 : z.kind === "smoke" ? 0x2a2432 : 0x5a7a3a).multiplyScalar(fade);
+      this.c.setHex(z.sun ? 0xfff0b0 : z.earth ? 0x3a2a18 : z.kind === "holy" ? 0xb8f0ff : z.kind === "fire" ? 0xffc070 : z.kind === "smoke" ? 0x2a2432 : 0x5a7a3a).multiplyScalar(fade);
       this.poolRings.setColorAt(nz, this.c);
       nz++;
     }

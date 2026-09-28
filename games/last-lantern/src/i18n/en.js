@@ -70,6 +70,11 @@ export const EN = {
   h_growth: "Growth", hd_growth: "+5% experience", h_greed: "Greed", hd_greed: "+10% embers", h_luck: "Fortune", hd_luck: "+8% luck",
   h_haste: "Haste", hd_haste: "−4% cooldowns", h_reroll: "Second Thoughts", hd_reroll: "+1 reroll per run: swap all the offered cards for new ones", h_banish: "Exorcism", hd_banish: "+1 banish per run: shut an offered card out of the rest of the run",
   h_revival: "Rekindle", hd_revival: "Come back at half health (once per level, per run)",
+  masteryTitle: "Mastery", masteryOf: "Each step adds more than strength.", mastery1: "{a} hits 40% harder and recharges 10% faster.",
+  m_wren_2: "It leaves a ring of sunfire that burns whatever stands in it.", m_wren_3: "A wider, fiercer flare that also heals you 10%.",
+  m_mira_2: "Where you roll from, a blast pulls the crowd in and hurts it.", m_mira_3: "A bigger, harder blast, and twice the bolts, piercing further.",
+  m_oskar_2: "Sanctuary lasts a second longer and burns whatever presses on it.", m_oskar_3: "It ends with a great toll that throws back and hurts everything near.",
+  m_sable_2: "You leave grasping earth behind you that slows the crowd.", m_sable_3: "You burst out in a wider, harder slam that stuns for longer.",
   h_radiance: "Radiance", hd_radiance: "+6% area", h_headstart: "Head Start", hd_headstart: "Start every run 2 levels higher", h_legion: "Legion", hd_legion: "+1 projectile for every weapon", buy: "Upgrade · {n}", maxed: "Maxed",
   // Journal.
   journalIntro: "Pages gathered along the way.", jn_locked: "Light the beacon to read on.",

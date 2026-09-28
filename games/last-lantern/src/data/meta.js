@@ -88,5 +88,10 @@ export const HEARTH = [
   { id: "reroll",    max: 5,  cost: 120 },   // +1 reroll per run
   { id: "banish",    max: 5,  cost: 120 },   // +1 banish per run
   { id: "revival",   max: 2,  cost: 600 },   // come back at half health
+  // Mastery: each lantern-bearer's ability, three steps (sim/run.js).
+  { id: "m_wren",    max: 3,  cost: 250, hero: "wren" },
+  { id: "m_mira",    max: 3,  cost: 250, hero: "mira" },
+  { id: "m_oskar",   max: 3,  cost: 250, hero: "oskar" },
+  { id: "m_sable",   max: 3,  cost: 250, hero: "sable" },
 ];
 export const hearthCost = (u, lvl) => Math.round(u.cost * (1 + lvl * 0.9));
