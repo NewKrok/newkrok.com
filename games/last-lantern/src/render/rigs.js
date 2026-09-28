@@ -1,5 +1,5 @@
 import * as T from "three";
-import { GEO } from "./batch.js";
+import { GEO, Batch } from "./batch.js";
 import { MON } from "../data/monsters.js";
 import { MAX_MON } from "../config.js";
 
@@ -450,6 +450,18 @@ function spec(def) {
   }
 }
 
+// Part specs come in many shapes (only some have a limb swing, a held item,
+// a fixed rotation...). The per-frame loop reads them as one shape.
+function normPart(ps) {
+  const n = {
+    p: [ps.p[0], ps.p[1], ps.p[2]], s: [ps.s[0], ps.s[1], ps.s[2]], c: ps.c, e: !!ps.e,
+    a: ps.a || "", b: ps.b || 0, k: ps.k || 0, rx: ps.rx || 0, ry: ps.ry || 0, rz: ps.rz || 0,
+    quat: ps.quat || null, holdPart: null,
+  };
+  if (ps.holdPart) n.holdPart = normPart(ps.holdPart);
+  return n;
+}
+
 // The swing of a limb part at animation time t (matches the switch below).
 function limbAngle(L, t) {
   const sgn = L.a === "legL" || L.a === "armR" ? 1 : -1;
@@ -458,6 +470,11 @@ function limbAngle(L, t) {
 
 const RIG_GEO = {
   ...GEO, taperUp: GEO.taper,
+  // Instanced hundreds of times, so kept lean: the shared GEO spheres and
+  // tori are finer than a monster part needs.
+  sph: new T.SphereGeometry(1, 8, 6),
+  torus: new T.TorusGeometry(1, 0.18, 4, 10),
+  dot: new T.IcosahedronGeometry(1, 0),
   ico1: new T.IcosahedronGeometry(1, 1),
   sphHalf: new T.SphereGeometry(1, 10, 5, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2),
   wingTip: new T.BoxGeometry(1, 1, 1).translate(1.2, -0.2, 0),
@@ -496,6 +513,9 @@ export function monsterFigure(id, t = 0.9) {
   return g;
 }
 
+// Low quality: coarser still.
+const RIG_GEO_LO = { ...RIG_GEO, sph: new T.SphereGeometry(1, 6, 4), ico1: new T.IcosahedronGeometry(1, 0), torus: new T.TorusGeometry(1, 0.2, 3, 8), cyl: new T.CylinderGeometry(1, 1, 1, 6).rotateX(Math.PI / 2) };
+
 export class Rigs {
   constructor(scene) {
     this.scene = scene;
@@ -505,6 +525,8 @@ export class Rigs {
     this.pm = new T.Matrix4();
     this.col = new T.Color();
     this.am = new T.Matrix4(); this.ar = new T.Matrix4(); this.at = new T.Matrix4();
+    this.tmpM = new T.Matrix4(); this.tmpV = new T.Vector3();
+    this.part0 = new T.Matrix4(); this.eul = new T.Euler();
     this.shadows = new T.InstancedMesh(GEO.disc, new T.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.34, depthWrite: false }), MAX_MON + 80);
     this.shadows.frustumCulled = false;
     this.shadows.renderOrder = 2;
@@ -523,42 +545,80 @@ export class Rigs {
     }
     const cap = def.boss ? 2 : def.elite ? 8 : id === "wormseg" ? 20 : id === "candle" ? 24 : ["crow", "shambler", "gravebound", "leech", "drowned", "imp", "frostbat", "iceskel", "gargoyle", "hollow"].includes(id) ? MAX_MON + 20 : 200;
     const sc = def.scale || 1;
-    const parts = sp.parts.map((ps) => {
+    // Parts that never move relative to the body (torso, head, eyes, trim)
+    // are baked into one geometry per material with their colours as vertex
+    // colours: one draw call instead of one per part. Only swinging limbs,
+    // animated parts and held things stay separate instanced meshes.
+    const G = this.lowGeo ? RIG_GEO_LO : RIG_GEO;
+    const geoFor = (ps) => ((ps.g === "sph" || ps.g === "ico1") && Math.max(...ps.s) < 3.2 ? RIG_GEO.dot : G[ps.g]);
+    const still = (ps) => !ps.a && !ps.hold;
+    const merged = [];
+    for (const emissive of [false, true]) {
+      const list = sp.parts.filter((ps) => still(ps) && !!ps.e === emissive && !ps.ghostMat);
+      if (!list.length) continue;
+      const b = new Batch();
+      for (const ps of list) {
+        const m4 = new T.Matrix4();
+        if (ps.quat) m4.makeRotationFromQuaternion(ps.quat); else m4.makeRotationFromEuler(new T.Euler(ps.rx || 0, ps.ry || 0, ps.rz || 0));
+        m4.scale(new T.Vector3(...ps.s)).setPosition(...ps.p);
+        b.addMatrix(geoFor(ps), m4, ps.c);
+      }
+      const mat = emissive
+        ? new T.MeshBasicMaterial({ vertexColors: true, transparent: !!sp.ghost, opacity: sp.ghost ? 0.9 : 1 })
+        : sp.ghost
+          ? new T.MeshLambertMaterial({ vertexColors: true, transparent: true, opacity: 0.72, depthWrite: false })
+          : new T.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+      const geo = b.build(mat).geometry;
+      const mesh = new T.InstancedMesh(geo, mat, cap);
+      mesh.frustumCulled = false;
+      mesh.count = 0;
+      this.col.setRGB(1, 1, 1);
+      for (let i = 0; i < cap; i++) mesh.setColorAt(i, this.col);
+      this.scene.add(mesh);
+      merged.push({ mesh, spec: null, merged: true, emissive });
+    }
+    const parts = sp.parts.filter((ps) => !still(ps) || ps.ghostMat).map((ps) => {
       const mat = ps.e
         ? new T.MeshBasicMaterial({ color: 0xffffff, transparent: !!sp.ghost, opacity: sp.ghost ? 0.9 : 1 })
         : sp.ghost || ps.ghostMat
           ? new T.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: ps.ghostMat ? 0.82 : 0.72, depthWrite: !sp.ghost })
           : new T.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
-      const mesh = new T.InstancedMesh(RIG_GEO[ps.g], mat, cap);
+      // Tiny round parts (eyes, knuckles) are a 20-triangle dot.
+      const mesh = new T.InstancedMesh(geoFor(ps), mat, cap);
       mesh.frustumCulled = false;
       mesh.count = 0;
-      mesh.castShadow = this.castShadow && !ps.e && !sp.ghost;
+      // Monsters stand on blob shadows; the shadow pass is for the arena.
+      mesh.castShadow = false;
       this.col.setHex(ps.c);
       for (let i = 0; i < cap; i++) mesh.setColorAt(i, this.col);
       this.scene.add(mesh);
-      return { mesh, spec: ps };
+      return { mesh, spec: normPart(ps), merged: false, emissive: !!ps.e };
     });
-    rig = { parts, cap, count: 0, spec: sp, sc };
+    rig = { parts: [...merged, ...parts], cap, count: 0, spec: sp, sc, fly: sp.fly || 0, bobK: sp.bobK || 0 };
     this.rigs.set(id, rig);
     return rig;
   }
 
-  sync(R, time) {
+  // view: the world rect the camera sees (plus a margin); monsters outside
+  // it are skipped altogether, which is most of the crowd at the edges.
+  sync(R, time, view) {
     for (const rig of this.rigs.values()) rig.count = 0;
     let sh = 0;
-    const d = this.dummy;
     const eclipse = R.eclipse;
-    for (const m of R.monsters) {
+    const mons = R.monsters;
+    for (let mi = 0; mi < mons.length; mi++) {
+      const m = mons[mi];
       if (!m.alive) continue;
+      const pos = m.body.position, px = pos.x, py = pos.y;
+      if (view && (px < view.x0 || px > view.x1 || py < view.y0 || py > view.y1) && !m.def.boss && !m.def.part) continue;
       const rig = this.rig(m.id);
       if (rig.count >= rig.cap) continue;
       const i = rig.count++;
-      const p = m.body.position;
       const t = m.anim;
       const shake = m.wind > 0 ? 2 : 0;
       const jx = shake ? (Math.random() - 0.5) * 4 : 0, jy = shake ? (Math.random() - 0.5) * 4 : 0;
-      let z = (rig.spec.fly || 0) + (rig.spec.bobK ? Math.sin(t * 2 + m.wobble) * rig.spec.bobK : 0);
-      if (m.z !== undefined) z = m.z;
+      let z = rig.fly + (rig.bobK ? Math.sin(t * 2 + m.wobble) * rig.bobK : 0);
+      if (m.z >= 0) z = m.z;
       if (m.thrown > 0) z += Math.sin((m.thrown / 36) * Math.PI) * 26;
       // Bog mother / king under the ground or mid-blink.
       let sink = 1;
@@ -566,39 +626,62 @@ export class Rigs {
       const born = Math.min(1, (R.frame - m.born) / 20);
       const s = rig.sc * (m.def.boss || m.def.elite ? 1 : 0.4 + born * 0.6) * (m.def.ai === "king" ? Math.max(0.05, sink) : 1);
       // Turn toward the sim's facing instead of snapping to it.
-      if (m.faceVis === undefined) m.faceVis = m.face;
+      if (!m.faceInit) { m.faceVis = m.face; m.faceInit = true; }
       else {
         const da = Math.atan2(Math.sin(m.face - m.faceVis), Math.cos(m.face - m.faceVis));
         m.faceVis += da * Math.min(1, (m.def.boss ? 0.08 : 0.18) * (m.dash > 0 ? 3 : 1));
       }
       this.root.makeRotationZ(-m.faceVis - Math.PI / 2);
-      if (m.stun > 0 || R.freeze > 0) this.root.multiply(new T.Matrix4().makeRotationX(Math.sin(time * 20) * 0.04));
-      this.root.scale(new T.Vector3(s, s, s));
-      this.root.setPosition(p.x + jx, -p.y + jy, z);
+      if (m.stun > 0 || R.freeze > 0) this.root.multiply(this.tmpM.makeRotationX(Math.sin(time * 20) * 0.04));
+      this.root.scale(this.tmpV.set(s, s, s));
+      this.root.setPosition(px + jx, -py + jy, z);
       const flash = m.hitFlash > 0;
       const frozen = R.freeze > 0 && !m.def.boss;
-      for (const { mesh, spec: ps } of rig.parts) {
-        d.position.set(ps.p[0], ps.p[1], ps.p[2]);
-        d.rotation.set(ps.rx || 0, ps.ry || 0, ps.rz || 0);
+      // Colours only need writing when the monster's colour state changes
+      // (hit flash, frost, eclipse) or it moved to another instance slot.
+      const colState = (flash ? 1 : 0) | (frozen ? 2 : 0) | (eclipse ? 4 : 0);
+      const writeCol = m.colState !== colState || m.slotCheck !== i;
+      const parts = rig.parts;
+      for (let pi = 0; pi < parts.length; pi++) {
+        const mesh = parts[pi].mesh, ps = parts[pi].spec;
+        if (parts[pi].merged) {
+          // Baked parts: the body's own matrix; state shows as a tint over
+          // the vertex colours (a bright flash, a frost blue, the eclipse).
+          mesh.setMatrixAt(i, this.root);
+          if (writeCol) {
+            if (flash) this.col.setRGB(2.6, 2.6, 2.6);
+            else if (frozen && !parts[pi].emissive) this.col.setRGB(0.75, 0.95, 1.35);
+            else this.col.setRGB(1, 1, 1);
+            if (eclipse && !parts[pi].emissive && !flash) this.col.multiplyScalar(0.7);
+            mesh.setColorAt(i, this.col);
+            mesh.userData.dirty = true;
+          }
+          continue;
+        }
+        // The part's own matrix, composed directly (no Object3D in between:
+        // its change callbacks ran for every part of every monster).
+        let rx = ps.rx, ry = ps.ry, rz = ps.rz, pz = ps.p[2];
         let sx = ps.s[0], sy = ps.s[1], sz = ps.s[2];
         switch (ps.a) {
-          case "legL": d.rotation.x = (ps.b || 0) + Math.sin(t) * ps.k; break;
-          case "legR": d.rotation.x = (ps.b || 0) - Math.sin(t) * ps.k; break;
-          case "armL": d.rotation.x = (ps.b || 0) - Math.sin(t) * ps.k; break;
-          case "armR": d.rotation.x = (ps.b || 0) + Math.sin(t) * ps.k; break;
-          case "wingL": d.rotation.z = Math.PI; d.rotation.y = Math.sin(t * 3) * 0.7 * (ps.k || 1); break;
-          case "wingR": d.rotation.y = -Math.sin(t * 3) * 0.7 * (ps.k || 1); break;
+          case "legL": rx = (ps.b || 0) + Math.sin(t) * ps.k; break;
+          case "legR": rx = (ps.b || 0) - Math.sin(t) * ps.k; break;
+          case "armL": rx = (ps.b || 0) - Math.sin(t) * ps.k; break;
+          case "armR": rx = (ps.b || 0) + Math.sin(t) * ps.k; break;
+          case "wingL": rz = Math.PI; ry = Math.sin(t * 3) * 0.7 * (ps.k || 1); break;
+          case "wingR": ry = -Math.sin(t * 3) * 0.7 * (ps.k || 1); break;
           case "pulse": { const q = 1 + Math.sin(t * 2) * ps.k; sx *= q; sy *= q; sz *= q; break; }
           case "flick": { const q = 1 + Math.sin(time * 17 + m.wobble) * ps.k * 0.5; sz *= q; break; }
-          case "tail": d.rotation.z = Math.sin(t * 1.5) * ps.k; break;
-          case "wiggle": d.rotation.z = Math.sin(t * 3) * ps.k; break;
-          case "jaw": d.rotation.x = Math.max(0, Math.sin(t * 0.7)) * 0.4; break;
-          case "hop": d.position.z += Math.abs(Math.sin(t * 1.2)) * ps.k * 30; break;
+          case "tail": rz = Math.sin(t * 1.5) * ps.k; break;
+          case "wiggle": rz = Math.sin(t * 3) * ps.k; break;
+          case "jaw": rx = Math.max(0, Math.sin(t * 0.7)) * 0.4; break;
+          case "hop": pz += Math.abs(Math.sin(t * 1.2)) * ps.k * 30; break;
           default:
         }
-        if (ps.quat) d.quaternion.copy(ps.quat);
-        d.scale.set(sx, sy, sz);
-        d.updateMatrix();
+        const pm0 = this.part0;
+        if (ps.quat) pm0.makeRotationFromQuaternion(ps.quat);
+        else pm0.makeRotationFromEuler(this.eul.set(rx, ry, rz));
+        pm0.scale(this.tmpV.set(sx, sy, sz));
+        pm0.setPosition(ps.p[0], ps.p[1], pz);
         if (ps.holdPart) {
           // Held things live in the hand's frame: shoulder pivot, the arm's
           // swing, then down the forearm to the fist.
@@ -606,33 +689,27 @@ export class Rigs {
           this.am.makeTranslation(L.p[0], L.p[1], L.p[2]);
           this.am.multiply(this.ar.makeRotationX(limbAngle(L, t)));
           this.am.multiply(this.at.makeTranslation(0, 0, -L.s[2]));
-          this.am.multiply(d.matrix);
+          this.am.multiply(pm0);
           this.pm.multiplyMatrices(this.root, this.am);
-        } else this.pm.multiplyMatrices(this.root, d.matrix);
+        } else this.pm.multiplyMatrices(this.root, pm0);
         mesh.setMatrixAt(i, this.pm);
-        const want = flash ? 0xffffff : frozen && !ps.e ? 0x9fd8ff : ps.c;
-        if (m.lastCol?.[mesh.id] !== want || m.slotCheck !== i) {
-          this.col.setHex(want);
+        if (writeCol) {
+          this.col.setHex(flash ? 0xffffff : frozen && !ps.e ? 0x9fd8ff : ps.c);
           if (eclipse && !ps.e && !flash) this.col.multiplyScalar(0.7);
           mesh.setColorAt(i, this.col);
           mesh.userData.dirty = true;
         }
       }
-      // Colour cache is per instance slot, which shifts as monsters die, so it
-      // is refreshed whenever the slot changes.
       m.slotCheck = i;
-      if (!m.lastCol) m.lastCol = {};
-      for (const { mesh, spec: ps } of rig.parts) m.lastCol[mesh.id] = flash ? 0xffffff : frozen && !ps.e ? 0x9fd8ff : ps.c;
+      m.colState = colState;
       if (m.def.prop) continue;
-      d.position.set(p.x, -p.y, 0.5);
-      d.rotation.set(0, 0, 0);
-      const r = m.def.r * (rig.spec.fly ? 0.8 : 1.1) * rig.sc * (m.hidden > 0 && m.def.ai !== "king" ? 1.6 : 1);
-      d.scale.set(r, r, 1);
-      d.updateMatrix();
-      if (sh < this.shadows.instanceMatrix.count) this.shadows.setMatrixAt(sh++, d.matrix);
+      const r = m.def.r * (rig.fly ? 0.8 : 1.1) * rig.sc * (m.hidden > 0 && m.def.ai !== "king" ? 1.6 : 1);
+      this.part0.makeScale(r, r, 1).setPosition(px, -py, 0.5);
+      if (sh < this.shadows.instanceMatrix.count) this.shadows.setMatrixAt(sh++, this.part0);
     }
     for (const rig of this.rigs.values()) {
-      for (const { mesh } of rig.parts) {
+      for (let pi = 0; pi < rig.parts.length; pi++) {
+        const mesh = rig.parts[pi].mesh;
         mesh.count = rig.count;
         mesh.visible = rig.count > 0;
         mesh.instanceMatrix.needsUpdate = true;

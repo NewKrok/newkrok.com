@@ -26,6 +26,24 @@ export class Batch {
   // Same, with a ready matrix (for grouped props built in local space).
   addMatrix(geo, matrix, color) { this.parts.push({ geo, m: matrix.clone(), color }); return this; }
 
+  // The same, split into square chunks of the ground plane, so the camera
+  // (and the shadow camera) can skip the parts of the arena it cannot see.
+  buildChunks(material, size = 1000) {
+    const cells = new Map();
+    for (const part of this.parts) {
+      const key = `${Math.floor(part.m.elements[12] / size)},${Math.floor(part.m.elements[13] / size)}`;
+      let b = cells.get(key);
+      if (!b) { b = new Batch(); cells.set(key, b); }
+      b.parts.push(part);
+    }
+    const meshes = [];
+    for (const b of cells.values()) {
+      const mesh = b.build(material);
+      if (mesh) meshes.push(mesh);
+    }
+    return meshes;
+  }
+
   build(material) {
     if (!this.parts.length) return null;
     let n = 0;

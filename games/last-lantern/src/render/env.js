@@ -57,7 +57,9 @@ export function buildEnv(scene, R, quality) {
   gc.fillRect(0, 0, gw, gh);
   const detail = detailTexture(R.stage.index + 3, look === "cathedral" ? "tiles" : look === "pass" ? "snow" : "grain");
   detail.repeat.set(W / (look === "cathedral" ? 240 : 90), H / (look === "cathedral" ? 240 : 90));
-  const gmat = std({ map: tex(gcv), bumpMap: detail, bumpScale: look === "cathedral" ? 2.2 : 1.4, roughness: look === "pass" ? 0.75 : 0.95 });
+  const gmat = hi
+    ? std({ map: tex(gcv), bumpMap: detail, bumpScale: look === "cathedral" ? 2.2 : 1.4, roughness: look === "pass" ? 0.75 : 0.95 })
+    : new T.MeshLambertMaterial({ map: tex(gcv) });
   if (ecv) { gmat.emissiveMap = tex(ecv); gmat.emissive = new T.Color(0xffffff); gmat.emissiveIntensity = 0.8; env.emberGround = gmat; }
   const ground = new T.Mesh(new T.PlaneGeometry(W, H), gmat);
   ground.position.set(W / 2, -H / 2, 0);
@@ -90,12 +92,14 @@ export function buildEnv(scene, R, quality) {
   WALLS[look](B, world, rnd, env);
   OUTSIDE[look]?.(B, world, rnd);
   for (const d of world.decor) DECOR[d.kind]?.(B, d, rnd);
-  const stoneMesh = bStone.build(std({ vertexColors: true, roughness: 0.92, flatShading: true }));
-  const woodMesh = bWood.build(std({ vertexColors: true, roughness: 0.85, flatShading: true }));
-  const leafMesh = bFoliage.build(std({ vertexColors: true, roughness: 1, flatShading: true }));
-  const glowMesh = bGlow.build(new T.MeshBasicMaterial({ vertexColors: true, fog: false }));
-  for (const m of [stoneMesh, woodMesh, leafMesh]) if (m) { m.castShadow = hi; m.receiveShadow = true; group.add(m); }
-  if (glowMesh) group.add(glowMesh);
+  // Lit batches: standard material on high, the cheaper Lambert on low.
+  const lit = (o) => (hi ? std(o) : new T.MeshLambertMaterial({ vertexColors: true, flatShading: true }));
+  const stoneMeshes = bStone.buildChunks(lit({ vertexColors: true, roughness: 0.92, flatShading: true }));
+  const woodMeshes = bWood.buildChunks(lit({ vertexColors: true, roughness: 0.85, flatShading: true }));
+  const leafMeshes = bFoliage.buildChunks(lit({ vertexColors: true, roughness: 1, flatShading: true }));
+  const glowMeshes = bGlow.buildChunks(new T.MeshBasicMaterial({ vertexColors: true, fog: false }));
+  for (const m of [...stoneMeshes, ...woodMeshes, ...leafMeshes]) { m.castShadow = hi; m.receiveShadow = true; group.add(m); }
+  for (const m of glowMeshes) group.add(m);
 
   // Loose props: their own meshes, synced from the bodies.
   for (const p of world.props) {
@@ -186,18 +190,26 @@ export function syncEnv(env, R, t, dt, focus) {
   // Light pool: nearest sources to the focus point.
   const fx = focus.x, fy = focus.y;
   const src = env.sources;
-  if (src.length) {
+  // The nearest sources change slowly: re-pick every eighth frame.
+  env.tick = (env.tick || 0) + 1;
+  if (src.length && env.tick % 8 === 1) {
     const sorted = src.map((s) => [Math.hypot(s.x - fx, s.y - fy), s]).sort((a, b) => a[0] - b[0]);
     env.pool.forEach((l, i) => {
       const e = sorted[i];
-      if (!e || e[0] > 1100) { l.intensity = 0; return; }
+      l.userData.src = e && e[0] <= 1100 ? e[1] : null;
+      if (!l.userData.src) return;
       const s = e[1];
       l.position.set(s.x, -s.y, s.z);
       l.color.setHex(s.color);
-      const fl = s.flicker ? 0.86 + Math.sin(t * 13 + s.ph) * 0.07 + Math.sin(t * 29 + s.ph * 2) * 0.05 : 1;
-      l.intensity = s.i * fl;
       l.distance = s.d || 420;
     });
+  }
+  // The flicker itself runs every frame.
+  for (const l of env.pool) {
+    const s = l.userData.src;
+    if (!s) { l.intensity = 0; continue; }
+    const fl = s.flicker ? 0.86 + Math.sin(t * 13 + s.ph) * 0.07 + Math.sin(t * 29 + s.ph * 2) * 0.05 : 1;
+    l.intensity = s.i * fl;
   }
   // The beacon catches when the keeper falls.
   const b = env.beacon;

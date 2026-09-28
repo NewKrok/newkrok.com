@@ -61,6 +61,12 @@ export function spawnMonster(R, id, x, y, opts = {}) {
     slamCd: 420, summonCd: 360, phase: 0,
     stun: 0, burn: 0, burnDmg: 0, slow: 1, thrown: 0,
     anim: R.rng() * 6.28, born: R.frame, hidden: 0,
+    // Every field any system may set later, declared up front so all
+    // monsters share one object shape and hot loops stay optimised.
+    lastSrc: "", healedAt: -1e9, haste: 0, censerCd: 0, combo: 0, scA: 0, spiral: 0, zones: 0,
+    thrownDmg: 0, thrownSrc: "", reap: false, idleA: 0, idleR: 0, z: -1,
+    segs: null, parent: null, segR: 0, index: 0, joint: null, segHits: null,
+    faceVis: 0, faceInit: false, colState: -1, slotCheck: -1,
   };
   R.monsters.push(m);
   R.byBody.set(body, m);
@@ -104,7 +110,7 @@ export function killMonster(R, m, silent = false) {
     for (let i = 0; i < 2; i++) {
       const a = R.rng() * 6.28;
       const c = spawnMonster(R, def.split, x + Math.cos(a) * 10, y + Math.sin(a) * 10);
-      if (c) c.body.applyImpulse(new Vec2(Math.cos(a) * 120 * c.body.mass, Math.sin(a) * 120 * c.body.mass));
+      if (c) c.body.applyImpulse(Vec2.weak(Math.cos(a) * 120 * c.body.mass, Math.sin(a) * 120 * c.body.mass));
     }
   }
   if (def.explode) explode(R, x, y, def.explode.r, def.explode.dmg * R.dmgMul, 0xff7a3a, true);
@@ -156,7 +162,7 @@ export function damageMonster(R, m, dmg, kx = 0, ky = 0, knock = 0, color = "#ff
   R.dmgBy[src] = (R.dmgBy[src] || 0) + real;
   if (knock > 0 && !m.def.boss && !m.def.prop && m.body.type !== BodyType.STATIC) {
     const k = knock / Math.sqrt(m.def.mass) * (m.def.heavy ? 0.6 : 1);
-    m.body.applyImpulse(new Vec2(kx * k * m.body.mass, ky * k * m.body.mass));
+    m.body.applyImpulse(Vec2.weak(kx * k * m.body.mass, ky * k * m.body.mass));
   }
   if (R.floaters.length < 40 || crit || m.def.elite || m.def.boss) {
     floater(R, m.body.position.x, m.body.position.y - m.def.r - 6, String(real), crit ? "#ffe066" : color, crit ? 1.25 : m.def.boss ? 1.1 : 0.85);
@@ -200,7 +206,7 @@ export function pushProps(R, x, y, radius, kick) {
     const q = p.body.position, dx = q.x - x, dy = q.y - y, d = hyp(dx, dy);
     if (d < radius) {
       const k = kick * (1 - d / radius);
-      p.body.applyImpulse(new Vec2(dx / d * k * p.body.mass, dy / d * k * p.body.mass));
+      p.body.applyImpulse(Vec2.weak(dx / d * k * p.body.mass, dy / d * k * p.body.mass));
     }
   }
 }
@@ -248,7 +254,7 @@ export function hurtHero(R, dmg, sx, sy, src) {
   R.sfx.push(["hurt"]);
   if (sx !== undefined) {
     const dx = heroX(R) - sx, dy = heroY(R) - sy, d = hyp(dx, dy);
-    h.body.applyImpulse(new Vec2((dx / d) * 90 * h.body.mass, (dy / d) * 90 * h.body.mass));
+    h.body.applyImpulse(Vec2.weak((dx / d) * 90 * h.body.mass, (dy / d) * 90 * h.body.mass));
   }
   // The Martyr's Candle: a burst of the old sun when you are nearly gone.
   if (h.hp > 0 && h.hp < h.maxHp * 0.3 && R.relics.includes("martyr") && R.frame > R.martyrT) {
@@ -268,7 +274,7 @@ export function spawnSpit(R, x, y, angle, spec) {
   shape.filter = F.spit();
   shape.cbTypes.add(R.cb.spit);
   body.shapes.add(shape);
-  body.velocity = new Vec2(Math.cos(angle) * spec.speed, Math.sin(angle) * spec.speed);
+  body.velocity.setxy(Math.cos(angle) * spec.speed, Math.sin(angle) * spec.speed);
   body.space = R.space;
   R.spits.push({ body, dmg: spec.dmg * R.dmgMul, life: spec.life || 150, angle, color: spec.color, r: spec.r || 5, big: spec.big, arrow: spec.arrow, home: spec.home || 0 });
 }

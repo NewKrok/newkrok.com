@@ -308,7 +308,7 @@ function orbit(R, w, s) {
     const tx = hx + Math.cos(a) * R0, ty = hy + Math.sin(a) * R0;
     const p = o.body.position;
     // Kinematic: the velocity that lands the orb on its orbit point this step.
-    o.body.velocity = new Vec2((tx - p.x) / DT, (ty - p.y) / DT);
+    o.body.velocity.setxy((tx - p.x) / DT, (ty - p.y) / DT);
     o.dmg = s.dmg;
     o.a = a;
     o.w = w;
@@ -413,7 +413,7 @@ export function tickHolyZone(R, z) {
       damageMonster(R, m, z.dmg, 0, 0, 0, "#7ad8ff", z.src);
       // The pool drags at whatever wades through it.
       const v = m.body.velocity;
-      m.body.velocity = new Vec2(v.x * 0.7, v.y * 0.7);
+      m.body.velocity.setxy(v.x * 0.7, v.y * 0.7);
     }
   }
 }
@@ -444,7 +444,7 @@ function hurl(R, w, s, reap) {
     }
     a = bestA;
     const sp = 780 / Math.sqrt(Math.max(1, m.def.mass * 0.6));
-    m.body.velocity = new Vec2(Math.cos(a) * sp, Math.sin(a) * sp);
+    m.body.velocity.setxy(Math.cos(a) * sp, Math.sin(a) * sp);
     m.thrown = 36;
     m.thrownDmg = s.dmg;
     m.thrownSrc = w.id;
@@ -523,7 +523,7 @@ function tickCensers(R, w, s, count) {
     const v = c.body.velocity, hv = h.body.velocity;
     const along = (v.x - hv.x) * tx + (v.y - hv.y) * ty;
     const k = Math.max(0, want - along) * 0.2;
-    c.body.velocity = new Vec2(v.x + tx * k, v.y + ty * k);
+    c.body.velocity.setxy(v.x + tx * k, v.y + ty * k);
     c.hidden = under;
     if (under) continue;
     // Hits: anything the censer passes through, ghosts included, once in a while.
@@ -647,7 +647,7 @@ function armShot(R, shot) {
   shape.filter = F.shot();
   shape.cbTypes.add(R.cb.shot);
   body.shapes.add(shape);
-  body.velocity = new Vec2(Math.cos(a) * shot.speed, Math.sin(a) * shot.speed);
+  body.velocity.setxy(Math.cos(a) * shot.speed, Math.sin(a) * shot.speed);
   body.space = R.space;
   shot.body = body;
 }
@@ -692,16 +692,16 @@ export function tickShots(R) {
         let dx = Math.cos(s.angle), dy = Math.sin(s.angle);
         if (tgt) { const q = tgt.body.position, d = hyp(q.x - p.x, q.y - p.y); dx = (q.x - p.x) / d; dy = (q.y - p.y) / d; }
         const nx = v.x + (dx * sp - v.x) * 0.1, ny = v.y + (dy * sp - v.y) * 0.1;
-        s.body.velocity = new Vec2(nx, ny);
+        s.body.velocity.setxy(nx, ny);
         s.angle = Math.atan2(ny, nx);
         if (s.t % 3 === 0) particle(R, p.x, p.y, 0, 0, 0xffa050, 16, 2.2, 14, 20);
       } else if (s.kind === "sickle") {
-        if (s.t < s.out) s.body.velocity = new Vec2(v.x * 0.965, v.y * 0.965);
+        if (s.t < s.out) s.body.velocity.setxy(v.x * 0.965, v.y * 0.965);
         else {
           if (!s.back) { s.back = true; s.hit.clear(); }
           const dx = heroX(R) - p.x, dy = heroY(R) - p.y, d = hyp(dx, dy);
           const sp = Math.min(760, hyp(v.x, v.y) + 30);
-          s.body.velocity = new Vec2(v.x + (dx / d * sp - v.x) * 0.2, v.y + (dy / d * sp - v.y) * 0.2);
+          s.body.velocity.setxy(v.x + (dx / d * sp - v.x) * 0.2, v.y + (dy / d * sp - v.y) * 0.2);
           if (d < 22) { killShot(R, s); }
         }
       }

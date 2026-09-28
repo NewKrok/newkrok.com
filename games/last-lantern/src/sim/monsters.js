@@ -30,11 +30,11 @@ function steer(m, tx, ty, mul = 1, blend = 0.16) {
   const dx = tx - p.x, dy = ty - p.y, d = hyp(dx, dy);
   const sp = m.def.speed * mul * m.slow * (m.haste > 0 ? 1.55 : 1);
   const v = m.body.velocity;
-  m.body.velocity = new Vec2(lerp(v.x, (dx / d) * sp, blend), lerp(v.y, (dy / d) * sp, blend));
+  m.body.velocity.setxy(lerp(v.x, (dx / d) * sp, blend), lerp(v.y, (dy / d) * sp, blend));
   m.face = Math.atan2(dy, dx);
 }
-const setVel = (m, a, sp) => { m.body.velocity = new Vec2(Math.cos(a) * sp, Math.sin(a) * sp); };
-const brake = (m, k = 0.8) => { const v = m.body.velocity; m.body.velocity = new Vec2(v.x * k, v.y * k); };
+const setVel = (m, a, sp) => { m.body.velocity.setxy(Math.cos(a) * sp, Math.sin(a) * sp); };
+const brake = (m, k = 0.8) => { const v = m.body.velocity; v.setxy(v.x * k, v.y * k); };
 
 // Surfaces under a walker: mud pools slow, ash beds a little.
 function surfaceSlow(R, m) {
@@ -83,8 +83,8 @@ export function tickMonsters(R) {
     const dx = hx - p.x, dy = hy - p.y, d = hyp(dx, dy);
     if (d > RECYCLE_DIST && !def.elite && !def.boss) {
       const s = spawnPoint(R, SPAWN_MIN, SPAWN_MAX - 20);
-      m.body.position = new Vec2(s.x, s.y);
-      m.body.velocity = new Vec2(0, 0);
+      m.body.position.setxy(s.x, s.y);
+      m.body.velocity.setxy(0, 0);
       continue;
     }
     const ai = AI[def.ai];
@@ -203,7 +203,7 @@ const AI = {
 
   // Gargoyles circle overhead and dive.
   diver(R, m, dx, dy, d, hx, hy) {
-    m.z = m.z ?? 30;
+    if (m.z < 0) m.z = 30;
     if (m.dash > 0) {
       m.dash--;
       setVel(m, m.face, 400);
@@ -360,7 +360,7 @@ const AI = {
     const want = Math.atan2(dy, dx) + Math.sin(R.frame * 0.025 + m.wobble) * 0.7;
     m.face += clamp(wrapPi(want - m.face), -0.05, 0.05);
     const v = m.body.velocity;
-    m.body.velocity = new Vec2(lerp(v.x, Math.cos(m.face) * m.def.speed, 0.1), lerp(v.y, Math.sin(m.face) * m.def.speed, 0.1));
+    m.body.velocity.setxy(lerp(v.x, Math.cos(m.face) * m.def.speed, 0.1), lerp(v.y, Math.sin(m.face) * m.def.speed, 0.1));
   },
 
   // The Hollow King. Three phases: moon orbs and summons, then orbiting
@@ -389,14 +389,14 @@ const AI = {
     // The eclipse pulls the hero (and the crowd) toward the king.
     if (m.phase === 2) {
       const hv = R.hero.body.velocity;
-      R.hero.body.velocity = new Vec2(hv.x - (dx / d) * 5, hv.y - (dy / d) * 5);
+      R.hero.body.velocity.setxy(hv.x - (dx / d) * 5, hv.y - (dy / d) * 5);
       if (R.frame % 4 === 0) particle(R, hx + (R.rng() - 0.5) * 300, hy + (R.rng() - 0.5) * 300, -dx * 0.4, -dy * 0.4, 0xc0c8ff, 24, 2, 4, 0);
     }
     if (m.hidden > 0) {
       m.hidden--;
       if (m.hidden === 20) {
         const a = R.rng() * 6.28;
-        m.body.position = new Vec2(clamp(hx + Math.cos(a) * 240, 80, R.world.W - 80), clamp(hy + Math.sin(a) * 240, 80, R.world.H - 80));
+        m.body.position.setxy(clamp(hx + Math.cos(a) * 240, 80, R.world.W - 80), clamp(hy + Math.sin(a) * 240, 80, R.world.H - 80));
         burst(R, m.body.position.x, m.body.position.y, 30, 0xc0c8ff, 3);
       }
       if (m.hidden === 0) setFilter(m, F.mon());
@@ -447,14 +447,14 @@ export function slam(R, x, y, radius, dmg, kick, color) {
     const q = o.body.position, dx = q.x - x, dy = q.y - y, dd = Math.hypot(dx, dy);
     if (dd < radius && dd > 1) {
       const k = kick * (1 - dd / radius) / Math.sqrt(o.def.mass) + 60;
-      o.body.applyImpulse(new Vec2((dx / dd) * k * o.body.mass, (dy / dd) * k * o.body.mass));
+      o.body.applyImpulse(Vec2.weak((dx / dd) * k * o.body.mass, (dy / dd) * k * o.body.mass));
     }
   }
   pushProps(R, x, y, radius, kick * 0.8);
   const hx = heroX(R) - x, hy = heroY(R) - y, hd = hyp(hx, hy);
   if (hd < radius) {
     const k = kick * 0.9 * (1 - hd / radius) + 120;
-    R.hero.body.applyImpulse(new Vec2((hx / hd) * k * R.hero.body.mass, (hy / hd) * k * R.hero.body.mass));
+    R.hero.body.applyImpulse(Vec2.weak((hx / hd) * k * R.hero.body.mass, (hy / hd) * k * R.hero.body.mass));
     hurtHero(R, dmg * R.dmgMul);
   }
 }

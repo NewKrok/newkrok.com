@@ -232,13 +232,13 @@ function tickHero(R, input) {
   const v = h.body.velocity;
   if (h.tumble > 0) {
     h.tumble--;
-    h.body.velocity = new Vec2(Math.cos(h.tumbleA) * 720, Math.sin(h.tumbleA) * 720);
+    h.body.velocity.setxy(Math.cos(h.tumbleA) * 720, Math.sin(h.tumbleA) * 720);
     if (h.tumble === 0) activeEnd(R);
   } else {
     // Blended, not written, so a brute's shove still reads; on ice the blend
     // is small and you slide.
     const k = h.onIce ? 0.035 : 0.28;
-    h.body.velocity = new Vec2(lerp(v.x, mx * sp, k), lerp(v.y, my * sp, k));
+    h.body.velocity.setxy(lerp(v.x, mx * sp, k), lerp(v.y, my * sp, k));
   }
   const nv = h.body.velocity;
   h.speedNow = Math.hypot(nv.x, nv.y);
@@ -294,7 +294,7 @@ function pushRing(R, radius, kick) {
   for (const m of R.monsters) {
     if (!m.alive || m.def.boss || m.def.prop || m.def.part) continue;
     const p = m.body.position, dx = p.x - x, dy = p.y - y, d = hyp(dx, dy);
-    if (d < radius + m.def.r) m.body.applyImpulse(new Vec2(dx / d * kick * m.body.mass, dy / d * kick * m.body.mass));
+    if (d < radius + m.def.r) m.body.applyImpulse(Vec2.weak(dx / d * kick * m.body.mass, dy / d * kick * m.body.mass));
   }
 }
 
@@ -314,7 +314,7 @@ function implode(R, x, y, radius, dmg) {
     damageMonster(R, m, dmg, 0, 0, 0, "#c8a0ff", "tumble");
     if (m.alive && !m.def.boss && !m.def.part) {
       const k = Math.min(420, d * 2.4) / Math.sqrt(m.def.mass);
-      m.body.applyImpulse(new Vec2(dx / d * k * m.body.mass, dy / d * k * m.body.mass));
+      m.body.applyImpulse(Vec2.weak(dx / d * k * m.body.mass, dy / d * k * m.body.mass));
       m.stun = Math.max(m.stun, 30);
     }
   }
@@ -391,7 +391,7 @@ function activeEnd(R) {
       // closest furthest, light ones more than heavy ones.
       if (!m.def.boss && !m.def.part) {
         const k = (900 * (1 - d / (r + 40)) + 200) * (ml >= 3 ? 1.6 : 1) / Math.sqrt(m.def.mass);
-        m.body.applyImpulse(new Vec2(dx / d * k * m.body.mass, dy / d * k * m.body.mass));
+        m.body.applyImpulse(Vec2.weak(dx / d * k * m.body.mass, dy / d * k * m.body.mass));
         m.stun = ml >= 3 ? 130 : 70;
       }
     }
@@ -419,7 +419,7 @@ function spawnVolleyBolt(R, a, dmg = 18, pierce = 2) {
   shape.filter = F.shot();
   shape.cbTypes.add(R.cb.shot);
   body.shapes.add(shape);
-  body.velocity = new Vec2(Math.cos(a) * 560, Math.sin(a) * 560);
+  body.velocity.setxy(Math.cos(a) * 560, Math.sin(a) * 560);
   body.space = R.space;
   R.shots.push({ kind: "bolt", w: "tumble", body, angle: a, dmg, pierce, r: 5, life: 50, speed: 560, delay: 0, blast: 0, hit: new Set() });
 }
@@ -810,7 +810,8 @@ function tickEffects(R) {
     p.x += p.vx * DT; p.y += p.vy * DT; p.z += p.vz * DT;
     p.vx *= 0.9; p.vy *= 0.9; p.vz -= 400 * DT;
     if (p.z < 0) { p.z = 0; p.vz *= -0.3; }
-    if (--p.life <= 0) R.particles.splice(i, 1);
+    // Order does not matter for particles: swap-remove instead of splice.
+    if (--p.life <= 0) { const last = R.particles.pop(); if (i < R.particles.length) R.particles[i] = last; }
   }
   for (let i = R.floaters.length - 1; i >= 0; i--) {
     const f = R.floaters[i];
@@ -839,7 +840,7 @@ function tickSpits(R) {
       const want = Math.atan2(heroY(R) - p.y, heroX(R) - p.x);
       const a = sp.angle + Math.max(-sp.home, Math.min(sp.home, Math.atan2(Math.sin(want - sp.angle), Math.cos(want - sp.angle))));
       sp.angle = a;
-      sp.body.velocity = new Vec2(Math.cos(a) * speed, Math.sin(a) * speed);
+      sp.body.velocity.setxy(Math.cos(a) * speed, Math.sin(a) * speed);
     }
     if (sp.body && --sp.life <= 0) killSpit(sp);
     if (!sp.body) R.spits.splice(i, 1);
@@ -850,7 +851,7 @@ function tickSpits(R) {
 function tickProps(R) {
   for (const p of R.world.props) {
     const v = p.body.velocity;
-    if (v.x * v.x + v.y * v.y > 0.01) p.body.velocity = new Vec2(v.x * 0.92, v.y * 0.92);
+    if (v.x * v.x + v.y * v.y > 0.01) p.body.velocity.setxy(v.x * 0.92, v.y * 0.92);
     p.body.angularVel *= 0.9;
   }
 }
@@ -877,12 +878,12 @@ function titleStep(R) {
     const tx = s.x + Math.cos(m.idleA) * m.idleR, ty = s.y + Math.sin(m.idleA) * m.idleR;
     const p = m.body.position, dx = tx - p.x, dy = ty - p.y, d = hyp(dx, dy);
     const v = m.body.velocity, sp = Math.min(m.def.speed * 0.5, d * 2);
-    m.body.velocity = new Vec2(lerp(v.x, dx / d * sp, 0.1), lerp(v.y, dy / d * sp, 0.1));
+    m.body.velocity.setxy(lerp(v.x, dx / d * sp, 0.1), lerp(v.y, dy / d * sp, 0.1));
     const nv = m.body.velocity;
     if (nv.x * nv.x + nv.y * nv.y > 25) m.face = Math.atan2(nv.y, nv.x);
   }
   const hv = R.hero.body.velocity;
-  R.hero.body.velocity = new Vec2(hv.x * 0.8, hv.y * 0.8);
+  R.hero.body.velocity.setxy(hv.x * 0.8, hv.y * 0.8);
   R.hero.face = Math.PI / 2 + Math.sin(R.frame / 200) * 0.6;
   R.space.step(DT, 3, 1);
 }
@@ -915,7 +916,7 @@ function step(R, input) {
   } else {
     // dead / won: the world winds down.
     const v = R.hero.body.velocity;
-    R.hero.body.velocity = new Vec2(v.x * 0.9, v.y * 0.9);
+    R.hero.body.velocity.setxy(v.x * 0.9, v.y * 0.9);
     if (R.phase === "dead") tickMonsters(R);
     if (R.phase === "won") { tickGems(R); R.beaconLit = Math.min(1, R.beaconLit + DT * 0.5); }
   }

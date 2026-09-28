@@ -61,13 +61,18 @@ export class Scene3D {
   setQuality(q) {
     this.quality = q;
     const hi = q === "high";
-    this.renderer.setPixelRatio(hi ? Math.min(window.devicePixelRatio || 1, 2) : 1);
+    this.basePR = hi ? Math.min(window.devicePixelRatio || 1, 2) : 1;
+    this.resScale = 1;
+    this.perf = { ema: 1 / 60, slowT: 0, fastT: 0, holdT: 0, bloomOff: false };
+    this.renderer.setPixelRatio(this.basePR);
+    this.composer.setPixelRatio(this.basePR);
     this.renderer.shadowMap.enabled = hi;
     this.moon.castShadow = hi;
     this.moon.shadow.mapSize.set(hi ? 2048 : 512, hi ? 2048 : 512);
     this.moon.shadow.map?.dispose();
     this.moon.shadow.map = null;
     this.useBloom = hi;
+    this.wantBloom = hi;
     this.stageKey = "";           // rebuild the arena at the new quality
     this.resize(this.W, this.H);
   }
@@ -101,7 +106,7 @@ export class Scene3D {
     this.bloom.strength = L.bloom;
     this.env = buildEnv(this.scene, R, this.quality);
     this.rigs = new Rigs(this.scene);
-    this.rigs.castShadow = this.quality === "high";
+    this.rigs.lowGeo = this.quality !== "high";
     if (!this.fx) this.fx = new Fx(this.scene);
     this.hero = buildHero(R.heroDef);
     this.scene.add(this.hero.g);
@@ -109,13 +114,59 @@ export class Scene3D {
     this.snap = true;
   }
 
+  // The world rect (px) the camera sees: the four screen corners cast onto
+  // the ground, grown by `pad` for tall figures and things in the air.
+  viewRect(pad) {
+    const cam = this.camera;
+    cam.updateMatrixWorld();
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    const o = cam.position, v = this.v;
+    for (const [nx, ny] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      v.set(nx, ny, 0.5).unproject(cam).sub(o);
+      // Rays that miss the ground (above the horizon) reach far instead.
+      const t = v.z < -1e-3 ? -o.z / v.z : 6000 / v.length();
+      const wx = o.x + v.x * t, wy = -(o.y + v.y * t);
+      x0 = Math.min(x0, wx); x1 = Math.max(x1, wx); y0 = Math.min(y0, wy); y1 = Math.max(y1, wy);
+    }
+    return { x0: x0 - pad, x1: x1 + pad, y0: y0 - pad * 1.6, y1: y1 + pad };
+  }
+
   project(x, y, z = 0) {
     this.v.set(x, -y, z).project(this.camera);
     return { x: (this.v.x + 1) / 2 * this.W, y: (1 - this.v.y) / 2 * this.H, behind: this.v.z > 1 };
   }
 
+  // Adaptive resolution: when frames run long for a while, render at a lower
+  // pixel ratio (down to 55 %), then drop the bloom pass; when there is
+  // headroom again for a good while, step back up. Hidden-tab or hitch
+  // frames (> 80 ms) are ignored.
+  adapt(dt) {
+    const P = this.perf;
+    if (!(dt > 0) || dt > 0.08) return;
+    P.ema += (dt - P.ema) * 0.05;
+    if (P.holdT > 0) { P.holdT -= dt; return; }
+    if (P.ema > 1 / 45) { P.slowT += dt; P.fastT = 0; } else if (P.ema < 1 / 57) { P.fastT += dt; P.slowT = 0; } else { P.slowT = 0; P.fastT = 0; }
+    let next = this.resScale;
+    if (P.slowT > 1.5) {
+      if (this.resScale > 0.56) next = Math.max(0.55, this.resScale - 0.1);
+      else if (this.useBloom) { this.useBloom = false; P.bloomOff = true; }
+      P.slowT = 0; P.holdT = 2.5;
+    } else if (P.fastT > 6) {
+      if (P.bloomOff && this.wantBloom) { this.useBloom = true; P.bloomOff = false; }
+      else if (this.resScale < 1) next = Math.min(1, this.resScale + 0.05);
+      P.fastT = 0; P.holdT = 2;
+    }
+    if (next !== this.resScale) {
+      this.resScale = next;
+      this.renderer.setPixelRatio(this.basePR * next);
+      this.composer.setPixelRatio(this.basePR * next);
+      this.resize(this.W, this.H);
+    }
+  }
+
   // opts: { time, dt, mode: "play" | "title", shake }
   render(R, opts) {
+    this.adapt(opts.dt);
     if (R !== this.R) this.load(R);
     const { time, dt } = opts;
     const hp = R.hero.body.position;
@@ -154,7 +205,8 @@ export class Scene3D {
     this.moon.target.updateMatrixWorld();
 
     syncEnv(this.env, R, time, dt, this.focus);
-    this.rigs.sync(R, time);
+    const view = this.viewRect(90);
+    this.rigs.sync(R, time, view);
     syncHero(this.hero, R, time);
     // The lantern light walks with the hero.
     const lw = new T.Vector3();
@@ -165,8 +217,7 @@ export class Scene3D {
     this.heroLight.distance = 620 * (R.eclipse ? 0.8 : 1);
     this.ambient.intensity = LOOKS[R.stage.look].ambI * (R.eclipse ? 0.45 : 1) * (1 + (R.beaconLit || 0) * 0.6);
     // Visible world rect for culling the instanced effects.
-    const halfW = dist * 1.2, halfH = dist * 1.1;
-    this.fx.sync(R, time, pitch, { x0: fx - halfW, x1: fx + halfW, y0: fy - halfH * 1.3, y1: fy + halfH }, opts.calm);
+    this.fx.sync(R, time, pitch, view, opts.calm);
     this.bloom.strength = LOOKS[R.stage.look].bloom * (opts.calm ? 0.55 : 1);
 
     if (this.useBloom) this.composer.render(dt);
