@@ -39,7 +39,7 @@ export const MON = {
   cinder:   { r: 9,  hp: 40,   speed: 124, dmg: 7,  xp: 3,  mass: 0.7, ai: "chase",  rig: "wisp",     c: 0xffb04a, c2: 0xff5a20, ghost: true, fly: 12 },
   ashshaman:{ r: 12, hp: 45,   speed: 66,  dmg: 6,  xp: 4,  mass: 1.2, ai: "healer", rig: "witch",    c: 0x4a2a20, c2: 0x7a3a1a, c3: 0xffb04a, heal: 0.07, healCd: 300, healR: 130, cap: 4 },
   alpha:    { r: 19, hp: 1200, speed: 104, dmg: 17, xp: 12, mass: 5,   ai: "lunge",  rig: "wolf",     c: 0x2a2220, c2: 0xff5a20, elite: true, scale: 1.6 },
-  stag:     { r: 40, hp: 8000, speed: 70,  dmg: 26, xp: 40, mass: 40,  ai: "stag",   rig: "stag",     c: 0x4a3428, c2: 0xff6a20, boss: true },
+  stag:     { r: 40, hp: 9000, speed: 70,  dmg: 26, xp: 40, mass: 40,  ai: "stag",   rig: "stag",     c: 0x4a3428, c2: 0xff6a20, boss: true },
 
   // ── Frostfang pass ──
   frostbat: { r: 8,  hp: 12,   speed: 140, dmg: 4,  xp: 1,  mass: 0.6, ai: "swoop",  rig: "bat",      c: 0x9fd8ff, c2: 0x3a6a9a, fly: 24 },
