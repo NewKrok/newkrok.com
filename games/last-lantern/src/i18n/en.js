@@ -79,7 +79,7 @@ export const EN = {
   // Journal.
   journalIntro: "Pages gathered along the way.", jn_locked: "Light the beacon to read on.",
   storyTab: "Story", evoFrom: "{w} at max level + {p}",
-  bestiary: "Bestiary", arsenal: "Arsenal", story: "Story", seen: "Met", notSeen: "Not yet met",
+  bestiary: "Bestiary", arsenal: "Arsenal", story: "Story", seen: "Met", notSeen: "Not yet met", hpUnit: "{n} HP", homeName: "Emberhollow",
 };
 
 // Heroes: name, epithet, ability name, ability text, trait.

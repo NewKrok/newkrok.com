@@ -8,7 +8,7 @@ const logs = [];
 p.on("pageerror", (e) => logs.push("PAGEERROR " + e.message));
 p.on("console", (m) => { if (m.type() === "error") logs.push(m.text()); });
 await p.goto(URL, { waitUntil: "load" });
-if (process.env.LANG_HU) { await p.evaluate(() => { localStorage.setItem("last-lantern.settings.v1", JSON.stringify({ lang: "hu" })); }); await p.reload(); }
+const lang = process.env.UI_LANG || (process.env.LANG_HU && "hu"); if (lang) { await p.evaluate((l) => { localStorage.setItem("last-lantern.settings.v1", JSON.stringify({ lang: l, safetySeen: true })); }, lang); await p.reload(); }
 await p.waitForTimeout(2000);
 const click = async (sel) => { await p.click(sel); await p.waitForTimeout(700); };
 await click("[data-action=play]");

@@ -399,7 +399,7 @@ function renderJournal() {
   $$(".tab").forEach((b) => b.classList.toggle("on", b.dataset.tab === journalTab));
   const root = $("#journal");
   if (journalTab === "story") {
-    const pages = [`<div class="page"><h4>Emberhollow</h4>${storyText().prologue.map((l) => `<p>${esc(l)}</p>`).join("")}</div>`];
+    const pages = [`<div class="page"><h4>${esc(t("homeName"))}</h4>${storyText().prologue.map((l) => `<p>${esc(l)}</p>`).join("")}</div>`];
     STAGES.forEach((s, i) => {
       const tx = stageText(s.id);
       if (!stageUnlocked(progress, i)) { pages.push(`<div class="page locked"><h4>${esc(t("stageN", { n: i + 1 }))}</h4><p>${esc(t("jn_locked"))}</p></div>`); return; }
@@ -414,7 +414,7 @@ function renderJournal() {
       const seen = progress.seenMonsters.includes(id), d = MON[id];
       const tier = d.boss ? t("tierBoss") : d.elite ? t("tierElite") : "";
       return `<div class="beast ${seen ? "" : "unseen"} ${d.boss ? "boss" : d.elite ? "elite" : ""}"><div class="bport">${ports[id] ? `<img src="${ports[id]}" alt="">` : ""}</div>
-        <div class="bn">${esc(seen ? monsterName(id) : "???")}</div><small>${esc(seen ? `${tier ? tier + " · " : ""}${Math.round(d.hp)} HP` : t("notSeen"))}</small>${seen ? `<p class="lore">${esc(monsterLore(id))}</p>` : ""}</div>`;
+        <div class="bn">${esc(seen ? monsterName(id) : "???")}</div><small>${esc(seen ? `${tier ? tier + " · " : ""}${t("hpUnit", { n: Math.round(d.hp) })}` : t("notSeen"))}</small>${seen ? `<p class="lore">${esc(monsterLore(id))}</p>` : ""}</div>`;
     }).join("")}</div>`).join("");
   } else {
     const owned = unlockedWeapons(progress);

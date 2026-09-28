@@ -68,7 +68,7 @@ export const HU = {
   h_radiance: "Ragyogás", hd_radiance: "+6% hatókör", h_headstart: "Előny", hd_headstart: "Minden menetet 2 szinttel magasabban kezdesz", h_legion: "Légió", hd_legion: "+1 lövedék minden fegyverhez", buy: "Fejlesztés · {n}", maxed: "Maximum",
   journalIntro: "Az úton összegyűjtött lapok.", jn_locked: "Gyújtsd meg a jelzőtüzet a folytatáshoz.",
   storyTab: "Történet", evoFrom: "{w} max szinten + {p}",
-  bestiary: "Bestiárium", arsenal: "Fegyvertár", story: "Történet", seen: "Találkoztatok", notSeen: "Még nem találkoztatok",
+  bestiary: "Bestiárium", arsenal: "Fegyvertár", story: "Történet", seen: "Találkoztatok", notSeen: "Még nem találkoztatok", hpUnit: "{n} ÉP", homeName: "Emberhollow",
 };
 
 HU.heroes = {

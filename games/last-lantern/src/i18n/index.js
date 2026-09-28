@@ -1,12 +1,16 @@
 import { EN } from "./en.js";
 import { HU } from "./hu.js";
+import { DE } from "./de.js";
+import { ES } from "./es.js";
+import { FR } from "./fr.js";
+import { ZH } from "./zh.js";
 
 // ── Localisation ─────────────────────────────────────────────────────────
 // Static page text carries data-i18n (plain) or data-i18n-html (with markup)
 // keys; everything built in code goes through t() and the name helpers.
 
-const PACKS = { en: EN, hu: HU };
-export const LANGS = [["en", "English"], ["hu", "Magyar"]];
+const PACKS = { en: EN, de: DE, es: ES, hu: HU, zh: ZH, fr: FR };
+export const LANGS = [["en", "English"], ["de", "Deutsch"], ["es", "Español"], ["hu", "Magyar"], ["zh", "中文"], ["fr", "Français"]];
 
 let lang = "en";
 export const getLang = () => lang;
@@ -24,7 +28,7 @@ export function detectLang(saved) {
 export function setLang(code) {
   lang = PACKS[code] ? code : "en";
   if (typeof document !== "undefined") {
-    document.documentElement.lang = lang;
+    document.documentElement.lang = lang === "zh" ? "zh-Hans" : lang;
     applyDom();
   }
 }
