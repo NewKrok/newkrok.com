@@ -143,3 +143,24 @@ spawning / damage / drops, `monsters.js` AI and bosses, `weapons.js`,
 - `scripts/shot.mjs`, `boss-shots.mjs`, `ui-shots.mjs` screenshot the dev
   server through `window.__lastLantern` (see `scripts/browser.mjs` for the
   Chromium paths).
+
+### Performance (Last Lantern)
+
+- Measure first: `scripts/profile.mjs` times the sim, rig sync and effects
+  in a crowded scene and reports draw calls and triangles; Chrome's
+  sampling heap profiler (CDP `HeapProfiler.startSampling` with
+  `includeObjectsCollected…`) finds per-frame allocation sites.
+- Instanced rigs: bake the parts that never move into one vertex-coloured
+  geometry per type (hit flash and frost become an `instanceColor` tint
+  over it); keep only swinging or held parts separate. Keep instanced
+  geometry lean (a 20-triangle dot for eyes) and leave crowds out of the
+  shadow pass - blob shadows are enough.
+- Cull instanced crowds against the camera's real ground footprint (cast
+  the four screen corners onto z = 0), not a guessed rectangle.
+- Split merged static batches into ~1000 px chunks so the camera and the
+  shadow camera can skip them.
+- Hot loops: no `new Vec2` per body per step (`velocity.setxy`,
+  `Vec2.weak` for impulses), no Object3D as a matrix scratchpad, and give
+  every entity all its fields at creation so objects share one shape.
+- Adaptive resolution (render scale down to 55 %, then no bloom) keeps
+  weak GPUs playable without asking the player to find a setting.
