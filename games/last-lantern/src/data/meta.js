@@ -6,7 +6,7 @@
 export const HEROES = [
   { id: "wren",  weapon: "flail",    active: "flare",     hp: 100, speed: 175, armor: 0, might: 1,    area: 1.1,  color: 0x8a1e2a, trim: 0xffd166, unlock: null },
   { id: "mira",  weapon: "crossbow", active: "tumble",    hp: 85,  speed: 192, armor: 0, might: 1,    area: 1,    color: 0x2f5a3a, trim: 0xc9a35a, unlock: { stage: 0 } },
-  { id: "oskar", weapon: "bell",     active: "sanctuary", hp: 135, speed: 160, armor: 1, might: 1,    area: 1,    color: 0x4a3a6a, trim: 0xe0c070, unlock: { stage: 1 } },
+  { id: "oskar", weapon: "bell",     active: "sanctuary", hp: 135, speed: 164, armor: 1, might: 1.08,    area: 1,    color: 0x4a3a6a, trim: 0xe0c070, unlock: { stage: 1 } },
   { id: "sable", weapon: "spades",   active: "dig",       hp: 100, speed: 176, armor: 0, might: 1.12, area: 1,    color: 0x3a3230, trim: 0xa0b0c0, unlock: { stage: 2 } },
 ];
 

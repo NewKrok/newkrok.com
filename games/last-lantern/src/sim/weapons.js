@@ -67,11 +67,11 @@ export const WEAPONS = {
 
   // Chapel Bell: a ring around you that tolls, hurts and shoves.
   bell: {
-    stats: (lv) => ({ dmg: 5 + lv * 2, radius: 58 + lv * 10, cd: 32, knock: 100 + lv * 10 }),
+    stats: (lv) => ({ dmg: 5 + lv * 3.5, radius: 60 + lv * 11, cd: 32, knock: 100 + lv * 10 }),
     fire(R, w, s) { toll(R, w, s, s.radius * R.hero.stats.area, s.dmg, s.knock); },
   },
   toll: {
-    stats: () => ({ dmg: 22, radius: 190, cd: 30, knock: 180 }),
+    stats: () => ({ dmg: 34, radius: 200, cd: 30, knock: 180 }),
     fire(R, w, s) {
       w.count = (w.count || 0) + 1;
       const big = w.count % 5 === 0;
@@ -82,11 +82,11 @@ export const WEAPONS = {
 
   // Grave spades circling you, striking whatever they pass through.
   spades: {
-    stats: (lv) => ({ dmg: 9 + lv * 3, n: 1 + ceil(lv * 0.72), radius: 72 + lv * 5, speed: 2.6 + lv * 0.25 }),
+    stats: (lv) => ({ dmg: 9 + lv * 5, n: 1 + ceil(lv * 0.72), radius: 72 + lv * 5, speed: 2.7 + lv * 0.32 }),
     tick(R, w, s) { orbit(R, w, s); },
   },
   halo: {
-    stats: () => ({ dmg: 34, n: 8, radius: 112, speed: 4.2 }),
+    stats: () => ({ dmg: 52, n: 8, radius: 112, speed: 4.6 }),
     tick(R, w, s) { orbit(R, w, s); },
   },
 
