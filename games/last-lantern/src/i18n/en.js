@@ -224,7 +224,7 @@ EN.monsterLore = {
   cultist: "A priest of the moon whose light bends after you as it flies.",
   bellgolem: "A walking bell of bronze and stone. Every step rings through the nave.",
   specter: "The cathedral's dead, drifting through pews and pillars alike.",
-  hollowpriest: "Hollow chanting that fills the empty armour with strength again. Kill him first.",
+  hollowpriest: "His chant mends the empty armour a little and drives one of them on at a run. Kill him first.",
   moonknight: "The King's own guard in moonlit steel. Their charges are the fastest of all.",
   king: "He holds the stolen sun. He summons his host, draws his scythes, and in the end darkens the sky itself.",
 };

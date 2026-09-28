@@ -28,7 +28,7 @@ export function spawnPoint(R, minD = SPAWN_MIN, maxD = SPAWN_MAX) {
 function steer(m, tx, ty, mul = 1, blend = 0.16) {
   const p = m.body.position;
   const dx = tx - p.x, dy = ty - p.y, d = hyp(dx, dy);
-  const sp = m.def.speed * mul * m.slow;
+  const sp = m.def.speed * mul * m.slow * (m.haste > 0 ? 1.55 : 1);
   const v = m.body.velocity;
   m.body.velocity = new Vec2(lerp(v.x, (dx / d) * sp, blend), lerp(v.y, (dy / d) * sp, blend));
   m.face = Math.atan2(dy, dx);
@@ -61,6 +61,10 @@ export function tickMonsters(R) {
     if (m.hitFlash > 0) m.hitFlash--;
     if (def.prop) continue;
     if (m.orbCd > 0) m.orbCd--;
+    if (m.haste > 0) {
+      m.haste--;
+      if (m.haste % 6 === 0) particle(R, m.body.position.x, m.body.position.y, 0, 0, 0xd8b8ff, 18, 2.4, def.r * 1.2, 30);
+    }
     m.t++;
     m.anim += DT * (def.speed / 40 + 2) * (frozen || m.stun > 0 ? 0.1 : 1);
     if (m.burn > 0) {
@@ -145,6 +149,23 @@ const AI = {
         particle(R, q.x, q.y, 0, 0, m.def.c3, 26, 2.6, o.def.r * 2, 70);
         if (heal > 30) floater(R, q.x, q.y - o.def.r - 6, `+${Math.round(heal)}`, "#9aff7a", 0.8);
         n++;
+      }
+      // Some healers also quicken one monster near them for a few seconds.
+      if (m.def.haste) {
+        let pickM = null, best = 0;
+        for (const o of R.monsters) {
+          if (!o.alive || o === m || o.def.prop || o.def.part || o.def.boss || o.haste > 0) continue;
+          const q = o.body.position, dd = Math.hypot(q.x - p.x, q.y - p.y);
+          if (dd > 260) continue;
+          const sc = o.maxHp / (1 + dd / 120);
+          if (sc > best) { best = sc; pickM = o; }
+        }
+        if (pickM) {
+          pickM.haste = 220;
+          R.beams.push({ x0: p.x, y0: p.y, x1: pickM.body.position.x, y1: pickM.body.position.y, t: 0, T: 16, color: m.def.c3 });
+          burst(R, pickM.body.position.x, pickM.body.position.y, 10, m.def.c3, 2.6);
+          n++;
+        }
       }
       if (n) {
         R.rings.push({ x: p.x, y: p.y, r: 10, max: hr, t: 0, T: 26, color: m.def.c3 });

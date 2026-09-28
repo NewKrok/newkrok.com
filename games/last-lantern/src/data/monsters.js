@@ -56,10 +56,10 @@ export const MON = {
   // ── The moon cathedral ──
   gargoyle: { r: 10, hp: 30,   speed: 120, dmg: 6,  xp: 2,  mass: 1,   ai: "diver",  rig: "gargoyle", c: 0x6a6f7a, c2: 0x3a3f4a, fly: 30 },
   hollow:   { r: 12, hp: 50,   speed: 80,  dmg: 7,  xp: 1,  mass: 1.3, ai: "chase",  rig: "hollow",   c: 0x5a5a78, c2: 0xc0c8ff },
-  cultist:  { r: 12, hp: 60,   speed: 72,  dmg: 6,  xp: 3,  mass: 1.2, ai: "ranged", rig: "cultist",  c: 0x5a3a8a, c2: 0xc0a8ff, spit: { dmg: 10, speed: 240, color: 0xc0a8ff, home: 0.03 } , cap: 16 },
-  bellgolem:{ r: 25, hp: 460,  speed: 44,  dmg: 18, xp: 5,  mass: 6,   ai: "chase",  rig: "brute",    c: 0x8a7a5a, c2: 0x5a4a3a, heavy: true, cap: 7 },
+  cultist:  { r: 12, hp: 60,   speed: 72,  dmg: 6,  xp: 3,  mass: 1.2, ai: "ranged", rig: "cultist",  c: 0x5a3a8a, c2: 0xc0a8ff, spit: { dmg: 10, speed: 216, color: 0xc0a8ff, home: 0.03 }, cap: 16 },
+  bellgolem:{ r: 25, hp: 400,  speed: 44,  dmg: 18, xp: 5,  mass: 6,   ai: "chase",  rig: "brute",    c: 0x8a7a5a, c2: 0x5a4a3a, heavy: true, cap: 7 },
   specter:  { r: 10, hp: 64,   speed: 124, dmg: 9,  xp: 3,  mass: 0.8, ai: "chase",  rig: "ghost",    c: 0xd8c8ff, c2: 0x7a6ac0, ghost: true, fly: 8 },
-  hollowpriest: { r: 12, hp: 120, speed: 66, dmg: 7, xp: 4, mass: 1.2, ai: "healer", rig: "witch",   c: 0x3a2a4a, c2: 0x6a4a8a, c3: 0xd8b8ff, heal: 0.25 , cap: 4 },
+  hollowpriest: { r: 12, hp: 120, speed: 66, dmg: 7, xp: 4, mass: 1.2, ai: "healer", rig: "witch",   c: 0x3a2a4a, c2: 0x6a4a8a, c3: 0xd8b8ff, heal: 0.0625, haste: true, cap: 4 },
   moonknight: { r: 21, hp: 2000, speed: 90, dmg: 20, xp: 12, mass: 7,  ai: "charger", rig: "knight",  c: 0x3a3a5a, c2: 0x2a2a3a, c3: 0xc0c8ff, elite: true },
   king:     { r: 36, hp: 11000, speed: 64, dmg: 28, xp: 50, mass: 40,  ai: "king",   rig: "king",     c: 0x3a3a58, c2: 0xc0c8ff, boss: true },
 };

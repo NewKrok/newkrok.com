@@ -211,7 +211,7 @@ HU.monsterLore = {
   cultist: "A hold papja, akinek a fénye röptében utánad kanyarodik.",
   bellgolem: "Bronzból és kőből lett sétáló harang. Minden lépése végigkondul a hajón.",
   specter: "A katedrális halottai, akik padokon és oszlopokon egyaránt átsuhannak.",
-  hollowpriest: "Kántálása újra erővel tölti meg az üres páncélokat. Őt öld meg elsőnek.",
+  hollowpriest: "Kántálása kicsit foltozza az üres páncélokat, egyiküket pedig futásra hajszolja. Őt öld meg elsőnek.",
   moonknight: "A Király saját őrsége holdfényes acélban. Az ő rohamuk a leggyorsabb mind közül.",
   king: "Nála van az ellopott nap. Hívja a seregét, előveszi a kaszáit, és a végén magát az eget is elsötétíti.",
 };
