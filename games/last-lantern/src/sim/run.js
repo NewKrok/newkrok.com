@@ -377,15 +377,25 @@ function activeEnd(R) {
   } else if (id === "dig") {
     h.body.shapes.at(0).filter = F.hero();
     h.iframes = Math.max(h.iframes, 30);
-    const r = 170 * h.stats.area * (ml >= 3 ? 1.5 : 1);
+    const r = 210 * h.stats.area * (ml >= 3 ? 1.4 : 1);
     R.rings.push({ x, y, r: 10, max: r, t: 0, T: 20, color: 0xa08060 });
-    burst(R, x, y, 30, 0x6a5a4a, 3.5);
+    R.rings.push({ x, y, r: 10, max: r * 0.6, t: 0, T: 14, color: 0xd0b090 });
+    burst(R, x, y, 40, 0x6a5a4a, 4);
     for (const m of [...R.monsters]) {
-      if (!m.alive) continue;
+      if (!m.alive || m.def.prop) continue;
       const p = m.body.position, dx = p.x - x, dy = p.y - y, d = hyp(dx, dy);
-      if (d < r + m.def.r) { damageMonster(R, m, 55 * mm, dx / d, dy / d, 380, "#d0b090", "dig"); if (m.alive && !m.def.boss) m.stun = ml >= 3 ? 130 : 60; }
+      if (d > r + m.def.r) continue;
+      damageMonster(R, m, 75 * mm, 0, 0, 0, "#d0b090", "dig");
+      if (!m.alive) continue;
+      // The earth bursts outward: everything near is thrown clear, the
+      // closest furthest, light ones more than heavy ones.
+      if (!m.def.boss && !m.def.part) {
+        const k = (900 * (1 - d / (r + 40)) + 200) / Math.sqrt(m.def.mass);
+        m.body.applyImpulse(new Vec2(dx / d * k * m.body.mass, dy / d * k * m.body.mass));
+        m.stun = ml >= 3 ? 130 : 70;
+      }
     }
-    pushProps(R, x, y, r, 340);
+    pushProps(R, x, y, r, 600);
     R.shake(10, 0.35);
     R.sfx.push(["slam"]);
   } else if (id === "sanctuary" && ml >= 3) {

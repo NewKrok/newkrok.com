@@ -87,7 +87,7 @@ EN.heroes = {
   wren: ["Wren", "the Lamplighter", "Sunflare", "A burst of the old sun: hurts, stuns and hurls back everything near you.", "+10% area"],
   mira: ["Mira", "the Warden", "Tumble", "Roll through the crowd untouchable, loosing a ring of bolts as you rise.", "Quick on her feet, but frail"],
   oskar: ["Brother Oskar", "the Bellringer", "Sanctuary", "Three seconds of holy ground: nothing can hurt you, a quarter of your health returns, the crowd is thrown back.", "+35 health, 1 armour, slow"],
-  sable: ["Sable", "the Gravedigger", "Dig", "Burrow under the earth, move fast and untouchable, and burst out with a slam that stuns.", "+12% damage"],
+  sable: ["Sable", "the Gravedigger", "Dig", "Burrow under the earth, move fast and untouchable, and burst out in a blast that throws the crowd clear and stuns it.", "+12% damage"],
 };
 
 EN.weapons = {

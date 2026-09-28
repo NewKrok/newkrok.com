@@ -15,7 +15,7 @@ export const ACTIVES = {
   flare:     { cd: 14 },
   tumble:    { cd: 4.5 },
   sanctuary: { cd: 24 },
-  dig:       { cd: 11 },
+  dig:       { cd: 9 },
 };
 
 // Weapons (fire logic in sim/weapons.js). `evo` names the passive that turns

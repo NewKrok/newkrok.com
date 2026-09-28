@@ -75,7 +75,7 @@ HU.heroes = {
   wren: ["Wren", "a lámpagyújtogató", "Napvillanás", "A régi nap fellobbanása: megsebez, elkábít és visszalök mindent a közeledben.", "+10% hatókör"],
   mira: ["Mira", "az erdőőr", "Bukfenc", "Sebezhetetlenül átgurulsz a tömegen, és felálláskor nyílvesszők gyűrűjét lövöd ki.", "Fürge, de törékeny"],
   oskar: ["Oszkár testvér", "a harangozó", "Szentély", "Három másodperc szent föld: semmi sem sebezhet, visszakapod az életerőd negyedét, a tömeget pedig visszalöki.", "+35 életerő, 1 páncél, lassú"],
-  sable: ["Sable", "a sírásó", "Ásás", "A föld alá bújsz, gyorsan és sebezhetetlenül mozogsz, majd kábító csapással török elő.", "+12% sebzés"],
+  sable: ["Sable", "a sírásó", "Ásás", "A föld alá bújsz, gyorsan és sebezhetetlenül mozogsz, majd robbanással török elő, ami szétdobja és elkábítja a tömeget.", "+12% sebzés"],
 };
 
 HU.weapons = {

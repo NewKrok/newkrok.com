@@ -82,7 +82,7 @@ export const WEAPONS = {
 
   // Grave spades circling you, striking whatever they pass through.
   spades: {
-    stats: (lv) => ({ dmg: 9 + lv * 5, n: 1 + ceil(lv * 0.72), radius: 72 + lv * 5, speed: 2.7 + lv * 0.32 }),
+    stats: (lv) => ({ dmg: 12 + lv * 6, n: 1 + ceil(lv * 0.72), radius: 72 + lv * 5, speed: 2.7 + lv * 0.32 }),
     tick(R, w, s) { orbit(R, w, s); },
   },
   halo: {
@@ -329,7 +329,7 @@ function killOrb(o) { if (o?.body?.space) o.body.space = null; }
 export function clearOrbs(R) { for (const o of R.orbs) killOrb(o); R.orbs.length = 0; }
 export function onOrbHit(R, orb, m) {
   if (m.orbCd > 0 || orb.hidden) return;
-  m.orbCd = 18;
+  m.orbCd = 13;
   const p = m.body.position;
   const dx = p.x - heroX(R), dy = p.y - heroY(R), d = hyp(dx, dy);
   const halo = orb.w?.id === "halo";
