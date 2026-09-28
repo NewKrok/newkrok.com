@@ -1,0 +1,11 @@
+import { launch, URL } from "./browser.mjs";
+const [out, stage = "0"] = process.argv.slice(2);
+const b = await launch();
+const p = await b.newPage({ viewport: { width: 960, height: 540 } });
+await p.goto(URL, { waitUntil: "load" });
+await p.evaluate((s) => { const L = window.__lastLantern; L.settings.stage = s; L.G.title = null; L.goMain(); }, Number(stage));
+await p.waitForTimeout(3500);
+await p.evaluate(() => { for (const s of document.querySelectorAll(".screen")) s.style.display = "none"; });
+await p.waitForTimeout(400);
+await p.screenshot({ path: out });
+await b.close();

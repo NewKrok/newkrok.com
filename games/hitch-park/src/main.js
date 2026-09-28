@@ -95,7 +95,7 @@ function renderMain() {
   const next = firstUnfinished(progress, LEVELS.length);
   bind("continueLabel", any ? t("continueJob", { n: next + 1 }) : t("play"));
   const link = (href, label) => `<a href="${href}" target="_blank" rel="noopener">${label}</a>`;
-  $("[data-bind=madeBy]").textContent = t("madeBy", { name: "Krisztian Somoracz" });
+  $("[data-bind=madeBy]").innerHTML = t("madeBy", { name: link("https://x.com/KSomoracz", "Krisztian Somoracz") });
   $("[data-bind=techLine]").innerHTML = t("techLine", { nape: link("https://napejs.org/", "nape-js"), three: link("https://threejs.org/", "three.js") });
 }
 

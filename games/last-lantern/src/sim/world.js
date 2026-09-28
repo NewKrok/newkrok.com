@@ -1,0 +1,218 @@
+import { Body, BodyType, Vec2, Circle, Polygon, Material, InteractionFilter } from "@newkrok/nape-js";
+import { mulberry, G_SOLID, G_PROP, G_HERO, G_MON, G_THROWN, G_CENSER, S_PROP } from "../config.js";
+
+// ── Arenas ───────────────────────────────────────────────────────────────
+// Every stage is a walled rectangle dressed with static obstacles the crowd
+// has to stream around, a few loose props it can shove (crates, barrels,
+// pews, snow boulders), ground zones (mud, ice) and breakable candles that
+// hide pickups. The layout is built from a fixed seed, so the arena is the
+// same every run and the renderer can build its meshes from the same list.
+
+const F_SOLID = () => new InteractionFilter(G_SOLID, ~0, 1 << 20, 0);
+const F_PROP = () => new InteractionFilter(G_PROP, G_HERO | G_MON | G_SOLID | G_PROP | G_THROWN | G_CENSER, S_PROP, 0);
+
+export function buildWorld(space, stage) {
+  const [W, H] = stage.world;
+  const rnd = mulberry(stage.index * 7919 + 20260926);
+  const W0 = { W, H, obstacles: [], walls: [], props: [], zones: [], candles: [], decor: [], start: { x: W / 2, y: H * 0.6 } };
+  const start = W0.start;
+  const nearStart = (x, y, r) => Math.hypot(x - start.x, y - start.y) < r;
+
+  const addSolid = (body, rec) => {
+    for (let i = 0; i < body.shapes.length; i++) body.shapes.at(i).filter = F_SOLID();
+    body.space = space;
+    Object.assign(rec, { body, x: body.position.x, y: body.position.y });
+    (rec.kind === "wall" ? W0.walls : W0.obstacles).push(rec);
+    return rec;
+  };
+  const box = (kind, x, y, w, h, rot = 0, extra = {}) => {
+    const b = new Body(BodyType.STATIC, new Vec2(x, y));
+    b.rotation = rot;
+    b.shapes.add(new Polygon(Polygon.box(w, h)));
+    return addSolid(b, { kind, w, h, rot, ...extra });
+  };
+  const circle = (kind, x, y, r, extra = {}) => {
+    const b = new Body(BodyType.STATIC, new Vec2(x, y));
+    b.shapes.add(new Circle(r));
+    return addSolid(b, { kind, r, ...extra });
+  };
+  const prop = (kind, x, y, shape, density, extra = {}) => {
+    const b = new Body(BodyType.DYNAMIC, new Vec2(x, y));
+    const mat = new Material(0.1, 0.9, 1.1, density);
+    const s = shape.r ? new Circle(shape.r, undefined, mat) : new Polygon(Polygon.box(shape.w, shape.h), mat);
+    s.filter = F_PROP();
+    b.shapes.add(s);
+    if (extra.rot) b.rotation = extra.rot;
+    // Heavy drag, so a shoved crate slides a little and stops.
+    b.space = space;
+    const rec = { kind, body: b, ...shape, ...extra };
+    W0.props.push(rec);
+    return rec;
+  };
+  const zone = (kind, x, y, r) => W0.zones.push({ kind, x, y, r });
+  const candle = (x, y) => W0.candles.push({ x, y });
+  // Sample a free spot: away from the start and from what is already there.
+  const free = (r, pad = 40, tries = 40) => {
+    for (let i = 0; i < tries; i++) {
+      const x = pad + r + rnd() * (W - 2 * (pad + r)), y = pad + r + rnd() * (H - 2 * (pad + r));
+      if (nearStart(x, y, 230)) continue;
+      let ok = true;
+      for (const o of W0.obstacles) {
+        const or = o.r ?? Math.max(o.w, o.h) / 2;
+        if (Math.hypot(o.x - x, o.y - y) < or + r + 36) { ok = false; break; }
+      }
+      if (ok) return { x, y };
+    }
+    return null;
+  };
+
+  // Boundary walls.
+  const T = 80;
+  box("wall", W / 2, -T / 2, W + T * 2, T);
+  box("wall", W / 2, H + T / 2, W + T * 2, T);
+  box("wall", -T / 2, H / 2, T, H);
+  box("wall", W + T / 2, H / 2, T, H);
+
+  // The beacon this stage is fought for, by the north wall. It is dark until
+  // the keeper falls.
+  W0.beacon = circle("beacon", W / 2, 130, 38);
+
+  LAYOUTS[stage.look]({ W, H, rnd, box, circle, prop, zone, candle, free, nearStart, start, decor: W0.decor });
+  return W0;
+}
+
+const LAYOUTS = {
+  // Hollowmere: an old village churchyard on a hill. A ruined chapel with its
+  // bell tower, dry-stone walls splitting the plots, box tombs, Celtic
+  // crosses, open graves, yews, one great oak, and crook-lamps on the paths.
+  churchyard({ W, H, rnd, box, circle, prop, candle, free, nearStart, decor }) {
+    const C = { x: W / 2, y: 470 };
+    // The chapel: broken walls with a door to the south, the tower at a corner.
+    box("chapelwall", C.x, C.y - 90, 340, 18, 0, { seed: rnd() });
+    box("chapelwall", C.x - 170, C.y, 18, 196, 0, { seed: rnd() });
+    box("chapelwall", C.x + 170, C.y + 34, 18, 128, 0, { seed: rnd() });
+    box("chapelwall", C.x - 108, C.y + 90, 142, 18, 0, { seed: rnd() });
+    box("chapelwall", C.x + 108, C.y + 90, 142, 18, 0, { seed: rnd() });
+    box("belltower", C.x + 176, C.y - 96, 74, 74);
+    box("chapelaltar", C.x, C.y - 56, 70, 26);
+    for (const sx of [-1, 1]) circle("brokenpillar", C.x + sx * 70, C.y - 10, 11, { seed: rnd() });
+    // Dry-stone walls along lines, built from short courses with gaps.
+    const wallLine = (pts, gapAt = []) => {
+      for (let i = 1; i < pts.length; i++) {
+        const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+        const L = Math.hypot(x1 - x0, y1 - y0), n = Math.max(1, Math.round(L / 90));
+        for (let k = 0; k < n; k++) {
+          if (gapAt.includes(`${i}:${k}`)) continue;
+          const t0 = k / n, t1 = (k + 1) / n;
+          const ax = x0 + (x1 - x0) * (t0 + t1) / 2, ay = y0 + (y1 - y0) * (t0 + t1) / 2;
+          box("drywall", ax, ay, L / n + 4, 20, Math.atan2(y1 - y0, x1 - x0), { seed: rnd() });
+        }
+      }
+    };
+    wallLine([[140, 820], [520, 800], [960, 840]], ["1:2"]);
+    wallLine([[1640, 840], [2080, 800], [2460, 820]], ["2:1"]);
+    wallLine([[760, 1180], [740, 1450], [780, 1700]], ["1:1"]);
+    wallLine([[1840, 1180], [1860, 1450], [1820, 1700]], ["2:1"]);
+    // Graves in the four plots.
+    const plots = [[260, 300, 5, 4], [W - 760, 300, 5, 4], [240, 980, 4, 5], [W - 640, 980, 4, 5]];
+    for (const [x0, y0, cols, rows] of plots) {
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        if (rnd() < 0.18) continue;
+        const x = x0 + c * 108 + (rnd() - 0.5) * 26, y = y0 + r * 118 + (rnd() - 0.5) * 22;
+        if (nearStart(x, y, 230)) continue;
+        const roll = rnd(), rot = (rnd() - 0.5) * 0.35;
+        if (roll < 0.12) box("tomb", x, y + 10, 66, 34, rot * 0.3, { seed: rnd() });
+        else if (roll < 0.26) box("celtic", x, y, 26, 12, rot, { tall: 52 + rnd() * 16 });
+        else if (roll < 0.36) box("marker", x, y, 16, 8, rot * 1.6, { tall: 26 + rnd() * 10 });
+        else if (roll < 0.42) box("opengrave", x, y + 14, 34, 54, rot * 0.3, { seed: rnd() });
+        else box("headstone", x, y, 28 + rnd() * 12, 12, rot, { tall: 28 + rnd() * 18, shape: Math.floor(rnd() * 4), seed: rnd() });
+      }
+    }
+    // Yews along the paths, one great oak in each lower plot.
+    for (const [x, y] of [[1150, 700], [1450, 700], [1130, 1450], [1480, 1500], [980, 1060], [1640, 1040], [300, 700], [2300, 690], [160, 1700], [2440, 1720], [640, 200], [1960, 200]]) {
+      if (!nearStart(x, y, 200)) circle("yew", x, y, 20 + rnd() * 6, { seed: rnd() });
+    }
+    circle("greatoak", 470, 1420, 26, { seed: rnd() });
+    circle("greatoak", W - 420, 1380, 26, { seed: rnd() });
+    // Crook-lamps: a lantern hanging from an iron crook, by the paths.
+    for (const [x, y, a] of [[1240, 1580, 0], [1370, 1270, Math.PI], [1240, 900, 0], [1370, 680, Math.PI], [700, 900, 0], [1900, 900, Math.PI], [520, 560, 0], [2080, 560, Math.PI]]) {
+      circle("crooklamp", x, y, 6, { a, phase: rnd() * 6.28 });
+    }
+    // The lych-gate over the south path.
+    for (const sx of [-1, 1]) circle("gatepost", C.x + sx * 60, H - 40, 12, { gate: sx });
+    // Loose coffins and urns.
+    for (let i = 0; i < 5; i++) { const p = free(22); if (p) prop("coffin", p.x, p.y, { w: 46, h: 20 }, 1.6, { rot: rnd() * 3 }); }
+    for (let i = 0; i < 6; i++) { const p = free(12); if (p) prop("urn", p.x, p.y, { r: 9 }, 1.8); }
+    for (let i = 0; i < 14; i++) { const p = free(12); if (p) candle(p.x, p.y); }
+    // Ground dressing: tufts, mushrooms, scattered bones and leaves.
+    for (let i = 0; i < 260; i++) decor.push({ kind: rnd() < 0.7 ? "tuft" : rnd() < 0.6 ? "mushroom" : "bones", x: 40 + rnd() * (W - 80), y: 40 + rnd() * (H - 80), s: rnd() });
+  },
+
+  // The drowned mill: black water pools that slow everything, a mill with its
+  // wheel, pier posts, reeds and floating barrels.
+  mill({ W, H, rnd, box, circle, prop, zone, candle, free, nearStart, decor }) {
+    box("millhouse", W * 0.5, H * 0.24, 220, 150);
+    circle("wheel", W * 0.5 + 138, H * 0.24, 20);
+    const pools = [[W * 0.2, H * 0.3, 190], [W * 0.78, H * 0.35, 210], [W * 0.25, H * 0.78, 200], [W * 0.72, H * 0.8, 180], [W * 0.5, H * 0.5, 120]];
+    for (const [x, y, r] of pools) {
+      if (nearStart(x, y, r + 60)) continue;
+      zone("mud", x, y, r);
+      for (let k = 0; k < 4; k++) {
+        const a = rnd() * 6.28, d = r * (0.4 + rnd() * 0.5);
+        zone("mud", x + Math.cos(a) * d, y + Math.sin(a) * d, r * (0.45 + rnd() * 0.3));
+      }
+      for (let k = 0; k < 14; k++) { const a = rnd() * 6.28; decor.push({ kind: "reed", x: x + Math.cos(a) * r * 1.02, y: y + Math.sin(a) * r * 1.02, s: rnd() }); }
+    }
+    for (let i = 0; i < 22; i++) { const p = free(10); if (p) circle("pier", p.x, p.y, 7 + rnd() * 3); }
+    for (let i = 0; i < 14; i++) { const p = free(26); if (p) circle("rock", p.x, p.y, 16 + rnd() * 14, { seed: rnd() }); }
+    for (let i = 0; i < 9; i++) { const p = free(20); if (p) circle("stump", p.x, p.y, 14 + rnd() * 5, { seed: rnd() }); }
+    for (let i = 0; i < 10; i++) { const p = free(16); if (p) prop("barrel", p.x, p.y, { r: 12 }, 1.2); }
+    for (let i = 0; i < 6; i++) { const p = free(20); if (p) prop("crate", p.x, p.y, { w: 28, h: 28 }, 1.5, { rot: rnd() * 3 }); }
+    for (let i = 0; i < 14; i++) { const p = free(12); if (p) candle(p.x, p.y); }
+  },
+
+  // Ashwood: a burnt forest, trunks thick enough to hide behind, fallen logs
+  // and ash beds; some trees still burn.
+  ashwood({ W, H, rnd, box, circle, prop, candle, free, zone, decor }) {
+    for (let i = 0; i < 46; i++) { const p = free(24, 60); if (p) circle("ashtree", p.x, p.y, 15 + rnd() * 9, { seed: rnd(), burning: rnd() < 0.35 }); }
+    for (let i = 0; i < 12; i++) { const p = free(60); if (p) box("log", p.x, p.y, 110 + rnd() * 50, 22, rnd() * 3.14, { seed: rnd() }); }
+    for (let i = 0; i < 10; i++) { const p = free(26); if (p) circle("rock", p.x, p.y, 16 + rnd() * 12, { seed: rnd() }); }
+    for (let i = 0; i < 8; i++) { const p = free(40); if (p) zone("ash", p.x, p.y, 90 + rnd() * 80); }
+    for (let i = 0; i < 8; i++) { const p = free(16); if (p) prop("crate", p.x, p.y, { w: 28, h: 28 }, 1.4, { rot: rnd() * 3 }); }
+    for (let i = 0; i < 60; i++) decor.push({ kind: "ember", x: rnd() * W, y: rnd() * H, s: rnd() });
+    for (let i = 0; i < 14; i++) { const p = free(12); if (p) candle(p.x, p.y); }
+  },
+
+  // Frostfang pass: boulders, snowy pines, ice sheets you slide on, and loose
+  // snow boulders that roll when something big hits them.
+  pass({ W, H, rnd, box, circle, prop, zone, candle, free }) {
+    for (let i = 0; i < 18; i++) { const p = free(50, 60); if (p) circle("boulder", p.x, p.y, 28 + rnd() * 26, { seed: rnd() }); }
+    for (let i = 0; i < 30; i++) { const p = free(20, 50); if (p) circle("pine", p.x, p.y, 13 + rnd() * 5, { seed: rnd() }); }
+    for (let i = 0; i < 10; i++) { const p = free(18); if (p) box("crystal", p.x, p.y, 18, 18, rnd() * 3, { tall: 40 + rnd() * 40, seed: rnd() }); }
+    for (let i = 0; i < 7; i++) { const p = free(40); if (p) { zone("ice", p.x, p.y, 110 + rnd() * 90); } }
+    for (let i = 0; i < 7; i++) { const p = free(30); if (p) prop("snowball", p.x, p.y, { r: 24 }, 2.2); }
+    for (let i = 0; i < 14; i++) { const p = free(12); if (p) candle(p.x, p.y); }
+    void box;
+  },
+
+  // The moon cathedral: a nave of pillars, rows of heavy pews the crowd can
+  // shove about, an altar and statues.
+  cathedral({ W, H, rnd, box, circle, prop, candle, start }) {
+    start.x = W / 2; start.y = H * 0.62;
+    box("altar", W / 2, H * 0.16, 200, 70);
+    for (const sx of [-1, 1]) circle("statue", W / 2 + sx * 170, H * 0.16, 18);
+    for (let r = 0; r < 7; r++) for (const sx of [-1, 1]) {
+      circle("pillar", W / 2 + sx * 520, 300 + r * 280, 24);
+    }
+    for (let r = 0; r < 6; r++) for (const sx of [-1, 1]) {
+      const y = 440 + r * 290;
+      if (Math.abs(y - start.y) < 120) continue;
+      for (const k of [0, 1]) prop("pew", W / 2 + sx * (150 + k * 180), y, { w: 150, h: 22 }, 2.8);
+    }
+    for (const sx of [-1, 1]) for (let r = 0; r < 5; r++) circle("statue", W / 2 + sx * 900, 400 + r * 380, 18);
+    for (let i = 0; i < 16; i++) {
+      const x = W / 2 + (i % 2 ? 1 : -1) * (300 + rnd() * 500), y = 300 + rnd() * (H - 500);
+      if (Math.hypot(x - start.x, y - start.y) > 220) candle(x, y);
+    }
+  },
+};

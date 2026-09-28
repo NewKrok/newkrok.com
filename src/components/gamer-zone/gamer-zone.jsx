@@ -5,11 +5,17 @@ import List from "../../ui/list/list";
 
 const games = [
   {
+    label: "Last Lantern",
+    target: "last-lantern",
+    preview: "/games/last-lantern/media/preview.webp",
+    url: "/games/last-lantern/",
+    badge: "new",
+  },
+  {
     label: "Hitch & Park",
     target: "hitch-park",
     preview: "/games/hitch-park/media/preview.webp",
     url: "/games/hitch-park/",
-    badge: "new",
   },
   {
     label: "Project Throttle",

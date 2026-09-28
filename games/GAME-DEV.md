@@ -117,3 +117,50 @@ chromium.launch({ executablePath, args: ["--use-gl=angle", "--use-angle=swiftsha
 Open a level through the debug handle, switch to the overview camera, take
 a screenshot and look at it. This caught most layout mistakes before anyone
 played them. Stop the dev server and the browser when done.
+
+## Notes from Last Lantern
+
+`last-lantern` (a survivor roguelite grown out of nape-js' Swarm Night demo)
+uses the same split: `sim/` is render-free (`run.js` lifecycle, `core.js`
+spawning / damage / drops, `monsters.js` AI and bosses, `weapons.js`,
+`world.js` arenas), `render/` reads the run's arrays every frame.
+
+- The crowd is the contact solver: monsters only blend a desired velocity
+  into their body's own, so knockback, slams and shoved props survive into
+  the next frame. Every random number comes from the run's seeded `R.rng`.
+- `npm run bot -w games/last-lantern -- <stage> <hero> [seed]` plays a stage
+  headless (`GOD=1` for boss-fight timing, `HEARTH='{"might":3}'` for meta
+  upgrades). Weapons that pick targets must prefer the boss, or a kiting
+  player never hurts it.
+- Remove a body's joints before the body: nape throws "Constraints must have
+  each body within the same space" on the next step otherwise (the worm).
+- One NaN in an instance colour turns the whole frame black through the
+  bloom pass. Every zone with a `life` needs its `T`.
+- Monsters are `InstancedMesh` rigs per type, created lazily, with unlit
+  parts for eyes and fire so bloom picks them up; static props are merged
+  per material (`render/batch.js`); a small pool of point lights follows the
+  hero between the stage's light sources.
+- `scripts/shot.mjs`, `boss-shots.mjs`, `ui-shots.mjs` screenshot the dev
+  server through `window.__lastLantern` (see `scripts/browser.mjs` for the
+  Chromium paths).
+
+### Performance (Last Lantern)
+
+- Measure first: `scripts/profile.mjs` times the sim, rig sync and effects
+  in a crowded scene and reports draw calls and triangles; Chrome's
+  sampling heap profiler (CDP `HeapProfiler.startSampling` with
+  `includeObjectsCollected…`) finds per-frame allocation sites.
+- Instanced rigs: bake the parts that never move into one vertex-coloured
+  geometry per type (hit flash and frost become an `instanceColor` tint
+  over it); keep only swinging or held parts separate. Keep instanced
+  geometry lean (a 20-triangle dot for eyes) and leave crowds out of the
+  shadow pass - blob shadows are enough.
+- Cull instanced crowds against the camera's real ground footprint (cast
+  the four screen corners onto z = 0), not a guessed rectangle.
+- Split merged static batches into ~1000 px chunks so the camera and the
+  shadow camera can skip them.
+- Hot loops: no `new Vec2` per body per step (`velocity.setxy`,
+  `Vec2.weak` for impulses), no Object3D as a matrix scratchpad, and give
+  every entity all its fields at creation so objects share one shape.
+- Adaptive resolution (render scale down to 55 %, then no bloom) keeps
+  weak GPUs playable without asking the player to find a setting.
