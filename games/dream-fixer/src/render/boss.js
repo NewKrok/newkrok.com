@@ -31,7 +31,7 @@ export class BossView {
   onEvent(e, run) {
     const B = run.boss;
     if (e.type === "bossRise") {
-      for (let i = 0; i < 6; i++) this.fx.puff(e.x + (Math.random() - 0.5) * 3, run.kit.floorAt(e.x, e.z) + 0.5, e.z + (Math.random() - 0.5) * 3, 2.2);
+      for (let i = 0; i < 3; i++) this.fx.puff(e.x + (Math.random() - 0.5) * 3, run.kit.floorAt(e.x, e.z) + 0.5, e.z + (Math.random() - 0.5) * 3, 1.8);
       this.fx.ring([e.x, run.kit.floorAt(e.x, e.z) + 0.1, e.z], [0, 1, 0], C.dreamPink, 6, 0.8);
     } else if (e.type === "bossClog" || e.type === "bossBurp") {
       this.fx.puff(e.x, e.y, e.z, 1.2);

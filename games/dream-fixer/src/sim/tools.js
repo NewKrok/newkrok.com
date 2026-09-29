@@ -32,9 +32,9 @@ export const TOOLS = {
 };
 
 export class ToolState {
-  constructor(id) {
+  constructor(id, def = TOOLS[id]) {
     this.id = id;
-    this.def = TOOLS[id];
+    this.def = def;
     this.heat = 0;
     this.cd = 0;
     this.sinceShot = 9;

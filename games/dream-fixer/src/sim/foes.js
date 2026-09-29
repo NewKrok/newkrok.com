@@ -118,7 +118,7 @@ function fuzz(run, f, dt, px, pz) {
       } else intent.forward = dist > 1.2 ? 1 : 0;
       // Stuck against a ledge: hop.
       if (b.grounded && dist > 2 && b.speed2D < 0.8 && f.t > 0.3 && !waiting) { intent.jumpPressed = true; f.t = 0; }
-      if (dist < 1.8 && Math.abs(dy) < 1.2 && !waiting) { setState(f, "windup"); run.attackers++; }
+      if (dist < 1.8 && Math.abs(dy) < 1.2 && !waiting) { setState(f, "windup"); run.attackers++; run.events.push({ type: "windup", x: b.x, z: b.z }); }
       break;
     }
     case "windup":
@@ -135,6 +135,7 @@ function fuzz(run, f, dt, px, pz) {
       if (!f.hitDone && dist < d.r + run.body.r + 0.25 && Math.abs(dy) < 1.3) {
         f.hitDone = true;
         run.hurt(d.dmg, b.x, b.z);
+        run.events.push({ type: "bonk", x: b.x, z: b.z });
         b.vx *= -0.3; b.vz *= -0.3;
       }
       if (f.t > 0.35 && b.grounded) { setState(f, "recover"); f.cd = 1.8 + run.rnd() * 0.9; }

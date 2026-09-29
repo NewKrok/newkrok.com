@@ -9,6 +9,7 @@ import { ViewModel } from "./viewmodel.js";
 import { Fx } from "./fx.js";
 import { FoeView } from "./foes.js";
 import { BossView } from "./boss.js";
+import { Companion, MemoryView } from "./companion.js";
 import { AnchorView } from "./anchors.js";
 import { C } from "./palette.js";
 import { damp, lerp } from "../config.js";
@@ -18,7 +19,7 @@ import { damp, lerp } from "../config.js";
 // The camera rides the body's interpolated eye, smoothing step-ups and
 // dipping a little on hard landings.
 
-const LAMP_LIGHTS = 3;
+const LAMP_LIGHTS = 5;
 
 export class GameView {
   constructor(container, settings) {
@@ -34,6 +35,8 @@ export class GameView {
     this.fx = new Fx(this.scene);
     this.foes = new FoeView(this.scene, this.fx);
     this.bossView = new BossView(this.scene, this.fx);
+    this.companion = new Companion(this.scene);
+    this.talking = false;
     this.shake = 0;
 
     this.composer = new EffectComposer(this.renderer);
@@ -99,6 +102,9 @@ export class GameView {
     this.vm.setLights(def.sun.color, def.sun.dir, def.sun.sky, def.sun.ground);
     for (const m of buildLevelMeshes(kit)) g.add(m);
     this.anchors = new AnchorView(g, kit.anchors);
+    this.memories = new MemoryView(g, run.memories);
+    this.companion.placed = false;
+    this.lampCount = Math.min(LAMP_LIGHTS, def.lamps ?? 3);
     this.lampSpots = kit.lights;
     this.scene.add(g);
   }
@@ -135,6 +141,10 @@ export class GameView {
         if (e.type === "bossRise" || e.type === "bossPop") this.shake = Math.min(1, this.shake + 0.7);
         if (e.type === "bossGulp") this.shake = 1;
         if (e.type === "bossHit") { /* the flash is enough */ }
+      } else if (e.type === "memory") {
+        this.fx.burst([e.x, e.y, e.z], [0, 1, 0], C.dreamGold, 30, 4, 0.07);
+        this.fx.ring([e.x, e.y, e.z], [0, 1, 0], C.dreamGold, 1.6, 0.5);
+        this.fx.puff(e.x, e.y, e.z, 0.6);
       } else if (e.type === "catch") {
         this.fx.puff(e.x, e.y, e.z, 0.5);
         this.fx.burst([e.x, e.y, e.z], [0, 1, 0], C.dreamGold, 10, 3, 0.05);
@@ -215,7 +225,7 @@ export class GameView {
     if (this.lampSpots?.length) {
       const near = this.lampSpots.map((l) => [l, (l.x - x) ** 2 + (l.z - z) ** 2]).sort((a, c) => a[1] - c[1]);
       this.lamps.forEach((L, i) => {
-        const s = near[i]?.[0];
+        const s = i < this.lampCount ? near[i]?.[0] : null;
         if (!s) { L.intensity = 0; return; }
         L.position.set(s.x, s.y, s.z); L.color.set(s.color); L.distance = s.dist;
         L.intensity = s.intensity * (0.95 + Math.sin(t * 7 + i) * 0.05);
@@ -223,12 +233,14 @@ export class GameView {
     }
 
     this.anchors.update(run, dt, t, this.fx);
+    this.memories.update(dt, t, this.fx);
+    this.companion.update(run, dt, t, this.talking);
 
     const tool = run.activeTool;
     this.vm.update(dt, {
       look, speed: b.speed2D, grounded: b.grounded, t, tool: tool.id,
       heat: tool.heat, charge: tool.charge, overheated: tool.overheated,
-      shot: !!this.shotThisFrame, big: this.shotThisFrame || 0,
+      shot: !!this.shotThisFrame, big: this.shotThisFrame || 0, hidden: run.opts.noTools,
       sucking: tool.sucking, tank: tool.tank, launched: this.launched, blasted: this.blasted,
     });
     this.shotThisFrame = 0; this.launched = false; this.blasted = false;

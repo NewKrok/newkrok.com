@@ -1,5 +1,4 @@
 import { t } from "./i18n/index.js";
-import { MAX_HP } from "./sim/run.js";
 
 // ── HUD ──────────────────────────────────────────────────────────────────
 // Kept small: a crosshair whose ring shows the tool's heat (and fills
@@ -62,15 +61,19 @@ export class Hud {
   }
 
   show(on) { this.el.classList.toggle("hidden", !on); }
+  // In the Factory: no tools, no wakefulness, just the prompt and the dust.
+  hub(on) { this.el.classList.toggle("in-hub", on); }
+  destroy() { this.el.remove(); }
+  clear() { clearTimeout(this.bannerTimer); this.bannerEl.classList.remove("on"); this.hurt = 0; this.lagHp = 1; }
 
   onEvent(e) {
     if (e.type === "hurt") this.hurt = Math.min(1, this.hurt + 0.6);
     if (e.type === "faint") { this.hurt = 1; this.banner(t("fainted")); }
     if (e.type === "anchorFixed") this.banner(e.left ? t("anchorFixed") : t("allFixed"), true);
-    if (e.type === "coreOpen") setTimeout(() => this.banner(t("coreOpen")), 2600);
+    if (e.type === "coreOpen") this.bannerTimer = setTimeout(() => this.banner(t("coreOpen")), 2600);
     if (e.type === "bossPhase") this.banner(t("bossPhase"));
     if (e.type === "bossClog") this.banner(t("bossClog"), true);
-    if (e.type === "toolUnlocked" && e.tool === "vacuum") setTimeout(() => this.banner(t("toolVacuum"), true), 2600);
+    if (e.type === "toolUnlocked" && e.tool === "vacuum") this.bannerTimer = setTimeout(() => this.banner(t("toolVacuum"), true), 2600);
   }
 
   banner(text, good = false) {
@@ -81,7 +84,7 @@ export class Hud {
 
   update(run, dt = 1 / 60) {
     // Wakefulness bar with a trailing "lost" part.
-    const hp = run.hp / MAX_HP;
+    const hp = run.hp / run.maxHp;
     this.lagHp = hp > this.lagHp ? hp : Math.max(hp, this.lagHp - dt * 0.6);
     const hpr = Math.round(hp * 200) / 200, lag = Math.round(this.lagHp * 200) / 200;
     if (hpr !== this.last.hp || lag !== this.last.lag) {
@@ -98,10 +101,11 @@ export class Hud {
       this.last.dust = run.dust;
     }
     // Objective, prompt and the tuning bar.
-    const fixed = `${run.fixedCount}/${run.anchors.length}`;
+    const fixed = run.anchors.length ? `${run.fixedCount}/${run.anchors.length}` : "";
     if (fixed !== this.last.obj) { this.obj.textContent = fixed; this.last.obj = fixed; }
     const tank = run.activeTool.id === "vacuum" && run.activeTool.tank;
-    const pr = run.nearAnchor ? t("tunePrompt", { key: this.touch ? "🔧" : "[E]" }) : tank ? t("tankFull", { key: this.touch ? "⟲" : "[RMB]" }) : "";
+    const key = this.touch ? "🔧" : "[E]";
+    const pr = run.nearAnchor ? t("tunePrompt", { key }) : run.nearUse ? t("usePrompt", { key, label: t(run.nearUse.label) }) : tank ? t("tankFull", { key: this.touch ? "⟲" : "[RMB]" }) : "";
     if (pr !== this.last.prompt) { this.prompt.textContent = pr; this.prompt.classList.toggle("on", !!pr); this.last.prompt = pr; }
     const tu = run.tuning;
     this.tune.classList.toggle("on", !!tu);

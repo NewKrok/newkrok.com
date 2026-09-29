@@ -144,7 +144,7 @@ export class Fx {
       p.y += dt * 0.8;
       _p.set(p.x, p.y, p.z); _q.identity(); _s.setScalar(p.size * (1.6 - k * 0.8));
       F.setMatrixAt(i, _m.compose(_p, _q, _s));
-      F.setColorAt(i, _c.setRGB(0.3, 0.28, 0.3).multiplyScalar(k * k));
+      F.setColorAt(i, _c.setRGB(0.16, 0.15, 0.17).multiplyScalar(k * k));
       i++;
     }
     this.puffs = this.puffs.filter((p) => p.life > 0);

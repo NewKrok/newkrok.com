@@ -7,6 +7,7 @@ import { Anchor, stepAnchors, startTuning } from "./anchors.js";
 import { Boss } from "./boss.js";
 import { buildLevel } from "../levels/kit.js";
 import { rng } from "../rng.js";
+import { toolDef, maxHpFor, magnetFor } from "../data/upgrades.js";
 
 // ── One visit to a dream ─────────────────────────────────────────────────
 // Everything that happens in a level, with no rendering: the body, the
@@ -28,18 +29,20 @@ export class Run {
     this.kit = buildLevel(levelDef);
     this.world = this.kit.world;
     this.rnd = rng(o.seed ?? 1);
-    this.opts = { difficulty: "normal", aimAssist: 0, autoFire: false, ...o };
+    this.opts = { difficulty: "normal", aimAssist: 0, autoFire: false, upgrades: {}, tools: ["stabilizer"], noTools: false, ...o };
+    this.maxHp = maxHpFor(this.opts.upgrades);
+    this.magnet = magnetFor(this.opts.upgrades);
     this.body = new Body();
     const s = this.kit.spawn;
     this.checkpoint = { ...s };
     this.body.place(s.x, s.y, s.z, s.yaw);
-    this.tools = [new ToolState("stabilizer")];
+    this.tools = this.opts.tools.map((id) => new ToolState(id, toolDef(id, this.opts.upgrades)));
     this.tool = 0;
     this.switchT = 0;
     this.balls = [];              // what the vacuum shoots back out
     this.time = 0;
     this.events = [];
-    this.hp = MAX_HP; this.hurtT = 9; this.invuln = 0;
+    this.hp = this.maxHp; this.hurtT = 9; this.invuln = 0;
     this.faints = 0;
     this.foes = []; this.foeSeq = 0;
     this.spits = [];
@@ -47,6 +50,10 @@ export class Run {
     this.stats = { popped: 0, shots: 0, hits: 0 };
     this.anchors = this.kit.anchors.map((a) => new Anchor(a));
     this.nearAnchor = null;
+    this.uses = this.kit.uses;
+    this.nearUse = null;
+    this.memories = this.kit.memories.map((m) => ({ ...m, got: (o.memoriesFound ?? []).includes(m.id) }));
+    this.found = [];
     this.boss = null; this.coreT = -1; this.wonT = -1; this.won = false;
     for (const f of this.kit.foes) this.spawn(f.kind, f.x, f.z);
     this.events.length = 0;
@@ -71,7 +78,7 @@ export class Run {
 
   unlockTool(id) {
     if (this.tools.some((t) => t.id === id)) return;
-    this.tools.push(new ToolState(id));
+    this.tools.push(new ToolState(id, toolDef(id, this.opts.upgrades)));
     this.events.push({ type: "toolUnlocked", tool: id });
     this.switchTool(this.tools.length - 1);
   }
@@ -92,7 +99,7 @@ export class Run {
     return f;
   }
 
-  spit(s) { s.life = 4; s.id = ++this.foeSeq; this.spits.push(s); this.events.push({ type: "spit", id: s.id }); }
+  spit(s) { s.life = 4; s.id = ++this.foeSeq; this.spits.push(s); this.events.push({ type: "spit", id: s.id, x: s.x, z: s.z }); }
 
   dropDust(x, y, z, n) {
     for (let i = 0; i < n; i++) {
@@ -125,7 +132,7 @@ export class Run {
     this.faints++;
     const c = this.checkpoint, b = this.body;
     b.place(c.x, c.y, c.z, c.yaw);
-    this.hp = MAX_HP;
+    this.hp = this.maxHp;
     this.invuln = 1.5;
     this.spits.length = 0;
     // Glitches right at the checkpoint step back a little.
@@ -152,7 +159,7 @@ export class Run {
     // Wakefulness comes back on its own after a quiet moment.
     this.hurtT += dt;
     this.invuln = Math.max(0, this.invuln - dt);
-    if (this.hurtT > 2.5 && this.hp < MAX_HP) this.hp = Math.min(MAX_HP, this.hp + 28 * this.diff.regen * dt);
+    if (this.hurtT > 2.5 && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + 28 * this.diff.regen * dt);
 
     // Tool switching takes a moment (the view model swaps them).
     if (intent.toolTo !== undefined && intent.toolTo !== this.tool) this.switchTool(intent.toolTo);
@@ -161,7 +168,7 @@ export class Run {
     // Auto-fire (touch): shoot whenever the crosshair rests on a glitch.
     if (this.opts.autoFire && tool.id === "stabilizer" && !intent.fire && !intent.alt) intent = { ...intent, fire: !!this.target(0.035) || this.aimsAtBoss() };
     this._shots.length = 0;
-    const held = this.switchT > 0 ? NO_TOOL : intent;
+    const held = this.switchT > 0 || this.opts.noTools ? NO_TOOL : intent;
     for (const t of this.tools) if (t !== tool) t.step(NO_TOOL, dt, []);   // the other tools cool down
     for (const shot of tool.step(held, dt, this._shots)) {
       if (shot.suck) this.suck(tool, dt);
@@ -194,7 +201,31 @@ export class Run {
       this.wonT -= dt;
       if (this.wonT <= 0 && !this.won) { this.won = true; this.events.push({ type: "dreamFixed" }); }
     }
+    // Things to use: the nearest one in reach that you roughly face.
+    this.nearUse = null;
+    if (!this.nearAnchor) {
+      let best = 1e9;
+      const d = this.aimDir();
+      for (const u of this.uses) {
+        const dx = u.x - b.x, dz = u.z - b.z, dist = Math.hypot(dx, dz);
+        if (dist > u.r || Math.abs(u.y - b.y) > 2) continue;
+        const facing = (dx * d[0] + dz * d[2]) / Math.max(dist, 0.01);
+        if (facing < 0.3 && dist > 0.8) continue;
+        if (dist < best) { best = dist; this.nearUse = u; }
+      }
+    }
     if (intent.usePressed && this.nearAnchor) startTuning(this, this.nearAnchor);
+    else if (intent.usePressed && this.nearUse) this.events.push({ type: "interact", id: this.nearUse.id });
+    // Memories: walk into the bubble.
+    for (const m of this.memories) {
+      if (m.got) continue;
+      if (Math.hypot(m.x - b.x, m.z - b.z) < 1.1 && Math.abs(m.y + 1.2 - (b.y + 1)) < 1.4) {
+        m.got = true;
+        this.found.push(m.id);
+        this.dust += 5;
+        this.events.push({ type: "memory", id: m.id, x: m.x, y: m.y + 1.2, z: m.z });
+      }
+    }
     stepFoes(this, dt);
     this.stepSpits(dt);
     this.stepDust(dt);
@@ -405,7 +436,7 @@ export class Run {
     for (const m of this.dustMotes) {
       m.t += dt;
       const dx = cx - m.x, dy = cy - m.y, dz = cz - m.z, d = Math.hypot(dx, dy, dz);
-      if (m.t > 0.45 && d < 4.5) {
+      if (m.t > 0.45 && d < this.magnet) {
         // Drawn to you, faster the closer it gets.
         const k = (14 / Math.max(d, 0.3)) * dt;
         m.vx += dx * k; m.vy += dy * k; m.vz += dz * k;

@@ -44,3 +44,35 @@ export function anchor(b) {
     n.add(SHAPE.sphere(0.3, 0), { s: [0.72, 1.28, 0.72], c: 0xcffff6, mat: "glass" });
   });
 }
+
+// A memory: a floating soap bubble with a keepsake inside. Nodes:
+// "bubble" (wobbles), "item" (turns slowly).
+export function memoryBubble(b, { item = "hedgehog" } = {}) {
+  b.node("bubble", [0, 1.2, 0], [0, 0, 0], (n) => {
+    n.add(SHAPE.ball(0.42, 14, 10), { c: 0xe8f4ff, mat: "glass", smooth: true });
+    n.add(SHAPE.torus(0.43, 0.012, 4, 24), { r: [RX, 0, 0], c: C.dreamGold, mat: "glow", glow: 1.4 });
+  });
+  b.node("item", [0, 1.2, 0], [0, 0, 0], (n) => {
+    if (item === "hedgehog") {
+      n.add(SHAPE.ball(0.14, 10, 7), { s: [1.2, 0.9, 1], c: 0x9a6a4a });
+      for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; n.add(SHAPE.cone(0.03, 0.09, 4), { p: [Math.cos(a) * 0.1, 0.08 + Math.sin(i) * 0.02, Math.sin(a) * 0.1], r: [Math.sin(a) * 0.8, 0, -Math.cos(a) * 0.8], c: 0x6a4a3a }); }
+      n.add(SHAPE.ball(0.02, 6, 4), { p: [0, 0, -0.17], c: C.black });
+    } else if (item === "leash") {
+      n.add(SHAPE.torus(0.14, 0.02, 5, 16), { c: C.red });
+      n.add(SHAPE.torus(0.05, 0.015, 4, 10), { p: [0, -0.15, 0], r: [0, RX, 0], c: C.steel, mat: "metal" });
+    } else if (item === "photo") {
+      n.add(SHAPE.box(0.28, 0.22, 0.02, 0.005), { c: C.wood });
+      n.add(SHAPE.box(0.24, 0.18, 0.005), { p: [0, 0, -0.012], c: 0x8fc8f0, facet: 0 });
+      n.add(SHAPE.box(0.24, 0.07, 0.006), { p: [0, -0.055, -0.013], c: 0x6ab058, facet: 0 });
+      n.add(SHAPE.ball(0.025, 6, 4), { p: [-0.04, -0.02, -0.016], c: 0xc8743a });
+      n.add(SHAPE.ball(0.02, 6, 4), { p: [0.04, 0.0, -0.016], c: 0xf0c8a0 });
+    } else if (item === "slipper") {
+      n.add(SHAPE.ball(0.14, 10, 7), { s: [0.7, 0.35, 1.3], c: 0xff8fb8 });
+      n.add(SHAPE.ball(0.06, 8, 6), { p: [0, 0.05, -0.08], c: 0xffffff });
+    } else {
+      n.add(SHAPE.box(0.12, 0.08, 0.14, 0.02), { c: C.cream });
+      n.both((s) => n.add(SHAPE.box(0.02, 0.02, 0.08), { p: [s * 0.03, 0, -0.1], c: C.brass, mat: "metal" }));
+      n.add(SHAPE.torus(0.1, 0.015, 4, 12, Math.PI * 1.4), { p: [0, 0, 0.14], r: [RX, 0, 0], c: C.black });
+    }
+  });
+}

@@ -114,6 +114,13 @@ export const park = {
       spawns: [[12, -24], [21, -24.5], [20.5, -32], [12.5, -31.5]],
     });
 
+    // Morzsa's memories, tucked away.
+    k.memory("hedgehog", -16.5, -15.2);
+    k.memory("leash", 8.6, -13.2);
+    k.memory("photo", 20.3, -25.4);
+    k.memory("slipper", -19.5, 18.5);
+    k.memory("cord", 15.5, 17.5);
+
     // A few glitches already about.
     k.foe("fuzz", -1.5, 1); k.foe("fuzz", 1.8, -1.5);
     k.foe("buzzer", 9, -12);

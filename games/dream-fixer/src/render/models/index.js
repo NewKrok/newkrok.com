@@ -2,6 +2,8 @@ import { stabilizer, fuzzVacuum } from "./tools.js";
 import { csavar, kocPark, buzzerPark, knotPark } from "./characters.js";
 import { anchor } from "./dream.js";
 import { vacuumBoss } from "./boss.js";
+import { jobBoard, workbench, desk, lift, dreamTank, pipe, almos, crate, shelf, rug, hangLamp, dock } from "./factory.js";
+import { memoryBubble } from "./dream.js";
 import { tree, bush, rock, bench, lamp, bone, tennisBall, hydrant, doghouse, fence, flowers, grass } from "./park.js";
 
 // ── Model registry ───────────────────────────────────────────────────────
@@ -79,5 +81,18 @@ export const MODELS = {
   fence: { build: fence, frame: 5 },
   flowers: { build: flowers, frame: 2 },
   grass: { build: grass, frame: 1.4 },
+  memory: { build: memoryBubble, frame: 1.6, anim: (o, t) => { o.userData.nodes.item.rotation.y = t; } },
+  jobBoard: { build: jobBoard, frame: 3 },
+  workbench: { build: workbench, frame: 3.4 },
+  desk: { build: desk, frame: 2.8 },
+  lift: { build: lift, frame: 4.5 },
+  dreamTank: { build: dreamTank, frame: 4.5 },
+  pipe: { build: pipe, frame: 3 },
+  almos: { build: almos, frame: 16 },
+  crate: { build: crate, frame: 1.4 },
+  shelf: { build: shelf, frame: 2.8 },
+  rug: { build: rug, frame: 4 },
+  hangLamp: { build: hangLamp, frame: 2 },
+  dock: { build: dock, frame: 1.8 },
 };
 export { spin };

@@ -1,0 +1,175 @@
+import { t, LANGS, getLang, memoryText, outroText } from "../i18n/index.js";
+import { UPGRADES } from "../data/upgrades.js";
+
+// ── Menus and panels ─────────────────────────────────────────────────────
+// Plain DOM over the 3D view: the title screen, settings, how to play,
+// pause, the job board and the workbench (opened from the Factory), the
+// memory cards and the result of a dream. Each screen is built on demand;
+// only one is open at a time.
+
+const CLIENTS = [
+  { id: "park", level: "park", memories: 5 },
+  { id: "school" }, { id: "kitchen" }, { id: "garden" }, { id: "space" },
+];
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+export class Menus {
+  constructor(root, audio) {
+    this.root = root;
+    this.audio = audio;
+    this.el = document.createElement("div");
+    this.el.className = "menus";
+    root.appendChild(this.el);
+    this.cards = document.createElement("div");
+    this.cards.className = "memcards";
+    root.appendChild(this.cards);
+    this.fader = document.createElement("div");
+    this.fader.className = "fader";
+    root.appendChild(this.fader);
+    this.open = null;
+  }
+
+  close() { this.el.innerHTML = ""; this.open = null; }
+  get isOpen() { return !!this.open; }
+
+  // Build a screen: html with data-a="action" buttons; actions maps them.
+  show(name, html, actions, cls = "") {
+    this.open = name;
+    this.el.innerHTML = `<section class="screen ${cls}" data-screen="${name}">${html}</section>`;
+    for (const b of this.el.querySelectorAll("[data-a]")) {
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const a = b.dataset.a;
+        if (b.classList.contains("disabled")) { this.audio.play("locked"); return; }
+        this.audio.play(a === "back" || a === "close" ? "back" : "click");
+        actions[a]?.(b);
+      });
+    }
+    return this.el.firstElementChild;
+  }
+
+  title(progress, { onPlay, onSettings, onHowto }) {
+    const started = progress.done.length || progress.dust || progress.introSeen;
+    this.show("title", `
+      <div class="title-card">
+        <div class="logo">${esc(t("title"))}</div>
+        <div class="tagline">${esc(t("tagline"))}</div>
+        <div class="menu-buttons">
+          <button class="btn big" data-a="play">${esc(t(started ? "continue" : "play"))}</button>
+          <div class="row2"><button class="btn ghost" data-a="howto">${esc(t("howto"))}</button><button class="btn ghost" data-a="settings">${esc(t("settings"))}</button></div>
+        </div>
+      </div>
+      <footer class="credit"><div>${esc(t("madeBy"))}</div><div class="tech">three.js</div></footer>`,
+    { play: onPlay, settings: onSettings, howto: onHowto }, "title");
+  }
+
+  howto(onBack) {
+    this.show("howto", `<div class="panel wide prose"><h2>${esc(t("howto"))}</h2>${t("howto_text")}<div class="actions"><button class="btn" data-a="back">${esc(t("back"))}</button></div></div>`, { back: onBack }, "dim");
+  }
+
+  pause({ inDream, onResume, onSettings, onFactory, onMain }) {
+    this.show("pause", `<div class="panel narrow"><h2>${esc(t("paused"))}</h2><div class="menu-buttons">
+      <button class="btn big" data-a="resume">${esc(t("resume"))}</button>
+      <button class="btn ghost" data-a="settings">${esc(t("settings"))}</button>
+      ${inDream ? `<button class="btn ghost" data-a="factory">${esc(t("toFactory"))}</button>` : ""}
+      <button class="btn ghost" data-a="main">${esc(t("mainMenu"))}</button></div></div>`,
+    { resume: onResume, settings: onSettings, factory: onFactory, main: onMain }, "dim");
+  }
+
+  settings(S, { onChange, onBack, onReset }) {
+    const seg = (key, opts) => `<div class="seg" data-set="${key}">${opts.map(([v, l]) => `<button class="${S[key] === v ? "on" : ""}" data-v="${v}">${esc(l)}</button>`).join("")}</div>`;
+    const range = (key, min, max, step) => `<input type="range" min="${min}" max="${max}" step="${step}" value="${S[key]}" data-set="${key}">`;
+    const check = (key) => `<input type="checkbox" ${S[key] ? "checked" : ""} data-set="${key}">`;
+    const el = this.show("settings", `<div class="panel wide"><h2>${esc(t("settings"))}</h2><div class="settings">
+      <h3>${esc(t("set_lang"))}</h3>${seg("lang", LANGS)}
+      <h3>${esc(t("set_sound"))}</h3>
+      <label class="row"><span>${esc(t("set_master"))}</span>${range("master", 0, 1, 0.05)}</label>
+      <label class="row"><span>${esc(t("set_sfx"))}</span>${range("sfx", 0, 1, 0.05)}</label>
+      <label class="row"><span>${esc(t("set_music"))}</span>${range("music", 0, 1, 0.05)}</label>
+      <h3>${esc(t("set_controls"))}</h3>
+      <label class="row"><span>${esc(t("set_sens"))}</span>${range("sensitivity", 0.3, 2.5, 0.05)}</label>
+      <label class="row"><span>${esc(t("set_tsens"))}</span>${range("touchSensitivity", 0.3, 2.5, 0.05)}</label>
+      <label class="row"><span>${esc(t("set_invert"))}</span>${check("invertY")}</label>
+      <label class="row"><span>${esc(t("set_assist"))}</span>${check("aimAssist")}</label>
+      <label class="row"><span>${esc(t("set_auto"))}</span>${check("autoFire")}</label>
+      <h3>${esc(t("set_game"))}</h3>
+      <div class="row"><span>${esc(t("set_diff"))}</span>${seg("difficulty", [["easy", t("d_easy")], ["normal", t("d_normal")], ["hard", t("d_hard")]])}</div>
+      <div class="row"><span>${esc(t("set_quality"))}</span>${seg("quality", [["high", t("q_high")], ["low", t("q_low")]])}</div>
+      <label class="row"><span>${esc(t("set_shake"))}</span>${check("shake")}</label>
+      <h3>${esc(t("set_progress"))}</h3>
+      <div class="row"><span></span><button class="btn small danger" data-a="reset">${esc(t("set_reset"))}</button></div>
+      </div><div class="actions"><button class="btn" data-a="back">${esc(t("back"))}</button></div></div>`,
+    { back: onBack, reset: () => { if (confirm(t("set_resetAsk"))) onReset(); } }, "dim");
+    for (const s of el.querySelectorAll(".seg")) {
+      for (const b of s.querySelectorAll("button")) b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        for (const o of s.querySelectorAll("button")) o.classList.toggle("on", o === b);
+        this.audio.play("click");
+        onChange(s.dataset.set, b.dataset.v);
+      });
+    }
+    for (const i of el.querySelectorAll("input[data-set]")) i.addEventListener("input", () => onChange(i.dataset.set, i.type === "checkbox" ? i.checked : Number(i.value)));
+  }
+
+  board(progress, { onTake, onClose }) {
+    const cards = CLIENTS.map((c) => {
+      const [name, desc] = t(`c_${c.id}`);
+      if (!c.level) return `<div class="client locked"><div class="photo q">?</div><div class="info"><b>${esc(name)}</b><p>${esc(desc)}</p><span class="tag">${esc(t("board_next"))}</span></div></div>`;
+      const done = progress.done.includes(c.id), found = progress.memories.filter((m) => MEMORY_OWNER[m] === c.id).length;
+      const taken = progress.picked === c.level;
+      return `<div class="client ${done ? "done" : "new"}"><div class="photo paw"></div><div class="info"><b>${esc(name)}</b><p>${esc(desc)}</p>
+        <span class="tag">${esc(done ? t("board_fixed") : t("board_new"))}</span> <span class="tag soft">${esc(t("memories"))} ${found}/${c.memories}</span></div>
+        <button class="btn ${taken ? "ghost" : ""}" data-a="take" data-level="${c.level}">${esc(taken ? t("board_taken") : done ? t("board_again") : t("board_take"))}</button></div>`;
+    }).join("");
+    this.show("board", `<div class="panel wide board"><h2>${esc(t("board_title"))}</h2><div class="clients">${cards}</div><div class="actions"><button class="btn ghost" data-a="close">${esc(t("close"))}</button></div></div>`,
+      { take: (b) => onTake(b.dataset.level), close: onClose }, "dim");
+  }
+
+  bench(progress, { onBuy, onClose }) {
+    const rows = UPGRADES.map((u) => {
+      const [name, desc] = t(`u_${u.id}`);
+      const owned = !!progress.upgrades[u.id];
+      const toolLocked = u.tool === "vacuum" && !progress.done.includes("park") && !progress.vacuum;
+      const can = !owned && progress.dust >= u.cost && !toolLocked;
+      return `<div class="upg ${owned ? "owned" : ""}"><div class="ico ${u.tool ?? "wake"}"></div><div class="info"><b>${esc(name)}</b><p>${esc(desc)}</p></div>
+        ${owned ? `<span class="tag">${esc(t("bench_owned"))}</span>` : `<button class="btn small ${can ? "" : "disabled"}" data-a="buy" data-id="${u.id}">${esc(t("bench_buy"))} · ${u.cost} ✦</button>`}</div>`;
+    }).join("");
+    this.show("bench", `<div class="panel wide bench"><h2>${esc(t("bench_title"))}</h2><p class="intro">${esc(t("bench_intro"))}</p>
+      <div class="purse">✦ <b>${progress.dust}</b></div><div class="upgs">${rows}</div>
+      <div class="actions"><button class="btn ghost" data-a="close">${esc(t("close"))}</button></div></div>`,
+    { buy: (b) => onBuy(b.dataset.id), close: onClose }, "dim");
+  }
+
+  result(run, { onFactory, onAgain }) {
+    const s = run.stats, m = Math.floor(run.time / 60), sec = String(Math.floor(run.time % 60)).padStart(2, "0");
+    const mems = run.memories.filter((x) => x.got).length;
+    this.show("result", `<div class="panel narrow result-card"><h2>${esc(t("dreamFixed"))}</h2><p>${esc(t("dreamFixedSub"))}</p><p class="outro">${esc(outroText())}</p><table>
+      <tr><td>${esc(t("r_time"))}</td><td>${m}:${sec}</td></tr><tr><td>${esc(t("r_dust"))}</td><td>+${run.dust} ✦</td></tr>
+      <tr><td>${esc(t("memories"))}</td><td>${mems}/${run.memories.length}</td></tr>
+      <tr><td>${esc(t("r_popped"))}</td><td>${s.popped}</td></tr><tr><td>${esc(t("r_faints"))}</td><td>${run.faints}</td></tr></table>
+      <div class="menu-buttons"><button class="btn big" data-a="factory">${esc(t("toFactory"))}</button><button class="btn ghost" data-a="again">${esc(t("again"))}</button></div></div>`,
+    { factory: onFactory, again: onAgain }, "dim");
+  }
+
+  // A memory card slides in on the right for a few seconds.
+  memory(id) {
+    const [title, text] = memoryText(id);
+    const c = document.createElement("div");
+    c.className = "memcard";
+    c.innerHTML = `<div class="k">${esc(t("memoryFound"))}</div><b>${esc(title)}</b><p>${esc(text)}</p>`;
+    this.cards.appendChild(c);
+    setTimeout(() => c.classList.add("out"), 7000);
+    setTimeout(() => c.remove(), 7800);
+  }
+
+  // Fade to dark, run fn, fade back.
+  fade(fn, hold = 250) {
+    this.fader.classList.add("on");
+    setTimeout(() => { fn(); setTimeout(() => this.fader.classList.remove("on"), hold); }, 450);
+  }
+}
+
+// Which dream each memory belongs to (for the board's counters).
+export const MEMORY_OWNER = { hedgehog: "park", leash: "park", photo: "park", slipper: "park", cord: "park" };
+export { getLang };

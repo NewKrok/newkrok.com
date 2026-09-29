@@ -12,8 +12,11 @@ export class Kit {
     this.spawn = { x: 0, y: 0, z: 0, yaw: 0 };
     this.anchors = [];
     this.foes = [];
+    this.uses = [];
+    this.memories = [];
     this.marks = {};           // named points for the story and the spawner
     this.lights = [];
+    this.floorLimit = 50;      // indoors: below the ceiling
   }
 
   // A solid block: centre (x, z), from y0 to y1, size w × d, turned by yaw.
@@ -51,7 +54,7 @@ export class Kit {
   }
 
   // Floor height at (x, z) from above y (for dropping props onto terrain).
-  floorAt(x, z, y = 50) {
+  floorAt(x, z, y = this.floorLimit) {
     let best = -Infinity;
     for (const c of this.world.query(x, z, 0.01)) {
       if (!this.world.overlaps(c, x, z, 0.01)) continue;
@@ -68,6 +71,10 @@ export class Kit {
     this.anchors.push({ id, x, y, z, ...o });
     this.world.cyl({ x, z, r: 1.0, y0: y, y1: y + 0.8 });
   }
+  // Something to use with E: { r (reach), label (i18n key), y }.
+  use(id, x, z, o = {}) { this.uses.push({ id, x, z, y: o.y ?? this.floorAt(x, z), r: o.r ?? 2, label: o.label ?? id }); }
+  // A memory to find.
+  memory(id, x, z, y) { this.memories.push({ id, x, z, y: y ?? this.floorAt(x, z) }); }
   // A glitch already loose when you arrive.
   foe(kind, x, z) { this.foes.push({ kind, x, z }); }
   mark(name, x, z, y) { this.marks[name] = { x, y: y ?? this.floorAt(x, z), z }; }

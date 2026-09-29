@@ -82,7 +82,7 @@ function fix(run, a) {
   run.dropDust(a.x, a.y + 1.8, a.z, 16);
   run.checkpoint = { x: a.x, y: a.y, z: a.z + 2.2, yaw: run.body.yaw };
   run.checkpoint.y = run.kit.floorAt(run.checkpoint.x, run.checkpoint.z, a.y + 1);
-  run.hp = Math.max(run.hp, 100);
+  run.hp = Math.max(run.hp, run.maxHp);
   // The Factory sends the Fuzz Vacuum down after the first anchor.
   if (run.def.unlockAfterFirst && run.anchors.filter((o) => o.state === "fixed").length === 1) run.pendingUnlock = run.def.unlockAfterFirst;
   run.events.push({ type: "anchorFixed", anchor: a.id, x: a.x, y: a.y, z: a.z, left: run.anchors.filter((o) => o.state !== "fixed").length });
