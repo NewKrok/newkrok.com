@@ -38,11 +38,30 @@ async function startGame() {
   let run = new Run(park, runOpts());
   view.load(run);
 
+  // Result card when the dream is fixed.
+  const result = document.createElement("div");
+  result.className = "result hidden";
+  app.appendChild(result);
+  const showResult = () => {
+    const s = run.stats, m = Math.floor(run.time / 60), sec = String(Math.floor(run.time % 60)).padStart(2, "0");
+    result.innerHTML = `<div class="card"><h2>${t("dreamFixed")}</h2><p>${t("dreamFixedSub")}</p><table>
+      <tr><td>${t("r_time")}</td><td>${m}:${sec}</td></tr><tr><td>${t("r_dust")}</td><td>${run.dust}</td></tr>
+      <tr><td>${t("r_popped")}</td><td>${s.popped}</td></tr><tr><td>${t("r_faints")}</td><td>${run.faints}</td></tr></table>
+      <button class="btn" data-a="again">${t("again")}</button></div>`;
+    result.classList.remove("hidden");
+    result.querySelector("[data-a=again]").onclick = () => {
+      result.classList.add("hidden");
+      run = new Run(park, runOpts()); view.load(run);
+      if (input.isTouch) setState("play"); else input.lock();
+    };
+    setState("done");
+  };
+
   let state = "menu";
   const setState = (s) => {
     state = s;
     const playing = s === "play";
-    card.classList.toggle("hidden", playing);
+    card.classList.toggle("hidden", playing || s === "done");
     hud.show(playing);
     input.touch.show(playing);
     go.textContent = s === "pause" ? t("resume") : input.isTouch ? t("tapToPlay") : t("clickToPlay");
@@ -51,7 +70,7 @@ async function startGame() {
   input.enabled = true;
   input.onLockChange = (locked) => {
     if (locked && state !== "play") setState("play");
-    else if (!locked && state === "play" && !input.isTouch) setState("pause");
+    else if (!locked && state === "play" && !input.isTouch && !run.won) setState("pause");
   };
   input.onTouchStart = () => { Object.assign(run.opts, runOpts()); if (state !== "play") setState("play"); };
   card.addEventListener("click", () => { if (!input.isTouch) input.lock(); });
@@ -79,6 +98,13 @@ async function startGame() {
         const intent = input.intent();
         intent.jumpPressed = first && edges.has("jump");
         intent.usePressed = first && edges.has("use");
+        if (first) {
+          if (edges.has("tool1")) intent.toolTo = 0;
+          else if (edges.has("tool2")) intent.toolTo = 1;
+          else if (edges.has("toolNext")) intent.toolTo = run.tool + 1;
+          else if (edges.has("toolPrev")) intent.toolTo = run.tool - 1;
+          if (intent.toolTo !== undefined && (intent.toolTo < 0 || intent.toolTo >= run.tools.length)) intent.toolTo = ((intent.toolTo % run.tools.length) + run.tools.length) % run.tools.length;
+        }
         run.step(intent, DT);
         first = false;
         acc -= DT;
@@ -86,7 +112,7 @@ async function startGame() {
       // A jump pressed between steps must not be lost.
       if (first && edges.has("jump")) input.edges.add("jump");
       if (first && edges.has("use")) input.edges.add("use");
-      for (const e of run.events) hud.onEvent(e);
+      for (const e of run.events) { hud.onEvent(e); if (e.type === "dreamFixed") { input.unlock(); setTimeout(showResult, 50); } }
       view.consume(run.events);
       run.events.length = 0;
       hud.update(run, dt);
@@ -105,6 +131,8 @@ async function startGame() {
       place(x, z, yaw = 0, pitch = 0) { const b = run.body; b.place(x, run.kit.floorAt(x, z), z, yaw); b.pitch = pitch; },
       restart() { run = new Run(park, runOpts()); view.load(run); },
       spawn(kind, x, z) { return run.spawn(kind, x, z); },
+      // Jump to the boss fight: all anchors fixed, both tools.
+      toBoss() { for (const a of run.anchors) { a.state = "fixed"; a.progress = 1; } run.unlockTool("vacuum"); run.foes.forEach((f) => { f.alive = false; }); },
     };
   }
 }

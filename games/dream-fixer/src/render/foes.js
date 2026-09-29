@@ -30,7 +30,11 @@ export class FoeView {
     this.motes = new T.InstancedMesh(new T.OctahedronGeometry(0.09, 0), new T.MeshBasicMaterial({ toneMapped: false }), 256);
     this.motes.instanceColor = new T.InstancedBufferAttribute(new Float32Array(256 * 3), 3);
     this.motes.frustumCulled = false; this.motes.count = 0;
-    scene.add(this.orbs, this.motes);
+    // What the vacuum shoots: a caught glitch rolled into a tight ball.
+    this.yarn = new T.InstancedMesh(new T.IcosahedronGeometry(0.28, 1), new T.MeshStandardMaterial({ roughness: 0.9, flatShading: true }), 16);
+    this.yarn.instanceColor = new T.InstancedBufferAttribute(new Float32Array(16 * 3), 3);
+    this.yarn.frustumCulled = false; this.yarn.count = 0; this.yarn.castShadow = true;
+    scene.add(this.orbs, this.motes, this.yarn);
     this._m = new T.Matrix4(); this._q = new T.Quaternion(); this._p = new T.Vector3(); this._s = new T.Vector3(); this._c = new T.Color(); this._e = new T.Euler();
   }
 
@@ -107,6 +111,18 @@ export class FoeView {
     }
     this.orbs.count = i;
     this.orbs.instanceMatrix.needsUpdate = true; this.orbs.instanceColor.needsUpdate = true;
+    i = 0;
+    for (const g of run.balls) {
+      _p.set(g.x, g.y, g.z);
+      _q.setFromEuler(this._e.set(t * 12 + g.id, t * 7, 0));
+      _s.setScalar(1);
+      this.yarn.setMatrixAt(i, _m.compose(_p, _q, _s));
+      this.yarn.setColorAt(i, _c.set(g.kind === "buzzer" ? 0xf2c14e : 0xd88a48));
+      if (Math.random() < 0.6) this.fx.spark(g.x, g.y, g.z, 0, 0.3, 0, 0.3, 0.04, C.dreamGold, 0);
+      i++;
+    }
+    this.yarn.count = i;
+    this.yarn.instanceMatrix.needsUpdate = true; this.yarn.instanceColor.needsUpdate = true;
     // Dream dust: gold flecks spinning.
     i = 0;
     for (const m of run.dustMotes) {

@@ -1,6 +1,7 @@
-import { stabilizer } from "./tools.js";
+import { stabilizer, fuzzVacuum } from "./tools.js";
 import { csavar, kocPark, buzzerPark, knotPark } from "./characters.js";
 import { anchor } from "./dream.js";
+import { vacuumBoss } from "./boss.js";
 import { tree, bush, rock, bench, lamp, bone, tennisBall, hydrant, doghouse, fence, flowers, grass } from "./park.js";
 
 // ── Model registry ───────────────────────────────────────────────────────
@@ -11,6 +12,7 @@ const spin = (node, axis, speed) => (o, t) => { const n = o.userData.nodes[node]
 
 export const MODELS = {
   stabilizer: { build: stabilizer, frame: 0.55 },
+  vacuum: { build: fuzzVacuum, frame: 0.55, anim: (o, t) => { o.userData.nodes.fan.rotation.z = t * 20; } },
   csavar: {
     build: csavar, frame: 1.1,
     anim: (o, t) => {
@@ -44,6 +46,16 @@ export const MODELS = {
   knot: {
     build: knotPark, frame: 3,
     anim: (o, t) => { const s = 1 + Math.sin(t * 3) * 0.08; o.userData.nodes.core.scale.setScalar(s); },
+  },
+  boss: {
+    build: vacuumBoss, frame: 7,
+    anim: (o, t) => {
+      const N = o.userData.nodes;
+      N.hose1.rotation.set(-0.5 + Math.sin(t) * 0.2, Math.sin(t * 0.7) * 0.3, 0);
+      N.hose2.rotation.set(0.9 + Math.sin(t * 1.3) * 0.2, 0, 0);
+      N.nozzle.rotation.set(-0.3, 0, 0);
+      N.bag.scale.setScalar(1 + Math.sin(t * 3) * 0.04);
+    },
   },
   anchor: {
     build: anchor, frame: 4.2,

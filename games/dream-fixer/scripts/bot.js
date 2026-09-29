@@ -29,7 +29,9 @@ function aimAndFire(intent) {
   // Takes a moment to notice a new target.
   reactT -= DT;
   if (want !== tgtRef && (reactT <= 0 || !tgtRef?.alive)) { tgtRef = want; reactT = SKILL.react; }
-  const tgt = reactT > 0 && SKILL.react ? null : tgtRef;
+  let tgt = reactT > 0 && SKILL.react ? null : tgtRef;
+  const S = run.boss;
+  if ((!tgt || tgt.alive === false) && S?.alive && !S.invulnerable) tgt = { px: S.x, cy: S.y + 1.4, pz: S.z };
   if (!tgt || tgt.alive === false) return;
   const dx = tgt.px - B.x, dy = tgt.cy - B.eyeY, dz = tgt.pz - B.z;
   // Human-ish: turn towards it at a limited rate, fire when roughly on it.
@@ -44,7 +46,7 @@ function aimAndFire(intent) {
 }
 
 function step(intent) {
-  run.step({ forward: 0, strafe: 0, jump: false, jumpPressed: false, usePressed: false, ...intent }, DT);
+  run.step({ forward: 0, strafe: 0, jump: false, jumpPressed: false, usePressed: false, toolTo: 0, ...intent }, DT);
   minHp = Math.min(minHp, run.hp);
   run.events.length = 0;
 }
@@ -57,7 +59,8 @@ function walk(route) {
       if (Math.hypot(dx, dz) < 0.45 && B.grounded) break;
       B.yaw = Math.atan2(-dx, -dz); B.pitch = 0;
       const tr = Math.hypot(B.x - sx, B.z - sz);
-      const j = jump && !jumped && tr >= 1.6 && B.grounded;
+      // Jump at the take-off point, or whenever it walks into a ledge.
+      const j = B.grounded && ((jump && !jumped && tr >= 1.6) || (i > 10 && B.speed2D < 1));
       if (j) jumped = true;
       step({ forward: 1, jump: jumped && B.vy > 0, jumpPressed: j });
     }
@@ -89,4 +92,21 @@ for (const a of run.anchors) {
   // Mop up what is left of the ambient glitches nearby.
   console.log(`${a.id.padEnd(8)} walk ${tWalk.toFixed(1)}s  tune ${(i / 60).toFixed(1)}s  ${a.state}  hp ${Math.round(run.hp)}  faints ${run.faints}`);
 }
+// The boss.
+const tb = run.time;
+for (let i = 0; i < 60 * 240 && !run.won; i++) {
+  const S = run.boss, intent = {};
+  aimAndFire(intent);
+  if (S) {
+    const dx = B.x - S.x, dz = B.z - S.z, d = Math.hypot(dx, dz) || 1;
+    // Back off while it sucks, circle otherwise; hop over the cord.
+    const sn = Math.sin(B.yaw), cs = Math.cos(B.yaw);
+    const away = S.state === "suck" ? 1 : d < 6 ? 0.6 : d > 11 ? -0.6 : 0;
+    const wx = dx / d * away + (-dz / d) * 0.7, wz = dz / d * away + (dx / d) * 0.7;
+    intent.forward = -sn * wx - cs * wz; intent.strafe = cs * wx - sn * wz;
+    if (S.ring && Math.abs(d - S.ring.r) < 1.6 && B.grounded) { intent.jumpPressed = true; intent.jump = true; }
+  }
+  step(intent);
+}
+console.log(`boss     ${run.won ? "down" : "NOT down"} after ${(run.time - tb).toFixed(1)}s  faints ${run.faints}`);
 console.log(`total ${(run.time - t0).toFixed(1)}s  popped ${run.stats.popped}  hits ${run.stats.hits}/${run.stats.shots}  dust ${run.dust}  min hp ${Math.round(minHp)}  hurt ${Math.round(hurtTotal)}  faints ${run.faints}  alive ${run.foes.filter((f) => f.alive).length}`);

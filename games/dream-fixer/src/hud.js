@@ -26,6 +26,7 @@ export class Hud {
       <div class="prompt"></div>
       <div class="tune"><div class="lbl"></div><div class="bar"><i></i></div><div class="warn"></div></div>
       <div class="banner"></div>
+      <div class="bossbar"><div class="lbl"></div><div class="bar"><i class="lag"></i><i class="fill"></i></div></div>
       <div class="dust"><svg viewBox="0 0 24 24"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></svg><b>0</b></div>`;
     root.appendChild(el);
     this.heat = el.querySelector(".heat");
@@ -53,6 +54,11 @@ export class Hud {
     this.bannerEl = el.querySelector(".banner");
     this.bannerT = 0;
     this.touch = false;
+    this.bossEl = el.querySelector(".bossbar");
+    this.bossFill = el.querySelector(".bossbar .fill");
+    this.bossLag = el.querySelector(".bossbar .lag");
+    el.querySelector(".bossbar .lbl").textContent = t("bossName");
+    this.bossLagHp = 1;
   }
 
   show(on) { this.el.classList.toggle("hidden", !on); }
@@ -61,6 +67,10 @@ export class Hud {
     if (e.type === "hurt") this.hurt = Math.min(1, this.hurt + 0.6);
     if (e.type === "faint") { this.hurt = 1; this.banner(t("fainted")); }
     if (e.type === "anchorFixed") this.banner(e.left ? t("anchorFixed") : t("allFixed"), true);
+    if (e.type === "coreOpen") setTimeout(() => this.banner(t("coreOpen")), 2600);
+    if (e.type === "bossPhase") this.banner(t("bossPhase"));
+    if (e.type === "bossClog") this.banner(t("bossClog"), true);
+    if (e.type === "toolUnlocked" && e.tool === "vacuum") setTimeout(() => this.banner(t("toolVacuum"), true), 2600);
   }
 
   banner(text, good = false) {
@@ -90,13 +100,24 @@ export class Hud {
     // Objective, prompt and the tuning bar.
     const fixed = `${run.fixedCount}/${run.anchors.length}`;
     if (fixed !== this.last.obj) { this.obj.textContent = fixed; this.last.obj = fixed; }
-    const pr = run.nearAnchor ? t("tunePrompt", { key: this.touch ? "🔧" : "[E]" }) : "";
+    const tank = run.activeTool.id === "vacuum" && run.activeTool.tank;
+    const pr = run.nearAnchor ? t("tunePrompt", { key: this.touch ? "🔧" : "[E]" }) : tank ? t("tankFull", { key: this.touch ? "⟲" : "[RMB]" }) : "";
     if (pr !== this.last.prompt) { this.prompt.textContent = pr; this.prompt.classList.toggle("on", !!pr); this.last.prompt = pr; }
     const tu = run.tuning;
     this.tune.classList.toggle("on", !!tu);
     if (tu) {
       this.tuneFill.style.transform = `scaleX(${tu.progress.toFixed(3)})`;
       this.tune.classList.toggle("out", !tu.inside);
+    }
+    // Boss bar.
+    const B = run.boss;
+    this.bossEl.classList.toggle("on", !!B && B.alive && B.state !== "rise" || !!B && B.state === "rise" && B.t > 1);
+    if (B) {
+      const f = B.hp / B.maxHp;
+      this.bossLagHp = f > this.bossLagHp ? f : Math.max(f, this.bossLagHp - dt * 0.3);
+      this.bossFill.style.transform = `scaleX(${f.toFixed(3)})`;
+      this.bossLag.style.transform = `scaleX(${this.bossLagHp.toFixed(3)})`;
+      this.bossEl.classList.toggle("clog", B.state === "clogged");
     }
     const tool = run.activeTool;
     const h = Math.round(tool.heat * 100) / 100, c = Math.round(tool.charge * 100) / 100;

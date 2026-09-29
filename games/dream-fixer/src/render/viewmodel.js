@@ -1,6 +1,6 @@
 import * as T from "three";
 import { make, MAT } from "./modelkit.js";
-import { stabilizer, STABILIZER_MUZZLE } from "./models/tools.js";
+import { stabilizer, STABILIZER_MUZZLE, fuzzVacuum, VACUUM_MUZZLE } from "./models/tools.js";
 import { damp } from "../config.js";
 
 // ── The tool in your hand ────────────────────────────────────────────────
@@ -10,7 +10,11 @@ import { damp } from "../config.js";
 // shifts from mint to orange to red as the tool heats up.
 
 const REST = new T.Vector3(0.21, -0.19, -0.5);
-const COOL = new T.Color(0x7ff5e0), WARM = new T.Color(0xffb04a), HOT = new T.Color(0xff4a3a);
+const WARM = new T.Color(0xffb04a), HOT = new T.Color(0xff4a3a);
+const TOOLS = {
+  stabilizer: { build: stabilizer, muzzle: STABILIZER_MUZZLE, cool: new T.Color(0x7ff5e0) },
+  vacuum: { build: fuzzVacuum, muzzle: VACUUM_MUZZLE, cool: new T.Color(0xffd27a), at: [0.015, -0.035, -0.08] },
+};
 
 export class ViewModel {
   constructor(env) {
@@ -25,15 +29,24 @@ export class ViewModel {
 
     this.pivot = new T.Group();
     this.camera.add(this.pivot);
-    this.tool = make(stabilizer, {}, { shadows: false });
-    this.tool.rotation.set(0.07, 0.035, 0.03);
-    this.pivot.add(this.tool);
-    // The core glows with its own material so its colour can follow the heat.
-    this.glowMat = MAT.glow.clone();
-    this.tool.traverse((o) => { if (o.isMesh && o.material === MAT.glow) o.material = this.glowMat; });
-    this.muzzle = new T.Object3D();
-    this.muzzle.position.set(...STABILIZER_MUZZLE);
-    this.tool.add(this.muzzle);
+    this.tools = {};
+    for (const [id, def] of Object.entries(TOOLS)) {
+      const o = make(def.build, {}, { shadows: false });
+      o.rotation.set(0.07, 0.035, 0.03);
+      if (def.at) o.position.set(...def.at);
+      o.visible = false;
+      this.pivot.add(o);
+      // The glowing parts get their own material so their colour can follow the heat.
+      const glowMat = MAT.glow.clone();
+      o.traverse((m) => { if (m.isMesh && m.material === MAT.glow) m.material = glowMat; });
+      const muzzle = new T.Object3D();
+      muzzle.position.set(...def.muzzle);
+      o.add(muzzle);
+      this.tools[id] = { o, glowMat, muzzle, cool: def.cool };
+    }
+    this.current = "stabilizer";
+    this.tools.stabilizer.o.visible = true;
+    this.suckT = 0; this.tankFill = 0; this.flapKick = 0;
 
     this.sway = new T.Vector2();
     this.bobT = 0; this.bobAmt = 0;
@@ -67,10 +80,21 @@ export class ViewModel {
     this.kick = damp(this.kick, 0, 14, dt);
     this.flash = damp(this.flash, 0, 18, dt);
     this.charge = damp(this.charge, s.charge, 20, dt);
-    this.drop = damp(this.drop, s.hidden ? 1 : 0, 10, dt);
+    // Switching: lower the tool, swap it out of sight, raise the new one.
+    const swapping = s.tool && s.tool !== this.current;
+    this.drop = damp(this.drop, s.hidden || swapping ? 1 : 0, swapping ? 16 : 10, dt);
+    if (swapping && this.drop > 0.85) {
+      this.tools[this.current].o.visible = false;
+      this.current = s.tool;
+      this.tools[this.current].o.visible = true;
+    }
+    this.suckT = s.sucking ? this.suckT + dt : 0;
+    if (s.launched) { this.kick = 1.4; this.flapKick = 1; this.flash = 1; }
+    if (s.blasted) { this.kick = 0.9; this.flash = 1; }
+    this.flapKick = damp(this.flapKick, 0, 8, dt);
 
     const bx = Math.sin(this.bobT) * 0.012 * this.bobAmt, by = -Math.abs(Math.cos(this.bobT)) * 0.012 * this.bobAmt;
-    const shake = this.charge > 0.05 ? (Math.sin(s.t * 90) * 0.0016 * this.charge) : 0;
+    const shake = (this.charge > 0.05 ? Math.sin(s.t * 90) * 0.0016 * this.charge : 0) + (s.sucking ? Math.sin(s.t * 70) * 0.0012 : 0);
     this.pivot.position.set(
       REST.x + bx - this.sway.x * 0.35 + shake,
       REST.y + by - this.sway.y * 0.3 - this.airT * 0.02 - this.drop * 0.35 + (s.overheated ? -0.03 : 0),
@@ -81,21 +105,29 @@ export class ViewModel {
       this.sway.x * 0.8,
       -this.sway.x * 0.5 + bx * 2,
     );
-    // Gauge needle and valve follow the heat.
-    const N = this.tool.userData.nodes;
+    const tool = this.tools[this.current];
+    const N = tool.o.userData.nodes;
+    // Stabilizer: gauge needle and valve follow the heat.
     if (N.needle) N.needle.rotation.y = -(-1.2 + s.heat * 2.4) + (s.overheated ? Math.sin(s.t * 40) * 0.08 : 0);
     if (N.valve) N.valve.rotation.z += dt * (1 + this.charge * 20);
-    // Core colour: mint → orange → red, brighter on each shot and while charging.
-    const c = this.glowMat.color;
-    if (s.heat < 0.6) c.copy(COOL).lerp(WARM, s.heat / 0.6); else c.copy(WARM).lerp(HOT, (s.heat - 0.6) / 0.4);
+    // Vacuum: the fan spins up, the tank shows what it holds, the flap clacks.
+    if (N.fan) N.fan.rotation.z += dt * (s.sucking ? 40 : 2);
+    if (N.tank) {
+      this.tankFill = damp(this.tankFill, s.tank ? 1 : 0.15, 10, dt);
+      N.tank.scale.setScalar(0.4 + this.tankFill * 0.8 + (s.tank ? Math.sin(s.t * 9) * 0.08 : 0));
+    }
+    if (N.flap) N.flap.rotation.x = -this.flapKick * 1.1;
+    // Glow colour: cool → orange → red with the heat, brighter on each shot.
+    const c = tool.glowMat.color;
+    if (s.heat < 0.6) c.copy(tool.cool).lerp(WARM, s.heat / 0.6); else c.copy(WARM).lerp(HOT, (s.heat - 0.6) / 0.4);
     const pulse = s.overheated ? 0.55 + Math.sin(s.t * 18) * 0.25 : 1;
-    c.multiplyScalar((1 + this.flash * 1.2 + this.charge * 1.5) * pulse);
+    c.multiplyScalar((1 + this.flash * 1.2 + this.charge * 1.5 + (s.sucking ? 0.5 + Math.sin(s.t * 25) * 0.2 : 0)) * pulse);
   }
 
   // Where the muzzle is on screen, as normalised device coordinates.
   muzzleNDC(out = new T.Vector3()) {
     this.camera.updateMatrixWorld(true);
-    this.muzzle.getWorldPosition(out);
+    this.tools[this.current].muzzle.getWorldPosition(out);
     return out.project(this.camera);
   }
 }

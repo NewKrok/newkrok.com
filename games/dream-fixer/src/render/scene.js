@@ -8,6 +8,7 @@ import { buildLevelMeshes } from "./levelview.js";
 import { ViewModel } from "./viewmodel.js";
 import { Fx } from "./fx.js";
 import { FoeView } from "./foes.js";
+import { BossView } from "./boss.js";
 import { AnchorView } from "./anchors.js";
 import { C } from "./palette.js";
 import { damp, lerp } from "../config.js";
@@ -32,6 +33,7 @@ export class GameView {
     this.vm = new ViewModel(this.env);
     this.fx = new Fx(this.scene);
     this.foes = new FoeView(this.scene, this.fx);
+    this.bossView = new BossView(this.scene, this.fx);
     this.shake = 0;
 
     this.composer = new EffectComposer(this.renderer);
@@ -86,6 +88,7 @@ export class GameView {
       this.level.traverse((o) => { if (o.isMesh && !o.userData.keep) o.geometry.dispose(); });
       this.scene.remove(this.sun.hemi, this.sun.light, this.sun.light.target);
       this.foes.clear();
+      this.bossView.clear();
     }
     const def = run.def, kit = run.kit;
     const g = this.level = new T.Group();
@@ -104,7 +107,7 @@ export class GameView {
   // moved, so bolts leave the muzzle where it is now.
   consume(events) { for (const e of events) this.pending.push(e); }
 
-  applyEvents() {
+  applyEvents(run) {
     const events = this.pending;
     for (const e of events) {
       if (e.type === "shot") {
@@ -127,6 +130,28 @@ export class GameView {
         this.shake = Math.min(1, this.shake + 0.5);
       } else if (e.type === "dust") {
         this.fx.spark(e.x, e.y, e.z, 0, 1.5, 0, 0.3, 0.12, C.dreamGold, 0);
+      } else if (e.type.startsWith("boss")) {
+        this.bossView.onEvent(e, run);
+        if (e.type === "bossRise" || e.type === "bossPop") this.shake = Math.min(1, this.shake + 0.7);
+        if (e.type === "bossGulp") this.shake = 1;
+        if (e.type === "bossHit") { /* the flash is enough */ }
+      } else if (e.type === "catch") {
+        this.fx.puff(e.x, e.y, e.z, 0.5);
+        this.fx.burst([e.x, e.y, e.z], [0, 1, 0], C.dreamGold, 10, 3, 0.05);
+      } else if (e.type === "launch") {
+        this.launched = true;
+      } else if (e.type === "blast") {
+        this.blasted = true;
+        const m = this.muzzleWorld(), d = run.aimDir();
+        for (let i = 0; i < 24; i++) {
+          const k = 6 + Math.random() * 6, j = () => (Math.random() - 0.5) * 3;
+          this.fx.spark(m[0], m[1], m[2], d[0] * k + j(), d[1] * k + j(), d[2] * k + j(), 0.35, 0.05, 0xffffff, 0);
+        }
+      } else if (e.type === "ballPop") {
+        this.fx.puff(e.x, e.y, e.z, 1.1);
+        this.fx.ring([e.x, e.y, e.z], [0, 1, 0], C.dreamGold, 2.4, 0.35);
+        this.foes.onEvent({ type: "pop", kind: e.kind, x: e.x, y: e.y, z: e.z, big: false });
+        this.shake = Math.min(1, this.shake + 0.2);
       } else if (e.type === "land") {
         this.eyeOff -= Math.min(0.22, (e.speed - 4) * 0.025);
       } else if (e.type === "respawn") {
@@ -134,6 +159,25 @@ export class GameView {
       }
     }
     events.length = 0;
+  }
+
+  suckStream(run, dt) {
+    const m = this.muzzleWorld(), d = run.aimDir();
+    this.suckAcc = (this.suckAcc || 0) + dt * 60;
+    while (this.suckAcc > 1) {
+      this.suckAcc -= 1;
+      // Start somewhere in the cone, fly back to the nozzle.
+      const L = 2 + Math.random() * 5, a = Math.random() * Math.PI * 2, r = Math.random() * L * 0.35;
+      const up = Math.abs(d[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
+      const sx = d[1] * up[2] - d[2] * up[1], sy = d[2] * up[0] - d[0] * up[2], sz = d[0] * up[1] - d[1] * up[0];
+      const sl = Math.hypot(sx, sy, sz) || 1;
+      const ux = sy * d[2] - sz * d[1], uy = sz * d[0] - sx * d[2], uz = sx * d[1] - sy * d[0];
+      const px = m[0] + d[0] * L + (sx / sl * Math.cos(a) + ux / sl * Math.sin(a)) * r;
+      const py = m[1] + d[1] * L + (sy / sl * Math.cos(a) + uy / sl * Math.sin(a)) * r;
+      const pz = m[2] + d[2] * L + (sz / sl * Math.cos(a) + uz / sl * Math.sin(a)) * r;
+      const life = 0.3;
+      this.fx.spark(px, py, pz, (m[0] - px) / life, (m[1] - py) / life, (m[2] - pz) / life, life, 0.025, Math.random() < 0.3 ? C.dreamGold : 0xffffff, 0);
+    }
   }
 
   // The muzzle of the tool in hand, placed in the world just in front of the eye.
@@ -165,7 +209,7 @@ export class GameView {
     this.camera.updateMatrixWorld();
 
     this.sun.follow(x, y, z);
-    this.applyEvents();
+    this.applyEvents(run);
 
     // The nearest lamps light up the place around you.
     if (this.lampSpots?.length) {
@@ -182,17 +226,21 @@ export class GameView {
 
     const tool = run.activeTool;
     this.vm.update(dt, {
-      look, speed: b.speed2D, grounded: b.grounded, t,
+      look, speed: b.speed2D, grounded: b.grounded, t, tool: tool.id,
       heat: tool.heat, charge: tool.charge, overheated: tool.overheated,
       shot: !!this.shotThisFrame, big: this.shotThisFrame || 0,
+      sucking: tool.sucking, tank: tool.tank, launched: this.launched, blasted: this.blasted,
     });
-    this.shotThisFrame = 0;
+    this.shotThisFrame = 0; this.launched = false; this.blasted = false;
+    // The vacuum's stream: flecks rushing into the nozzle.
+    if (tool.sucking) this.suckStream(run, dt);
     this.muzzleFlash = damp(this.muzzleFlash || 0, 0, 20, dt);
     const m = this.muzzleWorld();
     this.muzzleLight.position.set(m[0], m[1], m[2]);
     this.muzzleLight.intensity = this.muzzleFlash * 6 + tool.charge * 3;
 
     this.foes.update(run, alpha, dt, t);
+    this.bossView.update(run, alpha, dt, t);
     this.fx.update(dt);
     this.composer.render(dt);
   }

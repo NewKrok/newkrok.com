@@ -85,3 +85,24 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1b2436; col
 .hud .banner.good { color: var(--mint); }
 .hud .banner.on { animation: banner 2.8s ease-out; }
 @keyframes banner { 0% { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } 10%, 75% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -55%); } }
+
+/* ── Boss bar ── */
+.hud .bossbar { position: absolute; left: 50%; top: calc(56px + env(safe-area-inset-top)); transform: translateX(-50%); width: min(520px, 70vw); text-align: center; opacity: 0; transition: opacity 0.4s; }
+.hud .bossbar.on { opacity: 1; }
+.hud .bossbar .lbl { font-size: 15px; font-weight: 800; letter-spacing: 0.06em; color: #ffc0d0; text-shadow: 0 2px 0 #4a1020; margin-bottom: 5px; }
+.hud .bossbar .bar { position: relative; height: 16px; border-radius: 9px; background: rgba(20, 26, 44, 0.6); border: 2px solid rgba(255, 247, 230, 0.75); overflow: hidden; }
+.hud .bossbar i { position: absolute; inset: 0; transform-origin: left center; }
+.hud .bossbar .lag { background: #ffe0a0; }
+.hud .bossbar .fill { background: linear-gradient(#ff7a92, #c0394f); }
+.hud .bossbar.clog .fill { background: linear-gradient(#ffd0e0, #ff8fd0); animation: pulse 0.4s ease-in-out infinite; }
+
+/* ── Result ── */
+.result { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, rgba(20, 26, 44, 0.45), rgba(20, 26, 44, 0.85)); padding: 16px; }
+.result .card { background: var(--panel); border: 2px solid rgba(227, 179, 92, 0.6); border-radius: 18px; padding: 26px 30px; text-align: center; max-width: 440px; width: 100%; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45); }
+.result h2 { margin: 0 0 4px; font-size: 34px; color: var(--mint); }
+.result p { margin: 0 0 18px; color: var(--ink-dim); }
+.result table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+.result td { padding: 6px 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); text-align: left; }
+.result td:last-child { text-align: right; font-weight: 800; color: #ffe7a8; }
+.btn { font: inherit; font-weight: 800; font-size: 17px; padding: 11px 24px; border-radius: 999px; border: 0; cursor: pointer; background: var(--mint); color: #173a38; box-shadow: 0 4px 0 #3aa593; }
+.btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #3aa593; }

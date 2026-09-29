@@ -88,7 +88,7 @@ export class AnchorView {
       it.beam.visible = fixed;
       if (fixed) {
         const u = it.beam.material.uniforms;
-        u.strength.value = damp(u.strength.value, 0.55, 1.5, dt) + (A.t < 0.6 ? (0.6 - A.t) * 3 : 0);
+        u.strength.value = damp(u.strength.value, 0.28, 1.5, dt) + (A.t < 0.6 ? (0.6 - A.t) * 2 : 0);
         u.time.value = t;
       }
       // Pink wisps rising from broken anchors; mint sparks while tuning.

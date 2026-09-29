@@ -12,6 +12,9 @@ const PATH = { top: 0xd9bf8a, side: 0xb89a68 };
 export const park = {
   id: "park",
   killY: -25,
+  unlockAfterFirst: "vacuum",
+  // The nightmare comes up in the middle of the lawn.
+  boss: { x: 0, z: 5, arena: { minX: -17, maxX: 17, minZ: -2, maxZ: 19 } },
   sky: { top: 0x3f7fd8, horizon: 0xffc9a0, bottom: 0xe8a8c8, sunDir: [-0.5, 0.35, -0.7], sunGlow: 0xffe0b0 },
   fog: { color: 0xf0c4a8, near: 70, far: 260 },
   sun: { color: 0xffe2c0, intensity: 2.4, dir: [-0.5, 0.75, -0.6], sky: 0xb0c8f0, ground: 0x5a6a3a, hemi: 0.85 },

@@ -4,6 +4,7 @@ import { ToolState } from "./tools.js";
 import { World } from "./world.js";
 import { Foe, stepFoes, damageFoe } from "./foes.js";
 import { Anchor, stepAnchors, startTuning } from "./anchors.js";
+import { Boss } from "./boss.js";
 import { buildLevel } from "../levels/kit.js";
 import { rng } from "../rng.js";
 
@@ -34,6 +35,8 @@ export class Run {
     this.body.place(s.x, s.y, s.z, s.yaw);
     this.tools = [new ToolState("stabilizer")];
     this.tool = 0;
+    this.switchT = 0;
+    this.balls = [];              // what the vacuum shoots back out
     this.time = 0;
     this.events = [];
     this.hp = MAX_HP; this.hurtT = 9; this.invuln = 0;
@@ -44,6 +47,7 @@ export class Run {
     this.stats = { popped: 0, shots: 0, hits: 0 };
     this.anchors = this.kit.anchors.map((a) => new Anchor(a));
     this.nearAnchor = null;
+    this.boss = null; this.coreT = -1; this.wonT = -1; this.won = false;
     for (const f of this.kit.foes) this.spawn(f.kind, f.x, f.z);
     this.events.length = 0;
     this._shots = [];
@@ -63,6 +67,21 @@ export class Run {
     const pitch = b.pitch + (spread ? (this.rnd() - 0.5) * 2 * spread : 0);
     const cp = Math.cos(pitch);
     return [-Math.sin(yaw) * cp, Math.sin(pitch), -Math.cos(yaw) * cp];
+  }
+
+  unlockTool(id) {
+    if (this.tools.some((t) => t.id === id)) return;
+    this.tools.push(new ToolState(id));
+    this.events.push({ type: "toolUnlocked", tool: id });
+    this.switchTool(this.tools.length - 1);
+  }
+
+  switchTool(i) {
+    i = ((i % this.tools.length) + this.tools.length) % this.tools.length;
+    if (i === this.tool) return;
+    this.tool = i;
+    this.switchT = 0.3;
+    this.events.push({ type: "toolSwitch", tool: this.activeTool.id });
   }
 
   spawn(kind, x, z, o = {}) {
@@ -135,13 +154,46 @@ export class Run {
     this.invuln = Math.max(0, this.invuln - dt);
     if (this.hurtT > 2.5 && this.hp < MAX_HP) this.hp = Math.min(MAX_HP, this.hp + 28 * this.diff.regen * dt);
 
+    // Tool switching takes a moment (the view model swaps them).
+    if (intent.toolTo !== undefined && intent.toolTo !== this.tool) this.switchTool(intent.toolTo);
+    this.switchT = Math.max(0, this.switchT - dt);
     const tool = this.activeTool;
     // Auto-fire (touch): shoot whenever the crosshair rests on a glitch.
-    if (this.opts.autoFire && !intent.fire && !intent.alt) intent = { ...intent, fire: !!this.target(0.035) };
+    if (this.opts.autoFire && tool.id === "stabilizer" && !intent.fire && !intent.alt) intent = { ...intent, fire: !!this.target(0.035) || this.aimsAtBoss() };
     this._shots.length = 0;
-    for (const shot of tool.step(intent, dt, this._shots)) this.fire(tool, shot);
+    const held = this.switchT > 0 ? NO_TOOL : intent;
+    for (const t of this.tools) if (t !== tool) t.step(NO_TOOL, dt, []);   // the other tools cool down
+    for (const shot of tool.step(held, dt, this._shots)) {
+      if (shot.suck) this.suck(tool, dt);
+      else if (shot.launch) this.launch(tool, shot.launch);
+      else if (shot.blast) this.blast(tool);
+      else this.fire(tool, shot);
+    }
+    this.stepBalls(dt);
 
     stepAnchors(this, dt);
+    if (this.pendingUnlock && !this.tuning) { this.unlockTool(this.pendingUnlock); this.pendingUnlock = null; }
+    // All anchors hold: the dream's heart opens and its nightmare comes up.
+    if (this.coreT < 0 && !this.boss && this.def.boss && this.anchors.length && this.fixedCount === this.anchors.length) {
+      this.coreT = 4;
+      this.events.push({ type: "coreOpen" });
+    }
+    if (this.coreT > 0) {
+      this.coreT -= dt;
+      if (this.coreT <= 0) {
+        const B = this.def.boss;
+        this.boss = new Boss(this, B.x, B.z, B.arena);
+        this.events.push({ type: "bossRise", x: B.x, z: B.z });
+      }
+    }
+    if (this.boss) {
+      this.boss.step(this, dt);
+      if (!this.boss.alive && this.wonT < 0) this.wonT = 3.5;
+    }
+    if (this.wonT > 0) {
+      this.wonT -= dt;
+      if (this.wonT <= 0 && !this.won) { this.won = true; this.events.push({ type: "dreamFixed" }); }
+    }
     if (intent.usePressed && this.nearAnchor) startTuning(this, this.nearAnchor);
     stepFoes(this, dt);
     this.stepSpits(dt);
@@ -164,6 +216,12 @@ export class Run {
       }
     }
     return best;
+  }
+
+  aimsAtBoss() {
+    if (!this.boss?.alive || this.boss.invulnerable) return false;
+    const b = this.body, d = this.aimDir();
+    return this.boss.hitSpheres().some(([x, y, z, r]) => raySphere(b.x, b.eyeY, b.z, d[0], d[1], d[2], x, y, z, r) >= 0);
   }
 
   fire(tool, shot) {
@@ -192,6 +250,18 @@ export class Run {
       const tt = raySphere(ox, oy, oz, dx, dy, dz, s.x, s.y, s.z, 0.38);
       if (tt >= 0 && tt < t) { t = tt; spit = s; foe = null; }
     }
+    let bossPart = null, bossMul = 1;
+    if (this.boss?.alive) {
+      for (const [x, y, z, r, mul, part] of this.boss.hitSpheres()) {
+        const tt = raySphere(ox, oy, oz, dx, dy, dz, x, y, z, r + (shot.big ? 0.2 : 0));
+        if (tt >= 0 && tt < t) { t = tt; foe = null; spit = null; bossPart = part; bossMul = mul; }
+      }
+    }
+    if (bossPart) {
+      this.stats.hits++;
+      n = [-dx, -dy, -dz];
+      this.boss.damage(this, shot.damage * bossMul, bossPart);
+    }
     if (foe) {
       this.stats.hits++;
       n = [-dx, -dy, -dz];
@@ -200,9 +270,116 @@ export class Run {
     if (spit) { spit.life = 0; this.events.push({ type: "spitPop", x: spit.x, y: spit.y, z: spit.z }); n = [-dx, -dy, -dz]; }
     this.events.push({
       type: "shot", tool: tool.id, big: shot.big,
-      o: [ox, oy, oz], d: [dx, dy, dz], t, hit: !!(wall || foe || spit) && t < d.range,
+      o: [ox, oy, oz], d: [dx, dy, dz], t, hit: !!(wall || foe || spit || bossPart) && t < d.range, boss: bossPart,
       n, foe: foe?.id ?? null,
     });
+  }
+
+  // ── The Fuzz Vacuum ──
+  // A cone in front of you pulls things in; small glitches that reach the
+  // nozzle are caught in the tank.
+  inCone(x, y, z, range, cone) {
+    const b = this.body, d = this.aimDir();
+    const ex = x - b.x, ey = y - b.eyeY, ez = z - b.z, l = Math.hypot(ex, ey, ez);
+    if (l > range || l < 1e-3) return l < 1e-3 ? 0.001 : 0;
+    const cos = (ex * d[0] + ey * d[1] + ez * d[2]) / l;
+    // Wider up close, so something right under the nozzle is not lost.
+    const c = Math.min(1.1, cone + Math.max(0, 2.8 - l) * 0.35);
+    return cos > Math.cos(c) ? l : 0;
+  }
+
+  suck(tool, dt) {
+    const d = tool.def, b = this.body;
+    const [ax, ay, az] = this.aimDir();
+    const nx = b.x + ax * 0.6, ny = b.eyeY + ay * 0.6, nz = b.z + az * 0.6;
+    for (const f of this.foes) {
+      if (!f.alive || f.state === "spawn") continue;
+      const l = this.inCone(f.px, f.cy, f.pz, d.range, d.cone);
+      if (!l || !this.canSee(f.px, f.cy, f.pz)) continue;
+      if (f.kind === "knot") {
+        // Knots cannot be moved, but the stream unravels them.
+        f.unravel = (f.unravel || 0) + d.unravel * dt;
+        while (f.unravel >= 1) { f.unravel -= 1; damageFoe(this, f, 1, 0, 0, false); if (!f.alive) break; }
+        continue;
+      }
+      const ex = nx - f.px, ey = ny - f.cy, ez = nz - f.pz, el = Math.hypot(ex, ey, ez) || 1;
+      // A full tank only draws weakly: shoot it empty first.
+      const k = d.pull * (1.3 - Math.min(1, l / d.range)) * dt * (tool.tank ? 0.25 : 1);
+      if (f.body) {
+        f.body.vx += ex / el * k * 1.6; f.body.vz += ez / el * k * 1.6;
+        if (f.body.grounded && l < 4) { f.body.vy = 2.5; f.body.grounded = false; }
+      } else { f.vx += ex / el * k * 1.4; f.vy += ey / el * k * 1.4; f.vz += ez / el * k * 1.4; }
+      f.state = "sucked"; f.t = 0;
+      if (l < d.catchAt && !tool.tank) {
+        f.alive = false;
+        tool.tank = f.kind;
+        this.stats.popped++;
+        this.events.push({ type: "catch", kind: f.kind, id: f.id, x: f.px, y: f.cy, z: f.pz });
+        this.dropDust(f.px, f.cy, f.pz, Math.ceil(f.def.dust / 2));
+      }
+    }
+    for (const s of this.spits) if (this.inCone(s.x, s.y, s.z, d.range, d.cone)) {
+      const ex = nx - s.x, ey = ny - s.y, ez = nz - s.z, el = Math.hypot(ex, ey, ez) || 1;
+      s.vx += ex / el * 40 * dt; s.vy += ey / el * 40 * dt; s.vz += ez / el * 40 * dt;
+      if (el < 1.2) { s.life = 0; s.harmless = true; this.events.push({ type: "spitPop", x: s.x, y: s.y, z: s.z, sucked: true }); }
+    }
+    for (const m of this.dustMotes) if (m.t > 0.2 && this.inCone(m.x, m.y, m.z, d.range * 1.5, d.cone * 1.3)) {
+      const ex = nx - m.x, ey = ny - m.y, ez = nz - m.z, el = Math.hypot(ex, ey, ez) || 1;
+      m.vx += ex / el * 60 * dt; m.vy += ey / el * 60 * dt; m.vz += ez / el * 60 * dt;
+      m.t = Math.max(m.t, 0.46);
+    }
+    if (this.boss) this.boss.sucked?.(this, dt);
+  }
+
+  // Shoot what the tank holds: a heavy yarn ball that bursts on impact.
+  launch(tool, kind) {
+    const d = tool.def.launch, b = this.body;
+    const [dx, dy, dz] = this.aimDir();
+    this.balls.push({ x: b.x + dx * 0.8, y: b.eyeY + dy * 0.8 - 0.1, z: b.z + dz * 0.8, vx: dx * d.speed, vy: dy * d.speed + 1.5, vz: dz * d.speed, kind, life: 3, id: ++this.foeSeq, dmg: d.damage, splash: d.splash });
+    this.events.push({ type: "launch", kind });
+  }
+
+  // Empty tank: a puff of air that shoves glitches and orbs away.
+  blast(tool) {
+    const d = tool.def.blast;
+    const [ax, , az] = this.aimDir();
+    for (const f of this.foes) {
+      if (!f.alive || f.kind === "knot") continue;
+      if (!this.inCone(f.px, f.cy, f.pz, d.range, d.cone)) continue;
+      damageFoe(this, f, d.damage, ax * d.push / 3.5, az * d.push / 3.5, true);
+    }
+    for (const s of this.spits) if (this.inCone(s.x, s.y, s.z, d.range, d.cone)) { s.vx = ax * 12; s.vz = az * 12; s.harmless = true; }
+    this.boss?.blasted?.(this, ax, az, d);
+    this.events.push({ type: "blast" });
+  }
+
+  stepBalls(dt) {
+    for (const g of this.balls) {
+      g.life -= dt;
+      g.vy -= 9 * dt;
+      const l = Math.hypot(g.vx, g.vy, g.vz) * dt;
+      const hit = this.world.raycast(g.x, g.y, g.z, g.vx * dt / l, g.vy * dt / l, g.vz * dt / l, l + 0.25);
+      g.x += g.vx * dt; g.y += g.vy * dt; g.z += g.vz * dt;
+      let boom = !!hit || g.life <= 0;
+      for (const f of this.foes) {
+        if (!f.alive) continue;
+        if ((f.px - g.x) ** 2 + (f.cy - g.y) ** 2 + (f.pz - g.z) ** 2 < (f.def.hitR + 0.3) ** 2) boom = true;
+      }
+      if (this.boss?.ballHit?.(this, g)) { g.life = 0; continue; }
+      if (!boom) continue;
+      g.life = 0;
+      for (const f of this.foes) {
+        if (!f.alive) continue;
+        const d = Math.hypot(f.px - g.x, f.cy - g.y, f.pz - g.z);
+        if (d < g.splash) {
+          const k = 1 - d / g.splash * 0.5;
+          damageFoe(this, f, g.dmg * k, (f.px - g.x) / (d || 1), (f.pz - g.z) / (d || 1), true);
+        }
+      }
+      this.boss?.splash?.(this, g);
+      this.events.push({ type: "ballPop", kind: g.kind, x: g.x, y: g.y, z: g.z });
+    }
+    this.balls = this.balls.filter((g) => g.life > 0);
   }
 
   stepSpits(dt) {
@@ -214,7 +391,7 @@ export class Run {
       const hit = this.world.raycast(s.x, s.y, s.z, s.vx * dt / l, s.vy * dt / l, s.vz * dt / l, l);
       s.x += s.vx * dt; s.y += s.vy * dt; s.z += s.vz * dt;
       if (hit) { s.life = 0; this.events.push({ type: "spitPop", x: s.x, y: s.y, z: s.z }); continue; }
-      if ((s.x - cx) ** 2 + ((s.y - cy) / 1.6) ** 2 + (s.z - cz) ** 2 < 0.5 ** 2) {
+      if (!s.harmless && (s.x - cx) ** 2 + ((s.y - cy) / 1.6) ** 2 + (s.z - cz) ** 2 < 0.5 ** 2) {
         s.life = 0;
         this.hurt(s.dmg, s.x, s.z);
         this.events.push({ type: "spitPop", x: s.x, y: s.y, z: s.z, onYou: true });
@@ -246,6 +423,8 @@ export class Run {
     this.dustMotes = this.dustMotes.filter((m) => !m.got);
   }
 }
+
+const NO_TOOL = { fire: false, alt: false };
 
 function raySphere(ox, oy, oz, dx, dy, dz, cx, cy, cz, r) {
   const lx = cx - ox, ly = cy - oy, lz = cz - oz;

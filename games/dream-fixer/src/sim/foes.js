@@ -145,10 +145,15 @@ function fuzz(run, f, dt, px, pz) {
     case "stun":
       if (f.t > 0.35) setState(f, "chase");
       break;
+    case "sucked":
+      // Caught in the vacuum's stream: helpless until it lets go.
+      b.vx *= 1 - 2 * dt; b.vz *= 1 - 2 * dt;
+      if (f.t > 0.15) setState(f, "chase");
+      break;
   }
-  const holdVel = f.state === "lunge" || f.state === "stun";
+  const holdVel = f.state === "lunge" || f.state === "stun" || f.state === "sucked";
   b.yaw = f.yaw;
-  if (holdVel && !b.grounded) {
+  if (holdVel && (!b.grounded || f.state === "sucked")) {
     // Airborne lunge / knockback: keep the velocity, only gravity and walls.
     const vx = b.vx, vz = b.vz;
     b.step(run.world, intent, dt, 0);
@@ -159,6 +164,12 @@ function fuzz(run, f, dt, px, pz) {
 
 function buzzer(run, f, dt, px, pcy, pz) {
   const d = f.def;
+  if (f.state === "sucked") {
+    f.vx *= 1 - 2 * dt; f.vy *= 1 - 2 * dt; f.vz *= 1 - 2 * dt;
+    f.x += f.vx * dt; f.y += f.vy * dt; f.z += f.vz * dt;
+    if (f.t > 0.15) setState(f, "idle");
+    return;
+  }
   const dx = f.x - px, dz = f.z - pz, dist = Math.hypot(dx, dz) || 0.01;
   f.cd -= dt;
   // Orbit you at a distance, bobbing, a few metres up.
