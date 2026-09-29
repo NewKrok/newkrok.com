@@ -1,0 +1,54 @@
+:root {
+  --ink: #fff7e6;
+  --ink-dim: #e9dcc0;
+  --brass: #e3b35c;
+  --mint: #7ff5e0;
+  --pink: #ff8fd0;
+  --panel: rgba(28, 34, 52, 0.82);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #1b2436; color: var(--ink); font-family: "Trebuchet MS", system-ui, sans-serif; }
+#app { position: fixed; inset: 0; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.view3d { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hidden { display: none !important; }
+
+/* ── Start / pause card ── */
+.start-card {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  background: radial-gradient(ellipse at center, rgba(20, 26, 44, 0.35), rgba(20, 26, 44, 0.75)); cursor: pointer; text-align: center; padding: 16px;
+}
+.start-card .logo { font-size: clamp(38px, 7vw, 72px); font-weight: 800; letter-spacing: 0.02em; color: var(--brass); text-shadow: 0 3px 0 #7a5220, 0 8px 30px rgba(0, 0, 0, 0.5); }
+.start-card .go { font-size: 20px; padding: 12px 26px; border-radius: 999px; background: var(--mint); color: #173a38; font-weight: 700; box-shadow: 0 4px 0 #3aa593; animation: pulse 1.6s ease-in-out infinite; }
+.start-card .keys { max-width: 640px; font-size: 14px; color: var(--ink-dim); line-height: 1.5; }
+.start-card .credit { position: absolute; bottom: 14px; font-size: 12px; opacity: 0.7; }
+@keyframes pulse { 50% { transform: scale(1.05); } }
+
+/* ── HUD ── */
+.hud { position: absolute; inset: 0; pointer-events: none; }
+.xhair { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; transform: translate(-50%, -50%); overflow: visible; }
+.xhair circle { fill: none; stroke-width: 2.5; stroke-linecap: round; transition: opacity 0.2s; }
+.xhair .heat-bg { stroke: rgba(255, 255, 255, 0.12); }
+.xhair .heat { stroke: var(--mint); opacity: 0; }
+.xhair .charge { stroke: var(--pink); stroke-width: 3; opacity: 0; }
+.xhair .dot { fill: #fff; stroke: rgba(0, 0, 0, 0.35); stroke-width: 1; }
+.xhair .ticks { stroke: rgba(255, 255, 255, 0.85); stroke-width: 2; stroke-linecap: round; filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.6)); }
+.xhair.over .ticks { stroke: #ff6a55; }
+.hud .hot { position: absolute; left: 50%; top: calc(50% + 38px); transform: translateX(-50%); font-weight: 800; color: #ff7a5a; text-shadow: 0 2px 0 #5a1a10; opacity: 0; transition: opacity 0.15s; letter-spacing: 0.04em; }
+.hud .hot.on { opacity: 1; animation: pulse 0.5s ease-in-out infinite; }
+
+/* ── Touch controls ── */
+.touch-ui { position: absolute; inset: 0; pointer-events: none; }
+.touch-ui .stick { position: absolute; width: 124px; height: 124px; margin: -62px 0 0 -62px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.35); background: rgba(20, 26, 44, 0.25); opacity: 0; transition: opacity 0.15s; }
+.touch-ui .stick.on { opacity: 1; }
+.touch-ui .stick i { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; border-radius: 50%; background: rgba(255, 255, 255, 0.55); transform: translate(-50%, -50%); }
+.tbtn { position: absolute; pointer-events: auto; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.45); background: rgba(20, 26, 44, 0.4); padding: 0; display: grid; place-items: center; touch-action: none; }
+.tbtn svg { width: 55%; height: 55%; fill: rgba(255, 255, 255, 0.9); stroke: rgba(255, 255, 255, 0.9); }
+.tbtn.on { background: rgba(127, 245, 224, 0.45); }
+.tbtn.big { width: 92px; height: 92px; right: calc(28px + env(safe-area-inset-right)); bottom: calc(40px + env(safe-area-inset-bottom)); }
+.tbtn.mid { width: 64px; height: 64px; }
+.tbtn.small { width: 50px; height: 50px; }
+.tbtn[data-t="alt"] { right: calc(132px + env(safe-area-inset-right)); bottom: calc(34px + env(safe-area-inset-bottom)); }
+.tbtn[data-t="jump"] { right: calc(40px + env(safe-area-inset-right)); bottom: calc(146px + env(safe-area-inset-bottom)); }
+.tbtn[data-t="use"] { right: calc(124px + env(safe-area-inset-right)); bottom: calc(118px + env(safe-area-inset-bottom)); }
+.tbtn[data-t="tool"] { right: calc(190px + env(safe-area-inset-right)); bottom: calc(90px + env(safe-area-inset-bottom)); }
+.tbtn.corner { width: 44px; height: 44px; right: calc(14px + env(safe-area-inset-right)); top: calc(14px + env(safe-area-inset-top)); }

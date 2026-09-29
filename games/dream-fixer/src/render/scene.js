@@ -1,0 +1,197 @@
+import * as T from "three";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { makeRenderer, envMap, skyDome, Sun } from "./look.js";
+import { buildLevelMeshes } from "./levelview.js";
+import { ViewModel } from "./viewmodel.js";
+import { Fx } from "./fx.js";
+import { make } from "./modelkit.js";
+import { anchor } from "./models/dream.js";
+import { C } from "./palette.js";
+import { damp, lerp } from "../config.js";
+
+// ── The first-person view ────────────────────────────────────────────────
+// World pass, then the tool in hand on top (depth cleared), then bloom.
+// The camera rides the body's interpolated eye, smoothing step-ups and
+// dipping a little on hard landings.
+
+const LAMP_LIGHTS = 3;
+
+export class GameView {
+  constructor(container, settings) {
+    this.renderer = makeRenderer(container);
+    this.env = envMap(this.renderer);
+    this.scene = new T.Scene();
+    this.scene.environment = this.env;
+    this.scene.environmentIntensity = 0.35;
+    this.camera = new T.PerspectiveCamera(72, 16 / 9, 0.05, 700);
+    this.camera.rotation.order = "YXZ";
+    this.scene.add(this.camera);
+    this.vm = new ViewModel(this.env);
+    this.fx = new Fx(this.scene);
+
+    this.composer = new EffectComposer(this.renderer);
+    this.composer.addPass(new RenderPass(this.scene, this.camera));
+    const vmPass = new RenderPass(this.vm.scene, this.vm.camera);
+    vmPass.clear = false; vmPass.clearDepth = true;
+    this.composer.addPass(vmPass);
+    this.bloom = new UnrealBloomPass(new T.Vector2(256, 256), 0.55, 0.4, 1.0);
+    this.composer.addPass(this.bloom);
+    this.composer.addPass(new OutputPass());
+
+    this.muzzleLight = new T.PointLight(0x9ffff0, 0, 7, 2);
+    this.scene.add(this.muzzleLight);
+    this.lamps = [];
+    for (let i = 0; i < LAMP_LIGHTS; i++) { const l = new T.PointLight(0xffd08a, 0, 10, 1.6); this.lamps.push(l); this.scene.add(l); }
+
+    this.level = null;
+    this.pending = [];
+    this.eyeOff = 0; this.bobT = 0; this.roll = 0;
+    this.W = 1; this.H = 1;
+    this.setQuality(settings.quality);
+    this._v = new T.Vector3(); this._v2 = new T.Vector3();
+  }
+
+  setQuality(q) {
+    this.quality = q;
+    const hi = q === "high";
+    this.pr = hi ? Math.min(devicePixelRatio || 1, 2) : Math.min(devicePixelRatio || 1, 1.25) * 0.8;
+    this.renderer.setPixelRatio(this.pr);
+    this.composer.setPixelRatio(this.pr);
+    this.renderer.shadowMap.enabled = hi;
+    this.bloom.enabled = hi;
+    if (this.sun) this.sun.light.castShadow = hi;
+    this.resize(this.W, this.H);
+  }
+
+  resize(w, h) {
+    this.W = w; this.H = h;
+    this.renderer.setSize(w, h);
+    this.composer.setSize(w, h);
+    this.camera.aspect = w / h;
+    // Keep a sensible horizontal view on tall phone screens.
+    this.camera.fov = w / h < 1.3 ? 80 : 72;
+    this.camera.updateProjectionMatrix();
+    this.vm.resize(w / h);
+  }
+
+  // Build the level's meshes, sky and light for a Run.
+  load(run) {
+    if (this.level) {
+      this.scene.remove(this.level);
+      this.level.traverse((o) => { if (o.isMesh && !o.userData.keep) o.geometry.dispose(); });
+      this.scene.remove(this.sun.hemi, this.sun.light, this.sun.light.target);
+    }
+    const def = run.def, kit = run.kit;
+    const g = this.level = new T.Group();
+    g.add(skyDome(def.sky));
+    this.scene.fog = new T.Fog(def.fog.color, def.fog.near, def.fog.far);
+    this.sun = new Sun(this.scene, { ...def.sun, box: 26, mapSize: 2048 });
+    this.sun.light.castShadow = this.quality === "high";
+    this.vm.setLights(def.sun.color, def.sun.dir, def.sun.sky, def.sun.ground);
+    for (const m of buildLevelMeshes(kit)) g.add(m);
+    this.anchors = kit.anchors.map((a) => {
+      const o = make(anchor);
+      o.position.set(a.x, a.y, a.z);
+      o.rotation.y = a.x * 0.37;
+      g.add(o);
+      return { a, o, spin: 0 };
+    });
+    this.lampSpots = kit.lights;
+    this.scene.add(g);
+  }
+
+  // What the sim did this frame; applied in frame() once the camera has
+  // moved, so bolts leave the muzzle where it is now.
+  consume(events) { for (const e of events) this.pending.push(e); }
+
+  applyEvents() {
+    const events = this.pending;
+    for (const e of events) {
+      if (e.type === "shot") {
+        const end = [e.o[0] + e.d[0] * e.t, e.o[1] + e.d[1] * e.t, e.o[2] + e.d[2] * e.t];
+        const from = this.muzzleWorld();
+        const big = e.big;
+        this.fx.bolt(from, end, big ? C.dreamPink : C.dream, big ? 0.05 + big * 0.05 : 0.022);
+        if (e.hit) {
+          this.fx.burst(end, e.n, big ? C.dreamPink : C.dream, big ? 26 : 9, big ? 6 : 4, big ? 0.08 : 0.05);
+          this.fx.ring(end, e.n, big ? C.dreamPink : C.dream, big ? 0.9 : 0.35, big ? 0.35 : 0.2);
+        }
+        this.muzzleFlash = big ? 1.6 : 1;
+        this.shotThisFrame = big || 0.0001;
+      } else if (e.type === "land") {
+        this.eyeOff -= Math.min(0.22, (e.speed - 4) * 0.025);
+      } else if (e.type === "respawn") {
+        this.eyeOff = 0;
+      }
+    }
+    events.length = 0;
+  }
+
+  // The muzzle of the tool in hand, placed in the world just in front of the eye.
+  muzzleWorld() {
+    const ndc = this.vm.muzzleNDC(this._v);
+    const cam = this.camera;
+    const dir = this._v2.set(ndc.x, ndc.y, 0.5).unproject(cam).sub(cam.position).normalize();
+    return [cam.position.x + dir.x * 0.6, cam.position.y + dir.y * 0.6, cam.position.z + dir.z * 0.6];
+  }
+
+  frame(run, alpha, dt, look, t) {
+    const b = run.body;
+    // Eye: interpolated, step-ups absorbed and eased back, a light bob.
+    if (b.stepUp > 0) this.eyeOff -= b.stepUp;
+    b.stepUp = 0;
+    this.eyeOff = damp(this.eyeOff, 0, 12, dt);
+    const sp = b.grounded ? Math.min(1, b.speed2D / 6.4) : 0;
+    this.bobT += dt * (b.speed2D * 1.35);
+    const bob = Math.sin(this.bobT * 2) * 0.03 * sp;
+    const x = lerp(b.px, b.x, alpha), y = lerp(b.py, b.y, alpha), z = lerp(b.pz, b.z, alpha);
+    this.camera.position.set(x, y + 1.58 + this.eyeOff + bob, z);
+    // Lean a hair into strafes.
+    const sn = Math.sin(b.yaw), cs = Math.cos(b.yaw);
+    const side = (b.vx * cs - b.vz * sn) / 6.4;
+    this.roll = damp(this.roll, -side * 0.025, 8, dt);
+    this.camera.rotation.set(b.pitch, b.yaw, this.roll);
+    this.camera.updateMatrixWorld();
+
+    this.sun.follow(x, y, z);
+    this.applyEvents();
+
+    // The nearest lamps light up the place around you.
+    if (this.lampSpots?.length) {
+      const near = this.lampSpots.map((l) => [l, (l.x - x) ** 2 + (l.z - z) ** 2]).sort((a, c) => a[1] - c[1]);
+      this.lamps.forEach((L, i) => {
+        const s = near[i]?.[0];
+        if (!s) { L.intensity = 0; return; }
+        L.position.set(s.x, s.y, s.z); L.color.set(s.color); L.distance = s.dist;
+        L.intensity = s.intensity * (0.95 + Math.sin(t * 7 + i) * 0.05);
+      });
+    }
+
+    // Anchors idle (the game will drive them once they can be fixed).
+    for (const A of this.anchors) {
+      const N = A.o.userData.nodes;
+      N.ring1.rotation.y = t * 0.5 + A.a.x;
+      N.ring2.rotation.x = t * 0.9;
+      N.crystal.rotation.y = -t * 0.6;
+      N.crystal.position.y = 1.75 + Math.sin(t * 1.6 + A.a.z) * 0.06;
+    }
+
+    const tool = run.activeTool;
+    this.vm.update(dt, {
+      look, speed: b.speed2D, grounded: b.grounded, t,
+      heat: tool.heat, charge: tool.charge, overheated: tool.overheated,
+      shot: !!this.shotThisFrame, big: this.shotThisFrame || 0,
+    });
+    this.shotThisFrame = 0;
+    this.muzzleFlash = damp(this.muzzleFlash || 0, 0, 20, dt);
+    const m = this.muzzleWorld();
+    this.muzzleLight.position.set(m[0], m[1], m[2]);
+    this.muzzleLight.intensity = this.muzzleFlash * 6 + tool.charge * 3;
+
+    this.fx.update(dt);
+    this.composer.render(dt);
+  }
+}
