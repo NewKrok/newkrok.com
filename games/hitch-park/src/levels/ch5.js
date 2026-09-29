@@ -1,5 +1,5 @@
 import {
-  PI, level, hrow, park, car, rect, road, disc, paintBays, line, YELLOW, building, tree,
+  PI, level, hrow, park, car, rect, road, disc, paintBays, line, text, YELLOW, building, tree,
   pine, shed, scatter, offsetLine, wallLine, range, smooth,
 } from "./kit.js";
 
@@ -189,4 +189,58 @@ function festival() {
   });
 }
 
-export const CHAPTER5 = [mountain(), harbourWall(), nightMarket(), farmTrack(), festival()];
+// 26. Race circuit paddock at night: the caravan goes between two team
+// lorries in the back row.
+function paddock() {
+  const plots = range(0, 19).map((k) => ({ x: 252 + k * 64, y: 186 }));
+  const target = 7;
+  const team = [0xd9342b, 0x1f3a5a, 0xe8c547, 0x2f6b4a, 0xf2f0e6, 0x5b4a8a];
+  const kinds = ["caravan", "lorry", "van", "caravan", "lorry", "caravan"];
+  const back = plots.flatMap((p, k) => {
+    if (k === target) return [];
+    // Your team's two lorries, pulled in close and nosing out past the plot.
+    if (k === target - 1 || k === target + 1) return [car(700 + (k - target) * 47, p.y + 8, PI / 2, "lorry", team[k % 6])];
+    const kind = kinds[k % kinds.length];
+    if (kind === "lorry") return [car(p.x, p.y - 6, PI / 2, "lorry", team[(k * 5) % 6])];
+    if (kind === "van") return [car(p.x, p.y + 16, PI / 2, "van", 0xf2f0e6)];
+    return [];
+  });
+  const vans = plots.filter((_, k) => k !== target && Math.abs(k - target) !== 1 && kinds[k % kinds.length] === "caravan")
+    .map((p) => ({ kind: "vancaravan", x: p.x, y: p.y - 10, a: PI / 2 }));
+  const mid = [260, 500, 740, 980, 1220];
+  const bay = { x: 700, y: 180, a: PI / 2, w: 40, l: 86 };
+  return level({
+    id: "paddock", vehicle: "suv", name: "Race circuit", title: "Paddock Pass", trailer: "caravan", par: 150, sun: "night",
+    brief: "Race weekend, and your team's lorries have left you a slot barely wider than the caravan. Round the paddock to the back lane, past the awnings and tyre stacks, and reverse into the gap between them.",
+    w: 1600, h: 920, base: "asphalt", edge: "rail", backdrop: "trees",
+    surfaces: [rect("tarmac", 0, 780, 1600, 920), rect("concrete", 180, 110, 1480, 262)],
+    paint: [
+      ...plots.map((p) => line([[p.x - 32, 114], [p.x - 32, 258]], { dash: [6, 6], width: 1.5 })), line([[1436, 114], [1436, 258]], { dash: [6, 6], width: 1.5 }),
+      paintBays([bay], YELLOW), line([[0, 850], [1600, 850]], { dash: [30, 30] }),
+      text(60, 560, "PADDOCK", { size: 14, a: 0 }),
+    ],
+    parked: [
+      ...back,
+      ...mid.map((x, i) => car(x, 400, i % 2 ? PI : 0, "lorry", team[(i + 2) % 6])),
+      car(1500, 480, -PI / 2, "suv"), car(100, 440, 0, "hatch"), car(860, 306, 0.15, "hatch", 0xe8c547),
+    ],
+    statics: [
+      ...vans,
+      // Team awnings reach out into the back lane.
+      ...mid.slice(0, 4).map((x) => ({ kind: "marquee", x: x + 120, y: 382, w: 90, h: 64 })),
+      ...[[540, 296], [552, 310], [538, 322], [980, 300], [992, 314]].map(([x, y]) => ({ kind: "barrel", x, y })),
+      building(800, 700, 1200, 80, { height: 34, color: 0xe8eef4, roof: 0x3b3f45, sign: "PIT LANE", signColor: "#c0392b", signSide: "n", lit: true }),
+      { kind: "barrier", x: 800, y: 772, w: 1600, h: 6 },
+      ...range(0, 32).map((i) => ({ kind: "fence", x: 25 + i * 50, y: 98, w: 52, h: 3 })),
+      ...mid.slice(0, 4).map((x) => ({ kind: "lamp", x: x + 63, y: 400, a: -PI / 2 })),
+      ...range(0, 5).map((i) => ({ kind: "lamp", x: 300 + i * 250, y: 652, a: PI / 2 })),
+      ...[[1330, 390], [1350, 410], [190, 390]].map(([x, y]) => ({ kind: "barrel", x, y })),
+      { kind: "block", x: 1470, y: 170, w: 40, h: 60, height: 22, color: 0x566573 },
+    ],
+    cones: [],
+    start: { x: 190, y: 600, a: 0 },
+    bay,
+  });
+}
+
+export const CHAPTER5 = [mountain(), harbourWall(), nightMarket(), farmTrack(), festival(), paddock()];

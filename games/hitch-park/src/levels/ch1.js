@@ -168,4 +168,48 @@ function villageGreen() {
   });
 }
 
-export const CHAPTER1 = [gardenCentre(), barn(), fuelStop(), lakeside(), villageGreen()];
+// 6. Home: back the trailer up the drive, off a street lined with cars.
+function driveway() {
+  const drives = [140, 320, 500, 680, 860];
+  const bay = { x: 500, y: 234, a: PI / 2, w: 44, l: 64 };
+  const houses = [[230, 0xd8c3a5], [410, 0xe8e0d0], [590, 0xc9b79c], [770, 0xb8866a], [950, 0xd6c8b0], [50, 0xa0705a]];
+  // Garden walls along the pavement, open at every drive.
+  const walls = [];
+  for (let x = 0; x < 1000; x += 20) {
+    if (drives.some((d) => Math.abs(x + 10 - d) < 38)) continue;
+    walls.push({ kind: "wall", style: "brick", height: 7, x: x + 10, y: 326, w: 21, h: 5 });
+  }
+  return level({
+    id: "driveway", name: "Home", title: "Home Sweet Home", trailer: "box", par: 45, sun: "golden",
+    brief: "Back home with the garden waste. Drive past your drive, then reverse the trailer up it to the garage door.",
+    w: 1000, h: 560, base: "grass", edge: "none", backdrop: "town",
+    surfaces: [
+      rect("pavement", 0, 330, 1000, 352), rect("asphalt", 0, 352, 1000, 448), rect("pavement", 0, 448, 1000, 470),
+      ...drives.map((x) => rect(x === 500 ? "concrete" : "gravel", x - 34, 168, x + 34, 330)),
+    ],
+    paint: [
+      paintBays([bay], YELLOW), line([[0, 400], [1000, 400]], { dash: [20, 18] }),
+    ],
+    parked: [
+      car(140, 210, -PI / 2, "hatch"), car(680, 214, -PI / 2, "suv"), car(860, 206, -PI / 2, "wagon"),
+      car(110, 430, 0, "sedan"), car(230, 430, 0, "van"), car(800, 430, 0, "hatch"), car(915, 430, 0, "suv"),
+      car(250, 370, PI, "wagon"), car(900, 370, PI, "sedan"),
+    ],
+    statics: [
+      ...houses.map(([x, c]) => building(x, 100, 104, 104, { height: 46, color: c, roof: 0x7a3b2e })),
+      ...drives.map((x) => building(x, 128, 60, 56, { height: 26, color: 0xe8e0d0, roof: 0x5a4a44, doors: [x], doorW: 44 })),
+      ...drives.map((x) => ({ kind: "hedge", x: x - 42, y: 247, a: PI / 2, w: 158, h: 8 })),
+      ...walls,
+      ...[100, 350, 600, 850].map((x, i) => building(x + 60, 520, 170, 90, { height: 44 + (i % 2) * 10, color: [0xc9b79c, 0xb8866a, 0xe8e0d0, 0xa0705a][i], roof: 0x5a4a44 })),
+      { kind: "bin", x: 546, y: 176 }, { kind: "bin", x: 558, y: 176 }, { kind: "bin", x: 366, y: 176 },
+      tree(590, 250, 18), tree(410, 270, 14), tree(770, 260, 16), tree(230, 250, 16),
+      { kind: "lamp", x: 300, y: 462, a: -PI / 2 }, { kind: "lamp", x: 700, y: 462, a: -PI / 2 },
+      { kind: "barrier", x: 6, y: 400, w: 6, h: 96 }, { kind: "barrier", x: 994, y: 400, w: 6, h: 96 },
+    ],
+    cones: [],
+    start: { x: 660, y: 390, a: 0 },
+    bay,
+  });
+}
+
+export const CHAPTER1 = [gardenCentre(), barn(), fuelStop(), lakeside(), villageGreen(), driveway()];

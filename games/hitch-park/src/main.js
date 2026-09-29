@@ -24,7 +24,7 @@ const settings = loadSettings();
 setLang(detectLang(settings.lang));
 const trailerName = (L) => (L.vehicle === "truck" ? t("tractorSemi") : `${t("veh_" + (L.vehicle ?? "car"))} + ${t("tr_" + L.trailer)}`);
 const camName = (m) => t("cam" + m);
-const progress = loadProgress();
+const progress = loadProgress(LEVELS);
 const audio = new Audio();
 const hud = new Hud($("#hud"));
 let scene;

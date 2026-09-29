@@ -205,4 +205,57 @@ function hangar() {
   });
 }
 
-export const CHAPTER4 = [construction(), dealer(), services(), riverside(), hangar()];
+// 21. Multi-storey car park: reverse between two pillars into the one
+// trailer bay on the top deck.
+function carPark() {
+  const cols = [150, 310, 470, 630, 790, 950];
+  const span = (x0, a, y) => [-51, -17, 17, 51].map((d) => ({ x: x0 + 80 + d, y, a, w: 34, l: 60 }));
+  const bay = { x: 550, y: 64, a: PI / 2, w: 48, l: 64 };
+  const north = [
+    ...span(150, PI / 2, 64), ...span(310, PI / 2, 64), ...span(630, PI / 2, 64), ...span(790, PI / 2, 64),
+    { x: 509, y: 64, a: PI / 2, w: 34, l: 60 }, { x: 591, y: 64, a: PI / 2, w: 34, l: 60 },
+    ...hrow(50, 64, 3, PI / 2, { w: 34 }),
+  ];
+  const south = [...cols.slice(0, 5).flatMap((x) => span(x, -PI / 2, 524)), ...hrow(50, 524, 3, -PI / 2, { w: 34 }), ...hrow(986, 524, 3, -PI / 2, { w: 34 })];
+  const midN = hrow(262, 267, 19, -PI / 2, { l: 56 }), midS = hrow(262, 333, 19, PI / 2, { l: 56 });
+  const short = ["hatch", "sedan", "wagon", "suv", "hatch", "van"];
+  const conc = { kind: "wall", height: 30 };
+  return level({
+    id: "carpark", vehicle: "van", name: "Multi-storey car park", title: "Pillar to Post", trailer: "box", par: 100, sun: "deck",
+    brief: "Top deck, one trailer bay left, a pillar either side of it, and the aisle is anything but clear. Come round the far end, squeeze past the bay and reverse in without clipping the concrete.",
+    w: 1100, h: 620, base: "concrete", edge: "wall", backdrop: "town",
+    surfaces: [rect("asphalt", 0, 100, 1100, 492)],
+    paint: [
+      hatch(600, 206, 700, 228),
+      paintBays(north), paintBays(south), paintBays(midN), paintBays(midS), paintBays([bay], YELLOW),
+      text(550, 124, "TRAILER", { size: 11, color: YELLOW }),
+      arrow(700, 425, PI), arrow(140, 300, -PI / 2), arrow(400, 170, 0), arrow(960, 300, PI / 2),
+      text(1030, 460, "EXIT ↓", { size: 12 }),
+    ],
+    parked: [
+      ...park(north, range(0, north.length), 211, ["hatch", "sedan", "wagon", "suv", "hatch"]),
+      ...park(midN, fill(19, 0.85, 212), 213, short), ...park(midS, fill(19, 0.85, 214), 215, short),
+      ...park(south, fill(south.length, 0.75, 216), 217),
+      // Life on the deck: a van unloading in the aisle past the bay, a car
+      // left across two bays, another waiting for a space.
+      car(850, 172, PI - 0.08, "van", 0xf2f0e6), car(330, 196, 0.35, "sedan"), car(930, 250, PI / 2 + 0.3, "hatch"),
+    ],
+    statics: [
+      { ...conc, x: 550, y: 28, w: 1100, h: 8 }, { ...conc, x: 550, y: 594, w: 1100, h: 8 },
+      ...cols.map((x) => ({ kind: "pillar", x, y: 100, s: 12 })),
+      ...cols.slice(0, 5).map((x) => ({ kind: "pillar", x, y: 490, s: 12 })),
+      { kind: "wall", x: 556, y: 300, w: 604, h: 4, height: 8 },
+      // Pillars down the middle row and one in each turn at the ends.
+      ...[401.5, 556.5, 711.5].map((x) => ({ kind: "pillar", x, y: 300, s: 8 })),
+      { kind: "pillar", x: 150, y: 300, s: 14 }, { kind: "pillar", x: 950, y: 300, s: 14 },
+      { kind: "bin", x: 640, y: 118 }, { kind: "barrel", x: 626, y: 217 }, { kind: "barrel", x: 664, y: 218 },
+      { kind: "block", x: 1030, y: 64, w: 110, h: 64, height: 44, color: 0x9aa3ab },
+      { kind: "kiosk", x: 1060, y: 300, w: 20, h: 16 },
+    ],
+    cones: [{ x: 596, y: 202 }, { x: 704, y: 202 }, { x: 596, y: 231 }, { x: 704, y: 231 }, { x: 880, y: 440 }, { x: 910, y: 470 }],
+    start: { x: 1010, y: 425, a: PI },
+    bay,
+  });
+}
+
+export const CHAPTER4 = [construction(), dealer(), services(), riverside(), hangar(), carPark()];

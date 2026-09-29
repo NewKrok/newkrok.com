@@ -125,6 +125,26 @@ export function drawTrailerTop(p, key, x, y, a, color = 0xd6d9de) {
     const hull = [L / 2 + 2, 0, L * 0.28, W / 2, -L / 2 + 1, W / 2 - 0.6, -L / 2 + 1, -W / 2 + 0.6, L * 0.28, -W / 2];
     p.poly(P(hull), 0xf4f3ee, 1, 0x1f5a8a, 1.6);
     p.poly(P([L * 0.16, -W * 0.3, L * 0.22, 0, L * 0.16, W * 0.3, L * 0.1, W * 0.3, L * 0.14, 0, L * 0.1, -W * 0.3]), 0x2c4a63, 0.9);
+  } else if (key === "teardrop") {
+    p.poly(P(rrectPts(0, 0, L, W, 5, 3)), 0xd4d8dd, 1, 0x8a9099, 0.8);
+    p.poly(P(rrectPts(L * 0.12, 0, L * 0.5, W * 0.62, 3, 2)), 0xe6e9ec, 1);
+    p.line(P([-L / 2 + 2, -W / 2 + 0.6, L / 2 - 3, -W / 2 + 0.6]), 0x2a9d8f, 1.4);
+    p.line(P([-L / 2 + 2, W / 2 - 0.6, L / 2 - 3, W / 2 - 0.6]), 0x2a9d8f, 1.4);
+  } else if (key === "horsebox") {
+    p.poly(P(rrectPts(0, 0, L, W, 3, 2)), 0x2f4f3a, 1, 0x1d3325, 0.8);
+    p.poly(P(rrectPts(0, 0, L * 0.86, W * 0.7, 2, 1)), 0x3a5e46, 1);
+    p.line(P([-L / 2 + 1, -W * 0.3, -L / 2 + 1, W * 0.3]), 0x1b1d20, 2);
+  } else if (key === "carhauler") {
+    p.poly(P(rectPts(-L / 2, -W / 2, L / 2, W / 2)), 0x3a3f46, 1, 0x22262b, 1);
+    drawCarTop(p, CAR_TYPES.sedan, 0xc0392b, x - Math.cos(a) * 1, y - Math.sin(a) * 1, a);
+  } else if (key === "pipes") {
+    p.poly(P(rectPts(L / 2 - 3.4 * M, -W / 2 + 1, L / 2, W / 2 - 1)), 0x2c3036, 1);
+    for (let k = 0; k < 4; k++) {
+      const yy = -W / 2 + W * (k + 0.5) / 4;
+      p.line(P([-L / 2, yy, L / 2, yy]), k % 2 ? 0xc47324 : 0xd9822b, W / 4 - 0.4);
+    }
+    for (const xx of [L / 2 - 6, L / 2 - 3.4 * M + 6]) p.line(P([xx, -W / 2, xx, W / 2]), 0xe8c547, 1.2);
+    p.poly(P(rectPts(-L / 2 - 2.5, -3, -L / 2 - 0.5, 3)), 0xc62d2d, 1);
   } else if (key === "semi") {
     p.poly(P(rectPts(-L / 2, -W / 2, L / 2, W / 2)), color, 1, shade(color, -0.35), 1);
     for (let k = 1; k < 6; k++) p.line(P([-L / 2 + (L * k) / 6, -W / 2 + 1, -L / 2 + (L * k) / 6, W / 2 - 1]), shade(color, -0.15), 0.8);

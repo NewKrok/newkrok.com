@@ -412,6 +412,16 @@ const VIA = {
   port: [{ x: 1320, y: 455, a: 0, w: 90, l: 200 }],
   delivery: [{ x: 1160, y: 340, a: -PI / 2, w: 80, l: 220 }],
   ferrydeck: [{ x: 700, y: 735, a: 0, w: 70, l: 220 }, { x: 980, y: 880, a: 0, w: 90, l: 220 }, { x: 1250, y: 700, a: 0, w: 90, l: 220 }],
+  recycling: [{ x: 970, y: 330, a: -PI / 2, w: 100, l: 140 }, { x: 740, y: 262, a: PI, w: 90, l: 120 }],
+  vineyard: [{ x: 1150, y: 200, a: PI / 2, w: 70, l: 140 }, { x: 440, y: 440, a: 2.0, w: 80, l: 150 }, { x: 760, y: 600, a: 0, w: 90, l: 140 }],
+  carpark: [{ x: 90, y: 300, a: -PI / 2, w: 100, l: 170 }, { x: 470, y: 160, a: 0, w: 80, l: 140 }],
+  paddock: [{ x: 1440, y: 430, a: -PI / 2, w: 110, l: 170 }, { x: 900, y: 320, a: PI, w: 90, l: 150 }],
+  stadium: [{ x: 1560, y: 760, a: -PI / 2, w: 110, l: 240 }, { x: 1700, y: 585, a: 0, w: 90, l: 240 }],
+  campsite: [{ x: 1000, y: 400, a: -PI / 2, w: 50, l: 110 }, { x: 760, y: 170, a: PI, w: 50, l: 100 }],
+  stables: [{ x: 220, y: 320, a: 0, w: 110, l: 130 }, { x: 800, y: 310, a: 0, w: 90, l: 120 }],
+  carshow: [{ x: 1310, y: 330, a: -PI / 2, w: 60, l: 140 }, { x: 1000, y: 240, a: PI, w: 90, l: 140 }],
+  pipeyard: [{ x: 700, y: 640, a: 0, w: 90, l: 150 }, { x: 900, y: 360, a: 0, w: 120, l: 160 }],
+  courtyard: [{ x: 780, y: 600, a: 0, w: 50, l: 100 }],
 };
 
 // Try the strategies in turn: forward search (straight-line heuristic),

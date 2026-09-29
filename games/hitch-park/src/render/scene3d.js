@@ -9,6 +9,9 @@ import { drawGround, makeCanvas, xform, rectPts } from "./topdown.js";
 // draw calls); the player's car keeps separate wheel groups so they can
 // spin and steer from the wheel bodies.
 
+// Rear-view camera height above the trailer's tail, px.
+const REAR_CAM_Z = { semi: 44, caravan: 22, horsebox: 27, boat: 20, carhauler: 18, pipes: 16 };
+
 export const SUNS = {
   noon:   { dir: [-0.35, 0.5, 1], color: 0xfff1dc, i: 2.7, sky: 0xc4dcff, gnd: 0x6a6050, hemi: 1.15, top: "#6fa6e0", bot: "#dbe9f5", fog: 0xd6e2ec, lamps: false, env: 1 },
   deck:   { dir: [0.35, 0.55, 1], color: 0xffffff, i: 2.3, sky: 0xd2e0f0, gnd: 0x6a6a6a, hemi: 1.35, top: "#8fb0d4", bot: "#e8eef4", fog: 0xdfe6ee, lamps: false, env: 1 },
@@ -382,7 +385,7 @@ export class Scene3D {
     P.add(g.cylZ, g.darkMetal, L / 2 + t.bar * M * 0.45, -W * 0.12, bedZ / 2, 0, 0.8, 0.8, bedZ);
     P.add(g.cyl, g.tire, L / 2 + t.bar * M * 0.45, -W * 0.12, 1.2, 0, 1.2, 1, 1.2);
     const wheels = [];
-    const addWheel = (y) => wheels.push({ lx: ax, ly: y });
+    const addWheel = (y, x = ax) => wheels.push({ lx: x, ly: y });
     if (key === "box") {
       P.add(g.box, g.darkMetal, 0, W * 0.3, bedZ - 1.2, 0, L, 1.6, 1.8);
       P.add(g.box, g.darkMetal, 0, -W * 0.3, bedZ - 1.2, 0, L, 1.6, 1.8);
@@ -410,6 +413,100 @@ export class Scene3D {
       P.add(g.cylZ, g.chrome, L / 2 + 2, 0, bedZ + 6.4, 0, 1.4, 1.4, 1.8, Math.PI / 2);
       for (let k = -2; k <= 2; k++) P.add(g.cyl, g.trim, k * L * 0.18, 0, bedZ + 0.6, 0, 0.9, W * 0.3, 0.9);
       for (const s of [-1, 1]) P.add(g.box, tail, -L / 2 - 0.5, s * (W / 2 - 1.2), bedZ, 0, 0.6, 2.6, 1.4);
+      addWheel(wo); addWheel(-wo);
+    } else if (key === "teardrop") {
+      // Teardrop: a side profile high and round at the front, tapering
+      // down to the galley hatch at the back, aluminium with a painted band.
+      const z0 = r * 1.2, H = 1.32 * M, hl = L / 2;
+      const s = new T.Shape();
+      s.moveTo(-hl, z0);
+      s.lineTo(hl - 3, z0);
+      s.quadraticCurveTo(hl, z0, hl, z0 + 4);
+      s.quadraticCurveTo(hl, H, hl * 0.15, H);
+      s.quadraticCurveTo(-hl * 0.85, H, -hl, z0 + 3);
+      s.lineTo(-hl, z0);
+      const shell = owned(new T.ExtrudeGeometry(s, { depth: W - 2, bevelEnabled: true, bevelThickness: 1, bevelSize: 1, bevelSegments: 2, curveSegments: 8 }));
+      shell.rotateX(Math.PI / 2);
+      shell.translate(0, W / 2 - 1, 0);
+      P.add(shell, g.chrome);
+      const band = this.paintMat(0x2a9d8f);
+      for (const sd of [-1, 1]) {
+        P.add(g.box, band, 0, sd * (W / 2 + 0.2), z0 + 3.2, 0, L - 4, 0.4, 3.4);
+        P.add(g.box, g.trim, L * 0.05, sd * (W / 2 + 0.25), z0 + 7.5, 0, 6.5, 0.4, 7.5);
+        P.add(g.cyl, g.glass, L * 0.05, sd * (W / 2 + 0.3), z0 + 9.6, 0, 1.8, 0.4, 1.8);
+        P.add(g.box, g.darkMetal, ax, sd * wo, r * 2.1, 0, r * 2.4, ww + 1.8, 0.7);
+      }
+      P.add(g.box, g.trim, 0, 0, z0 - 0.6, 0, L - 2, W * 0.7, 1.4);
+      P.add(g.box, g.darkMetal, -hl - 0.1, 0, z0 + 3.6, 0, 0.6, W * 0.72, 0.8);
+      for (const sd of [-1, 1]) P.add(g.box, tail, -hl - 0.3, sd * (W / 2 - 1.8), z0 + 1.6, 0, 0.6, 2.6, 1.6);
+      P.add(g.box, g.plate, -hl - 0.3, 0, z0 - 0.2, 0, 0.3, 5, 1.4);
+      P.add(g.box, this.paintMat(0xe7e2d6), hl - 2, 0, H - 0.3, 0, 6, 6, 1);
+      addWheel(wo); addWheel(-wo);
+    } else if (key === "horsebox") {
+      // Horsebox: a tall box with a rounded roof line, windows high up, a
+      // tailgate ramp at the back and twin axles under the body.
+      const z0 = r * 1.25, H = 2.5 * M, hl = L / 2;
+      const s = new T.Shape();
+      s.moveTo(-hl, z0);
+      s.lineTo(hl - 5, z0);
+      s.quadraticCurveTo(hl, z0, hl, z0 + 5);
+      s.lineTo(hl, H - 7);
+      s.quadraticCurveTo(hl, H, hl - 9, H);
+      s.lineTo(-hl + 2, H);
+      s.quadraticCurveTo(-hl, H, -hl, H - 2);
+      s.lineTo(-hl, z0);
+      const shell = owned(new T.ExtrudeGeometry(s, { depth: W - 2, bevelEnabled: true, bevelThickness: 1, bevelSize: 1, bevelSegments: 2, curveSegments: 5 }));
+      shell.rotateX(Math.PI / 2);
+      shell.translate(0, W / 2 - 1, 0);
+      P.add(shell, this.paintMat(0x2f4f3a));
+      const cream = this.paintMat(0xe9e2cf);
+      for (const sd of [-1, 1]) {
+        P.add(g.box, cream, -1, sd * (W / 2 + 0.2), z0 + 5, 0, L - 6, 0.4, 7);
+        for (const x of [L * 0.22, -L * 0.08]) P.add(g.box, g.glass, x, sd * (W / 2 + 0.25), H - 7, 0, 9, 0.4, 4.2);
+        P.add(g.box, g.darkMetal, L * 0.36, sd * (W / 2 + 0.25), z0 + 12, 0, 5, 0.4, 13);
+      }
+      P.add(g.box, g.glass, hl + 0.3, 0, H - 8, 0, 0.5, W - 8, 5);
+      P.add(g.box, g.darkMetal, -hl - 0.4, 0, z0 + (H - z0) * 0.38, 0, 0.8, W - 3, (H - z0) * 0.72);
+      for (let k = 0; k < 4; k++) P.add(g.box, g.trim, -hl - 0.9, 0, z0 + 3 + k * 5, 0, 0.4, W - 5, 0.6);
+      for (const sd of [-1, 1]) P.add(g.box, tail, -hl - 0.6, sd * (W / 2 - 2), z0 + 1.6, 0, 0.6, 3, 2);
+      P.add(g.box, g.plate, -hl - 0.6, 0, z0 - 0.2, 0, 0.3, 5.5, 1.6);
+      P.add(g.box, g.trim, 0, 0, z0 - 0.4, 0, L - 2, W - 4, 1.2);
+      for (const dx of [-r * 1.08, r * 1.08]) { addWheel(wo, ax + dx); addWheel(-wo, ax + dx); }
+    } else if (key === "carhauler") {
+      // Car transporter: a flat deck with rails and stowed ramps, carrying
+      // a classic car.
+      const deckZ = r * 2 + 1.2;
+      for (const sd of [-1, 1]) {
+        P.add(g.box, g.darkMetal, 0, sd * W * 0.3, deckZ - 1.6, 0, L, 1.6, 2.2);
+        P.add(g.box, g.metal, 0, sd * (W / 2 - 0.6), deckZ + 1.4, 0, L, 1.2, 1.4);
+        P.add(g.box, g.metal, -L / 2 - 2, sd * W * 0.3, deckZ + 6, 0, 1.2, 5.5, 12, 0, 0.35);
+      }
+      P.add(g.box, g.darkMetal, 0, 0, deckZ, 0, L, W, 1);
+      for (let k = -2; k <= 2; k++) P.add(g.box, g.trim, k * L * 0.18, 0, deckZ + 0.6, 0, 0.6, W - 1, 0.3);
+      for (const sd of [-1, 1]) P.add(g.box, tail, -L / 2 - 0.3, sd * (W / 2 - 1.8), deckZ - 0.2, 0, 0.6, 3.2, 1.6);
+      P.add(g.box, g.plate, -L / 2 - 0.3, 0, deckZ - 1.8, 0, 0.3, 5.5, 1.6);
+      for (const dx of [-r * 1.08, r * 1.08]) { addWheel(wo, ax + dx); addWheel(-wo, ax + dx); }
+    } else if (key === "pipes") {
+      // Pipe trailer: a short single-axle chassis near the front and a
+      // bundle of pipes running far out behind it, with a red flag on the end.
+      const chassisL = 3.4 * M, cx0 = L / 2 - chassisL / 2;
+      for (const sd of [-1, 1]) {
+        P.add(g.box, g.darkMetal, cx0, sd * W * 0.3, bedZ - 0.6, 0, chassisL, 1.4, 1.8);
+        P.add(g.box, g.darkMetal, ax, sd * wo, r * 2.1, 0, r * 2.5, ww + 2, 0.7);
+        P.add(g.box, g.darkMetal, ax, sd * (wo + ww / 2 + 1), r * 1.3, 0, r * 2.5, 0.6, r * 1.6);
+      }
+      for (const x of [L / 2 - 3, cx0 - chassisL / 2 + 3]) P.add(g.box, g.darkMetal, x, 0, bedZ + 1, 0, 2.4, W, 2);
+      const pipe = this.matCached("pipe", () => new T.MeshStandardMaterial({ color: 0xd9822b, roughness: 0.55 }));
+      const pr = 1.9, n = Math.floor(W / (pr * 2));
+      for (let layer = 0; layer < 3; layer++) {
+        for (let i = 0; i < n - layer; i++) {
+          const y = -((n - layer) * pr * 2) / 2 + pr + i * pr * 2;
+          P.add(g.cyl, pipe, 0, y, bedZ + 2 + pr + layer * pr * 1.7, Math.PI / 2, pr, L, pr);
+        }
+      }
+      for (const x of [L / 2 - 6, cx0 - chassisL / 2 + 6]) P.add(g.box, this.paintMat(0xe8c547), x, 0, bedZ + 2 + pr * 2.4, 0, 1.2, W + 0.4, pr * 5.6);
+      P.add(g.box, g.red, -L / 2 - 1.6, 0, bedZ + 2 + pr * 2, 0, 0.4, 7, 7);
+      for (const sd of [-1, 1]) P.add(g.box, tail, -L / 2 - 0.6, sd * (W / 2 - 1.4), bedZ + 1.2, 0, 0.6, 2.4, 1.6);
       addWheel(wo); addWheel(-wo);
     } else {
       // Caravan: side profile extruded across the width, rounded at the front.
@@ -446,8 +543,8 @@ export class Scene3D {
     const out = { body, wheels: [], L, W, bedZ };
     for (const w of wheels) {
       const pivot = new T.Group();
-      // Caravan wheels sit under the body: keep their faces clear of its sides.
-      pivot.position.set(w.lx, w.ly + Math.sign(w.ly) * (key === "caravan" ? 1.4 : 0), r);
+      // Wheels under the body: keep their faces clear of its sides.
+      pivot.position.set(w.lx, w.ly + Math.sign(w.ly) * (t.wheelOut < 0 ? 1.4 : 0), r);
       const spin = new T.Group();
       const tire = new T.Mesh(g.cyl, g.tire);
       tire.scale.set(r, ww, r);
@@ -460,7 +557,13 @@ export class Scene3D {
       spin.add(tire, rim);
       pivot.add(spin);
       body.add(pivot);
-      out.wheels.push({ pivot, spin });
+      // Model +y is the physics body's −y side: wheel 0. Twin axles share it.
+      out.wheels.push({ pivot, spin, phys: w.ly > 0 ? 0 : 1 });
+    }
+    if (key === "carhauler") {
+      const car = this.buildCarModel(CAR_TYPES.sedan, 0xc0392b, { live: false });
+      car.body.position.set(-1, 0, r * 2 + 1.8);
+      body.add(car.body);
     }
     if (key === "boat") {
       const hull = this.buildBoatHull(L * 0.98, W * 0.96, 0x1f5a8a);
@@ -1656,7 +1759,7 @@ export class Scene3D {
     const rx = b.position.x - c * back, ry = b.position.y - s * back;
     const cam = this.rearCam;
     const z0 = this.groundZAt(rx, ry);
-    cam.position.set(rx, -ry, z0 + (t.key === "semi" ? 44 : t.key === "caravan" ? 22 : t.key === "boat" ? 20 : 15));
+    cam.position.set(rx, -ry, z0 + (REAR_CAM_Z[t.key] ?? 15));
     const look = t.key === "semi" ? 110 : 60;
     cam.lookAt(rx - c * look, -(ry - s * look), z0);
     const r = this.pipRect();

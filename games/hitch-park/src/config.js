@@ -96,6 +96,13 @@ export const TRAILERS = {
   boat:    { name: "Boat trailer", len: 4.9, wid: 1.9, bar: 1.15, axle: -0.55, wheelR: 0.3, wheelW: 0.2, wheelOut: 0.12, density: 0.45 },
   caravan: { name: "Caravan", len: 5.3, wid: 2.24, bar: 1.2, axle: -0.2, wheelR: 0.32, wheelW: 0.22, wheelOut: -0.12, density: 0.4 },
   semi:    { name: "Semi-trailer", len: 13.6, wid: 2.5, bar: -1.2, axle: -5.0, wheelR: 0.5, wheelW: 0.36, wheelOut: -0.3, density: 0.45, axles: 3 },
+  // Chapter 7, special loads. A teardrop is short from ball to axle, so it
+  // swings much faster than the box when you reverse; the pipe trailer's
+  // load runs far behind its axle, so the tail swings out on every turn.
+  teardrop:  { name: "Teardrop camper", len: 2.3, wid: 1.5, bar: 0.75, axle: -0.05, wheelR: 0.28, wheelW: 0.18, wheelOut: 0.06, density: 0.7 },
+  horsebox:  { name: "Horsebox", len: 4.0, wid: 1.96, bar: 1.3, axle: -0.1, wheelR: 0.3, wheelW: 0.2, wheelOut: -0.1, density: 0.6, axles: 2 },
+  carhauler: { name: "Car transporter", len: 5.0, wid: 2.05, bar: 1.3, axle: -0.35, wheelR: 0.28, wheelW: 0.2, wheelOut: -0.12, density: 0.55, axles: 2 },
+  pipes:     { name: "Pipe trailer", len: 7.0, wid: 1.5, bar: 1.3, axle: 1.2, wheelR: 0.3, wheelW: 0.2, wheelOut: 0.08, density: 0.35 },
 };
 export const HITCH_LIMIT = CAR.hitchLimit;
 export const HITCH_WARN = CAR.hitchWarn;
