@@ -64,13 +64,37 @@ export class GameView {
   setQuality(q) {
     this.quality = q;
     const hi = q === "high";
+    this.scale = 1;
+    this.perf = { ema: 1 / 60, slowT: 0, fastT: 0 };
     this.pr = hi ? Math.min(devicePixelRatio || 1, 2) : Math.min(devicePixelRatio || 1, 1.25) * 0.8;
-    this.renderer.setPixelRatio(this.pr);
-    this.composer.setPixelRatio(this.pr);
+    this.applyScale();
     this.renderer.shadowMap.enabled = hi;
     this.bloom.enabled = hi;
     if (this.sun) this.sun.light.castShadow = hi;
     this.resize(this.W, this.H);
+  }
+
+  applyScale() {
+    const pr = this.pr * this.scale;
+    this.renderer.setPixelRatio(pr);
+    this.composer.setPixelRatio(pr);
+  }
+
+  // Adaptive resolution: a weak GPU that keeps missing frames gets a lower
+  // render scale (down to 55 %), then no bloom; a fast one climbs back.
+  adapt(dt) {
+    const P = this.perf;
+    if (dt <= 0 || dt > 0.25) return;
+    P.ema += (dt - P.ema) * 0.05;
+    if (P.ema > 1 / 45) { P.slowT += dt; P.fastT = 0; } else if (P.ema < 1 / 58) { P.fastT += dt; P.slowT = 0; } else { P.slowT = 0; P.fastT = 0; }
+    if (P.slowT > 2) {
+      P.slowT = 0;
+      if (this.scale > 0.56) { this.scale = Math.max(0.55, this.scale - 0.15); this.applyScale(); this.resize(this.W, this.H); }
+      else if (this.bloom.enabled) this.bloom.enabled = false;
+    } else if (P.fastT > 6 && this.scale < 1) {
+      P.fastT = 0;
+      this.scale = Math.min(1, this.scale + 0.15); this.applyScale(); this.resize(this.W, this.H);
+    }
   }
 
   resize(w, h) {
@@ -254,6 +278,7 @@ export class GameView {
     this.foes.update(run, alpha, dt, t);
     this.bossView.update(run, alpha, dt, t);
     this.fx.update(dt);
+    this.adapt(dt);
     this.composer.render(dt);
   }
 }

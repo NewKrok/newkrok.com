@@ -33,7 +33,6 @@ export const HU = {
   settings: "Beállítások",
   howto: "Hogyan játssz",
   back: "Vissza",
-  resume: "Vissza a munkához",
   toFactory: "Vissza a Gyárba",
   mainMenu: "Főmenü",
   close: "Bezárás",

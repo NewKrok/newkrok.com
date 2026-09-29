@@ -33,7 +33,6 @@ export const EN = {
   settings: "Settings",
   howto: "How to play",
   back: "Back",
-  resume: "Back to work",
   toFactory: "Back to the Factory",
   mainMenu: "Main menu",
   close: "Close",

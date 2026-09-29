@@ -64,6 +64,7 @@ async function startGame() {
     progress.justBack = false;
     hud.hub(!!def.hub);
     hud.clear();
+    input.touch.ui.classList.toggle("hub", !!def.hub);
     if (def.hub) run.dust = progress.dust;      // the purse, shown in the HUD
     audio.setSong(def.song ?? id);
     if (!def.hub) track("dream_start", { dream: id });
@@ -191,7 +192,7 @@ async function startGame() {
       }
     }
     director.events(run, events);
-    sfx.events(events, run);
+    sfx.events(events);
   }
 
   const resize = () => view.resize(innerWidth, innerHeight);

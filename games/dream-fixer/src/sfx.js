@@ -10,7 +10,7 @@ export class Sfx {
     this.wasHot = false;
   }
 
-  events(events, run) {
+  events(events) {
     const A = this.a;
     for (const e of events) {
       switch (e.type) {

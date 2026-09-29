@@ -5,6 +5,13 @@ import List from "../../ui/list/list";
 
 const games = [
   {
+    label: "Dream Fixer",
+    target: "dream-fixer",
+    preview: "/games/dream-fixer/media/preview.webp",
+    url: "/games/dream-fixer/",
+    badge: "in progress",
+  },
+  {
     label: "Last Lantern",
     target: "last-lantern",
     preview: "/games/last-lantern/media/preview.webp",

@@ -143,7 +143,7 @@ function easeOutBack(x) { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * (x - 
 
 function animFuzz(f, N, t, grow) {
   const b = f.body, sp = b.speed2D;
-  let sy = 1, sxz = 1, hop = 0, lean = 0;
+  let sy, sxz = 1, hop = 0, lean = 0;
   if (f.state === "windup") { const k = Math.min(1, f.t / 0.5); sy = 1 - 0.3 * k; sxz = 1 + 0.2 * k; lean = -0.25 * k; }
   else if (f.state === "lunge") { sy = 1.2; sxz = 0.88; lean = 0.5; }
   else if (f.state === "stun") { sy = 0.85 + Math.sin(f.t * 40) * 0.08; sxz = 1.1; }

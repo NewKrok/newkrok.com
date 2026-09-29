@@ -174,3 +174,5 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; border-radius: 
 .result-card td { padding: 6px 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); text-align: left; }
 .result-card td:last-child { text-align: right; font-weight: 800; color: #ffe7a8; }
 .result-card h2 { color: var(--mint); }
+.touch-ui.hub .tbtn[data-t="fire"], .touch-ui.hub .tbtn[data-t="alt"], .touch-ui.hub .tbtn[data-t="tool"] { display: none; }
+@media (pointer: coarse) { .dialog { width: min(420px, 56vw); padding: 7px 11px 9px; } .dialog .text { font-size: 14px; } .memcard { width: min(260px, 40vw); } }

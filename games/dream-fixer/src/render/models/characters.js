@@ -101,7 +101,7 @@ export function kocPark(b, { seed = 3 } = {}) {
 // round its centre. Nodes: "body" (bob), "wingL"/"wingR" (buzz), "mouth"
 // (swells before it spits).
 export function buzzerPark(b) {
-  const YEL = 0xf2c14e, YEL_L = 0xffe08a, BRN = 0x5a3620;
+  const YEL_L = 0xffe08a, BRN = 0x5a3620;
   b.node("body", [0, 0, 0], [0, 0, 0], (n) => {
     // Abdomen along z with knitted stripes.
     n.add(SHAPE.ball(0.3, 12, 9), { p: [0, 0, 0.12], s: [1, 0.95, 1.2], grad: [0xd8a032, YEL_L], facet: 0.08 });

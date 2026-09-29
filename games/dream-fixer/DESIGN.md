@@ -75,7 +75,9 @@ A történet három csatornán jut el a játékoshoz:
 2. **Három horgony:** az álmot három meghibásodott **álomhorgony** tartja
    egyben. Mindegyikhez el kell jutni (felfedezés, könnyű platformozás),
    majd **meg kell szerelni**: nyomva tartod a gombot, a horgony töltődik,
-   közben hullámokban jönnek a hibák, és védened kell. Ez a játék
+   közben hullámokban jönnek a hibák, és védened kell. (A kész változatban
+   egy gombnyomás indítja a hangolást, ami addig halad, amíg a horgony
+   körében maradsz: harc közben nem kell gombot tartani.) Ez a játék
    „szerelő” lelke, és nem csak lövöldözés.
 3. **Főellenség:** a három horgony után az álom „magja” hozza elő a
    főellenséget. Több fázisa van, nagy, jól olvasható mozdulatokkal.
