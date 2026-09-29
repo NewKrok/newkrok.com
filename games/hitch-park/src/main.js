@@ -536,7 +536,11 @@ function frame(now) {
   const shake = G.shake > 0
     ? [(Math.sin(G.time * 91) + Math.sin(G.time * 53)) * G.shake * 1.6, (Math.cos(G.time * 77) + Math.sin(G.time * 61)) * G.shake * 1.6]
     : [0, 0];
+  if (G.phase !== "menu" && G.phase !== "paused") scene.adapt(dt);
+  // How far the screen is between the last two physics steps.
+  const alpha = G.phase === "play" || G.phase === "done" ? acc / DT : 1;
   const pip = scene.render(sim, {
+    alpha,
     // In the intro, a picked view is previewed behind the card.
     phase: G.phase === "paused" || G.phase === "done" || (G.phase === "intro" && G.introPreview) ? "play" : G.phase,
     time: G.time, dt, camMode: G.camMode, camDist: G.camDist,
@@ -584,7 +588,7 @@ function boot() {
 }
 
 // Debug handle for automated checks (dev server only).
-if (import.meta.env.DEV) window.__hitchPark = { G, sim, LEVELS, openIntro, startDriving, finishLevel, keys };
+if (import.meta.env.DEV) window.__hitchPark = { G, sim, LEVELS, openIntro, startDriving, finishLevel, keys, get scene() { return scene; } };
 
 boot();
 window.focus();

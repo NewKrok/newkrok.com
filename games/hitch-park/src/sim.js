@@ -348,6 +348,7 @@ export function createSim({ onEvent = () => {} } = {}) {
     S.time = 0;
     S.scoring = false;
     S.park = evalParking();
+    movingBodies(snapshot);
   }
 
   // ── Vehicle dynamics ───────────────────────────────────────────────────
@@ -391,7 +392,7 @@ export function createSim({ onEvent = () => {} } = {}) {
       jLat *= k; jLong *= k;
       w.skid = Math.min(1, (mag - cap) / cap);
     }
-    b.applyImpulse(new Vec2(c * jLong - s * jLat, s * jLong + c * jLat));
+    b.applyImpulse(Vec2.weak(c * jLong - s * jLat, s * jLong + c * jLat));
     w.fLong = jLong / DT;
     w.fLat = jLat / DT;
     w.spin += vLong * DT / w.r;
@@ -557,12 +558,47 @@ export function createSim({ onEvent = () => {} } = {}) {
     return best;
   }
 
+  // ── Render interpolation ───────────────────────────────────────────────
+  // The sim steps at a fixed 60 Hz, the screen refreshes at its own rate:
+  // every moving body keeps its pose from before the last step, and the
+  // renderer draws a blend of the two (pose), so motion stays smooth on
+  // 120/144 Hz screens and when a frame runs two steps at once.
+  function movingBodies(fn) {
+    const v = S.veh;
+    fn(v.chassis); fn(v.trailer.body);
+    for (const w of v.wheels) fn(w.body);
+    for (const p of S.parked) fn(p.body);
+    for (const m of S.movables) fn(m.body);
+    for (const c of S.cones) fn(c.body);
+  }
+  function snapshot(b) {
+    const q = b.userData._prev ?? (b.userData._prev = { x: 0, y: 0, a: 0 });
+    q.x = b.position.x; q.y = b.position.y; q.a = b.rotation;
+  }
+  const posed = { x: 0, y: 0, a: 0 };
+  // Pose of a body `alpha` of the way from its last pose to the current one.
+  // Returns a shared object: read it before the next call.
+  function pose(b, alpha = 1) {
+    const q = b.userData._prev;
+    if (!q || alpha >= 1) { posed.x = b.position.x; posed.y = b.position.y; posed.a = b.rotation; return posed; }
+    posed.x = q.x + (b.position.x - q.x) * alpha;
+    posed.y = q.y + (b.position.y - q.y) * alpha;
+    posed.a = q.a + wrapPi(b.rotation - q.a) * alpha;
+    return posed;
+  }
+
+  // Pre-step velocity of a body, for bump strength (BEGIN fires after the solver).
+  function keepVelocity(b) {
+    const pv = b.userData._pv ?? (b.userData._pv = { x: 0, y: 0 });
+    pv.x = b.velocity.x; pv.y = b.velocity.y;
+  }
+
   // One fixed physics step. `input` = { throttle, steer, brake }.
   function step(input) {
     const v = S.veh;
-    // Pre-step velocities for bump strength (BEGIN fires after the solver).
-    for (const b of [v.chassis, v.trailer.body]) b.userData._pv = { x: b.velocity.x, y: b.velocity.y };
-    for (const p of S.parked) p.body.userData._pv = { x: p.body.velocity.x, y: p.body.velocity.y };
+    movingBodies(snapshot);
+    keepVelocity(v.chassis); keepVelocity(v.trailer.body);
+    for (const p of S.parked) keepVelocity(p.body);
     driveVehicle(input);
     parkedFriction();
     space.step(DT, 10, 4);
@@ -606,5 +642,5 @@ export function createSim({ onEvent = () => {} } = {}) {
 
   const hitchAngle = () => wrapPi(S.veh.chassis.rotation - S.veh.trailer.body.rotation);
 
-  return Object.assign(S, { load, step, predictPath, rearClearance, hitchAngle });
+  return Object.assign(S, { load, step, pose, predictPath, rearClearance, hitchAngle });
 }
