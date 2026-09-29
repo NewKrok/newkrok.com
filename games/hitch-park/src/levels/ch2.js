@@ -194,4 +194,42 @@ function sportsClub() {
   });
 }
 
-export const CHAPTER2 = [loadingDock(), school(), containerTerminal(), retailPark(), sportsClub()];
+// 11. Recycling centre: round the one-way loop and back up to the skips.
+function recycling() {
+  const bays = hrow(240, 170, 12, PI / 2, { w: 46, l: 64 });
+  const target = 7;
+  const island = [[220, 324], [860, 324], [860, 416], [220, 416], [220, 324]];
+  const skips = ["WOOD", "METAL", "GARDEN", "CARDBOARD", "RUBBLE", "GLASS", "PAPER", "PLASTIC"];
+  const skipCols = [0x8a6238, 0x566573, 0x2f6b4a, 0xd68910, 0x9a968c, 0x1e8449, 0x2e86c1, 0xd9a13a];
+  return level({
+    id: "recycling", vehicle: "van", name: "Recycling centre", title: "Skip Day", trailer: "box", par: 70, sun: "deck",
+    brief: "Saturday clear-out. Follow the one-way loop round the office, then reverse the trailer into the free bay up against the skips.",
+    w: 1100, h: 640, base: "concrete", edge: "wall", backdrop: "industrial",
+    surfaces: [rect("asphalt", 20, 130, 1080, 600), rect("grass", 224, 328, 856, 412, 10), rect("gravel", 20, 40, 1080, 124)],
+    paint: [
+      paintBays(bays), paintBays([bays[target]], YELLOW),
+      ...skips.map((k, i) => text(250 + i * 72, 118, k, { size: 9 })),
+      arrow(500, 490, 0), arrow(970, 370, -PI / 2), arrow(760, 262, PI), arrow(110, 370, PI / 2),
+    ],
+    parked: [
+      ...park(bays, fill(12, 0.92, 11, [target]), 111, ["hatch", "wagon", "suv", "van", "pickup", "sedan"]),
+      car(960, 530, PI / 2, "lorry", 0x1e8449), car(70, 200, -PI / 2, "van", 0xf2f0e6),
+    ],
+    statics: [
+      ...skips.map((k, i) => ({ kind: "skip", x: 250 + i * 72, y: 80, w: 56, h: 32, color: skipCols[i] })),
+      { kind: "barrier", x: 510, y: 132, w: 600, h: 6 },
+      ...wallLine(island, { kind: "hedge", thick: 8, maxLen: 60 }),
+      { kind: "cabin", x: 330, y: 370, w: 80, h: 34, color: 0x1e8449 },
+      ...[0x1e8449, 0x2e86c1, 0xf2f2ee, 0x8a6238].map((c, i) => ({ kind: "block", x: 520 + i * 40, y: 370, w: 28, h: 28, height: 24, color: c })),
+      tree(760, 360, 16), tree(820, 380, 12), tree(450, 380, 12),
+      { kind: "block", x: 1010, y: 90, w: 110, h: 70, height: 36, color: 0x5d6d4a },
+      { kind: "crates", x: 60, y: 90, w: 60, h: 40 }, { kind: "crates", x: 150, y: 96, w: 40, h: 30 },
+      { kind: "lamp", x: 240, y: 470, a: -PI / 2 }, { kind: "lamp", x: 840, y: 470, a: -PI / 2 },
+    ],
+    cones: [{ x: 930, y: 250 }, { x: 1040, y: 250 }],
+    start: { x: 150, y: 500, a: 0 },
+    bay: { ...bays[target] },
+  });
+}
+
+export const CHAPTER2 = [loadingDock(), school(), containerTerminal(), retailPark(), sportsClub(), recycling()];

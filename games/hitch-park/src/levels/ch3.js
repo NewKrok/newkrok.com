@@ -226,4 +226,67 @@ function beach() {
   });
 }
 
-export const CHAPTER3 = [countryLane(), ferryTerminal(), oldTown(), timberYard(), beach()];
+// 16. Vineyard: off the country road through the gate, down the
+// switchbacks and twice over the stream, to the winery cellar.
+function vineyard() {
+  const track = smooth([[1150, 60], [1150, 250], [1000, 330], [700, 300], [480, 380], [400, 500], [520, 600], [720, 600]]);
+  const stream = [552, 608];
+  const onTrack = (x, y, d) => distToLine(track, x, y) < d;
+  // The stream in 20 px strips; where the track crosses it, a bridge.
+  const water = [], deck = [], rails = [];
+  let gap = null;
+  for (let y = 112; y < 820; y += 20) {
+    const bridge = onTrack(580, y + 10, 36);
+    if (!bridge) water.push(y);
+    if (bridge && !gap) gap = [y, y + 20];
+    else if (bridge) gap[1] = y + 20;
+    if (!bridge && gap) { deck.push(gap); gap = null; }
+  }
+  for (const [y0, y1] of deck) rails.push({ kind: "barrier", x: 580, y: y0 - 2, w: 60, h: 4 }, { kind: "barrier", x: 580, y: y1 + 2, w: 60, h: 4 });
+  // Rows of vines east to west, cut cleanly at the track, stream and yard.
+  const clear = (x, y) => !onTrack(x, y, 46) && (x < stream[0] - 14 || x > stream[1] + 14) && !(x > 600 && y > 500) && !(x > 1080 && x < 1220 && y < 150);
+  const vines = [];
+  for (let y = 150; y < 800; y += 30) {
+    let run = null;
+    for (let x = 30; x <= 1470; x += 4) {
+      const ok = clear(x, y);
+      if (ok && !run) run = [x, x];
+      else if (ok) run[1] = x;
+      if ((!ok || x + 4 > 1470) && run) {
+        if (run[1] - run[0] > 16) vines.push(...wallLine([[run[0], y], [run[1], y]], { kind: "hedge", thick: 5, maxLen: 90 }));
+        run = null;
+      }
+    }
+  }
+  const bay = { x: 880, y: 670, a: -PI / 2, w: 44, l: 64 };
+  const barrels = range(0, 4).flatMap((i) => [{ kind: "barrel", x: 840, y: 650 + i * 12 }, { kind: "barrel", x: 920, y: 650 + i * 12 }]);
+  const wall = { kind: "wall", style: "stone", height: 12 };
+  return level({
+    id: "vineyard", vehicle: "pickup", name: "Vineyard", title: "Grape Run", trailer: "box", par: 120, sun: "golden",
+    brief: "Harvest time. Turn off the country road through the gate, wind down between the vines and over the stream twice, then reverse the grapes up to the cellar door.",
+    w: 1500, h: 820, base: "grass", edge: "fence", backdrop: "fields",
+    surfaces: [
+      rect("asphalt", 0, 28, 1500, 100), road("dirt", track, 58), rect("gravel", 620, 520, 1180, 712, 24),
+      ...water.map((y) => rect("water", stream[0], y, stream[1], y + 20)), ...deck.map(([y0, y1]) => rect("deck", stream[0] - 4, y0, stream[1] + 4, y1)),
+    ],
+    paint: [paintBays([bay], YELLOW), line([[0, 64], [1500, 64]], { dash: [22, 18] })],
+    parked: [car(300, 46, 0, "sedan"), car(1030, 560, 0.3, "suv"), car(640, 690, -PI / 2, "hatch")],
+    statics: [
+      { ...wall, x: 555, y: 108, w: 1110, h: 6 }, { ...wall, x: 1345, y: 108, w: 310, h: 6 },
+      ...water.map((y) => ({ kind: "water", x: 580, y: y + 10, w: 56, h: 20 })),
+      ...rails,
+      ...vines,
+      building(880, 766, 440, 100, { height: 42, color: 0xe8d8b8, roof: 0x9a3b2a, sign: "WINERY · CELLAR", signColor: "#7a1f2e", signSide: "n" }),
+      ...barrels,
+      { kind: "tractor", x: 1100, y: 620, a: PI / 2 + 0.2, color: 0x2e86c1 },
+      { kind: "crates", x: 1010, y: 650, w: 44, h: 30 }, { kind: "crates", x: 760, y: 560, w: 36, h: 30 }, { kind: "crates", x: 1140, y: 540, w: 30, h: 30 },
+      ...range(0, 5).map((i) => ({ kind: "pine", x: 1210 + i * 60, y: 540, r: 12 })),
+      tree(1440, 700, 22), tree(1300, 640, 18),
+    ],
+    cones: [],
+    start: { x: 1370, y: 64, a: PI },
+    bay,
+  });
+}
+
+export const CHAPTER3 = [countryLane(), ferryTerminal(), oldTown(), timberYard(), beach(), vineyard()];

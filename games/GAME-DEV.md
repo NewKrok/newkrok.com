@@ -144,6 +144,17 @@ spawning / damage / drops, `monsters.js` AI and bosses, `weapons.js`,
   server through `window.__lastLantern` (see `scripts/browser.mjs` for the
   Chromium paths).
 
+### Performance (Hitch & Park)
+
+- Fixed-step physics needs render interpolation: keep each moving body's
+  pose from before the last step and draw `acc / DT` of the way to the
+  current one (Hitch & Park `sim.pose`). Without it a 120/144 Hz screen shows
+  the car stepping in jerks under a smoothly gliding camera, which players
+  read as the camera falling out of sync with the physics.
+- Parked cars as `InstancedMesh` per body type and material (paint and
+  hazard lamps from the instance colour), building walls merged per window
+  texture: Hitch & Park's busiest level went from ~800 draw calls to under 300.
+
 ### Performance (Last Lantern)
 
 - Measure first: `scripts/profile.mjs` times the sim, rig sync and effects

@@ -197,4 +197,55 @@ function ferryDeck() {
   });
 }
 
-export const CHAPTER6 = [distribution(), truckStop(), port(), delivery(), ferryDeck()];
+// 31. Stadium: in off the street, then reverse the stage trailer out of
+// the yard through a narrow passage onto the apron, and round the corner
+// into the service tunnel.
+function stadium() {
+  // The bay runs to the far end of the tunnel: backing in all the way counts.
+  const bay = { x: 1000, y: 278, a: PI / 2, w: 56, l: 252 };
+  const stand = { height: 96, color: 0x9aa3ab, roof: 0x3b3f45, lit: true };
+  const wall = { kind: "wall", style: "brick", height: 30 };
+  const kerb = [180, 320, 460, 700, 840, 1160, 1300, 1760, 1900].map((x, i) => car(x, 986, 0, ["sedan", "hatch", "van", "wagon", "suv", "hatch", "sedan", "van", "wagon"][i]));
+  return level({
+    id: "stadium", name: "Stadium", title: "Load-In", vehicle: "truck", trailer: "semi", par: 190, sun: "night",
+    brief: "Concert tonight and the stage is on your trailer. In off the street to the crew yard, then reverse through the narrow passage onto the apron and round the corner, all the way down the service tunnel.",
+    w: 2000, h: 1100, base: "asphalt", edge: "rail", backdrop: "town",
+    surfaces: [
+      rect("pavement", 0, 862, 2000, 880), rect("pavement", 0, 1004, 2000, 1020),
+      rect("grass", 0, 470, 1252, 858), rect("concrete", 420, 470, 1150, 800), rect("concrete", 960, 150, 1040, 470), rect("concrete", 1150, 535, 1260, 635),
+    ],
+    paint: [
+      paintBays([bay], YELLOW), text(1000, 560, "STAGE DOOR", { size: 14, color: YELLOW }), hatch(424, 474, 540, 540),
+      line([[0, 940], [2000, 940]], { dash: [28, 22] }), text(1560, 830, "CREW ONLY", { size: 14, color: YELLOW }),
+    ],
+    parked: [...kerb, car(1400, 700, PI / 2, "van", 0xf2f0e6), car(1330, 800, 0, "lorry", 0x2b2d31)],
+    statics: [
+      // The stand, with the tunnel between its two halves.
+      building(634, 242, 668, 455, { ...stand, sign: "ARENA", signColor: "#c0392b" }),
+      building(1366, 242, 668, 455, stand),
+      building(1000, 82, 64, 136, { ...stand, doors: [1000], doorW: 44 }),
+      // Apron walls, the passage and the crew yard.
+      { ...wall, x: 416, y: 637, a: PI / 2, w: 342, h: 8 },
+      { ...wall, x: 785, y: 804, w: 746, h: 8 }, { ...wall, x: 1154, y: 721, a: PI / 2, w: 174, h: 8 },
+      { ...wall, x: 1205, y: 639, w: 110, h: 8 },
+      building(1205, 502, 110, 66, { height: 40, color: 0xb8866a, roof: 0x3b3f45 }),
+      { ...wall, x: 1256, y: 748, a: PI / 2, w: 234, h: 8 },
+      { ...wall, x: 1370, y: 862, w: 230, h: 8 }, { ...wall, x: 1800, y: 862, w: 320, h: 8 },
+      { ...wall, x: 1960, y: 666, a: PI / 2, w: 400, h: 8 }, { ...wall, x: 1830, y: 470, w: 260, h: 8 },
+      semiAt(1790, 520, PI, 3, "LIVE TV"),
+      { kind: "crates", x: 1100, y: 490, w: 40, h: 30 }, { kind: "crates", x: 460, y: 770, w: 44, h: 30 }, { kind: "crates", x: 700, y: 490, w: 40, h: 30 },
+      { kind: "block", x: 1880, y: 780, w: 60, h: 90, height: 30, color: 0xe8c547 },
+      ...[300, 800, 1300, 1800].map((x) => ({ kind: "lamp", x, y: 874, a: PI / 2 })),
+      { kind: "lamp", x: 1272, y: 664, a: 0 },
+      // A fenced lawn in front of the stand: the apron is reached only from the yard.
+      ...range(0, 25).map((i) => ({ kind: "fence", x: 25 + i * 50, y: 866, w: 52, h: 3 })),
+      ...range(0, 4).map((i) => tree(90 + i * 95, 560 + (i % 2) * 150, 20)), tree(700, 836, 16), tree(1000, 836, 16),
+      { kind: "barrier", x: 6, y: 940, w: 6, h: 120 }, { kind: "barrier", x: 1994, y: 940, w: 6, h: 120 },
+    ],
+    cones: [{ x: 1165, y: 548 }, { x: 1165, y: 622 }],
+    start: { x: 230, y: 925, a: 0 },
+    bay,
+  });
+}
+
+export const CHAPTER6 = [distribution(), truckStop(), port(), delivery(), ferryDeck(), stadium()];

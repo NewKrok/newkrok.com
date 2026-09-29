@@ -9,6 +9,9 @@ import { drawGround, makeCanvas, xform, rectPts } from "./topdown.js";
 // draw calls); the player's car keeps separate wheel groups so they can
 // spin and steer from the wheel bodies.
 
+// Rear-view camera height above the trailer's tail, px.
+const REAR_CAM_Z = { semi: 44, caravan: 22, horsebox: 27, boat: 20, carhauler: 18, pipes: 16 };
+
 export const SUNS = {
   noon:   { dir: [-0.35, 0.5, 1], color: 0xfff1dc, i: 2.7, sky: 0xc4dcff, gnd: 0x6a6050, hemi: 1.15, top: "#6fa6e0", bot: "#dbe9f5", fog: 0xd6e2ec, lamps: false, env: 1 },
   deck:   { dir: [0.35, 0.55, 1], color: 0xffffff, i: 2.3, sky: 0xd2e0f0, gnd: 0x6a6a6a, hemi: 1.35, top: "#8fb0d4", bot: "#e8eef4", fog: 0xdfe6ee, lamps: false, env: 1 },
@@ -126,7 +129,28 @@ export class Scene3D {
       this.sun.shadow.map?.dispose();
       this.sun.shadow.map = null;
     }
-    this.renderer.setPixelRatio(hi ? Math.min(window.devicePixelRatio || 1, 2) : 1);
+    this.basePixelRatio = hi ? Math.min(window.devicePixelRatio || 1, 2) : 1;
+    this.renderScale = 1;
+    this.slowFor = 0; this.fastFor = 0; this.frameEma = 1 / 60;
+    this.renderer.setPixelRatio(this.basePixelRatio);
+    this.resize(this.W, this.H);
+  }
+
+  // Adaptive resolution: when frames keep taking longer than ~40 fps, draw
+  // fewer pixels (down to 55 %), and win them back slowly once there is room.
+  // Weak GPUs stay smooth without the player hunting for a setting.
+  adapt(dt) {
+    if (!(dt > 0) || dt >= 0.1) return;          // tab switches, hitches
+    this.frameEma += (dt - this.frameEma) * 0.05;
+    this.slowFor = this.frameEma > 1 / 40 ? this.slowFor + dt : 0;
+    this.fastFor = this.frameEma < 1 / 55 ? this.fastFor + dt : 0;
+    let k = this.renderScale;
+    if (this.slowFor > 1.5 && k > 0.55) k = Math.max(0.55, k - 0.15);
+    else if (this.fastFor > 8 && k < 1) k = Math.min(1, k + 0.15);
+    else return;
+    this.slowFor = 0; this.fastFor = 0;
+    this.renderScale = k;
+    this.renderer.setPixelRatio(this.basePixelRatio * k);
     this.resize(this.W, this.H);
   }
 
@@ -382,7 +406,7 @@ export class Scene3D {
     P.add(g.cylZ, g.darkMetal, L / 2 + t.bar * M * 0.45, -W * 0.12, bedZ / 2, 0, 0.8, 0.8, bedZ);
     P.add(g.cyl, g.tire, L / 2 + t.bar * M * 0.45, -W * 0.12, 1.2, 0, 1.2, 1, 1.2);
     const wheels = [];
-    const addWheel = (y) => wheels.push({ lx: ax, ly: y });
+    const addWheel = (y, x = ax) => wheels.push({ lx: x, ly: y });
     if (key === "box") {
       P.add(g.box, g.darkMetal, 0, W * 0.3, bedZ - 1.2, 0, L, 1.6, 1.8);
       P.add(g.box, g.darkMetal, 0, -W * 0.3, bedZ - 1.2, 0, L, 1.6, 1.8);
@@ -410,6 +434,100 @@ export class Scene3D {
       P.add(g.cylZ, g.chrome, L / 2 + 2, 0, bedZ + 6.4, 0, 1.4, 1.4, 1.8, Math.PI / 2);
       for (let k = -2; k <= 2; k++) P.add(g.cyl, g.trim, k * L * 0.18, 0, bedZ + 0.6, 0, 0.9, W * 0.3, 0.9);
       for (const s of [-1, 1]) P.add(g.box, tail, -L / 2 - 0.5, s * (W / 2 - 1.2), bedZ, 0, 0.6, 2.6, 1.4);
+      addWheel(wo); addWheel(-wo);
+    } else if (key === "teardrop") {
+      // Teardrop: a side profile high and round at the front, tapering
+      // down to the galley hatch at the back, aluminium with a painted band.
+      const z0 = r * 1.2, H = 1.32 * M, hl = L / 2;
+      const s = new T.Shape();
+      s.moveTo(-hl, z0);
+      s.lineTo(hl - 3, z0);
+      s.quadraticCurveTo(hl, z0, hl, z0 + 4);
+      s.quadraticCurveTo(hl, H, hl * 0.15, H);
+      s.quadraticCurveTo(-hl * 0.85, H, -hl, z0 + 3);
+      s.lineTo(-hl, z0);
+      const shell = owned(new T.ExtrudeGeometry(s, { depth: W - 2, bevelEnabled: true, bevelThickness: 1, bevelSize: 1, bevelSegments: 2, curveSegments: 8 }));
+      shell.rotateX(Math.PI / 2);
+      shell.translate(0, W / 2 - 1, 0);
+      P.add(shell, g.chrome);
+      const band = this.paintMat(0x2a9d8f);
+      for (const sd of [-1, 1]) {
+        P.add(g.box, band, 0, sd * (W / 2 + 0.2), z0 + 3.2, 0, L - 4, 0.4, 3.4);
+        P.add(g.box, g.trim, L * 0.05, sd * (W / 2 + 0.25), z0 + 7.5, 0, 6.5, 0.4, 7.5);
+        P.add(g.cyl, g.glass, L * 0.05, sd * (W / 2 + 0.3), z0 + 9.6, 0, 1.8, 0.4, 1.8);
+        P.add(g.box, g.darkMetal, ax, sd * wo, r * 2.1, 0, r * 2.4, ww + 1.8, 0.7);
+      }
+      P.add(g.box, g.trim, 0, 0, z0 - 0.6, 0, L - 2, W * 0.7, 1.4);
+      P.add(g.box, g.darkMetal, -hl - 0.1, 0, z0 + 3.6, 0, 0.6, W * 0.72, 0.8);
+      for (const sd of [-1, 1]) P.add(g.box, tail, -hl - 0.3, sd * (W / 2 - 1.8), z0 + 1.6, 0, 0.6, 2.6, 1.6);
+      P.add(g.box, g.plate, -hl - 0.3, 0, z0 - 0.2, 0, 0.3, 5, 1.4);
+      P.add(g.box, this.paintMat(0xe7e2d6), hl - 2, 0, H - 0.3, 0, 6, 6, 1);
+      addWheel(wo); addWheel(-wo);
+    } else if (key === "horsebox") {
+      // Horsebox: a tall box with a rounded roof line, windows high up, a
+      // tailgate ramp at the back and twin axles under the body.
+      const z0 = r * 1.25, H = 2.5 * M, hl = L / 2;
+      const s = new T.Shape();
+      s.moveTo(-hl, z0);
+      s.lineTo(hl - 5, z0);
+      s.quadraticCurveTo(hl, z0, hl, z0 + 5);
+      s.lineTo(hl, H - 7);
+      s.quadraticCurveTo(hl, H, hl - 9, H);
+      s.lineTo(-hl + 2, H);
+      s.quadraticCurveTo(-hl, H, -hl, H - 2);
+      s.lineTo(-hl, z0);
+      const shell = owned(new T.ExtrudeGeometry(s, { depth: W - 2, bevelEnabled: true, bevelThickness: 1, bevelSize: 1, bevelSegments: 2, curveSegments: 5 }));
+      shell.rotateX(Math.PI / 2);
+      shell.translate(0, W / 2 - 1, 0);
+      P.add(shell, this.paintMat(0x2f4f3a));
+      const cream = this.paintMat(0xe9e2cf);
+      for (const sd of [-1, 1]) {
+        P.add(g.box, cream, -1, sd * (W / 2 + 0.2), z0 + 5, 0, L - 6, 0.4, 7);
+        for (const x of [L * 0.22, -L * 0.08]) P.add(g.box, g.glass, x, sd * (W / 2 + 0.25), H - 7, 0, 9, 0.4, 4.2);
+        P.add(g.box, g.darkMetal, L * 0.36, sd * (W / 2 + 0.25), z0 + 12, 0, 5, 0.4, 13);
+      }
+      P.add(g.box, g.glass, hl + 0.3, 0, H - 8, 0, 0.5, W - 8, 5);
+      P.add(g.box, g.darkMetal, -hl - 0.4, 0, z0 + (H - z0) * 0.38, 0, 0.8, W - 3, (H - z0) * 0.72);
+      for (let k = 0; k < 4; k++) P.add(g.box, g.trim, -hl - 0.9, 0, z0 + 3 + k * 5, 0, 0.4, W - 5, 0.6);
+      for (const sd of [-1, 1]) P.add(g.box, tail, -hl - 0.6, sd * (W / 2 - 2), z0 + 1.6, 0, 0.6, 3, 2);
+      P.add(g.box, g.plate, -hl - 0.6, 0, z0 - 0.2, 0, 0.3, 5.5, 1.6);
+      P.add(g.box, g.trim, 0, 0, z0 - 0.4, 0, L - 2, W - 4, 1.2);
+      for (const dx of [-r * 1.08, r * 1.08]) { addWheel(wo, ax + dx); addWheel(-wo, ax + dx); }
+    } else if (key === "carhauler") {
+      // Car transporter: a flat deck with rails and stowed ramps, carrying
+      // a classic car.
+      const deckZ = r * 2 + 1.2;
+      for (const sd of [-1, 1]) {
+        P.add(g.box, g.darkMetal, 0, sd * W * 0.3, deckZ - 1.6, 0, L, 1.6, 2.2);
+        P.add(g.box, g.metal, 0, sd * (W / 2 - 0.6), deckZ + 1.4, 0, L, 1.2, 1.4);
+        P.add(g.box, g.metal, -L / 2 - 2, sd * W * 0.3, deckZ + 6, 0, 1.2, 5.5, 12, 0, 0.35);
+      }
+      P.add(g.box, g.darkMetal, 0, 0, deckZ, 0, L, W, 1);
+      for (let k = -2; k <= 2; k++) P.add(g.box, g.trim, k * L * 0.18, 0, deckZ + 0.6, 0, 0.6, W - 1, 0.3);
+      for (const sd of [-1, 1]) P.add(g.box, tail, -L / 2 - 0.3, sd * (W / 2 - 1.8), deckZ - 0.2, 0, 0.6, 3.2, 1.6);
+      P.add(g.box, g.plate, -L / 2 - 0.3, 0, deckZ - 1.8, 0, 0.3, 5.5, 1.6);
+      for (const dx of [-r * 1.08, r * 1.08]) { addWheel(wo, ax + dx); addWheel(-wo, ax + dx); }
+    } else if (key === "pipes") {
+      // Pipe trailer: a short single-axle chassis near the front and a
+      // bundle of pipes running far out behind it, with a red flag on the end.
+      const chassisL = 3.4 * M, cx0 = L / 2 - chassisL / 2;
+      for (const sd of [-1, 1]) {
+        P.add(g.box, g.darkMetal, cx0, sd * W * 0.3, bedZ - 0.6, 0, chassisL, 1.4, 1.8);
+        P.add(g.box, g.darkMetal, ax, sd * wo, r * 2.1, 0, r * 2.5, ww + 2, 0.7);
+        P.add(g.box, g.darkMetal, ax, sd * (wo + ww / 2 + 1), r * 1.3, 0, r * 2.5, 0.6, r * 1.6);
+      }
+      for (const x of [L / 2 - 3, cx0 - chassisL / 2 + 3]) P.add(g.box, g.darkMetal, x, 0, bedZ + 1, 0, 2.4, W, 2);
+      const pipe = this.matCached("pipe", () => new T.MeshStandardMaterial({ color: 0xd9822b, roughness: 0.55 }));
+      const pr = 1.9, n = Math.floor(W / (pr * 2));
+      for (let layer = 0; layer < 3; layer++) {
+        for (let i = 0; i < n - layer; i++) {
+          const y = -((n - layer) * pr * 2) / 2 + pr + i * pr * 2;
+          P.add(g.cyl, pipe, 0, y, bedZ + 2 + pr + layer * pr * 1.7, Math.PI / 2, pr, L, pr);
+        }
+      }
+      for (const x of [L / 2 - 6, cx0 - chassisL / 2 + 6]) P.add(g.box, this.paintMat(0xe8c547), x, 0, bedZ + 2 + pr * 2.4, 0, 1.2, W + 0.4, pr * 5.6);
+      P.add(g.box, g.red, -L / 2 - 1.6, 0, bedZ + 2 + pr * 2, 0, 0.4, 7, 7);
+      for (const sd of [-1, 1]) P.add(g.box, tail, -L / 2 - 0.6, sd * (W / 2 - 1.4), bedZ + 1.2, 0, 0.6, 2.4, 1.6);
       addWheel(wo); addWheel(-wo);
     } else {
       // Caravan: side profile extruded across the width, rounded at the front.
@@ -446,8 +564,8 @@ export class Scene3D {
     const out = { body, wheels: [], L, W, bedZ };
     for (const w of wheels) {
       const pivot = new T.Group();
-      // Caravan wheels sit under the body: keep their faces clear of its sides.
-      pivot.position.set(w.lx, w.ly + Math.sign(w.ly) * (key === "caravan" ? 1.4 : 0), r);
+      // Wheels under the body: keep their faces clear of its sides.
+      pivot.position.set(w.lx, w.ly + Math.sign(w.ly) * (t.wheelOut < 0 ? 1.4 : 0), r);
       const spin = new T.Group();
       const tire = new T.Mesh(g.cyl, g.tire);
       tire.scale.set(r, ww, r);
@@ -460,7 +578,13 @@ export class Scene3D {
       spin.add(tire, rim);
       pivot.add(spin);
       body.add(pivot);
-      out.wheels.push({ pivot, spin });
+      // Model +y is the physics body's −y side: wheel 0. Twin axles share it.
+      out.wheels.push({ pivot, spin, phys: w.ly > 0 ? 0 : 1 });
+    }
+    if (key === "carhauler") {
+      const car = this.buildCarModel(CAR_TYPES.sedan, 0xc0392b, { live: false });
+      car.body.position.set(-1, 0, r * 2 + 1.8);
+      body.add(car.body);
     }
     if (key === "boat") {
       const hull = this.buildBoatHull(L * 0.98, W * 0.96, 0x1f5a8a);
@@ -497,6 +621,79 @@ export class Scene3D {
     P.add(g.box, g.chrome, L / 2 - 6, 0, 10.6, 0, 8, 0.5, 0.5);
     grp.add(P.merged());
     return grp;
+  }
+
+  // ── Parked cars ────────────────────────────────────────────────────────
+  // Instanced: one model per body type, one InstancedMesh per material of
+  // it, so a car park full of cars costs a few draw calls instead of four
+  // per car. Paint comes from the instance colour, and the hazard lamps
+  // are an unlit instanced mesh whose colour flips when a car is shoved.
+  buildParked(sim, lv) {
+    const MARK = 0xfffffe;                        // paint of the template, swapped for instance colours
+    const HZ_OFF = new T.Color(0x3a2408), HZ_ON = new T.Color(0xffb040);
+    const byType = new Map();
+    for (const rec of sim.parked) {
+      if (!byType.has(rec.type)) byType.set(rec.type, []);
+      byType.get(rec.type).push(rec);
+    }
+    lv.parkedSets = [];
+    for (const [, recs] of byType) {
+      const spec = recs[0].spec;
+      const hzTemplate = owned(new T.MeshBasicMaterial({ color: 0xffffff }));
+      hzTemplate.userData.noShadow = true;
+      const model = spec.lorry ? this.buildLorryModel(spec, MARK, { hazardMat: hzTemplate }) : this.buildCarModel(spec, MARK, { hazardMat: hzTemplate });
+      const paintTemplate = this.paintMat(MARK);
+      const meshes = [];
+      model.body.traverse((m) => {
+        if (!m.isMesh) return;
+        let mat = m.material, kind = "plain";
+        if (mat === paintTemplate) { mat = owned(new T.MeshStandardMaterial({ color: 0xffffff, metalness: 0.45, roughness: 0.32 })); kind = "paint"; }
+        else if (mat === hzTemplate) kind = "hazard";
+        const im = new T.InstancedMesh(m.geometry, mat, recs.length);
+        im.castShadow = m.castShadow; im.receiveShadow = true;
+        im.frustumCulled = false;                 // instances move; the whole set is cheap to draw
+        im.instanceMatrix.setUsage(T.DynamicDrawUsage);
+        meshes.push({ im, kind });
+        lv.group.add(im);
+      });
+      const set = { recs, meshes, last: recs.map(() => ({ x: NaN, y: NaN, a: NaN, on: null })), HZ_OFF, HZ_ON };
+      recs.forEach((rec, i) => {
+        for (const { im, kind } of meshes) {
+          if (kind === "paint") im.setColorAt(i, new T.Color(rec.color));
+          if (kind === "hazard") im.setColorAt(i, HZ_OFF);
+        }
+      });
+      lv.parkedSets.push(set);
+    }
+  }
+
+  syncParked(sim, lv, alpha) {
+    const dm = this.dummy;
+    for (const set of lv.parkedSets) {
+      let moved = false, flashed = false;
+      set.recs.forEach((rec, i) => {
+        const q = sim.pose(rec.body, alpha), last = set.last[i];
+        if (q.x !== last.x || q.y !== last.y || q.a !== last.a) {
+          last.x = q.x; last.y = q.y; last.a = q.a;
+          dm.position.set(q.x, -q.y, 0);
+          dm.rotation.set(0, 0, -q.a);
+          dm.scale.set(1, 1, 1);
+          dm.updateMatrix();
+          for (const { im } of set.meshes) im.setMatrixAt(i, dm.matrix);
+          moved = true;
+        }
+        const on = rec.hazard > 0 && Math.floor(rec.hazard * 3) % 2 === 0;
+        if (on !== last.on) {
+          last.on = on;
+          for (const { im, kind } of set.meshes) if (kind === "hazard") im.setColorAt(i, on ? set.HZ_ON : set.HZ_OFF);
+          flashed = true;
+        }
+      });
+      for (const { im, kind } of set.meshes) {
+        if (moved) im.instanceMatrix.needsUpdate = true;
+        if (flashed && kind === "hazard") im.instanceColor.needsUpdate = true;
+      }
+    }
   }
 
   // ── Level scene ────────────────────────────────────────────────────────
@@ -579,27 +776,59 @@ export class Scene3D {
     return grp;
   }
 
-  buildingMesh(x, y, w, d, h, seed, lit, base = "#8a8176", glass = false) {
-    const rnd = lcg(seed);
-    const tex = owned(canvasTex(128, 256, (c, cw, ch) => {
-      c.fillStyle = base; c.fillRect(0, 0, cw, ch);
-      if (glass) { c.fillStyle = "#34506a"; c.fillRect(4, 30, cw - 8, ch - 40); c.fillStyle = "rgba(255,255,255,0.15)"; for (let k = 0; k < 4; k++) c.fillRect(4 + k * 31, 30, 2, ch - 40); return; }
-      for (let r = 0; r < 8; r++) for (let k = 0; k < 4; k++) {
-        const on = lit && rnd() < 0.45;
-        c.fillStyle = on ? (rnd() < 0.5 ? "#ffd89a" : "#ffe9c4") : "#2a3440";
-        c.fillRect(8 + k * 30, 10 + r * 30, 20, 18);
-        c.fillStyle = "rgba(255,255,255,0.08)"; c.fillRect(8 + k * 30, 10 + r * 30, 20, 4);
-      }
-    }, { repeat: true }));
-    tex.repeat.set(Math.max(1, Math.round(w / 40)), Math.max(1, Math.round(h / 80)));
-    const side = owned(new T.MeshStandardMaterial({ map: tex, roughness: 0.85, emissive: lit ? 0xffffff : 0x000000, emissiveMap: lit ? tex : null, emissiveIntensity: lit ? 0.55 : 0 }));
-    const roof = this.darkConcrete;
-    const m = new T.Mesh(this.box, [side, side, side, side, roof, roof]);
-    m.position.set(x, -y, h / 2);
-    m.scale.set(w, d, h);
-    m.castShadow = true;
-    m.receiveShadow = true;
-    return m;
+  // ── Building walls ─────────────────────────────────────────────────────
+  // Walls share a few cached window textures (colour × lit × three window
+  // patterns) and are merged per texture into one mesh for the level, so a
+  // street of buildings is a handful of draw calls, not six per building.
+  facadeMat(base, lit, glass, variant) {
+    return this.matCached(`facade${base}${lit ? 1 : 0}${glass ? 1 : 0}${variant}`, () => {
+      const rnd = lcg(variant * 7919 + 13);
+      const tex = canvasTex(128, 256, (c, cw, ch) => {
+        c.fillStyle = base; c.fillRect(0, 0, cw, ch);
+        if (glass) { c.fillStyle = "#34506a"; c.fillRect(4, 30, cw - 8, ch - 40); c.fillStyle = "rgba(255,255,255,0.15)"; for (let k = 0; k < 4; k++) c.fillRect(4 + k * 31, 30, 2, ch - 40); return; }
+        for (let r = 0; r < 8; r++) for (let k = 0; k < 4; k++) {
+          const on = lit && rnd() < 0.45;
+          c.fillStyle = on ? (rnd() < 0.5 ? "#ffd89a" : "#ffe9c4") : "#2a3440";
+          c.fillRect(8 + k * 30, 10 + r * 30, 20, 18);
+          c.fillStyle = "rgba(255,255,255,0.08)"; c.fillRect(8 + k * 30, 10 + r * 30, 20, 4);
+        }
+      }, { repeat: true });
+      return new T.MeshStandardMaterial({ map: tex, roughness: 0.85, emissive: lit ? 0xffffff : 0x000000, emissiveMap: lit ? tex : null, emissiveIntensity: lit ? 0.55 : 0 });
+    });
+  }
+
+  // Four walls of a w × d × h block centred on three (x, y), turned by rz,
+  // into the level's facade batch. The window texture repeats every 40 px
+  // across and 80 px up, as before.
+  addFacade(x, y, rz, w, d, h, seed, lit, base = "#8a8176", glass = false) {
+    const mat = this.facadeMat(base, lit, glass, Math.abs(seed | 0) % 3);
+    let b = this.facades.get(mat);
+    if (!b) { b = { pos: [], nor: [], uv: [] }; this.facades.set(mat, b); }
+    const c = Math.cos(rz), s = Math.sin(rz);
+    const W = (lx, ly) => [x + lx * c - ly * s, y + lx * s + ly * c];
+    const hw = w / 2, hd = d / 2, rv = Math.max(1, Math.round(h / 80));
+    // Each side: from corner p to corner q, counter-clockwise seen from outside.
+    for (const [p, q, nx, ny, len] of [[[-hw, -hd], [hw, -hd], 0, -1, w], [[hw, -hd], [hw, hd], 1, 0, d], [[hw, hd], [-hw, hd], 0, 1, w], [[-hw, hd], [-hw, -hd], -1, 0, d]]) {
+      const [x0, y0] = W(...p), [x1, y1] = W(...q);
+      const n = [nx * c - ny * s, nx * s + ny * c, 0];
+      const ru = Math.max(1, Math.round(len / 40));
+      const v = [[x0, y0, 0, 0, 0], [x1, y1, 0, ru, 0], [x1, y1, h, ru, rv], [x0, y0, 0, 0, 0], [x1, y1, h, ru, rv], [x0, y0, h, 0, rv]];
+      for (const [px, py, pz, u, vv] of v) { b.pos.push(px, py, pz); b.nor.push(...n); b.uv.push(u, vv); }
+    }
+  }
+
+  flushFacades(group) {
+    for (const [mat, b] of this.facades) {
+      const geo = new T.BufferGeometry();
+      geo.setAttribute("position", new T.Float32BufferAttribute(b.pos, 3));
+      geo.setAttribute("normal", new T.Float32BufferAttribute(b.nor, 3));
+      geo.setAttribute("uv", new T.Float32BufferAttribute(b.uv, 2));
+      geo.computeBoundingSphere();
+      const m = new T.Mesh(owned(geo), mat);
+      m.castShadow = true; m.receiveShadow = true;
+      group.add(m);
+    }
+    this.facades = new Map();
   }
 
   glassPanel() {
@@ -869,7 +1098,7 @@ export class Scene3D {
         m.body.rotation.z = rz;
         return m.body;
       }
-      case "building": return this.buildBuilding(def, lvl);
+      case "building": return this.buildBuilding(P, def, lvl);
       default: {
         if (def.w && def.h) at(g.box, this.paintMat(def.color ?? 0x8a8176), 0, 0, 10, def.w, def.h, 20);
         return null;
@@ -905,46 +1134,39 @@ export class Scene3D {
   }
 
   // A building with a window facade, a roof, and optional sign and doors.
-  buildBuilding(def, lvl) {
+  // Walls go to the facade batch and roof and doors to the merged props P;
+  // only a sign comes back as its own mesh.
+  buildBuilding(P, def, lvl) {
     const lit = !!(def.lit || SUNS[lvl.sun]?.lamps);
     const h = def.height ?? 40;
     const css = "#" + (def.color ?? 0x8a8176).toString(16).padStart(6, "0");
-    const grp = new T.Group();
-    const m = this.buildingMesh(0, 0, def.w, def.h, h, (def.x * 7 + def.y * 3) | 0, lit, css, def.glass);
-    m.position.set(0, 0, h / 2);
-    grp.add(m);
-    const roof = new T.Mesh(this.box, this.paintMat(def.roof ?? 0x5a5f66));
-    roof.scale.set(def.w + 2, def.h + 2, 2);
-    roof.position.z = h + 1;
-    roof.castShadow = true;
-    grp.add(roof);
+    const rz = -(def.a ?? 0), c = Math.cos(rz), s = Math.sin(rz);
+    const at = (lx, ly) => [def.x + lx * c - ly * s, -def.y + lx * s + ly * c];
+    this.addFacade(def.x, -def.y, rz, def.w, def.h, h, (def.x * 7 + def.y * 3) | 0, lit, css, def.glass);
+    P.add(this.box, this.paintMat(def.roof ?? 0x5a5f66), def.x, -def.y, h + 1, rz, def.w + 2, def.h + 2, 2);
     // Facade details face the site: south by default (three −y).
     const side = def.signSide ?? "s";
     const fy = side === "s" ? -def.h / 2 - 0.4 : side === "n" ? def.h / 2 + 0.4 : 0;
     const fx = side === "e" ? def.w / 2 + 0.4 : side === "w" ? -def.w / 2 - 0.4 : 0;
     const faceRot = side === "s" ? 0 : side === "n" ? Math.PI : side === "e" ? Math.PI / 2 : -Math.PI / 2;
     const faceW = side === "s" || side === "n" ? def.w : def.h;
-    for (const dx of def.doors ?? []) {
-      const d = new T.Mesh(this.box, this.darkMetal);
-      d.scale.set(def.doorW ?? 34, 0.6, Math.min(h * 0.6, 34));
-      d.position.set(dx - def.x, fy, Math.min(h * 0.6, 34) / 2);
-      grp.add(d);
-    }
-    if (def.sign) {
-      const tex = owned(canvasTex(512, 96, (c, w, hh) => {
-        c.fillStyle = def.signBg ?? "rgba(255,255,255,0.92)"; c.fillRect(0, 0, w, hh);
-        c.fillStyle = def.signColor ?? "#1f3a5a"; c.font = "900 60px system-ui, sans-serif"; c.textAlign = "center"; c.textBaseline = "middle";
-        c.fillText(def.sign, w / 2, hh / 2 + 4, w - 20);
-      }));
-      const sign = new T.Mesh(this.plane, owned(new T.MeshStandardMaterial({ map: tex, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: lit ? 0.8 : 0.15, roughness: 0.6 })));
-      const sw = Math.min(faceW * 0.7, 300);
-      sign.scale.set(sw, sw * 96 / 512, 1);
-      sign.rotation.set(Math.PI / 2, 0, faceRot, "ZXY");
-      sign.position.set(fx, fy + (side === "s" ? -0.2 : side === "n" ? 0.2 : 0), h * 0.72);
-      grp.add(sign);
-    }
+    const doorH = Math.min(h * 0.6, 34);
+    for (const dx of def.doors ?? []) P.add(this.box, this.darkMetal, ...at(dx - def.x, fy), doorH / 2, rz, def.doorW ?? 34, 0.6, doorH);
+    if (!def.sign) return null;
+    const grp = new T.Group();
+    const tex = owned(canvasTex(512, 96, (cx, w, hh) => {
+      cx.fillStyle = def.signBg ?? "rgba(255,255,255,0.92)"; cx.fillRect(0, 0, w, hh);
+      cx.fillStyle = def.signColor ?? "#1f3a5a"; cx.font = "900 60px system-ui, sans-serif"; cx.textAlign = "center"; cx.textBaseline = "middle";
+      cx.fillText(def.sign, w / 2, hh / 2 + 4, w - 20);
+    }));
+    const sign = new T.Mesh(this.plane, owned(new T.MeshStandardMaterial({ map: tex, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: lit ? 0.8 : 0.15, roughness: 0.6 })));
+    const sw = Math.min(faceW * 0.7, 300);
+    sign.scale.set(sw, sw * 96 / 512, 1);
+    sign.rotation.set(Math.PI / 2, 0, faceRot, "ZXY");
+    sign.position.set(fx, fy + (side === "s" ? -0.2 : side === "n" ? 0.2 : 0), h * 0.72);
+    grp.add(sign);
     grp.position.set(def.x, -def.y, 0);
-    grp.rotation.z = -(def.a ?? 0);
+    grp.rotation.z = rz;
     return grp;
   }
 
@@ -999,7 +1221,11 @@ export class Scene3D {
           const d = bd === "industrial" ? 120 + rnd() * 100 : 70 + rnd() * 40;
           const h = bd === "industrial" ? 50 + rnd() * 40 : 40 + rnd() * 90;
           const cx = horiz ? p + w / 2 : (x0 + x1) / 2, cy = horiz ? (y0 + y1) / 2 : p + w / 2;
-          if (!wet(cx, cy)) grp.add(this.buildingMesh(cx, cy, horiz ? w - 3 : d, horiz ? d : w - 3, h, (p * 7) | 0, lit, ["#b8866a", "#c9b79c", "#8e9aa6", "#d6c8b0", "#a0705a", "#9aa3ab"][Math.floor(rnd() * 6)]));
+          const bw = horiz ? w - 3 : d, bd2 = horiz ? d : w - 3;
+          if (!wet(cx, cy)) {
+            this.addFacade(cx, -cy, 0, bw, bd2, h, (p * 7) | 0, lit, ["#b8866a", "#c9b79c", "#8e9aa6", "#d6c8b0", "#a0705a", "#9aa3ab"][Math.floor(rnd() * 6)]);
+            P.add(g.box, g.darkConcrete, cx, -cy, h - 0.5, 0, bw, bd2, 1);
+          }
           p += w;
         }
       };
@@ -1142,6 +1368,7 @@ export class Scene3D {
 
     // Statics, trees, scenery.
     const P = this.parts();
+    this.facades = new Map();
     const trees = [];
     const lamps = [];
     for (const s of sim.statics) {
@@ -1154,6 +1381,7 @@ export class Scene3D {
     }
     lv.group.add(this.buildScenery(P, lvl, trees));
     lv.group.add(P.merged());
+    this.flushFacades(lv.group);
     const tg = this.buildTrees(trees);
     if (tg) lv.group.add(tg);
     if (sun.lamps) {
@@ -1166,14 +1394,7 @@ export class Scene3D {
       }
     }
 
-    // Parked cars (merged, with their own hazard-lamp material).
-    for (const pk of sim.parked) {
-      const hz = owned(new T.MeshStandardMaterial({ color: 0x7a4a10, emissive: 0xffa22a, emissiveIntensity: 0.05, roughness: 0.3 }));
-      hz.userData.noShadow = true;
-      const m = pk.spec.lorry ? this.buildLorryModel(pk.spec, pk.color, { hazardMat: hz }) : this.buildCarModel(pk.spec, pk.color, { hazardMat: hz });
-      lv.group.add(m.body);
-      lv.parked.push({ rec: pk, grp: m.body, hz });
-    }
+    this.buildParked(sim, lv);
     // Cones.
     for (const c of sim.cones) {
       const yaw = new T.Group();
@@ -1331,7 +1552,17 @@ export class Scene3D {
     const shell = P.merged();
     const body = new T.Group();
     body.add(shell);
-    for (const [lx, ly, front] of [[ax, wy, true], [ax, -wy, true], [-ax, wy, false], [-ax, -wy, false]]) {
+    // A parked tractor's wheels never turn: merge them into one mesh.
+    if (!o.live) {
+      const PP = this.parts();
+      for (const [lx, ly, front] of [[ax, wy, true], [ax, -wy, true], [-ax, wy, false], [-ax, -wy, false]]) {
+        PP.add(g.cyl, g.tire, lx, ly, r, 0, r, ww, r);
+        if (!front) PP.add(g.cyl, g.tire, lx, ly - Math.sign(ly) * (ww + 0.6), r, 0, r, ww, r);
+        PP.add(g.disc, g.rimFlat, lx, ly + Math.sign(ly) * (ww / 2 + 0.45), r, 0, r * 0.6, r * 0.6, 1, ly > 0 ? -Math.PI / 2 : Math.PI / 2);
+      }
+      body.add(PP.merged());
+    }
+    for (const [lx, ly, front] of o.live ? [[ax, wy, true], [ax, -wy, true], [-ax, wy, false], [-ax, -wy, false]] : []) {
       const pivot = new T.Group();
       pivot.position.set(lx, ly, 0);
       const spin = new T.Group();
@@ -1382,6 +1613,16 @@ export class Scene3D {
     const out = { body, wheels: [], L, W };
     const r = t.wheelR * M, ww = t.wheelW * M;
     const wo = (t.wid / 2 + t.wheelOut) * M;
+    if (!o.live) {
+      const PP = this.parts();
+      for (const dx of [-15.7, 0, 15.7]) for (const sd of [-1, 1]) {
+        const x = t.axle * M + dx, y = sd * (wo + ww / 2);
+        PP.add(g.cyl, g.tire, x, y, r, 0, r, ww * 1.8, r);
+        PP.add(g.disc, g.rimFlat, x, y + sd * (ww * 0.9 + 0.45), r, 0, r * 0.6, r * 0.6, 1, sd > 0 ? -Math.PI / 2 : Math.PI / 2);
+      }
+      body.add(PP.merged());
+      return out;
+    }
     for (const dx of [-15.7, 0, 15.7]) {
       for (const sd of [-1, 1]) {
         const pivot = new T.Group();
@@ -1435,7 +1676,10 @@ export class Scene3D {
     const lv = this.lv;
     const v = sim.veh, c = v.chassis, tb = v.trailer.body;
     const playing = view.phase === "play";
-    this.placeOnGround(lv.car.body, c.position.x, c.position.y, c.rotation, v.spec.len / 2 * M);
+    // Bodies are drawn between their last two physics steps (sim.pose).
+    const alpha = view.alpha ?? 1;
+    const cp = sim.pose(c, alpha), cx = cp.x, cy = cp.y, ca = cp.a;
+    this.placeOnGround(lv.car.body, cx, cy, ca, v.spec.len / 2 * M);
     // Body roll and pitch (looks only): the shell leans out of a turn by
     // the lateral acceleration, dips under braking, squats a little under
     // power. Smoothed like a damped suspension.
@@ -1457,10 +1701,11 @@ export class Scene3D {
       const w3 = lv.car.wheels[i];
       // car.wheels order: FL(+y three), FR, RL, RR; physics: [0] y<0 front … three y = −ly.
       const phys = v.wheels[w3.front ? (w3.ly > 0 ? 0 : 1) : (w3.ly > 0 ? 2 : 3)];
-      w3.pivot.rotation.z = -wrapPi(phys.body.rotation - c.rotation);
+      w3.pivot.rotation.z = -wrapPi(sim.pose(phys.body, alpha).a - ca);
       w3.spin.rotation.y = phys.spin;
     }
-    this.placeOnGround(lv.trailer.body, tb.position.x, tb.position.y, tb.rotation, v.trailer.spec.len / 2 * M);
+    const tp = sim.pose(tb, alpha);
+    this.placeOnGround(lv.trailer.body, tp.x, tp.y, tp.a, v.trailer.spec.len / 2 * M);
     for (let i = 0; i < lv.trailer.wheels.length; i++) { const w = lv.trailer.wheels[i]; w.spin.rotation.y = v.trailer.wheels[w.phys ?? i].spin; }
     // Lamps.
     const braking = v.braking || (v.holding && playing);
@@ -1469,13 +1714,7 @@ export class Scene3D {
     lv.mats.tailT.emissiveIntensity = lv.mats.tailC.emissiveIntensity;
     lv.mats.revC.emissiveIntensity = rev ? 2.2 : 0;
     lv.mats.revPoolMat.opacity = rev ? (lv.mats.night ? 0.5 : 0.22) : 0;
-    for (const p of lv.parked) {
-      const b = p.rec.body;
-      p.grp.position.set(b.position.x, -b.position.y, 0);
-      p.grp.rotation.z = -b.rotation;
-      const on = p.rec.hazard > 0 && Math.floor(p.rec.hazard * 3) % 2 === 0;
-      p.hz.emissiveIntensity = on ? 3.2 : 0.05;
-    }
+    this.syncParked(sim, lv, alpha);
     // Skid marks from every wheel of the rig that is really sliding.
     const sk = lv.skid, dm = this.dummy;
     let added = false;
@@ -1501,19 +1740,19 @@ export class Scene3D {
     if (added) { sk.mesh.instanceMatrix.needsUpdate = true; sk.mesh.instanceColor.needsUpdate = true; }
 
     for (const mv of lv.movables) {
-      const b = mv.rec.body;
-      mv.grp.position.set(b.position.x, -b.position.y, 0);
-      mv.grp.rotation.z = -b.rotation;
+      const q = sim.pose(mv.rec.body, alpha);
+      mv.grp.position.set(q.x, -q.y, 0);
+      mv.grp.rotation.z = -q.a;
     }
     for (const cn of lv.cones) {
-      const b = cn.rec.body;
-      cn.yaw.position.set(b.position.x, -b.position.y, 0);
+      const q = sim.pose(cn.rec.body, alpha);
+      cn.yaw.position.set(q.x, -q.y, 0);
       if (cn.rec.down) {
         cn.yaw.rotation.z = -cn.rec.tipA;
         cn.tilt.rotation.y = cn.rec.tip * Math.PI / 2 * 0.92;
         cn.tilt.position.z = cn.rec.tip * 3;
       } else {
-        cn.yaw.rotation.z = -b.rotation;
+        cn.yaw.rotation.z = -q.a;
       }
     }
     // Bay.
@@ -1576,7 +1815,8 @@ export class Scene3D {
 
   placeCamera(sim, view) {
     const v = sim.veh;
-    const c = v.chassis.position;
+    const cp = sim.pose(v.chassis, view.alpha ?? 1);
+    const c = { x: cp.x, y: cp.y }, heading = cp.a;
     const bay = sim.level.bay;
     let ex, ey, ez, tx, ty, tz;
     const lvl = sim.level;
@@ -1594,8 +1834,7 @@ export class Scene3D {
       tx = lvl.w / 2; ty = -lvl.h / 2 + 10; tz = 0;
       ex = tx; ey = ty - Math.cos(pitch) * D; ez = Math.sin(pitch) * D;
     } else if (view.camMode === 1) {
-      const h = v.chassis.rotation;
-      this.camYaw += wrapPi(h - this.camYaw) * clamp(view.dt * 3.5, 0, 1);
+      this.camYaw += wrapPi(heading - this.camYaw) * clamp(view.dt * 3.5, 0, 1);
       const fx = Math.cos(this.camYaw), fy = Math.sin(this.camYaw);
       const back = 185 * view.camDist * big;
       tx = c.x + fx * 30; ty = -(c.y + fy * 30); tz = 6;
@@ -1615,7 +1854,7 @@ export class Scene3D {
     if (!this.camPos || view.snap) {
       this.camPos = new T.Vector3(ex, ey, ez);
       this.camTgt = new T.Vector3(tx, ty, tz);
-      this.camYaw = v.chassis.rotation;
+      this.camYaw = heading;
     } else {
       const k = 1 - Math.exp(-view.dt * (menu ? 4 : 3.2));
       this.camPos.lerp(this.v.set(ex, ey, ez), k);
@@ -1650,13 +1889,13 @@ export class Scene3D {
   renderPip(sim, view) {
     const v = sim.veh;
     if (!view.rearCam || view.phase !== "play" || v.gear > 0) return null;
-    const t = v.trailer, b = t.body;
-    const a = b.rotation, c = Math.cos(a), s = Math.sin(a);
+    const t = v.trailer, b = sim.pose(t.body, view.alpha ?? 1);
+    const a = b.a, c = Math.cos(a), s = Math.sin(a);
     const back = t.spec.len / 2 * M + (t.key === "boat" ? 7 : t.key === "semi" ? 2 : 1.5);
-    const rx = b.position.x - c * back, ry = b.position.y - s * back;
+    const rx = b.x - c * back, ry = b.y - s * back;
     const cam = this.rearCam;
     const z0 = this.groundZAt(rx, ry);
-    cam.position.set(rx, -ry, z0 + (t.key === "semi" ? 44 : t.key === "caravan" ? 22 : t.key === "boat" ? 20 : 15));
+    cam.position.set(rx, -ry, z0 + (REAR_CAM_Z[t.key] ?? 15));
     const look = t.key === "semi" ? 110 : 60;
     cam.lookAt(rx - c * look, -(ry - s * look), z0);
     const r = this.pipRect();
