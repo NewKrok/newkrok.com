@@ -13,7 +13,7 @@ export const DEFAULT_SETTINGS = {
   lang: null, master: 0.8, sfx: 0.85, music: 0.5,
   quality: coarse ? "low" : "high",
   sensitivity: 1, touchSensitivity: 1, invertY: false,
-  aimAssist: coarse, autoFire: coarse, difficulty: "normal", shake: true,
+  aimAssist: true, autoFire: coarse, difficulty: "normal", shake: true,
 };
 export function loadSettings() { return { ...DEFAULT_SETTINGS, ...(read(KEY_SETTINGS) ?? {}) }; }
 export function saveSettings(s) { write(KEY_SETTINGS, s); }

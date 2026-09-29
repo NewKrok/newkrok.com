@@ -1,5 +1,5 @@
 import { stabilizer } from "./tools.js";
-import { csavar, kocPark } from "./characters.js";
+import { csavar, kocPark, buzzerPark, knotPark } from "./characters.js";
 import { anchor } from "./dream.js";
 import { tree, bush, rock, bench, lamp, bone, tennisBall, hydrant, doghouse, fence, flowers, grass } from "./park.js";
 
@@ -32,6 +32,18 @@ export const MODELS = {
       N.tail.rotation.x = Math.sin(t * 5) * 0.2;
       N.tail.position.y = 0.3 + hop * 0.1;
     },
+  },
+  buzzer: {
+    build: buzzerPark, frame: 1.6,
+    anim: (o, t) => {
+      const N = o.userData.nodes;
+      N.wingL.rotation.z = Math.sin(t * 60) * 0.5; N.wingR.rotation.z = -Math.sin(t * 60) * 0.5;
+      N.body.position.y = Math.sin(t * 3) * 0.05;
+    },
+  },
+  knot: {
+    build: knotPark, frame: 3,
+    anim: (o, t) => { const s = 1 + Math.sin(t * 3) * 0.08; o.userData.nodes.core.scale.setScalar(s); },
   },
   anchor: {
     build: anchor, frame: 4.2,

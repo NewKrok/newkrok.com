@@ -5,7 +5,7 @@ import * as T from "three";
 // fly from the muzzle to what they hit, and flat rings that flash where a
 // bolt lands. One draw call per kind.
 
-const MAX_SPARKS = 500, MAX_BOLTS = 32, MAX_RINGS = 24;
+const MAX_SPARKS = 500, MAX_BOLTS = 32, MAX_RINGS = 24, MAX_PUFFS = 48;
 const _m = new T.Matrix4(), _q = new T.Quaternion(), _p = new T.Vector3(), _s = new T.Vector3(), _c = new T.Color();
 const _z = new T.Vector3(0, 0, 1), _d = new T.Vector3();
 
@@ -23,8 +23,9 @@ export class Fx {
     this.sparkMesh = pool(new T.OctahedronGeometry(1, 0), MAX_SPARKS);
     this.boltMesh = pool(new T.CylinderGeometry(1, 1, 1, 6, 1, true).rotateX(Math.PI / 2).translate(0, 0, -0.5), MAX_BOLTS);
     this.ringMesh = pool(new T.RingGeometry(0.6, 1, 20), MAX_RINGS);
-    scene.add(this.sparkMesh, this.boltMesh, this.ringMesh);
-    this.sparks = []; this.bolts = []; this.rings = [];
+    this.puffMesh = pool(new T.IcosahedronGeometry(1, 1), MAX_PUFFS);
+    scene.add(this.sparkMesh, this.boltMesh, this.ringMesh, this.puffMesh);
+    this.sparks = []; this.bolts = []; this.rings = []; this.puffs = [];
   }
 
   spark(x, y, z, vx, vy, vz, life, size, color, grav = 6) {
@@ -55,6 +56,15 @@ export class Fx {
     this.rings.push({ p, n, color, size, life, max: life });
   }
 
+  // A soft white poof: a few lumps swelling and fading.
+  puff(x, y, z, size = 1) {
+    for (let i = 0; i < 5; i++) {
+      if (this.puffs.length >= MAX_PUFFS) this.puffs.shift();
+      const a = Math.random() * Math.PI * 2, r = size * 0.3 * Math.random();
+      this.puffs.push({ x: x + Math.cos(a) * r, y: y + (Math.random() - 0.3) * size * 0.3, z: z + Math.sin(a) * r, size: size * (0.35 + Math.random() * 0.3), life: 0.45, max: 0.45 });
+    }
+  }
+
   update(dt) {
     // Sparks.
     let i = 0;
@@ -71,7 +81,7 @@ export class Fx {
       _q.setFromAxisAngle(_z, s.spin);
       _s.setScalar(s.size * (0.3 + 0.7 * k));
       S.setMatrixAt(i, _m.compose(_p, _q, _s));
-      S.setColorAt(i, _c.set(s.color).multiplyScalar(1.5 * k + 0.3));
+      S.setColorAt(i, _c.set(s.color).multiplyScalar(1.1 * k + 0.2));
       i++;
     }
     this.sparks = this.sparks.filter((s) => s.life > 0);
@@ -98,7 +108,7 @@ export class Fx {
       _p.set(tx, ty, tz);
       _s.set(b.width * fade, b.width * fade, len);
       B.setMatrixAt(i, _m.compose(_p, _q, _s));
-      B.setColorAt(i, _c.set(b.color).multiplyScalar(2.2 * fade));
+      B.setColorAt(i, _c.set(b.color).multiplyScalar(1.5 * fade));
       i++;
     }
     this.bolts = this.bolts.filter((b) => b.t < b.dur + b.fade);
@@ -124,5 +134,22 @@ export class Fx {
     R.count = i;
     R.instanceMatrix.needsUpdate = true;
     if (R.instanceColor) R.instanceColor.needsUpdate = true;
+
+    i = 0;
+    const F = this.puffMesh;
+    for (const p of this.puffs) {
+      p.life -= dt;
+      if (p.life <= 0) continue;
+      const k = p.life / p.max;
+      p.y += dt * 0.8;
+      _p.set(p.x, p.y, p.z); _q.identity(); _s.setScalar(p.size * (1.6 - k * 0.8));
+      F.setMatrixAt(i, _m.compose(_p, _q, _s));
+      F.setColorAt(i, _c.setRGB(0.3, 0.28, 0.3).multiplyScalar(k * k));
+      i++;
+    }
+    this.puffs = this.puffs.filter((p) => p.life > 0);
+    F.count = i;
+    F.instanceMatrix.needsUpdate = true;
+    if (F.instanceColor) F.instanceColor.needsUpdate = true;
   }
 }

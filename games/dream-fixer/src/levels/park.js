@@ -16,6 +16,13 @@ export const park = {
   fog: { color: 0xf0c4a8, near: 70, far: 260 },
   sun: { color: 0xffe2c0, intensity: 2.4, dir: [-0.5, 0.75, -0.6], sky: 0xb0c8f0, ground: 0x5a6a3a, hemi: 0.85 },
 
+  // Routes for the headless bot: waypoints to each anchor ([x, z, jump]).
+  botRoutes: {
+    lawn: [[6, 12], [12, 9]],
+    terrace: [[-1, 0], [-1.5, -10], [-9, -8.5]],
+    island: [[6, -7.5], [8, -10, 1], [10, -13.5, 1], [12, -17, 1], [14, -20.5, 1], [16, -26, 1], [16.5, -25.8]],
+  },
+
   build(k) {
     const rnd = rng(7);
 
@@ -88,9 +95,25 @@ export const park = {
     }
 
     // ── Anchors ──
-    k.anchor("lawn", 12, 11);
-    k.anchor("terrace", -10, -10);
-    k.anchor("island", 16.5, -28);
+    k.anchor("lawn", 12, 11, {
+      duration: 22,
+      waves: [[0, ["fuzz", 3]], [0.35, ["fuzz", 3]], [0.65, ["fuzz", 2], ["buzzer", 1]]],
+      spawns: [[20, 4], [4, 16], [18, 17], [5, 3]],
+    });
+    k.anchor("terrace", -10, -10, {
+      duration: 26,
+      waves: [[0, ["fuzz", 2], ["buzzer", 1]], [0.3, ["knot", 1]], [0.62, ["fuzz", 3], ["buzzer", 1]]],
+      spawns: [[-17, -6.5], [-16.5, -14.5], [-6.8, -15], [-12.5, -5]],
+    });
+    k.anchor("island", 16.5, -28, {
+      duration: 28,
+      waves: [[0, ["buzzer", 2]], [0.3, ["fuzz", 3]], [0.55, ["knot", 1], ["buzzer", 1]], [0.8, ["fuzz", 3]]],
+      spawns: [[12, -24], [21, -24.5], [20.5, -32], [12.5, -31.5]],
+    });
+
+    // A few glitches already about.
+    k.foe("fuzz", -1.5, 1); k.foe("fuzz", 1.8, -1.5);
+    k.foe("buzzer", 9, -12);
 
     k.start(0, 18, 0);
   },

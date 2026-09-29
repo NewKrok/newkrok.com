@@ -6,5 +6,13 @@ export const HU = {
   resume: "Vissza a munkához",
   controls: "WASD mozgás · Szóköz ugrás · Egér célzás · Bal klikk lövés · Jobb klikk (tartva) töltés · E használat",
   overheated: "Túlmelegedett!",
+  wakefulness: "Éberség",
+  tunePrompt: "{key} Horgony hangolása",
+  tuning: "Horgony hangolása",
+  stayInRing: "Állj vissza a körbe!",
+  objective: "Megjavított horgonyok",
+  anchorFixed: "Horgony megjavítva!",
+  allFixed: "Mindhárom horgony tart.",
+  fainted: "Kiestél az álomból… vissza a legutóbbi horgonyhoz.",
   madeBy: "Somoracz Krisztián, Claude segítségével",
 };

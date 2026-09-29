@@ -7,8 +7,8 @@ import { makeRenderer, envMap, skyDome, Sun } from "./look.js";
 import { buildLevelMeshes } from "./levelview.js";
 import { ViewModel } from "./viewmodel.js";
 import { Fx } from "./fx.js";
-import { make } from "./modelkit.js";
-import { anchor } from "./models/dream.js";
+import { FoeView } from "./foes.js";
+import { AnchorView } from "./anchors.js";
 import { C } from "./palette.js";
 import { damp, lerp } from "../config.js";
 
@@ -31,6 +31,8 @@ export class GameView {
     this.scene.add(this.camera);
     this.vm = new ViewModel(this.env);
     this.fx = new Fx(this.scene);
+    this.foes = new FoeView(this.scene, this.fx);
+    this.shake = 0;
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
@@ -83,6 +85,7 @@ export class GameView {
       this.scene.remove(this.level);
       this.level.traverse((o) => { if (o.isMesh && !o.userData.keep) o.geometry.dispose(); });
       this.scene.remove(this.sun.hemi, this.sun.light, this.sun.light.target);
+      this.foes.clear();
     }
     const def = run.def, kit = run.kit;
     const g = this.level = new T.Group();
@@ -92,13 +95,7 @@ export class GameView {
     this.sun.light.castShadow = this.quality === "high";
     this.vm.setLights(def.sun.color, def.sun.dir, def.sun.sky, def.sun.ground);
     for (const m of buildLevelMeshes(kit)) g.add(m);
-    this.anchors = kit.anchors.map((a) => {
-      const o = make(anchor);
-      o.position.set(a.x, a.y, a.z);
-      o.rotation.y = a.x * 0.37;
-      g.add(o);
-      return { a, o, spin: 0 };
-    });
+    this.anchors = new AnchorView(g, kit.anchors);
     this.lampSpots = kit.lights;
     this.scene.add(g);
   }
@@ -121,6 +118,15 @@ export class GameView {
         }
         this.muzzleFlash = big ? 1.6 : 1;
         this.shotThisFrame = big || 0.0001;
+      } else if (e.type === "anchorFixed") {
+        this.anchors.onEvent(e, this.fx);
+        this.shake = Math.min(1, this.shake + 0.3);
+      } else if (e.type === "pop" || e.type === "spitPop") {
+        this.foes.onEvent(e);
+      } else if (e.type === "hurt") {
+        this.shake = Math.min(1, this.shake + 0.5);
+      } else if (e.type === "dust") {
+        this.fx.spark(e.x, e.y, e.z, 0, 1.5, 0, 0.3, 0.12, C.dreamGold, 0);
       } else if (e.type === "land") {
         this.eyeOff -= Math.min(0.22, (e.speed - 4) * 0.025);
       } else if (e.type === "respawn") {
@@ -153,7 +159,9 @@ export class GameView {
     const sn = Math.sin(b.yaw), cs = Math.cos(b.yaw);
     const side = (b.vx * cs - b.vz * sn) / 6.4;
     this.roll = damp(this.roll, -side * 0.025, 8, dt);
-    this.camera.rotation.set(b.pitch, b.yaw, this.roll);
+    this.shake = damp(this.shake, 0, 7, dt);
+    const sh = this.shake * this.shake * 0.05;
+    this.camera.rotation.set(b.pitch + Math.sin(t * 61) * sh, b.yaw + Math.sin(t * 47) * sh, this.roll + Math.sin(t * 53) * sh);
     this.camera.updateMatrixWorld();
 
     this.sun.follow(x, y, z);
@@ -170,14 +178,7 @@ export class GameView {
       });
     }
 
-    // Anchors idle (the game will drive them once they can be fixed).
-    for (const A of this.anchors) {
-      const N = A.o.userData.nodes;
-      N.ring1.rotation.y = t * 0.5 + A.a.x;
-      N.ring2.rotation.x = t * 0.9;
-      N.crystal.rotation.y = -t * 0.6;
-      N.crystal.position.y = 1.75 + Math.sin(t * 1.6 + A.a.z) * 0.06;
-    }
+    this.anchors.update(run, dt, t, this.fx);
 
     const tool = run.activeTool;
     this.vm.update(dt, {
@@ -191,6 +192,7 @@ export class GameView {
     this.muzzleLight.position.set(m[0], m[1], m[2]);
     this.muzzleLight.intensity = this.muzzleFlash * 6 + tool.charge * 3;
 
+    this.foes.update(run, alpha, dt, t);
     this.fx.update(dt);
     this.composer.render(dt);
   }

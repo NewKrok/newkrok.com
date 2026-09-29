@@ -96,3 +96,71 @@ export function kocPark(b, { seed = 3 } = {}) {
     });
   });
 }
+
+// A Zizegő of the park: a fat, cross bumblebee knitted from yarn. Built
+// round its centre. Nodes: "body" (bob), "wingL"/"wingR" (buzz), "mouth"
+// (swells before it spits).
+export function buzzerPark(b) {
+  const YEL = 0xf2c14e, YEL_L = 0xffe08a, BRN = 0x5a3620;
+  b.node("body", [0, 0, 0], [0, 0, 0], (n) => {
+    // Abdomen along z with knitted stripes.
+    n.add(SHAPE.ball(0.3, 12, 9), { p: [0, 0, 0.12], s: [1, 0.95, 1.2], grad: [0xd8a032, YEL_L], facet: 0.08 });
+    for (const [z, r] of [[-0.02, 0.29], [0.14, 0.33], [0.3, 0.26]]) n.add(SHAPE.torus(r, 0.045, 5, 16), { p: [0, 0, z], c: BRN, facet: 0.1 });
+    n.add(SHAPE.cone(0.06, 0.18, 6), { p: [0, -0.02, 0.52], r: [RX, 0, 0], c: BRN });
+    // Head.
+    n.add(SHAPE.ball(0.21, 10, 8), { p: [0, 0.04, -0.28], grad: [BRN, 0x7a4a2a], facet: 0.06 });
+    n.both((s) => {
+      n.add(SHAPE.ball(0.085, 10, 7), { p: [s * 0.09, 0.08, -0.43], s: [1, 1.1, 0.6], c: C.white, facet: 0.02 });
+      n.add(SHAPE.ball(0.042, 8, 6), { p: [s * 0.08, 0.07, -0.48], s: [1, 1, 0.5], c: C.black, facet: 0 });
+      n.add(SHAPE.ball(0.012, 6, 4), { p: [s * 0.07, 0.09, -0.5], c: 0xffffff, mat: "glow", glow: 1.2 });
+      n.add(SHAPE.box(0.11, 0.025, 0.03, 0.01), { p: [s * 0.09, 0.18, -0.45], r: [0, 0, s * 0.45], c: 0x2a1a10 });
+      // Antennae with pompoms.
+      n.add(SHAPE.cyl(0.008, 0.01, 0.18, 5), { p: [s * 0.08, 0.26, -0.3], r: [-0.4, 0, -s * 0.35], c: BRN });
+      n.add(SHAPE.ball(0.035, 8, 6), { p: [s * 0.115, 0.34, -0.36], c: C.dreamPink });
+      // Legs dangling.
+      for (let i = 0; i < 2; i++) n.add(SHAPE.cyl(0.015, 0.012, 0.16, 5), { p: [s * 0.12, -0.26, -0.05 + i * 0.16], r: [0.3, 0, s * 0.3], c: BRN });
+    });
+    n.node("mouth", [0, -0.05, -0.47], [0, 0, 0], (m) => {
+      m.add(SHAPE.cyl(0.05, 0.035, 0.06, 8), { r: [RX, 0, 0], c: 0x2a1a10 });
+      m.add(SHAPE.ball(0.03, 6, 5), { p: [0, 0, -0.03], c: C.dreamPink, mat: "glow", glow: 1.8 });
+    });
+  });
+  for (const [name, s] of [["wingL", -1], ["wingR", 1]]) {
+    b.node(name, [s * 0.1, 0.22, -0.02], [0, 0, 0], (w) => {
+      w.add(SHAPE.ball(0.2, 8, 6), { p: [s * 0.2, 0.06, 0.04], s: [1, 0.12, 0.55], r: [0, s * 0.3, s * 0.25], c: 0xe8fbff, mat: "glass", smooth: true });
+      w.add(SHAPE.torus(0.2, 0.008, 3, 14), { p: [s * 0.2, 0.06, 0.04], s: [1, 0.55, 1], r: [RX, s * 0.3, s * 0.25], c: 0xffffff, facet: 0 });
+    });
+  }
+}
+
+// A Csomó of the park: a tangled heap of yarn round a pink glowing heart
+// that keeps knotting out new fuzzes. Nodes: "core" (pulses), "heap".
+export function knotPark(b, { seed = 5 } = {}) {
+  const rnd = rng(seed);
+  const cols = [0xc8743a, 0xe8a060, 0x93502a, 0xb85a3a];
+  b.node("heap", [0, 0, 0], [0, 0, 0], (n) => {
+    n.add(SHAPE.blob(0.85, 31, 0.1, 1), { p: [0, 0.55, 0], s: [1.15, 0.8, 1.15], grad: [0x7a4428, 0xc07a48], facet: 0.12 });
+    for (let i = 0; i < 16; i++) {
+      const r = [rnd() * Math.PI, rnd() * Math.PI, rnd() * Math.PI];
+      const R = 0.55 + rnd() * 0.4;
+      n.add(SHAPE.torus(R, 0.035 + rnd() * 0.02, 4, 18), { p: [(rnd() - 0.5) * 0.4, 0.55 + (rnd() - 0.5) * 0.3, (rnd() - 0.5) * 0.4], r, s: [1, 0.8, 1], c: vary(cols[i % 4], rnd, 0.08), facet: 0.12 });
+    }
+    // Loose ends sticking up like thorns.
+    for (let i = 0; i < 9; i++) {
+      const a = rnd() * Math.PI * 2, y = 0.5 + rnd() * 0.5;
+      n.add(SHAPE.cone(0.05, 0.4 + rnd() * 0.3, 4), { p: [Math.cos(a) * 0.75, y, Math.sin(a) * 0.75], r: [Math.sin(a) * 0.9, 0, -Math.cos(a) * 0.9], c: cols[i % 4] });
+    }
+    // Two sleepy-angry eyes peering out of the tangle.
+    n.both((s) => {
+      n.add(SHAPE.ball(0.14, 10, 7), { p: [s * 0.24, 0.82, -0.9], s: [1, 0.8, 0.5], c: C.white, facet: 0.02 });
+      n.add(SHAPE.ball(0.07, 8, 6), { p: [s * 0.22, 0.79, -0.96], s: [1, 1, 0.5], c: C.black, facet: 0 });
+      n.add(SHAPE.ball(0.02, 6, 4), { p: [s * 0.2, 0.82, -0.99], c: 0xffffff, mat: "glow", glow: 1.2 });
+      n.add(SHAPE.box(0.24, 0.05, 0.05, 0.015), { p: [s * 0.24, 0.97, -0.9], r: [0, 0, s * 0.35], c: 0x4a2412 });
+    });
+  });
+  // The heart shows through a gap in the tangle, below the eyes.
+  b.node("core", [0, 0.42, -0.82], [0, 0, 0], (c) => {
+    c.add(SHAPE.sphere(0.24, 1), { c: C.dreamPink, mat: "glow", glow: 1.6, facet: 0.15 });
+    c.add(SHAPE.torus(0.27, 0.04, 4, 14), { c: 0x6a3a22 });
+  });
+}

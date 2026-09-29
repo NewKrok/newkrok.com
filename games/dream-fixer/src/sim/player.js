@@ -9,7 +9,10 @@ import { World } from "./world.js";
 // down so jumps are quick and easy to judge.
 
 export class Body {
-  constructor(x = 0, y = 0, z = 0) {
+  // o: overrides of PLAYER's radius / height / step / speed / jump (the Kóc
+  // hops about on the same body).
+  constructor(x = 0, y = 0, z = 0, o = {}) {
+    this.P = { ...P, ...o };
     this.x = x; this.y = y; this.z = z;
     this.px = x; this.py = y; this.pz = z;     // previous step, for interpolation
     this.vx = 0; this.vy = 0; this.vz = 0;
@@ -19,7 +22,7 @@ export class Body {
     this.landSpeed = 0;                        // how hard the last landing was (for the camera dip)
     this.stepUp = 0;                           // height climbed this step (the camera smooths it)
     this.fell = false;                         // dropped out of the world this step
-    this.r = P.radius; this.h = P.height;
+    this.r = this.P.radius; this.h = this.P.height;
   }
 
   place(x, y, z, yaw = this.yaw) {
@@ -39,19 +42,19 @@ export class Body {
     const len = Math.hypot(f, s);
     if (len > 1) { f /= len; s /= len; }
     const sn = Math.sin(this.yaw), cs = Math.cos(this.yaw);
-    const wx = (-sn * f + cs * s) * P.speed * speedMul, wz = (-cs * f - sn * s) * P.speed * speedMul;
+    const wx = (-sn * f + cs * s) * this.P.speed * speedMul, wz = (-cs * f - sn * s) * this.P.speed * speedMul;
     const moving = len > 0.05;
-    const a = (this.grounded ? (moving ? P.accel : P.friction * P.speed) : P.airAccel) * dt;
+    const a = (this.grounded ? (moving ? this.P.accel : this.P.friction * this.P.speed) : this.P.airAccel) * dt;
     let ddx = wx - this.vx, ddz = wz - this.vz;
     const dl = Math.hypot(ddx, ddz);
     if (dl > a) { ddx *= a / dl; ddz *= a / dl; }
     if (this.grounded || moving) { this.vx += ddx; this.vz += ddz; }
 
     // ── Jump ──
-    if (intent.jumpPressed) this.bufferT = P.buffer; else this.bufferT -= dt;
-    this.coyoteT = this.grounded ? P.coyote : this.coyoteT - dt;
+    if (intent.jumpPressed) this.bufferT = this.P.buffer; else this.bufferT -= dt;
+    this.coyoteT = this.grounded ? this.P.coyote : this.coyoteT - dt;
     if (this.bufferT > 0 && this.coyoteT > 0) {
-      this.vy = P.jump;
+      this.vy = this.P.jump;
       this.grounded = false;
       this.coyoteT = 0; this.bufferT = 0;
       this.jumped = true;
@@ -59,8 +62,8 @@ export class Body {
 
     // ── Gravity: lighter while rising with the button held ──
     if (!this.grounded) {
-      const g = this.vy > 0 && intent.jump ? P.gravity : P.fallGravity;
-      this.vy = Math.max(this.vy - g * dt, -P.maxFall);
+      const g = this.vy > 0 && intent.jump ? this.P.gravity : this.P.fallGravity;
+      this.vy = Math.max(this.vy - g * dt, -this.P.maxFall);
     }
 
     // ── Across: in small steps so a fast body cannot tunnel through thin walls ──
@@ -75,7 +78,7 @@ export class Body {
     const y0 = this.y;
     const support = this.supportAt(world, this.x, this.z, y0);
     if (this.grounded && this.vy <= 0) {
-      if (support > -Infinity && support >= y0 - P.step) {
+      if (support > -Infinity && support >= y0 - this.P.step) {
         if (support > y0) this.stepUp = support - y0;
         this.y = support; this.vy = 0;         // follow stairs and slopes, up and down
       } else this.grounded = false;            // walked off a ledge
@@ -98,7 +101,7 @@ export class Body {
     for (const c of world.query(x, z, this.r)) {
       if (!world.overlaps(c, x, z, this.r * 0.85)) continue;
       const top = World.topAt(c, x, z);
-      if (top <= y + P.step && top > best && c.y0 < y + P.step) best = top;
+      if (top <= y + this.P.step && top > best && c.y0 < y + this.P.step) best = top;
     }
     return best;
   }
@@ -120,7 +123,7 @@ export class Body {
       for (let i = 0; i < list.length; i++) {
         const c = list[i];
         if (c.y0 >= head - 0.02) continue;                        // overhead
-        if (World.topAt(c, this.x, this.z) <= feet + P.step) continue;   // a floor or a step
+        if (World.topAt(c, this.x, this.z) <= feet + this.P.step) continue;   // a floor or a step
         const pen = world.push2D(c, this.x, this.z, this.r);
         if (pen <= 0) continue;
         const nx = world.nx, nz = world.nz;
@@ -133,7 +136,7 @@ export class Body {
     }
   }
 
-  get eyeY() { return this.y + P.eye; }
+  get eyeY() { return this.y + this.P.eye; }
   get speed2D() { return Math.hypot(this.vx, this.vz); }
   look(dyaw, dpitch) {
     this.yaw += dyaw;

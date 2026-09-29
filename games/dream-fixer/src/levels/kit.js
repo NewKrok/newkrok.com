@@ -11,6 +11,7 @@ export class Kit {
     this.draw = [];            // { kind: "block" | "wedge" | "model", … }
     this.spawn = { x: 0, y: 0, z: 0, yaw: 0 };
     this.anchors = [];
+    this.foes = [];
     this.marks = {};           // named points for the story and the spawner
     this.lights = [];
   }
@@ -61,7 +62,14 @@ export class Kit {
   }
 
   start(x, z, yaw = 0) { this.spawn = { x, y: this.floorAt(x, z), z, yaw }; }
-  anchor(id, x, z) { this.anchors.push({ id, x, y: this.floorAt(x, z), z }); this.world.cyl({ x, z, r: 1.0, y0: this.floorAt(x, z), y1: this.floorAt(x, z) + 0.8 }); }
+  // A dream anchor. o: { waves: [[progress, [kind, n], …], …], spawns: [[x, z], …], ring, duration }
+  anchor(id, x, z, o = {}) {
+    const y = this.floorAt(x, z);
+    this.anchors.push({ id, x, y, z, ...o });
+    this.world.cyl({ x, z, r: 1.0, y0: y, y1: y + 0.8 });
+  }
+  // A glitch already loose when you arrive.
+  foe(kind, x, z) { this.foes.push({ kind, x, z }); }
   mark(name, x, z, y) { this.marks[name] = { x, y: y ?? this.floorAt(x, z), z }; }
   light(x, y, z, color, intensity = 6, dist = 9) { this.lights.push({ x, y, z, color, intensity, dist }); }
 }

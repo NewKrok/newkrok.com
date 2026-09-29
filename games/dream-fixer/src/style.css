@@ -52,3 +52,36 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1b2436; col
 .tbtn[data-t="use"] { right: calc(124px + env(safe-area-inset-right)); bottom: calc(118px + env(safe-area-inset-bottom)); }
 .tbtn[data-t="tool"] { right: calc(190px + env(safe-area-inset-right)); bottom: calc(90px + env(safe-area-inset-bottom)); }
 .tbtn.corner { width: 44px; height: 44px; right: calc(14px + env(safe-area-inset-right)); top: calc(14px + env(safe-area-inset-top)); }
+
+/* ── Wakefulness, dust, hurt ── */
+.hud .vignette { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at center, rgba(255, 120, 190, 0) 45%, rgba(255, 110, 180, 0.55) 100%); }
+.hud .wake { position: absolute; left: calc(22px + env(safe-area-inset-left)); bottom: calc(22px + env(safe-area-inset-bottom)); width: min(260px, 40vw); }
+.hud .wake .lbl { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); margin-bottom: 5px; }
+.hud .wake .bar { position: relative; height: 14px; border-radius: 8px; background: rgba(20, 26, 44, 0.55); border: 2px solid rgba(255, 247, 230, 0.7); overflow: hidden; }
+.hud .wake i { position: absolute; inset: 0; transform-origin: left center; border-radius: 6px; }
+.hud .wake .lag { background: #ffb3d9; }
+.hud .wake .fill { background: linear-gradient(#b5fff2, var(--mint)); }
+.hud .wake.low .fill { background: linear-gradient(#ffd0a8, #ff9a6a); }
+.hud .dust { position: absolute; right: calc(22px + env(safe-area-inset-right)); top: calc(18px + env(safe-area-inset-top)); display: flex; align-items: center; gap: 6px; font-size: 22px; font-weight: 800; color: #ffe7a8; text-shadow: 0 2px 0 #7a5220; }
+.hud .dust svg { width: 24px; height: 24px; fill: #ffd27a; filter: drop-shadow(0 0 6px rgba(255, 210, 122, 0.8)); }
+.hud .dust.tick { animation: tick 0.25s ease-out; }
+@keyframes tick { 40% { transform: scale(1.18); } }
+@media (pointer: coarse) { .hud .dust { right: calc(70px + env(safe-area-inset-right)); } }
+
+/* ── Objective, prompt, tuning, banner ── */
+.hud .objective { position: absolute; left: calc(22px + env(safe-area-inset-left)); top: calc(18px + env(safe-area-inset-top)); font-size: 15px; font-weight: 700; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
+.hud .objective b { color: var(--mint); font-size: 18px; }
+.hud .prompt { position: absolute; left: 50%; bottom: 24%; transform: translateX(-50%); padding: 8px 16px; border-radius: 10px; background: rgba(20, 26, 44, 0.7); font-weight: 700; opacity: 0; transition: opacity 0.2s; white-space: nowrap; }
+.hud .prompt.on { opacity: 1; }
+.hud .tune { position: absolute; left: 50%; top: calc(18px + env(safe-area-inset-top)); transform: translateX(-50%); width: min(420px, 60vw); text-align: center; opacity: 0; transition: opacity 0.3s; }
+.hud .tune.on { opacity: 1; }
+.hud .tune .lbl { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); margin-bottom: 5px; }
+.hud .tune .bar { position: relative; height: 12px; border-radius: 7px; background: rgba(20, 26, 44, 0.55); border: 2px solid rgba(255, 247, 230, 0.7); overflow: hidden; }
+.hud .tune .bar i { position: absolute; inset: 0; transform-origin: left center; transform: scaleX(0); background: linear-gradient(90deg, var(--pink), var(--mint)); }
+.hud .tune .warn { margin-top: 6px; font-weight: 800; color: #ffb3d9; opacity: 0; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
+.hud .tune.out .warn { opacity: 1; animation: pulse 0.6s ease-in-out infinite; }
+.hud .tune.out .bar i { filter: saturate(0.3) brightness(0.8); }
+.hud .banner { position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%); font-size: clamp(20px, 3.4vw, 34px); font-weight: 800; color: var(--ink); text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35), 0 0 20px rgba(0, 0, 0, 0.4); opacity: 0; text-align: center; max-width: 90vw; }
+.hud .banner.good { color: var(--mint); }
+.hud .banner.on { animation: banner 2.8s ease-out; }
+@keyframes banner { 0% { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } 10%, 75% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -55%); } }

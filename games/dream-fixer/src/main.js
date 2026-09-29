@@ -30,7 +30,12 @@ async function startGame() {
   app.appendChild(card);
   const go = card.querySelector(".go");
 
-  let run = new Run(park);
+  const runOpts = () => ({
+    difficulty: settings.difficulty,
+    aimAssist: settings.aimAssist ? (input.isTouch ? 0.07 : 0.03) : 0,
+    autoFire: settings.autoFire && input.isTouch,
+  });
+  let run = new Run(park, runOpts());
   view.load(run);
 
   let state = "menu";
@@ -48,7 +53,7 @@ async function startGame() {
     if (locked && state !== "play") setState("play");
     else if (!locked && state === "play" && !input.isTouch) setState("pause");
   };
-  input.onTouchStart = () => { if (state !== "play") setState("play"); };
+  input.onTouchStart = () => { Object.assign(run.opts, runOpts()); if (state !== "play") setState("play"); };
   card.addEventListener("click", () => { if (!input.isTouch) input.lock(); });
   setState("menu");
 
@@ -64,6 +69,7 @@ async function startGame() {
     let look = [0, 0];
     const edges = input.pressed();
     if (state === "play") {
+      hud.touch = input.isTouch;
       if (edges.has("pause")) { if (input.isTouch) setState("pause"); else input.unlock(); }
       look = input.look();
       run.body.look(look[0], look[1]);
@@ -72,15 +78,18 @@ async function startGame() {
       while (acc >= DT) {
         const intent = input.intent();
         intent.jumpPressed = first && edges.has("jump");
+        intent.usePressed = first && edges.has("use");
         run.step(intent, DT);
         first = false;
         acc -= DT;
       }
       // A jump pressed between steps must not be lost.
       if (first && edges.has("jump")) input.edges.add("jump");
-      view.consume(run.events, run);
+      if (first && edges.has("use")) input.edges.add("use");
+      for (const e of run.events) hud.onEvent(e);
+      view.consume(run.events);
       run.events.length = 0;
-      hud.update(run);
+      hud.update(run, dt);
     } else input.look();
     time += dt;
     view.frame(run, acc / DT, dt, look, time);
@@ -92,9 +101,10 @@ async function startGame() {
       get run() { return run; }, view, input, settings,
       play: () => setState("play"),
       // Advance the sim n steps with a fixed intent (for headless checks).
-      steps(n, intent = {}) { for (let i = 0; i < n; i++) run.step({ forward: 0, strafe: 0, ...intent, jumpPressed: i === 0 && intent.jumpPressed }, DT); view.consume(run.events, run); run.events.length = 0; },
+      steps(n, intent = {}) { for (let i = 0; i < n; i++) run.step({ forward: 0, strafe: 0, ...intent, jumpPressed: i === 0 && intent.jumpPressed, usePressed: i === 0 && intent.usePressed }, DT); view.consume(run.events); run.events.length = 0; },
       place(x, z, yaw = 0, pitch = 0) { const b = run.body; b.place(x, run.kit.floorAt(x, z), z, yaw); b.pitch = pitch; },
-      restart() { run = new Run(park); view.load(run); },
+      restart() { run = new Run(park, runOpts()); view.load(run); },
+      spawn(kind, x, z) { return run.spawn(kind, x, z); },
     };
   }
 }

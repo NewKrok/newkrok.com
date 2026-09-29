@@ -6,5 +6,13 @@ export const EN = {
   resume: "Back to work",
   controls: "WASD move · Space jump · Mouse aim · Left click fire · Right click (hold) charge · E use",
   overheated: "Overheated!",
+  wakefulness: "Wakefulness",
+  tunePrompt: "{key} Tune the anchor",
+  tuning: "Tuning the anchor",
+  stayInRing: "Get back inside the ring!",
+  objective: "Anchors fixed",
+  anchorFixed: "Anchor fixed!",
+  allFixed: "All three anchors hold.",
+  fainted: "You drifted out of the dream… back at the last anchor.",
   madeBy: "Krisztian Somoracz, with the help of Claude",
 };
