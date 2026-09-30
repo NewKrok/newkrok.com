@@ -716,13 +716,16 @@ function frame(now) {
   const alpha = G.phase === "play" || G.phase === "done" || G.phase === "boom" ? acc / DT : 1;
   // Look round: the pad's right stick (full push = straight back), else
   // the mouse across the screen when mouse look is on.
+  // Both on a curve, so small movements barely turn it and only a full
+  // push (or the screen's edge) looks behind; eased slowly.
   let lookTo = 0;
-  if (G.phase === "play" && padActive && pad.axes[2]) lookTo = -pad.axes[2] * Math.PI;
+  const curve = (v) => Math.sign(v) * Math.abs(v) ** 2.2;
+  if (G.phase === "play" && padActive && pad.axes[2]) lookTo = -curve(pad.axes[2]) * Math.PI;
   else if (G.phase === "play" && settings.mouseLook && G.mouseX != null && !joy) {
-    const m = (G.mouseX - 0.5) * 2, dead = 0.18;
-    lookTo = Math.abs(m) < dead ? 0 : -Math.sign(m) * ((Math.abs(m) - dead) / (1 - dead)) * Math.PI * 0.95;
+    const m = clamp((G.mouseX - 0.5) * 2, -1, 1), dead = 0.3;
+    lookTo = Math.abs(m) < dead ? 0 : -curve(Math.sign(m) * (Math.abs(m) - dead) / (1 - dead)) * Math.PI * 0.9;
   }
-  G.look += (lookTo - G.look) * (1 - Math.exp(-dt * 7));
+  G.look += (lookTo - G.look) * (1 - Math.exp(-dt * 3.2));
   if (Math.abs(G.look) < 1e-3 && !lookTo) G.look = 0;
   const pip = scene.render(sim, {
     alpha, look: G.look,
