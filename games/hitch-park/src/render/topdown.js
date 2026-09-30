@@ -116,6 +116,7 @@ export function drawTrailerTop(p, key, x, y, a, color = 0xd6d9de) {
   const t = TRAILERS[key];
   const L = t.len * M, W = t.wid * M;
   const P = (pts) => xform(x, y, a, pts);
+  if (key === "fieldgun") { drawFieldGunTop(p, t, x, y, a); return; }
   p.poly(xform(x + 1.8, y + 2.6, a, rrectPts(0, 0, L + 1, W + 1, key === "caravan" ? 5 : 1.5)), 0x000000, 0.26);
   if (t.bar > 0) {
     const cx = (L / 2 + t.bar * M);
@@ -152,14 +153,6 @@ export function drawTrailerTop(p, key, x, y, a, color = 0xd6d9de) {
     p.poly(P(rectPts(-L / 2, -W / 2, L / 2, W / 2)), ARMY_GREEN, 1, shade(ARMY_GREEN, -0.4), 1);
     p.poly(P(rectPts(-L / 2 + 2, -W * 0.2, L / 2 - 2, W * 0.2)), 0x5d6a3a, 1);
     p.circle(...xform(x, y, a, [L * 0.28, -W * 0.22]), 2.4, 0x2c3036);
-  } else if (key === "fieldgun") {
-    const ax = t.axle * M, cx = L / 2 + t.bar * M, wo = (t.wid / 2 + t.wheelOut) * M;
-    p.line(P([ax, -W * 0.2, cx - 1, 0, ax, W * 0.2]), shade(ARMY_GREEN, -0.2), 2.4);
-    for (const sd of [-1, 1]) p.poly(P(rectPts(ax - t.wheelR * M, sd * wo - 2, ax + t.wheelR * M, sd * wo + 2)), 0x16171a);
-    p.poly(P(rectPts(ax + 1.5, -W * 0.43, ax + 3.5, W * 0.43)), ARMY_GREEN, 1, shade(ARMY_GREEN, -0.4), 0.8);
-    p.poly(P(rectPts(ax - 15, -2.8, ax + 1.5, 2.8)), ARMY_GREEN, 1);
-    p.line(P([ax, 0, -L / 2, 0]), shade(ARMY_GREEN, -0.15), 2.2);
-    p.poly(P(rectPts(-L / 2, -1.7, -L / 2 + 3.2, 1.7)), 0x2c3036);
   } else if (key === "missile") {
     p.poly(P(rectPts(-L / 2, -W / 2, L / 2, W / 2)), ARMY_GREEN, 1, shade(ARMY_GREEN, -0.4), 1);
     const mr = W * 0.21, mb0 = -L / 2 + 3, mb1 = L / 2 - 16;
@@ -180,6 +173,36 @@ export function drawTrailerTop(p, key, x, y, a, color = 0xd6d9de) {
     p.line(P([-L / 2 + 3, -W / 2 + 0.6, L / 2 - 4, -W / 2 + 0.6]), 0xc0392b, 1.2);
     p.line(P([-L / 2 + 3, W / 2 - 0.6, L / 2 - 4, W / 2 - 0.6]), 0xc0392b, 1.2);
   }
+}
+
+// Field gun, as the 3D model: split trail from the wheels to the towing
+// eye, wheels either side of the shield, cradle and a long barrel back to
+// the muzzle brake. No box: its shadow is only under the parts.
+function drawFieldGunTop(p, t, x, y, a) {
+  const L = t.len * M, W = t.wid * M;
+  const ax = t.axle * M, cx = L / 2 + t.bar * M, wo = (t.wid / 2 + t.wheelOut) * M;
+  const r = t.wheelR * M, ww = t.wheelW * M;
+  const P = (pts) => xform(x, y, a, pts);
+  const S = (pts) => xform(x + 1.8, y + 2.6, a, pts);
+  const G = ARMY_GREEN, dark = shade(ARMY_GREEN, -0.35);
+  // Shadow.
+  p.poly(S(rectPts(-L / 2, -3, ax, 3)), 0x000000, 0.22);
+  p.poly(S(rectPts(ax - r, -wo - ww / 2, ax + r, wo + ww / 2)), 0x000000, 0.22);
+  p.poly(S([ax, -W * 0.2, cx, -1.5, cx, 1.5, ax, W * 0.2]), 0x000000, 0.18);
+  // Split trail, open at the axle, joined at the towing eye.
+  for (const sd of [-1, 1]) p.line(P([ax, sd * W * 0.2, cx - 3, sd * 1.2]), G, 2.2);
+  p.line(P([cx - 4, 0, cx, 0]), 0x2c3036, 2.2);
+  // Wheels and axle.
+  p.line(P([ax, -wo, ax, wo]), 0x2c3036, 1.6);
+  for (const sd of [-1, 1]) {
+    p.poly(P(rrectPts(ax, sd * wo, r * 2, ww + 0.6, 1.5, 1)), 0x16171a, 1, 0x4a4f55, 0.8);
+    p.poly(P(rectPts(ax - r * 0.4, sd * wo - 0.8, ax + r * 0.4, sd * wo + 0.8)), 0x8a9099);
+  }
+  // Shield across the axle, cradle, barrel and muzzle brake.
+  p.poly(P(rectPts(ax + 2, -W * 0.43, ax + 4, W * 0.43)), G, 1, dark, 0.8);
+  p.poly(P(rectPts(ax - 15, -2.8, ax + 3, 2.8)), G, 1, dark, 0.6);
+  p.line(P([ax + 3, 0, -L / 2 + 3, 0]), shade(G, -0.1), 2.4);
+  p.poly(P(rectPts(-L / 2, -1.7, -L / 2 + 3.2, 1.7)), 0x2c3036);
 }
 
 const TRACTOR_TOP = { ...VEHICLES.truck, tractor: true };
