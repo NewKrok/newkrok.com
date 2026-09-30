@@ -11,6 +11,7 @@
 export const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, BACK: 8, START: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 
 const DEAD = 0.2;
+const NINTENDO = /switch|pro controller|nintendo|joy-con|057e/i;
 const deadzone = (v) => (Math.abs(v) < DEAD ? 0 : Math.sign(v) * (Math.abs(v) - DEAD) / (1 - DEAD));
 
 export class Gamepad {
@@ -51,10 +52,16 @@ export class Gamepad {
       const key = `${p.index}:${p.id}`;
       let cal = this.calib.get(key);
       if (!cal) { cal = { rest: new Set(), up: new Set(), hat: false, first: [...p.axes].map((v) => Number(v) || 0) }; this.calib.set(key, cal); }
+      // Without the standard mapping only the first twelve buttons are the
+      // usual ones (12 and up are Home, Capture …, not the d-pad), and the
+      // face buttons come in another order: Switch pads (HORI, Pro
+      // Controller) by their letters, so A confirms; others by position.
+      const face = std ? null : NINTENDO.test(p.id) ? [2, 1, 0, 3] : [1, 2, 0, 3];
       p.buttons.forEach((b, i) => {
         const v = typeof b === "number" ? b : Math.max(b.value, b.pressed ? 1 : 0);
         if (v < 0.2) cal.up.add(i);
-        if (cal.up.has(i)) push(i, v);
+        if (!cal.up.has(i) || (!std && i >= 12)) return;
+        push(face && i < 4 ? face.indexOf(i) : i, v);
       });
       const axis = (i) => {
         const v = Number(p.axes[i]) || 0;

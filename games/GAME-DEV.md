@@ -119,7 +119,11 @@ what made headless level checking possible.
   (following one "active" pad broke when the system listed the controller
   twice). A button or axis only counts once it has been seen at rest, so a
   stuck button or an axis resting at ±1 on another device cannot hold a
-  direction. Non-standard pads get their d-pad from the hat axis (9).
+  direction. Non-standard pads get their d-pad from the hat axis (9), only
+  their first twelve buttons are read (12+ are Home, Capture …) and the face
+  buttons are reordered (Switch pads by letter, others by position).
+  A HORI Switch pad on macOS Chrome shows up as two devices and sends no
+  stick data at all, only the hat and the buttons.
   Settings show the raw readout for checking a player's controller.
 - Menus are driven by moving the DOM focus: up / down picks the nearest row
   first, then the control closest across; left / right stays in the row;
