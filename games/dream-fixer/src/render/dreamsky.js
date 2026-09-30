@@ -11,7 +11,6 @@ import { damp } from "../config.js";
 // clears a third with every anchor fixed, dark gloom on the ground round
 // each broken anchor, and pink glitch shards hanging in the air.
 
-const _c = new T.Color(), _c2 = new T.Color();
 
 export class DreamSky {
   constructor(group, def, kit, parts) {
