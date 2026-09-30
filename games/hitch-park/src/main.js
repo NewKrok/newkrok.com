@@ -188,6 +188,7 @@ function openIntro(idx) {
   const best = progress.best[idx];
   bind("introBest", best ? `${t("best", { score: best.score })} · ${"★".repeat(best.stars)}${"☆".repeat(3 - best.stars)}` : "", root);
   renderViewPick();
+  renderPadHint();
   const cv = $("canvas.rig", root);
   const ctx = cv.getContext("2d");
   ctx.clearRect(0, 0, cv.width, cv.height);
@@ -521,7 +522,17 @@ $("#menu-settings").addEventListener("click", (e) => {
 });
 
 // ── Gamepad: driving buttons and menu navigation ─────────────────────────
-pad.onConnect = (on) => { toast(t(on ? "padOn" : "padOff")); if (on) track("gamepad_connect", {}); };
+pad.onConnect = (on) => { toast(t(on ? "padOn" : "padOff")); if (on) track("gamepad_connect", {}); renderPadHint(); };
+const renderPadHint = () => bind("padHint", t(pad.info ? "padHintOn" : "padHintOff"));
+// Settings: what the controller reports, live, so a pad that misbehaves
+// can be checked (name, mapping, pressed buttons, axes).
+let padInfoAt = 0;
+function renderPadInfo() {
+  if (!$("#menu-settings.active") || G.time < padInfoAt) return;
+  padInfoAt = G.time + 0.1;
+  const info = pad.info;
+  bind("padInfo", info ? info.map((p) => `${p.id}\n${t("pad_mapping")}: ${p.mapping} · ${t("pad_buttons")}: ${p.buttons.join(" ") || "–"}\n${t("pad_axes")}: ${p.axes.join(" ")}`).join("\n\n") : t("pad_none"));
+}
 
 const visible = (el) => el.offsetParent !== null && !el.disabled;
 function focusables() {
@@ -570,7 +581,10 @@ function moveFocus(dir) {
 }
 
 function pollPad() {
+  const had = !!pad.info;
   padActive = pad.poll();
+  if (had !== !!pad.info) renderPadHint();
+  renderPadInfo();
   if (!padActive) return;
   if (pad.any()) audio.unlock();
   const P = (b) => pad.pressed(b);

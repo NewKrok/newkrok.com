@@ -10,43 +10,65 @@
 
 export const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, BACK: 8, START: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 
-const DEAD = 0.16;
+const DEAD = 0.2;
 const deadzone = (v) => (Math.abs(v) < DEAD ? 0 : Math.sign(v) * (Math.abs(v) - DEAD) / (1 - DEAD));
 
 export class Gamepad {
   constructor() {
-    this.index = null;           // the pad in use (the last one touched)
     this.prev = [];
     this.now = [];
     this.axes = [0, 0, 0, 0];
-    this.connected = false;
+    this.info = null;            // { id, mapping, axes, buttons } of the pads, for the settings readout
     this.onConnect = null;
     this.repeat = { dir: null, next: 0 };
     if (typeof window !== "undefined") {
-      window.addEventListener("gamepadconnected", (e) => { this.index ??= e.gamepad.index; this.connected = true; this.onConnect?.(true); });
-      window.addEventListener("gamepaddisconnected", (e) => {
-        if (e.gamepad.index !== this.index) return;
-        this.index = null;
-        this.connected = !!this.#pads().length;
-        this.onConnect?.(false);
-      });
+      window.addEventListener("gamepadconnected", () => this.onConnect?.(true));
+      window.addEventListener("gamepaddisconnected", () => this.onConnect?.(false));
     }
   }
 
   #pads() {
-    try { return [...(navigator.getGamepads?.() ?? [])].filter(Boolean); } catch { return []; }
+    try { return [...(navigator.getGamepads?.() ?? [])].filter((p) => p && p.connected !== false); } catch { return []; }
   }
 
-  // Reads the pad; returns false when there is none.
+  // Reads every connected pad and merges them: a button counts when it is
+  // down on any pad, a stick takes the pad pushed furthest. Picking one
+  // "active" pad went wrong when the system listed the controller twice
+  // (or a virtual one next to it). Returns false when there is none.
   poll() {
     const pads = this.#pads();
-    if (!pads.length) { this.prev = this.now = []; this.axes = [0, 0, 0, 0]; return false; }
-    // Follow whichever pad was used last.
-    const active = pads.find((p) => p.buttons.some((b) => b.pressed)) ?? pads.find((p) => p.index === this.index) ?? pads[0];
-    this.index = active.index;
     this.prev = this.now;
-    this.now = active.buttons.map((b) => (typeof b === "number" ? b : b.value));
-    this.axes = [0, 1, 2, 3].map((i) => deadzone(active.axes[i] ?? 0));
+    if (!pads.length) { this.now = []; this.axes = [0, 0, 0, 0]; this.info = null; return false; }
+    const now = [], axes = [0, 0, 0, 0];
+    const push = (i, v) => { if (v > (now[i] ?? 0)) now[i] = v; };
+    const stick = (i, v) => { v = deadzone(v); if (Math.abs(v) > Math.abs(axes[i])) axes[i] = v; };
+    for (const p of pads) {
+      p.buttons.forEach((b, i) => push(i, typeof b === "number" ? b : Math.max(b.value, b.pressed ? 1 : 0)));
+      const std = p.mapping === "standard";
+      if (Math.abs(p.axes[0] ?? 0) <= 1 && Math.abs(p.axes[1] ?? 0) <= 1) { stick(0, p.axes[0] ?? 0); stick(1, p.axes[1] ?? 0); }
+      // Without the standard mapping axes 2 / 3 may be triggers resting at −1.
+      if (std) { stick(2, p.axes[2] ?? 0); stick(3, p.axes[3] ?? 0); }
+      else {
+        // Non-standard pads report the d-pad as a hat switch on axis 9:
+        // eight positions from −1 (up) clockwise, above 1 when centred.
+        const hat = p.axes[9];
+        if (hat != null && Math.abs(hat) <= 1.05) {
+          const k = Math.round((hat + 1) * 3.5) % 8;
+          if (k === 7 || k <= 1) push(BTN.UP, 1);
+          if (k >= 1 && k <= 3) push(BTN.RIGHT, 1);
+          if (k >= 3 && k <= 5) push(BTN.DOWN, 1);
+          if (k >= 5 && k <= 7) push(BTN.LEFT, 1);
+        }
+      }
+    }
+    for (let i = 0; i < now.length; i++) now[i] ??= 0;
+    this.now = now;
+    this.axes = axes;
+    this.info = pads.map((p) => ({
+      id: p.id, mapping: p.mapping || "—",
+      axes: [...p.axes].map((v) => (Number(v) || 0).toFixed(2)),
+      buttons: p.buttons.map((b, i) => ((typeof b === "number" ? b : b.value) > 0.5 || b.pressed ? i : -1)).filter((i) => i >= 0),
+    }));
     return true;
   }
 

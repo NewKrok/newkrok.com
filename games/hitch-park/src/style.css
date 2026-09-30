@@ -102,6 +102,8 @@ kbd {
   gap: 10px;
   transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
 }
+.pad-hint { margin: 10px 0 0; font-size: 13px; color: var(--dim); text-align: center; }
+.pad-info { font: 12px/1.45 ui-monospace, monospace; color: var(--dim); text-align: right; white-space: pre-wrap; word-break: break-word; max-width: 70%; }
 .pad-nav :focus { outline: 2px solid var(--gold) !important; outline-offset: 2px; }
 .btn:hover, .btn:focus-visible { background: rgba(40, 52, 72, 0.95); border-color: rgba(255, 255, 255, 0.22); outline: none; }
 .btn:active { transform: translateY(1px) scale(0.99); }
