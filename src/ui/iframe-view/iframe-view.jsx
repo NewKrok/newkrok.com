@@ -1,9 +1,9 @@
 import styles from "./iframe-view.module.scss";
 
-const IframeView = ({ url }) => (
+const IframeView = ({ url, title = "content" }) => (
   <iframe
     className={styles.wrapper}
-    title="content"
+    title={title}
     width="100%"
     height="100%"
     src={url}
