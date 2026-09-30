@@ -110,7 +110,10 @@ function artilleryRange() {
   const bay = { x: 182, y: pits[target], a: 0, w: 42, l: 66 };
   const fields = [[620, 150, 820, 400], [980, 170, 1300, 340], [630, 620, 900, 790], [1000, 460, 1300, 720]];
   const rnd = lcg(4501);
-  const mines = fields.flatMap(([x0, y0, x1, y1]) => range(0, 14).map(() => ({ x: x0 + 14 + rnd() * (x1 - x0 - 28), y: y0 + 14 + rnd() * (y1 - y0 - 28) })));
+  // Only beyond the wire (40 px from the lane's middle): the fields overlap
+  // the lane on the bends.
+  const mines = fields.flatMap(([x0, y0, x1, y1]) => range(0, 14).map(() => ({ x: x0 + 14 + rnd() * (x1 - x0 - 28), y: y0 + 14 + rnd() * (y1 - y0 - 28) })))
+    .filter((m) => distToLine(lane, m.x, m.y) > 50);
   const woods = scatter(452, 30, [40, 40, 1380, 880], (x, y, r) => (r() < 0.5 ? pine(x, y, 12 + r() * 6) : tree(x, y, 13 + r() * 6)),
     [[100, 600, 600, 900], ...fields]).filter((t) => distToLine(lane, t.x, t.y) > 90);
   const inClearing = (x, y) => x < 560 && y > 590;
