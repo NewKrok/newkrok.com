@@ -2150,7 +2150,15 @@ export class Scene3D {
       this.camTgt.lerp(this.v.set(tx, ty, tz), k);
     }
     const [sx, sy] = view.shake;
-    this.camera.position.set(this.camPos.x + sx * 0.6, this.camPos.y - sy * 0.6, this.camPos.z);
+    // Looking around (right stick, mouse): the smoothed eye orbits the
+    // target about the vertical, so a turn never cuts across the rig.
+    let px = this.camPos.x, py = this.camPos.y;
+    const look = overview || menu ? 0 : view.look ?? 0;
+    if (look) {
+      const c = Math.cos(look), s = Math.sin(look), dx = px - this.camTgt.x, dy = py - this.camTgt.y;
+      px = this.camTgt.x + dx * c - dy * s; py = this.camTgt.y + dx * s + dy * c;
+    }
+    this.camera.position.set(px + sx * 0.6, py - sy * 0.6, this.camPos.z);
     this.camera.lookAt(this.camTgt);
     this.camera.updateMatrixWorld();
     // The sun's shadow box follows what the camera looks at.

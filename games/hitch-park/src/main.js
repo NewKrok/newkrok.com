@@ -40,6 +40,8 @@ const G = {
   shake: 0,
   camMode: settings.camMode,
   camDist: 1,
+  look: 0,            // camera turned round the rig (rad), smoothed
+  mouseX: null,       // mouse position across the screen, 0..1 (mouse look)
   snapCam: true,
   resultAt: 0,        // when the result card should appear
 };
@@ -211,6 +213,7 @@ function startDriving({ retry = false } = {}) {
   G.phase = "play";
   sim.scoring = true;
   G.snapCam = true;                 // start in the chosen view, no glide from the overview
+  G.look = 0;
   hideScreens();
   hud.banner(t("banner_go"), "#7ee787", 0.9);
   hud.markPlayer();
@@ -441,7 +444,11 @@ app.addEventListener("pointerdown", (e) => {
   joy = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: e.clientX, y: e.clientY };
   app.setPointerCapture?.(e.pointerId);
 });
-app.addEventListener("pointermove", (e) => { if (joy && e.pointerId === joy.id) { joy.x = e.clientX; joy.y = e.clientY; } });
+app.addEventListener("pointermove", (e) => {
+  if (joy && e.pointerId === joy.id) { joy.x = e.clientX; joy.y = e.clientY; }
+  if (e.pointerType === "mouse") G.mouseX = e.clientX / Math.max(1, app.clientWidth);
+});
+document.addEventListener("mouseleave", () => { G.mouseX = null; });
 const endJoy = (e) => { if (joy && e.pointerId === joy.id) joy = null; };
 app.addEventListener("pointerup", endJoy);
 app.addEventListener("pointercancel", endJoy);
@@ -707,8 +714,18 @@ function frame(now) {
   if (G.phase !== "menu" && G.phase !== "paused") scene.adapt(dt);
   // How far the screen is between the last two physics steps.
   const alpha = G.phase === "play" || G.phase === "done" || G.phase === "boom" ? acc / DT : 1;
+  // Look round: the pad's right stick (full push = straight back), else
+  // the mouse across the screen when mouse look is on.
+  let lookTo = 0;
+  if (G.phase === "play" && padActive && pad.axes[2]) lookTo = -pad.axes[2] * Math.PI;
+  else if (G.phase === "play" && settings.mouseLook && G.mouseX != null && !joy) {
+    const m = (G.mouseX - 0.5) * 2, dead = 0.18;
+    lookTo = Math.abs(m) < dead ? 0 : -Math.sign(m) * ((Math.abs(m) - dead) / (1 - dead)) * Math.PI * 0.95;
+  }
+  G.look += (lookTo - G.look) * (1 - Math.exp(-dt * 7));
+  if (Math.abs(G.look) < 1e-3 && !lookTo) G.look = 0;
   const pip = scene.render(sim, {
-    alpha,
+    alpha, look: G.look,
     // In the intro, a picked view is previewed behind the card.
     phase: G.phase === "paused" || G.phase === "done" || G.phase === "boom" || (G.phase === "intro" && G.introPreview) ? "play" : G.phase,
     time: G.time, dt, camMode: G.camMode, camDist: G.camDist,
