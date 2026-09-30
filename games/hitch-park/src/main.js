@@ -5,6 +5,7 @@ import { Scene3D } from "./render/scene3d.js";
 import { drawLevelThumb, drawRigIcon } from "./render/topdown.js";
 import { Hud } from "./hud.js";
 import { Audio } from "./audio.js";
+import { Gamepad, BTN } from "./gamepad.js";
 import { track } from "./analytics.js";
 import {
   loadSettings, saveSettings, loadProgress, recordResult, isUnlocked, totalStars, firstUnfinished,
@@ -22,7 +23,7 @@ const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 const app = $("#app");
 const settings = loadSettings();
 setLang(detectLang(settings.lang));
-const trailerName = (L) => (L.vehicle === "truck" ? t("tractorSemi") : `${t("veh_" + (L.vehicle ?? "car"))} + ${t("tr_" + L.trailer)}`);
+const trailerName = (L) => (L.trailer === "semi" ? t("tractorSemi") : `${t("veh_" + (L.vehicle ?? "car"))} + ${t("tr_" + L.trailer)}`);
 const camName = (m) => t("cam" + m);
 const progress = loadProgress(LEVELS);
 const audio = new Audio();
@@ -53,7 +54,7 @@ function showScreen(id, { push = false } = {}) {
   if (!push) screenStack = [];
   $$(".screen:not(#loading)").forEach((s) => s.classList.toggle("active", s.id === id));
   updateIngameButtons();
-  const first = id && $(`#${id} .btn.primary, #${id} .btn`);
+  const first = id && ($(`#${id} .btn.primary`) ?? $(`#${id} .btn`));
   if (first && matchMedia("(hover: hover)").matches) first.focus({ preventScroll: true });
 }
 function hideScreens() {
@@ -190,7 +191,7 @@ function openIntro(idx) {
   const cv = $("canvas.rig", root);
   const ctx = cv.getContext("2d");
   ctx.clearRect(0, 0, cv.width, cv.height);
-  drawRigIcon(ctx, L.vehicle ?? "car", L.trailer, cv.width / 2, cv.height / 2, cv.width - 30);
+  drawRigIcon(ctx, L.vehicle ?? "car", L.trailer, cv.width / 2, cv.height / 2, cv.width - 30, L.color);
   showScreen("intro");
 }
 
@@ -317,23 +318,53 @@ function onSimEvent(type, e) {
 // ── Input ────────────────────────────────────────────────────────────────
 const keys = {};
 let joy = null;                // { id, ox, oy, x, y } in CSS px
+const pad = new Gamepad();
+let padActive = false;         // the pad drove this frame (else keys / pointer)
+let digitalSteer = true;       // last steering came from keys or the d-pad
 
+// Keyboard and d-pad steering is all or nothing, so for parking the wheel
+// can be set to stay where it is left instead of centring itself (the
+// `autoCentre` setting); stick and pointer steering are absolute anyway.
 function readInput() {
   let throttle = 0, steer = 0;
   if (keys.ArrowUp || keys.KeyW) throttle += 1;
   if (keys.ArrowDown || keys.KeyS) throttle -= 1;
   if (keys.ArrowLeft || keys.KeyA) steer -= 1;
   if (keys.ArrowRight || keys.KeyD) steer += 1;
-  const brake = !!keys.Space;
+  let brake = !!keys.Space;
+  if (steer) digitalSteer = true;
+  if (padActive) {
+    const p = pad.drive();
+    if (p.throttle) throttle = clamp(throttle + p.throttle, -1, 1);
+    if (p.steer) { steer = p.steer; digitalSteer = p.digital; }
+    brake ||= p.brake;
+  }
   if (joy) {
     const dx = joy.x - joy.ox, dy = joy.y - joy.oy;
     steer = clamp(dx / 55, -1, 1);
     if (Math.abs(steer) < 0.12) steer = 0;
-    if (dy < -14) throttle = clamp(-dy / 60, 0, 1);
-    else if (dy > 14) throttle = -clamp(dy / 60, 0, 1);
+    digitalSteer = false;
+    if (settings.pointer !== "steer") {
+      if (dy < -14) throttle = clamp(-dy / 60, 0, 1);
+      else if (dy > 14) throttle = -clamp(dy / 60, 0, 1);
+    }
   }
-  return { throttle, steer, brake };
+  const centre = settings.autoCentre;
+  const holdSteer = digitalSteer && !joy && (centre === "never" || (centre === "forward" && sim.veh.gear < 0));
+  return { throttle, steer, brake, holdSteer };
 }
+
+// Escape (and the pad's B): one step back from wherever we are.
+function escapeAction() {
+  const onScreen = (id) => $(`#${id}.active`);
+  if (G.phase === "play") pause();
+  else if (G.phase === "paused" && onScreen("pause")) resume();
+  else if (G.phase === "paused" && onScreen("menu-settings")) back();
+  else if (G.phase === "intro" || (G.phase === "done" && onScreen("result"))) openLevels();
+  else if (screenStack.length || onScreen("menu-levels") || onScreen("menu-howto") || onScreen("menu-settings")) back();
+}
+const toggleRearCam = () => { settings.rearCam = !settings.rearCam; saveSettings(settings); toast(t(settings.rearCam ? "rearOn" : "rearOff")); };
+const toggleGuide = () => { settings.guide = !settings.guide; saveSettings(settings); toast(t(settings.guide ? "guideOn" : "guideOff")); };
 
 // The last camera picked (here or in the intro) is where the next job starts.
 function setCamMode(m, { announce = false } = {}) {
@@ -359,21 +390,18 @@ window.addEventListener("keydown", (e) => {
   if (["Space", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(code) && G.phase === "play") e.preventDefault();
   if (e.repeat) return;
   const onScreen = (id) => $(`#${id}.active`);
+  document.body.classList.remove("pad-nav");
   if (code === "Escape") {
     e.preventDefault();
-    if (G.phase === "play") pause();
-    else if (G.phase === "paused" && onScreen("pause")) resume();
-    else if (G.phase === "paused" && onScreen("menu-settings")) back();
-    else if (G.phase === "intro" || (G.phase === "done" && onScreen("result"))) openLevels();
-    else if (screenStack.length || onScreen("menu-levels") || onScreen("menu-howto") || onScreen("menu-settings")) back();
+    escapeAction();
     return;
   }
   if (G.phase === "play") {
     if (code === "KeyR") restart();
     if (code === "KeyP") pause();
     if (code === "KeyC") cycleCamera();
-    if (code === "KeyV") { settings.rearCam = !settings.rearCam; saveSettings(settings); toast(t(settings.rearCam ? "rearOn" : "rearOff")); }
-    if (code === "KeyG") { settings.guide = !settings.guide; saveSettings(settings); toast(t(settings.guide ? "guideOn" : "guideOff")); }
+    if (code === "KeyV") toggleRearCam();
+    if (code === "KeyG") toggleGuide();
   } else if (G.phase === "intro" && onScreen("intro")) {
     if (code === "Enter" || code === "Space") { e.preventDefault(); startDriving(); }
   } else if (G.phase === "done" && onScreen("result")) {
@@ -485,11 +513,98 @@ $("#menu-settings").addEventListener("click", (e) => {
   if (!b) return;
   const k = b.closest("[data-setting]").dataset.setting;
   settings[k] = k === "camMode" ? Number(b.dataset.value) : b.dataset.value;
+  if (k === "autoCentre" || k === "pointer") track("controls_change", { setting: k, value: settings[k] });
   if (k === "camMode") { setCamMode(settings.camMode); trackCamera("settings"); return renderSettings(); }
   if (k === "quality") { scene.setQuality(settings.quality); scene.lv && (scene.lv.gen = -1); }
   applySettings();
   renderSettings();
 });
+
+// ── Gamepad: driving buttons and menu navigation ─────────────────────────
+pad.onConnect = (on) => { toast(t(on ? "padOn" : "padOff")); if (on) track("gamepad_connect", {}); };
+
+const visible = (el) => el.offsetParent !== null && !el.disabled;
+function focusables() {
+  const scr = $(".screen.active:not(#loading)");
+  if (!scr) return [];
+  return $$("button, select, input, .lvl", scr).filter(visible);
+}
+// Moves the focus to the nearest control in a direction.
+function moveFocus(dir) {
+  const list = focusables();
+  if (!list.length) return;
+  const cur = document.activeElement;
+  if (!list.includes(cur)) { (list.find((b) => b.classList.contains("primary")) ?? list[0]).focus(); return; }
+  // Sliders and the language list take left / right themselves.
+  if ((dir === "left" || dir === "right") && (cur.type === "range" || cur.tagName === "SELECT")) {
+    const d = dir === "right" ? 1 : -1;
+    if (cur.type === "range") {
+      cur.value = clamp(Number(cur.value) + d * Number(cur.step || 0.05), Number(cur.min), Number(cur.max));
+      cur.dispatchEvent(new Event("input", { bubbles: true }));
+    } else {
+      cur.selectedIndex = clamp(cur.selectedIndex + d, 0, cur.options.length - 1);
+      cur.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    audio.play("hover");
+    return;
+  }
+  const r0 = cur.getBoundingClientRect();
+  const cx = r0.left + r0.width / 2, cy = r0.top + r0.height / 2;
+  const [ux, uy] = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[dir];
+  let best = null, bestScore = Infinity;
+  for (const el of list) {
+    if (el === cur) continue;
+    const r = el.getBoundingClientRect();
+    const dx = r.left + r.width / 2 - cx, dy = r.top + r.height / 2 - cy;
+    const along = dx * ux + dy * uy;
+    if (along <= 4) continue;
+    const across = Math.abs(dx * uy - dy * ux);
+    const score = along + across * 2.5;
+    if (score < bestScore) { bestScore = score; best = el; }
+  }
+  if (best) {
+    best.focus({ preventScroll: true });
+    best.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    audio.play("hover");
+  }
+}
+
+function pollPad() {
+  padActive = pad.poll();
+  if (!padActive) return;
+  if (pad.any()) audio.unlock();
+  const P = (b) => pad.pressed(b);
+  if (G.phase === "play") {
+    // Zoom on the right stick.
+    if (pad.axes[3]) G.camDist = clamp(G.camDist * (1 + pad.axes[3] * 0.02), 0.55, 1.7);
+    if (P(BTN.START)) pause();
+    else if (P(BTN.BACK)) restart();
+    else if (P(BTN.Y)) cycleCamera();
+    else if (P(BTN.LB)) toggleRearCam();
+    else if (P(BTN.RB)) toggleGuide();
+    return;
+  }
+  const dir = pad.nav(G.time);
+  if (dir) { document.body.classList.add("pad-nav"); moveFocus(dir); }
+  const onScreen = (id) => $(`#${id}.active`);
+  if (P(BTN.B)) { escapeAction(); return; }
+  if (G.phase === "paused" && onScreen("pause") && P(BTN.START)) { resume(); return; }
+  if (G.phase === "intro" && onScreen("intro") && P(BTN.START)) { startDriving(); return; }
+  if (G.phase === "done" && onScreen("result")) {
+    if (P(BTN.START)) { nextLevel(); return; }
+    if (P(BTN.X)) { restart(); return; }
+  }
+  if (P(BTN.A)) {
+    document.body.classList.add("pad-nav");
+    const el = document.activeElement;
+    const list = focusables();
+    // Nothing picked yet: A takes the screen's main button (Drive!, Next …).
+    const target = list.includes(el) ? el : list.find((x) => x.classList.contains("primary"));
+    if (target?.tagName === "SELECT") moveFocus("right");
+    else if (target) target.click();
+    else moveFocus("down");
+  }
+}
 
 // ── Loop ─────────────────────────────────────────────────────────────────
 let last = performance.now();
@@ -500,6 +615,7 @@ function frame(now) {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
   G.time += dt;
+  pollPad();
 
   if (G.phase === "play" || G.phase === "done") {
     acc += dt;
@@ -551,7 +667,7 @@ function frame(now) {
   hud.draw({
     sim, phase: G.phase, clock: G.clock, hold: G.hold,
     levelIndex: G.levelIdx, levelCount: LEVELS.length,
-    joy: G.phase === "play" ? joy : null, pip,
+    joy: G.phase === "play" && joy ? { ...joy, steerOnly: settings.pointer === "steer" } : null, pip,
     project: (x, y, z) => scene.project(x, y, z),
   });
 }

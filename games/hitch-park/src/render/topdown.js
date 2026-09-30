@@ -1,4 +1,4 @@
-import { M, VEHICLES, TRAILERS, CAR_TYPES, PLAYER_COLOR, lcg } from "../config.js";
+import { M, VEHICLES, TRAILERS, CAR_TYPES, PLAYER_COLOR, ARMY_GREEN, lcg } from "../config.js";
 
 // ── Top-down 2D drawing ──────────────────────────────────────────────────
 // The ground of every site (surface, paint, water, gravel) is baked into a
@@ -93,7 +93,10 @@ export function drawCarTop(p, spec, color, x, y, a) {
     const cab = (spec.tractor ? 0.42 : 0.26) * L;
     p.poly(P(rrectPts(L / 2 - cab / 2, 0, cab, W, 2.5, 2)), color, 1, shade(color, -0.45), 0.8);
     p.poly(P(rectPts(L / 2 - cab + 1, -W / 2 + 2, L / 2 - cab + 5, W / 2 - 2)), 0x1b2430);
-    if (spec.lorry) p.poly(P(rectPts(-L / 2, -W / 2, L / 2 - cab - 1, W / 2)), 0xe8e8e4, 1, 0x8a8f96, 1);
+    if (spec.canvas) {
+      p.poly(P(rrectPts((L / 2 - cab - 1 - L / 2) / 2, 0, L - cab - 1, W, 2, 2)), shade(color, 0.08), 1, shade(color, -0.35), 1);
+      for (let k = 1; k < 4; k++) p.line(P([-L / 2 + (L - cab) * k / 4, -W / 2 + 1, -L / 2 + (L - cab) * k / 4, W / 2 - 1]), shade(color, -0.2), 0.8);
+    } else if (spec.lorry) p.poly(P(rectPts(-L / 2, -W / 2, L / 2 - cab - 1, W / 2)), 0xe8e8e4, 1, 0x8a8f96, 1);
     else {
       p.poly(P(rectPts(-L / 2, -W / 2 + 4, L / 2 - cab, W / 2 - 4)), 0x2a2d33);
       p.circle(...xform(x, y, a, [-L * 0.28, 0]), W * 0.26, 0x4a4f55);
@@ -145,6 +148,29 @@ export function drawTrailerTop(p, key, x, y, a, color = 0xd6d9de) {
     }
     for (const xx of [L / 2 - 6, L / 2 - 3.4 * M + 6]) p.line(P([xx, -W / 2, xx, W / 2]), 0xe8c547, 1.2);
     p.poly(P(rectPts(-L / 2 - 2.5, -3, -L / 2 - 0.5, 3)), 0xc62d2d, 1);
+  } else if (key === "kitchen") {
+    p.poly(P(rectPts(-L / 2, -W / 2, L / 2, W / 2)), ARMY_GREEN, 1, shade(ARMY_GREEN, -0.4), 1);
+    p.poly(P(rectPts(-L / 2 + 2, -W * 0.2, L / 2 - 2, W * 0.2)), 0x5d6a3a, 1);
+    p.circle(...xform(x, y, a, [L * 0.28, -W * 0.22]), 2.4, 0x2c3036);
+  } else if (key === "fieldgun") {
+    const ax = t.axle * M, cx = L / 2 + t.bar * M, wo = (t.wid / 2 + t.wheelOut) * M;
+    p.line(P([ax, -W * 0.2, cx - 1, 0, ax, W * 0.2]), shade(ARMY_GREEN, -0.2), 2.4);
+    for (const sd of [-1, 1]) p.poly(P(rectPts(ax - t.wheelR * M, sd * wo - 2, ax + t.wheelR * M, sd * wo + 2)), 0x16171a);
+    p.poly(P(rectPts(ax + 1.5, -W * 0.43, ax + 3.5, W * 0.43)), ARMY_GREEN, 1, shade(ARMY_GREEN, -0.4), 0.8);
+    p.poly(P(rectPts(ax - 15, -2.8, ax + 1.5, 2.8)), ARMY_GREEN, 1);
+    p.line(P([ax, 0, -L / 2, 0]), shade(ARMY_GREEN, -0.15), 2.2);
+    p.poly(P(rectPts(-L / 2, -1.7, -L / 2 + 3.2, 1.7)), 0x2c3036);
+  } else if (key === "missile") {
+    p.poly(P(rectPts(-L / 2, -W / 2, L / 2, W / 2)), ARMY_GREEN, 1, shade(ARMY_GREEN, -0.4), 1);
+    const mr = W * 0.21, mb0 = -L / 2 + 3, mb1 = L / 2 - 16;
+    p.poly(P(rectPts(mb0, -mr, mb1, mr)), 0xe6e3d6, 1, 0x9a968c, 0.6);
+    p.poly(P([mb1, -mr, mb1 + 11, 0, mb1, mr]), ARMY_GREEN, 1);
+    p.line(P([mb0 + 1, -mr * 1.7, mb0 + 9, mr * 1.7]), ARMY_GREEN, 1);
+    p.line(P([mb0 + 1, mr * 1.7, mb0 + 9, -mr * 1.7]), ARMY_GREEN, 1);
+  } else if (key === "lowloader") {
+    p.poly(P(rectPts(-L / 2, -W / 2 + 0.5, L / 2, W / 2 - 0.5)), 0x2c3036, 1, 0x1b1d20, 1);
+    p.poly(P(rectPts(L / 2 - 28, -W / 2 + 3, L / 2, W / 2 - 3)), ARMY_GREEN, 1);
+    drawTankTop(p, color === 0xd6d9de ? ARMY_GREEN : color, x - Math.cos(a) * 4, y - Math.sin(a) * 4, a, Math.PI, 84, W - 2);
   } else if (key === "semi") {
     p.poly(P(rectPts(-L / 2, -W / 2, L / 2, W / 2)), color, 1, shade(color, -0.35), 1);
     for (let k = 1; k < 6; k++) p.line(P([-L / 2 + (L * k) / 6, -W / 2 + 1, -L / 2 + (L * k) / 6, W / 2 - 1]), shade(color, -0.15), 0.8);
@@ -159,17 +185,30 @@ export function drawTrailerTop(p, key, x, y, a, color = 0xd6d9de) {
 const TRACTOR_TOP = { ...VEHICLES.truck, tractor: true };
 
 // The player's rig at a pose (car centre at x, y).
-export function drawRigTop(p, vehicle, trailer, x, y, a) {
+export function drawRigTop(p, vehicle, trailer, x, y, a, color = PLAYER_COLOR) {
   const v = VEHICLES[vehicle], t = TRAILERS[trailer];
   const d = (-v.hitchX + t.len / 2 + t.bar) * M;
   const drawTrailer = () => drawTrailerTop(p, trailer, x - Math.cos(a) * d, y - Math.sin(a) * d, a, trailer === "semi" ? 0xe8e8e4 : undefined);
-  const drawCar = () => drawCarTop(p, vehicle === "truck" ? TRACTOR_TOP : CAR_TYPES[v.body ?? "wagon"], PLAYER_COLOR, x, y, a);
+  const drawCar = () => drawCarTop(p, vehicle === "truck" ? TRACTOR_TOP : CAR_TYPES[v.body ?? "wagon"], color, x, y, a);
   // A semi-trailer's nose sits over the tractor's fifth wheel: tractor first.
-  if (trailer === "semi") { drawCar(); drawTrailer(); } else { drawTrailer(); drawCar(); }
+  if (t.bar < 0) { drawCar(); drawTrailer(); } else { drawTrailer(); drawCar(); }
+}
+
+// Tank, top-down: tracks, hull, turret (turned `turret` rad) and gun.
+export function drawTankTop(p, color, x, y, a, turret = 0, L = 84, W = 36) {
+  const P = (pts) => xform(x, y, a, pts);
+  const tw = W * 0.2;
+  p.poly(xform(x + 1.8, y + 2.6, a, rectPts(-L / 2, -W / 2, L / 2, W / 2)), 0x000000, 0.25);
+  for (const sd of [-1, 1]) p.poly(P(rectPts(-L / 2 + 1, sd > 0 ? W / 2 - tw : -W / 2, L / 2 - 1, sd > 0 ? W / 2 : -W / 2 + tw)), 0x2a2c2e);
+  p.poly(P(rectPts(-L / 2 + 2, -W / 2 + tw - 1, L / 2 - 3, W / 2 - tw + 1)), color, 1, shade(color, -0.4), 0.8);
+  const tx = -L * 0.06, c = Math.cos(a), s = Math.sin(a);
+  const ox = x + tx * c, oy = y + tx * s, ta = a + turret;
+  p.poly(xform(ox, oy, ta, rectPts(-15, -W * 0.34, 17, W * 0.34)), shade(color, 0.08), 1, shade(color, -0.4), 0.8);
+  p.line(xform(ox, oy, ta, [17, 0, 66, 0]), shade(color, -0.1), 2.2);
 }
 
 // Car + trailer rig, centred on (x, y) and scaled to fit `maxW`.
-export function drawRigIcon(ctx, vehicle, trailer, x, y, maxW) {
+export function drawRigIcon(ctx, vehicle, trailer, x, y, maxW, color) {
   const v = VEHICLES[vehicle], t = TRAILERS[trailer];
   const d = (-v.hitchX + t.len / 2 + t.bar) * M;
   const front = v.len / 2 * M, back = d + t.len / 2 * M;
@@ -178,7 +217,7 @@ export function drawRigIcon(ctx, vehicle, trailer, x, y, maxW) {
   ctx.save();
   ctx.translate(x - (front - back) / 2 * s, y);
   ctx.scale(s, s);
-  drawRigTop(new Painter(ctx), vehicle, trailer, 0, 0, 0);
+  drawRigTop(new Painter(ctx), vehicle, trailer, 0, 0, 0, color);
   ctx.restore();
 }
 
@@ -470,7 +509,13 @@ function drawStaticTop(p, def) {
       p.poly(xform(x, y, a, rectPts(-34 * s, -15 * s, -26 * s, 15 * s)), def.color ?? 0xf2f2ee);
       return;
     }
-    case "tent": p.poly(box(def.w, def.h), def.w > 28 ? 0xd9822b : 0x2f7fbf); return;
+    case "tent": p.poly(box(def.w, def.h), def.color ?? (def.w > 28 ? 0xd9822b : 0x2f7fbf)); return;
+    case "tank": drawTankTop(p, def.color ?? ARMY_GREEN, x, y, a, def.turret ?? 0); return;
+    case "parkedtrailer": drawTrailerTop(p, def.trailer, x, y, a); return;
+    case "sandbags": p.poly(box(def.w, def.h), 0xb59a66, 1, 0x7d6a44, 0.8); return;
+    case "hesco": p.poly(box(def.w, def.h), 0xc9b27a, 1, 0x8a8f86, 1.2); return;
+    case "watchtower": p.poly(box(def.s ?? 22, def.s ?? 22), 0x6b5a3a, 1, 0x3b3f45, 1); return;
+    case "radar": circle(def.r ?? 12, 0x8a8f86); p.circle(x, y, (def.r ?? 12) * 0.5, 0xd8dde3); return;
     case "wall": p.poly(box(def.w, def.h), WALL_COLORS[def.style] ?? 0x9a9da2); return;
     case "kerb": p.poly(box(def.w, def.h), 0xc9c5bc); return;
     case "barrier": p.poly(box(def.w, def.h), 0xd33a2c); return;
@@ -501,6 +546,6 @@ export function drawLevelThumb(canvas, lvl) {
   for (const st of lvl.statics) drawStaticTop(p, st);
   const b = lvl.bay;
   p.poly(xform(b.x, b.y, b.a, rectPts(-b.l / 2, -b.w / 2, b.l / 2, b.w / 2)), 0xffd166, 0.55, 0xffd166, 3 / s * 0.6);
-  drawRigTop(p, lvl.vehicle ?? "car", lvl.trailer, lvl.start.x, lvl.start.y, lvl.start.a);
+  drawRigTop(p, lvl.vehicle ?? "car", lvl.trailer, lvl.start.x, lvl.start.y, lvl.start.a, lvl.color);
   ctx.restore();
 }

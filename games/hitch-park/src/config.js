@@ -65,6 +65,19 @@ export const VEHICLES = {
     brake: 7.0, roll: 0.35, engineBrake: 1.4, mu: 1.0,
     density: 1.05, hitchLimit: 1.32, hitchWarn: 0.9,
   },
+  // Chapter 8: a military light utility vehicle — wide, heavy, a troop
+  // bed at the back, strong but slow-steering.
+  army: {
+    name: "Utility vehicle", body: "mil",
+    len: 4.9, wid: 2.18, h: 1.86, wheelbase: 3.3, track: 1.82,
+    wheelR: 0.42, wheelW: 0.3,
+    hitch: 0.4, hitchX: -(4.9 / 2 + 0.4),
+    maxSteer: 0.58, steerRate: 1.7, steerReturn: 1.1,
+    drive: 4.4, driveRear: true,
+    vmaxF: 9.0, vmaxR: 4.0,
+    brake: 7.5, roll: 0.4, engineBrake: 1.5, mu: 1.05,
+    density: 1.3, hitchLimit: 1.32, hitchWarn: 0.9,
+  },
   truck: {
     name: "Tractor unit",
     len: 6.2, wid: 2.5, h: 3.4, wheelbase: 3.8, track: 2.05,
@@ -103,6 +116,14 @@ export const TRAILERS = {
   horsebox:  { name: "Horsebox", len: 4.0, wid: 1.96, bar: 1.3, axle: -0.1, wheelR: 0.3, wheelW: 0.2, wheelOut: -0.1, density: 0.6, axles: 2 },
   carhauler: { name: "Car transporter", len: 5.0, wid: 2.05, bar: 1.3, axle: -0.35, wheelR: 0.28, wheelW: 0.2, wheelOut: -0.12, density: 0.55, axles: 2 },
   pipes:     { name: "Pipe trailer", len: 7.0, wid: 1.5, bar: 1.3, axle: 1.2, wheelR: 0.3, wheelW: 0.2, wheelOut: 0.08, density: 0.35 },
+  // Chapter 8, army. The field kitchen is a classic single-axle box; the
+  // field gun's axle sits ahead of its middle with the barrel behind it, on
+  // a long split trail; the missile is long with twin axles well back; the
+  // low loader is a semi-trailer (kingpin on the tractor) carrying a tank.
+  kitchen:   { name: "Field kitchen", len: 3.0, wid: 1.9, bar: 1.4, axle: -0.05, wheelR: 0.38, wheelW: 0.26, wheelOut: 0.12, density: 0.8 },
+  fieldgun:  { name: "Field gun", len: 4.4, wid: 2.0, bar: 1.9, axle: 0.85, wheelR: 0.48, wheelW: 0.3, wheelOut: 0.08, density: 0.9 },
+  missile:   { name: "Missile trailer", len: 8.2, wid: 2.3, bar: 1.4, axle: -1.3, wheelR: 0.42, wheelW: 0.3, wheelOut: -0.14, density: 0.5, axles: 2 },
+  lowloader: { name: "Low loader", len: 12.8, wid: 3.1, bar: -1.2, axle: -4.3, wheelR: 0.42, wheelW: 0.36, wheelOut: -0.34, density: 0.55, axles: 3 },
 };
 export const HITCH_LIMIT = CAR.hitchLimit;
 export const HITCH_WARN = CAR.hitchWarn;
@@ -118,7 +139,12 @@ export const CAR_TYPES = {
   pickup: { len: 5.3, wid: 1.98, h: 1.8,  ws: 0.22, rf: 0.33, rb: 0.52, rg: 0.55, hood: 0.8, bed: true },
   // A rigid lorry: cab plus a box body.
   lorry:  { len: 8.5, wid: 2.5,  h: 3.4,  ws: 0.03, rf: 0.06, rb: 0.24, rg: 0.26, hood: 0.1, lorry: true },
+  // Army: the utility vehicle (troop bed at the back) and a canvas-backed truck.
+  mil:    { len: 4.9, wid: 2.18, h: 1.86, ws: 0.3,  rf: 0.4,  rb: 0.62, rg: 0.64, hood: 0.8, bed: true },
+  armytruck: { len: 8.0, wid: 2.5, h: 3.3, ws: 0.03, rf: 0.06, rb: 0.26, rg: 0.28, hood: 0.1, lorry: true, canvas: true },
 };
+export const ARMY_GREEN = 0x4b5a2e;
+export const ARMY_SAND = 0xb59a66;
 export const PARKED_COLORS = [0x3d6fb6, 0xe8e8e4, 0x2b2d31, 0xb8bcc2, 0x8a1f24, 0x2f6b4a, 0xd9a13a, 0x5b4a8a, 0x1f3a5a, 0x9aa3ab, 0x6b3b2a, 0xf2f0e6];
 export const PLAYER_COLOR = 0xd9342b;
 

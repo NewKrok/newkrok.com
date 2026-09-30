@@ -96,6 +96,17 @@ export function createSim({ onEvent = () => {} } = {}) {
     else if (k === "tractor") box(44, 24);
     else if (k === "digger") box(def.w ?? 60, def.h ?? 30);
     else if (k === "skip") box(def.w ?? 44, def.h ?? 26);
+    else if (k === "tank") {
+      // Hull, plus the gun where it overhangs (turret turned by `turret`).
+      box(84, 36);
+      const ta = def.turret ?? 0, tx = -84 * 0.06;
+      b.shapes.add(new Polygon(toVecs([[tx + 17, -1.5], [tx + 66, -1.5], [tx + 66, 1.5], [tx + 17, 1.5]].map(([u, v]) => [u * Math.cos(ta) - v * Math.sin(ta), u * Math.sin(ta) + v * Math.cos(ta)])), MAT_STATIC));
+    } else if (k === "parkedtrailer") {
+      const t = TRAILERS[def.trailer];
+      box(t.len * M, t.wid * M);
+      if (t.bar > 0) boxAt((t.len / 2 + t.bar / 2) * M, 0, t.bar * M, 4);
+    } else if (k === "watchtower") box(def.s ?? 22, def.s ?? 22);
+    else if (k === "radar") circ(def.r ?? 12);
     else if (k === "vancaravan") {
       const t = TRAILERS.caravan;
       box(t.len * M, t.wid * M);
@@ -411,11 +422,11 @@ export function createSim({ onEvent = () => {} } = {}) {
     const speed = c.velocity.x * fx + c.velocity.y * fy;
     v.speed = speed;
 
-    // Steering rack: rate-limited, self-centring when you let go.
+    // Steering rack: rate-limited, self-centring when you let go — unless
+    // `holdSteer` asks it to stay where it was left (keyboard parking).
     const target = input.steer * spec.maxSteer;
-    v.steer = input.steer !== 0
-      ? approach(v.steer, target, spec.steerRate * DT)
-      : approach(v.steer, 0, spec.steerReturn * DT);
+    if (input.steer !== 0) v.steer = approach(v.steer, target, spec.steerRate * DT);
+    else if (!input.holdSteer) v.steer = approach(v.steer, 0, spec.steerReturn * DT);
     for (const w of v.wheels) {
       if (!w.front) continue;
       const ang = ackermann(v.steer, w.side, spec);
@@ -593,7 +604,7 @@ export function createSim({ onEvent = () => {} } = {}) {
     pv.x = b.velocity.x; pv.y = b.velocity.y;
   }
 
-  // One fixed physics step. `input` = { throttle, steer, brake }.
+  // One fixed physics step. `input` = { throttle, steer, brake, holdSteer }.
   function step(input) {
     const v = S.veh;
     movingBodies(snapshot);

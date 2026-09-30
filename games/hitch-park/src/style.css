@@ -102,6 +102,7 @@ kbd {
   gap: 10px;
   transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
 }
+.pad-nav :focus { outline: 2px solid var(--gold) !important; outline-offset: 2px; }
 .btn:hover, .btn:focus-visible { background: rgba(40, 52, 72, 0.95); border-color: rgba(255, 255, 255, 0.22); outline: none; }
 .btn:active { transform: translateY(1px) scale(0.99); }
 .btn.primary { background: var(--gold); color: var(--gold-ink); border-color: transparent; }
@@ -246,6 +247,9 @@ h2.ok { color: var(--ok); font-size: 30px; margin-bottom: 8px; }
   .settings { padding: 4px 16px 18px; }
   .settings .row { gap: 10px; }
   .seg button { padding: 8px 8px; font-size: 12px; }
+  /* A three-way switch with long labels drops under its label. */
+  .settings .row.wide { flex-wrap: wrap; }
+  .settings .row.wide .seg { margin-left: auto; }
 }
 @media (hover: none) { .actions kbd, .menu-buttons kbd { display: none; } }
 

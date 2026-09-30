@@ -96,15 +96,34 @@ what made headless level checking possible.
   overlaps, a blocked bay, or a start inside something. Run it after every
   change.
 - `npm run solve-levels [-- <n>]` searches for a way to park (hybrid A*)
-  and flags levels that can be done without reversing. It is slow and hungry:
-  lorry levels can run out of memory, and long routes need stop-over poses
-  (the `VIA` table). Run one level at a time, `nice`d, never several in
-  parallel: it makes the machine unusable.
+  and flags levels that can be done without reversing. Long routes need
+  stop-over poses (the `VIA` table). Run one level at a time, `nice`d. Its
+  distance fields are Float64: in Float32, rounding made equal-cost cells
+  look improvable and the search re-expanded them endlessly, which is what
+  used to make big levels take many minutes and run out of memory.
 - Bugs playtesting kept finding: segmented hedges whose gap doesn't line up
   with the road (build them from separate lines), a shortcut that lets you
   drive forwards into the bay, props dropped in the only gateway, lamps
   standing on the road (lamps take an arm angle `a`), and the bay facing
   the other way from the parked vehicles next to it.
+
+## Input
+
+- Keyboard, pointer drag and gamepad all feed one `readInput()` per physics
+  step. Keys and the d-pad are all-or-nothing, so the steering rack can be
+  told to stay where it was left (`holdSteer`, the "Keyboard steering centres
+  itself" setting: always / not reversing / never); stick and pointer
+  steering are absolute and always re-centre. Pointer drag can be limited to
+  steering only, leaving throttle to the keys or the pad.
+- Gamepad (`src/gamepad.js`): polled once a frame with the standard
+  mapping, edge-detected per frame, with key-repeat for menu navigation.
+  Menus are driven by moving the DOM focus to the nearest control in the
+  pushed direction; A clicks the focused control (or the screen's primary
+  button), B does what Escape does. A `pad-nav` class on `<body>` shows the
+  focus ring until a key is pressed.
+- To test the pad headless, stub `navigator.getGamepads` in an init script
+  and hold each button for longer than a frame: software GL runs at a few
+  frames per second, so a short tap falls between two polls.
 
 ## Testing without a screen
 

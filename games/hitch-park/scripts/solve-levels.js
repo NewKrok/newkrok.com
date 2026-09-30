@@ -193,7 +193,9 @@ function distanceField(grid, origin, radius, passR = 0) {
     }
     free[cy * cw + cx] = ok ? 1 : 0;
   }
-  const dist = new Float32Array(cw * ch).fill(Infinity);
+  // Float64: float32 rounding makes equal-cost cells look improvable, and
+  // the search re-expands them over and over.
+  const dist = new Float64Array(cw * ch).fill(Infinity);
   const bx = Math.min(cw - 1, Math.round(origin.x / CELL)), by = Math.min(ch - 1, Math.round(origin.y / CELL));
   const heap = new Heap();
   dist[by * cw + bx] = 0;
@@ -422,6 +424,9 @@ const VIA = {
   carshow: [{ x: 1310, y: 330, a: -PI / 2, w: 60, l: 140 }, { x: 1000, y: 240, a: PI, w: 90, l: 140 }],
   pipeyard: [{ x: 700, y: 640, a: 0, w: 90, l: 150 }, { x: 900, y: 360, a: 0, w: 120, l: 160 }],
   courtyard: [{ x: 780, y: 600, a: 0, w: 50, l: 100 }],
+  missilebase: [{ x: 1420, y: 600, a: -PI / 2, w: 80, l: 150 }, { x: 900, y: 400, a: PI, w: 80, l: 150 }],
+  railhead: [{ x: 1000, y: 950, a: PI, w: 100, l: 240 }, { x: 300, y: 640, a: -PI / 2, w: 130, l: 240 }, { x: 760, y: 560, a: 0, w: 130, l: 240 }],
+  forestcamp: [{ x: 640, y: 650, a: 0, w: 90, l: 150 }, { x: 1080, y: 460, a: -2.3, w: 120, l: 170 }, { x: 640, y: 290, a: PI, w: 130, l: 170 }],
 };
 
 // Try the strategies in turn: forward search (straight-line heuristic),

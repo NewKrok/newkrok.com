@@ -305,11 +305,16 @@ export class Hud {
     ctx.strokeStyle = "rgba(255,255,255,0.5)";
     ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(j.ox, j.oy, R, 0, Math.PI * 2); ctx.stroke();
-    const dx = clamp(j.x - j.ox, -R, R), dy = clamp(j.y - j.oy, -R, R);
+    const dx = clamp(j.x - j.ox, -R, R), dy = j.steerOnly ? 0 : clamp(j.y - j.oy, -R, R);
     ctx.fillStyle = "rgba(255,209,102,0.85)";
     ctx.beginPath(); ctx.arc(j.ox + dx, j.oy + dy, 17, 0, Math.PI * 2); ctx.fill();
-    this.#text("▲", j.ox, j.oy - 43, 12, "rgba(255,255,255,0.75)", "center", 800);
-    this.#text("R", j.ox, j.oy + 43, 12, "rgba(255,255,255,0.75)", "center", 800);
+    if (j.steerOnly) {
+      // Steering only: a left / right slider.
+      ctx.beginPath(); ctx.moveTo(j.ox - R, j.oy); ctx.lineTo(j.ox + R, j.oy); ctx.stroke();
+    } else {
+      this.#text("▲", j.ox, j.oy - 43, 12, "rgba(255,255,255,0.75)", "center", 800);
+      this.#text("R", j.ox, j.oy + 43, 12, "rgba(255,255,255,0.75)", "center", 800);
+    }
     ctx.globalAlpha = 1;
   }
 }
