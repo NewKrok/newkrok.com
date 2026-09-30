@@ -50,7 +50,7 @@ export class Gamepad {
       // would otherwise hold a direction (the menu focus kept running down).
       const key = `${p.index}:${p.id}`;
       let cal = this.calib.get(key);
-      if (!cal) { cal = { rest: new Set(), up: new Set(), hat: false }; this.calib.set(key, cal); }
+      if (!cal) { cal = { rest: new Set(), up: new Set(), hat: false, first: [...p.axes].map((v) => Number(v) || 0) }; this.calib.set(key, cal); }
       p.buttons.forEach((b, i) => {
         const v = typeof b === "number" ? b : Math.max(b.value, b.pressed ? 1 : 0);
         if (v < 0.2) cal.up.add(i);
@@ -85,7 +85,12 @@ export class Gamepad {
     this.axes = axes;
     this.info = pads.map((p) => ({
       id: p.id, mapping: p.mapping || "—",
-      axes: [...p.axes].map((v) => (Number(v) || 0).toFixed(2)),
+      // Indexed; an axis away from where it was first seen gets a "*".
+      axes: [...p.axes].map((v, i) => {
+        v = Number(v) || 0;
+        const moved = Math.abs(v - (this.calib.get(`${p.index}:${p.id}`).first[i] ?? v)) > 0.3;
+        return `${i}:${v.toFixed(2)}${moved ? "*" : ""}`;
+      }),
       buttons: p.buttons.map((b, i) => ((typeof b === "number" ? b : b.value) > 0.5 || b.pressed ? i : -1)).filter((i) => i >= 0),
     }));
     return true;

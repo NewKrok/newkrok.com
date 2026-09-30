@@ -532,7 +532,7 @@ function renderPadInfo() {
   if (!$("#menu-settings.active") || G.time < padInfoAt) return;
   padInfoAt = G.time + 0.1;
   const info = pad.info;
-  bind("padInfo", info ? info.map((p) => `${p.id}\n${t("pad_mapping")}: ${p.mapping} · ${t("pad_buttons")}: ${p.buttons.join(" ") || "–"}\n${t("pad_axes")}: ${p.axes.join(" ")}`).join("\n\n") : t("pad_none"));
+  bind("padInfo", info ? info.map((p) => `${p.id}\n${t("pad_mapping")}: ${p.mapping} · ${t("pad_buttons")}: ${p.buttons.join(" ") || "–"}\n${t("pad_axes")}: ${p.axes.join("  ")}`).join("\n\n") : t("pad_none"));
 }
 
 const visible = (el) => el.offsetParent !== null && !el.disabled;
