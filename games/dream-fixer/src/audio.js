@@ -160,6 +160,9 @@ export class Audio {
       case "bonk": S(0.12, { freq: 220, freqEnd: 90, gain: 0.2 }); N(0.06, { type: "lowpass", freq: 1200, gain: 0.08 }); break;
       case "spit": S(0.18, { type: "sine", freq: 900, freqEnd: 300, gain: 0.07 }); N(0.08, { freq: 1500, q: 3, gain: 0.04 }); break;
       case "orbPop": S(0.1, { freq: 1100, freqEnd: 1800, gain: 0.05 }); break;
+      case "squeak": S(0.12, { type: "triangle", freq: 1200, freqEnd: 1800, gain: 0.04 }); break;
+      case "tubWindup": S(0.7, { type: "sine", freq: 180, freqEnd: 420, gain: 0.08 }); N(0.6, { freq: 900, freqEnd: 2000, q: 1, gain: 0.05, attack: 0.2 }); break;
+      case "splash": N(0.4, { type: "lowpass", freq: 3000, freqEnd: 400, gain: 0.18 }); S(0.2, { freq: 700, freqEnd: 1600, gain: 0.05 }); [0.05, 0.12, 0.2].forEach((dt) => at(dt, (tt) => this.#tone(d, tt, 0.08, { freq: 1400 + Math.random() * 800, freqEnd: 2600, gain: 0.03 }))); break;
       case "knotSpawn": N(0.3, { type: "lowpass", freq: 900, freqEnd: 300, gain: 0.08 }); S(0.2, { type: "triangle", freq: 200, freqEnd: 320, gain: 0.04 }); break;
       // You.
       case "hurt": S(0.2, { type: "triangle", freq: 330, freqEnd: 160, gain: 0.08 }); S(0.2, { type: "sine", freq: 340, freqEnd: 170, gain: 0.05, detune: 30 }); break;

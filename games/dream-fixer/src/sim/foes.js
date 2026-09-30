@@ -7,13 +7,25 @@ import { Body } from "./player.js";
 //  fuzz    (Kóc)     hops at you, winds up, bonks.
 //  buzzer  (Zizegő)  circles overhead and spits slow, shootable orbs.
 //  knot    (Csomó)   sits still and keeps tangling out new fuzzes.
+//  bunny   (Porcica) a dust bunny: tiny, quick, comes in packs, nips.
+//  tub     (Fürdőkád) waddles about at a distance and lobs soap bubbles
+//                    that burst where they land (a ring shows where).
 //
-// The dream skins them (a yarn squirrel in the park); the sim only knows
-// the kind.
+// The dream skins them (a tangled squirrel in the park); the sim only
+// knows the kind. Glitches already loose in a dream mind their own
+// business until you come near.
+
+// Melee walkers: how they wind up and lunge, and how many may attack at once.
+const MELEE = {
+  fuzz: { windup: 0.5, lunge: 7.5, reach: 1.8, cd: 1.8, attackers: 2 },
+  bunny: { windup: 0.3, lunge: 6.5, reach: 1.3, cd: 1.4, attackers: 2 },
+};
 
 export const FOES = {
-  fuzz: { hp: 3, r: 0.36, h: 0.8, speed: 4.3, dmg: 7, dust: 3, hitR: 0.44, hitY: 0.4, knock: 1 },
-  buzzer: { hp: 4, r: 0.4, speed: 3.4, dmg: 7, dust: 4, hitR: 0.46, hitY: 0, fly: true, knock: 0.6 },
+  fuzz: { hp: 3, r: 0.36, h: 0.8, speed: 4.3, dmg: 7, dust: 3, hitR: 0.44, hitY: 0.4, knock: 1, catchable: true },
+  bunny: { hp: 1, r: 0.22, h: 0.45, speed: 5.4, dmg: 3, dust: 1, hitR: 0.32, hitY: 0.22, knock: 1.4, catchable: true },
+  tub: { hp: 14, r: 0.9, h: 1.3, speed: 1.5, dmg: 9, dust: 10, hitR: 0.95, hitY: 0.75, knock: 0.15 },
+  buzzer: { hp: 4, r: 0.4, speed: 3.4, dmg: 7, dust: 4, hitR: 0.46, hitY: 0, fly: true, knock: 0.6, catchable: true },
   knot: { hp: 16, r: 0.95, h: 1.4, dust: 12, hitR: 1.0, hitY: 0.75, still: true, knock: 0 },
 };
 
@@ -56,22 +68,22 @@ export class Foe {
   get cy() { return this.py + this.def.hitY; }
 }
 
-// Only this many fuzzes may be winding up or lunging at once; the rest
-// circle round you and wait their turn. It keeps a crowd fair.
-const ATTACKERS = 2;
+// Only a few of each melee kind may be winding up or lunging at once; the
+// rest circle round you and wait their turn. It keeps a crowd fair.
 
 // ── Per-step update of every glitch ──
 export function stepFoes(run, dt) {
   const P = run.body, px = P.x, pz = P.z, pcy = P.y + 1.0;
-  run.attackers = 0;
-  for (const f of run.foes) if (f.alive && (f.state === "windup" || f.state === "lunge")) run.attackers++;
+  run.attackers = { fuzz: 0, bunny: 0 };
+  for (const f of run.foes) if (f.alive && f.kind in run.attackers && (f.state === "windup" || f.state === "lunge")) run.attackers[f.kind]++;
   for (const f of run.foes) {
     f.lx = f.px; f.ly = f.py; f.lz = f.pz;      // for the renderer's interpolation
     f.age += dt; f.t += dt;
     f.flash = Math.max(0, f.flash - dt * 6);
     if (!f.alive) continue;
     if (f.state === "spawn") { if (f.t > 0.5) setState(f, "idle"); else continue; }
-    if (f.kind === "fuzz") fuzz(run, f, dt, px, pz);
+    if (f.kind === "fuzz" || f.kind === "bunny") fuzz(run, f, dt, px, pz);
+    else if (f.kind === "tub") tub(run, f, dt, px, pz);
     else if (f.kind === "buzzer") buzzer(run, f, dt, px, pcy, pz);
     else if (f.kind === "knot") knot(run, f, dt, px, pz);
   }
@@ -96,8 +108,17 @@ export function stepFoes(run, dt) {
 
 function setState(f, s) { f.state = s; f.t = 0; }
 
+// Is it paying attention to you? Wave glitches always are; loose ones only
+// once you come close, and they give up if you get well away.
+function aware(f, dist) {
+  if (f.group) return true;
+  if (dist < 14) f.aware = true;
+  else if (dist > 28) f.aware = false;      // lost you: back home
+  return f.aware;
+}
+
 function fuzz(run, f, dt, px, pz) {
-  const b = f.body, d = f.def;
+  const b = f.body, d = f.def, M = MELEE[f.kind];
   const dx = px - b.x, dz = pz - b.z, dist = Math.hypot(dx, dz);
   const dy = run.body.y - b.y;
   f.cd -= dt;
@@ -106,10 +127,16 @@ function fuzz(run, f, dt, px, pz) {
   switch (f.state) {
     case "idle":
     case "chase": {
-      const aware = dist < 26 || f.group;
-      if (!aware) { f.yaw += Math.sin(f.age * 0.7 + f.phase) * dt; intent.forward = 0.3; break; }
+      if (!aware(f, dist)) {
+        // Minding its own business: pottering about near where it started.
+        f.home ??= [b.x, b.z];
+        const hx = f.home[0] - b.x, hz = f.home[1] - b.z;
+        f.yaw = Math.hypot(hx, hz) > 3 ? angTo(b.x, b.z, f.home[0], f.home[1]) : f.yaw + Math.sin(f.age * 0.7 + f.phase) * dt * 1.5;
+        intent.forward = Math.sin(f.age * 0.9 + f.phase) > 0 ? 0.35 : 0;
+        break;
+      }
       // Head for you, weaving a little so a crowd does not form a line.
-      const waiting = run.attackers >= ATTACKERS || f.cd > 0;
+      const waiting = run.attackers[f.kind] >= M.attackers || f.cd > 0;
       f.yaw = angTo(b.x, b.z, px, pz) + Math.sin(f.age * 2.1 + f.phase) * 0.35;
       if (waiting && dist < 3.4) {
         // Not its turn: keep a little distance and sidle round you.
@@ -118,16 +145,16 @@ function fuzz(run, f, dt, px, pz) {
       } else intent.forward = dist > 1.2 ? 1 : 0;
       // Stuck against a ledge: hop.
       if (b.grounded && dist > 2 && b.speed2D < 0.8 && f.t > 0.3 && !waiting) { intent.jumpPressed = true; f.t = 0; }
-      if (dist < 1.8 && Math.abs(dy) < 1.2 && !waiting) { setState(f, "windup"); run.attackers++; run.events.push({ type: "windup", x: b.x, z: b.z }); }
+      if (dist < M.reach && Math.abs(dy) < 1.2 && !waiting) { setState(f, "windup"); run.attackers[f.kind]++; run.events.push({ type: "windup", kind: f.kind, x: b.x, z: b.z }); }
       break;
     }
     case "windup":
       f.yaw = angTo(b.x, b.z, px, pz);
       speedMul = 0;
-      if (f.t > 0.5) {
+      if (f.t > M.windup) {
         setState(f, "lunge");
-        const k = 7.5 / Math.max(dist, 0.1);
-        b.vx = dx * k; b.vz = dz * k; b.vy = 3.2; b.grounded = false;
+        const k = M.lunge / Math.max(dist, 0.1);
+        b.vx = dx * k; b.vz = dz * k; b.vy = f.kind === "bunny" ? 2.6 : 3.2; b.grounded = false;
         f.hitDone = false;
       }
       break;
@@ -138,7 +165,7 @@ function fuzz(run, f, dt, px, pz) {
         run.events.push({ type: "bonk", x: b.x, z: b.z });
         b.vx *= -0.3; b.vz *= -0.3;
       }
-      if (f.t > 0.35 && b.grounded) { setState(f, "recover"); f.cd = 1.8 + run.rnd() * 0.9; }
+      if (f.t > 0.35 && b.grounded) { setState(f, "recover"); f.cd = M.cd + run.rnd() * 0.9; }
       break;
     case "recover":
       if (f.t > 0.45) setState(f, "chase");
@@ -160,6 +187,38 @@ function fuzz(run, f, dt, px, pz) {
     b.step(run.world, intent, dt, 0);
     b.vx = vx; b.vz = vz;
   } else b.step(run.world, intent, dt, speedMul);
+  if (b.fell) { f.alive = false; f.hp = 0; f.lost = true; }
+}
+
+// The bathtub: keeps its distance and lobs soap bubbles in an arc at where
+// you are headed. Slow, heavy, and too big to vacuum.
+function tub(run, f, dt, px, pz) {
+  const b = f.body, P = run.body;
+  const dx = px - b.x, dz = pz - b.z, dist = Math.hypot(dx, dz);
+  f.cd -= dt;
+  const intent = { forward: 0, strafe: 0 };
+  if (f.state === "sucked" || f.state === "stun") { if (f.t > 0.3) setState(f, "idle"); }
+  else if (!aware(f, dist)) { f.yaw += Math.sin(f.age * 0.4 + f.phase) * dt * 0.6; }
+  else {
+    const turn = angTo(b.x, b.z, px, pz);
+    let dd = Math.atan2(Math.sin(turn - f.yaw), Math.cos(turn - f.yaw));
+    f.yaw += Math.max(-1.5 * dt, Math.min(1.5 * dt, dd));
+    if (f.state === "idle") {
+      intent.forward = dist > 13 ? 1 : dist < 8 ? -0.8 : 0;
+      intent.strafe = Math.sin(f.age * 0.5 + f.phase) * 0.5;
+      if (f.cd <= 0 && dist < 22 && run.canSee(b.x, b.y + 1.6, b.z)) { setState(f, "windup"); run.events.push({ type: "tubWindup", x: b.x, z: b.z }); }
+    } else if (f.state === "windup" && f.t > 0.8) {
+      // Aim where you will be when it lands.
+      const T = 1.15, g = 9;
+      const tx = P.x + P.vx * T * 0.7, tz = P.z + P.vz * T * 0.7, ty = run.kit.floorAt(tx, tz, P.y + 1);
+      const sx = b.x - Math.sin(f.yaw) * 0.2, sy = b.y + 2.1, sz = b.z - Math.cos(f.yaw) * 0.2;
+      run.spit({ x: sx, y: sy, z: sz, vx: (tx - sx) / T, vy: (ty - sy + 0.5 * g * T * T) / T, vz: (tz - sz) / T, g, splash: 1.8, dmg: f.def.dmg, kind: "bubble", tx, ty, tz, owner: f.id });
+      f.cd = 3 + run.rnd() * 1.2;
+      setState(f, "idle");
+    }
+  }
+  b.yaw = f.yaw;
+  b.step(run.world, intent, dt, f.state === "idle" ? 1 : 0);
   if (b.fell) { f.alive = false; f.hp = 0; f.lost = true; }
 }
 

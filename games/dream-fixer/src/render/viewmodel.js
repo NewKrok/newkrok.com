@@ -113,8 +113,9 @@ export class ViewModel {
     // Vacuum: the fan spins up, the tank shows what it holds, the flap clacks.
     if (N.fan) N.fan.rotation.z += dt * (s.sucking ? 40 : 2);
     if (N.tank) {
-      this.tankFill = damp(this.tankFill, s.tank ? 1 : 0.15, 10, dt);
-      N.tank.scale.setScalar(0.4 + this.tankFill * 0.8 + (s.tank ? Math.sin(s.t * 9) * 0.08 : 0));
+      const n = s.tank?.length ?? 0;
+      this.tankFill = damp(this.tankFill, 0.15 + n * 0.3, 10, dt);
+      N.tank.scale.setScalar(0.4 + this.tankFill * 0.8 + (n ? Math.sin(s.t * 9) * 0.08 : 0));
     }
     if (N.flap) N.flap.rotation.x = -this.flapKick * 1.1;
     // Glow colour: cool → orange → red with the heat, brighter on each shot.

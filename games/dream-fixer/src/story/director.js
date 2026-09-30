@@ -6,7 +6,7 @@ const near = (run, kind, d) => run.foes.some((f) => f.alive && f.kind === kind &
 
 const DIRECTORS = {
   park: {
-    start(D) { D.say("park_in1"); D.say("park_in2"); },
+    start(D) { D.say("park_in1"); D.say("park_in2"); D.say("park_in3"); },
     events(D, run, e) {
       if (e.type === "tuneStart") D.say("park_tune");
       if (e.type === "anchorFixed") {
@@ -26,6 +26,8 @@ const DIRECTORS = {
     frame(D, run, dt, S) {
       if (near(run, "fuzz", 14)) D.say("park_foe");
       if (near(run, "buzzer", 16)) D.say("park_buzzer");
+      if (near(run, "bunny", 12)) D.say("park_bunny");
+      if (near(run, "tub", 18)) D.say("park_tub");
       if (run.nearAnchor) D.say("park_anchor");
       const tu = run.tuning;
       S.outT = tu && !tu.inside ? (S.outT || 0) + dt : 0;

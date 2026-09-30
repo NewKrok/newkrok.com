@@ -20,7 +20,7 @@ export function buildLevelMeshes(kit) {
       mb.flattenInto(b, compose([d.x, d.y, d.z], [0, d.yaw, 0], d.s, new T.Matrix4()));
     }
   }
-  return b.buildChunks(20);
+  return b.buildChunks(36);
 }
 
 function block(b, d) {

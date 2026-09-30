@@ -191,3 +191,124 @@ export function grass(b, { seed = 1, n = 6, r = 0.4 } = {}) {
     b.add(SHAPE.cone(0.05, h, 3), { p: [Math.cos(a) * d, h / 2, Math.sin(a) * d], r: [(rnd() - 0.5) * 0.5, rnd() * 3, (rnd() - 0.5) * 0.5], grad: [0x3f8f45, 0x8fd06a], facet: 0.1 });
   }
 }
+
+// ── The dog run and the pond garden ──
+
+// An agility hurdle: two striped posts and a bar.
+export function hurdle(b, { w = 2.4, h = 0.55 } = {}) {
+  b.both((s) => {
+    b.add(SHAPE.cyl(0.06, 0.07, h + 0.35, 8), { p: [s * w / 2, (h + 0.35) / 2, 0], c: 0xf7f7ea });
+    for (let i = 0; i < 3; i++) b.add(SHAPE.cyl(0.065, 0.065, 0.08, 8), { p: [s * w / 2, 0.15 + i * 0.25, 0], c: C.red });
+    b.add(SHAPE.box(0.3, 0.05, 0.3, 0.01), { p: [s * w / 2, 0.025, 0], c: 0xd8d6cc });
+  });
+  b.add(SHAPE.cyl(0.04, 0.04, w, 8), { p: [0, h, 0], r: [0, 0, Math.PI / 2], c: 0x3f7fd0 });
+  for (let i = 0; i < 4; i++) b.add(SHAPE.cyl(0.042, 0.042, 0.12, 8), { p: [-w * 0.375 + i * w / 4, h, 0], r: [0, 0, Math.PI / 2], c: 0xffffff });
+}
+
+// A tyre hanging in a frame, to jump through.
+export function tyre(b) {
+  b.both((s) => b.add(SHAPE.box(0.12, 2.6, 0.12, 0.02), { p: [s * 1.1, 1.3, 0], c: C.woodL }));
+  b.add(SHAPE.box(2.4, 0.12, 0.12, 0.02), { p: [0, 2.6, 0], c: C.woodL });
+  b.add(SHAPE.torus(0.5, 0.16, 6, 16), { p: [0, 1.4, 0], c: 0x2a2a2e });
+  b.both((s) => b.add(SHAPE.cyl(0.012, 0.012, 0.75, 4), { p: [s * 0.4, 2.2, 0], r: [0, 0, s * 0.3], c: C.iron, mat: "metal" }));
+}
+
+// A weave pole.
+export function pole(b, { h = 1.2 } = {}) {
+  b.add(SHAPE.cyl(0.035, 0.035, h, 6), { p: [0, h / 2, 0], c: 0xf7f7ea });
+  b.add(SHAPE.cyl(0.037, 0.037, h * 0.3, 6), { p: [0, h * 0.7, 0], c: 0xffd23a });
+  b.add(SHAPE.cyl(0.12, 0.14, 0.04, 8), { p: [0, 0.02, 0], c: C.iron });
+}
+
+// The agility tunnel: a striped fabric arch you can run through (along z).
+export function tunnel(b, { len = 4, r = 1.1 } = {}) {
+  const n = 8;
+  for (let i = 0; i < n; i++) {
+    const z = -len / 2 + (i + 0.5) * len / n;
+    b.add(SHAPE.torus(r, 0.12, 5, 14, Math.PI), { p: [0, 0, z], c: i % 2 ? 0x3f7fd0 : 0xffd23a, facet: 0.06 });
+  }
+  b.add(SHAPE.torus(r + 0.05, 0.16, 5, 14, Math.PI), { p: [0, 0, -len / 2], c: C.red });
+  b.add(SHAPE.torus(r + 0.05, 0.16, 5, 14, Math.PI), { p: [0, 0, len / 2], c: C.red });
+}
+
+// A sign on a post, with a bone painted on it.
+export function sign(b, { color = 0xf3e6c8 } = {}) {
+  b.add(SHAPE.box(0.1, 1.4, 0.1, 0.02), { p: [0, 0.7, 0], c: C.woodD });
+  b.add(SHAPE.box(1.1, 0.6, 0.08, 0.03), { p: [0, 1.4, 0], c: color });
+  b.at([0, 1.4, -0.05], [Math.PI / 2, 0, 0], 0.12, () => bone(b, { len: 2.6 }));
+}
+
+// Pond water: a flat, gently shaded sheet (draw only).
+export function water(b, { w = 12, d = 12 } = {}) {
+  b.add(SHAPE.box(w, 0.04, d), { p: [0, 0, 0], grad: [0x3a8ab8, 0x6ec2e0], facet: 0.02 });
+  const rnd = rng(3);
+  for (let i = 0; i < 10; i++) b.add(SHAPE.torus(0.3 + rnd() * 0.4, 0.015, 3, 16), { p: [(rnd() - 0.5) * w * 0.8, 0.03, (rnd() - 0.5) * d * 0.8], r: [Math.PI / 2, 0, 0], c: 0xbfe8f8, facet: 0 });
+}
+
+export function lilypad(b, { seed = 1, s = 1 } = {}) {
+  const rnd = rng(seed);
+  b.add(SHAPE.cyl(0.55 * s, 0.55 * s, 0.05, 12), { p: [0, 0, 0], c: vary(0x4a9a4a, rnd, 0.1), facet: 0.05 });
+  if (rnd() < 0.5) {
+    for (let i = 0; i < 6; i++) { const a = i / 6 * 6.28; b.add(SHAPE.cone(0.07, 0.18, 4), { p: [Math.cos(a) * 0.07 + 0.15, 0.1, Math.sin(a) * 0.07], r: [Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5], c: 0xffb8d8 }); }
+    b.add(SHAPE.sphere(0.05, 0), { p: [0.15, 0.12, 0], c: 0xffe08a });
+  }
+}
+
+export function reeds(b, { seed = 1, n = 8 } = {}) {
+  const rnd = rng(seed);
+  for (let i = 0; i < n; i++) {
+    const x = (rnd() - 0.5) * 1.2, z = (rnd() - 0.5) * 1.2, h = 0.9 + rnd() * 0.8;
+    b.add(SHAPE.cyl(0.015, 0.025, h, 4), { p: [x, h / 2, z], r: [(rnd() - 0.5) * 0.2, 0, (rnd() - 0.5) * 0.2], c: 0x5a8a3a });
+    if (rnd() < 0.5) b.add(SHAPE.capsule(0.04, 0.14, 5, 1), { p: [x, h, z], c: 0x6a3a1a });
+  }
+}
+
+// A little wooden gazebo with a teal roof.
+export function gazebo(b) {
+  const n = 6, R = 2.2;
+  b.add(SHAPE.cyl(R + 0.3, R + 0.4, 0.3, n, 0.04), { p: [0, 0.15, 0], c: C.woodL });
+  for (let i = 0; i < n; i++) {
+    const a = (i + 0.5) / n * Math.PI * 2;
+    b.add(SHAPE.box(0.14, 2.4, 0.14, 0.02), { p: [Math.cos(a) * R, 1.5, Math.sin(a) * R], c: 0xf3e6c8 });
+    if (i !== 1) b.add(SHAPE.box(2 * R * Math.sin(Math.PI / n), 0.08, 0.06), { p: [Math.cos(a + Math.PI / n) * R * 0.87, 0.9, Math.sin(a + Math.PI / n) * R * 0.87], r: [0, -(a + Math.PI / n) - Math.PI / 2, 0], c: 0xf3e6c8 });
+  }
+  b.add(SHAPE.cone(R + 0.7, 1.6, n), { p: [0, 3.5, 0], r: [0, Math.PI / n, 0], grad: [0x1d5157, 0x2f9f96], facet: 0.05 });
+  b.add(SHAPE.ball(0.14, 8, 6), { p: [0, 4.35, 0], c: C.brass, mat: "metal" });
+  b.add(SHAPE.ball(0.12, 8, 6), { p: [0, 2.55, 0], c: C.dreamGold, mat: "glow", glow: 2 });
+}
+
+// A short wooden jetty.
+export function dock(b, { len = 4 } = {}) {
+  for (let i = 0; i < Math.round(len / 0.4); i++) b.add(SHAPE.box(1.6, 0.08, 0.36, 0.01), { p: [0, 0.2, -i * 0.4], c: vary(C.woodL, rng(i + 5), 0.08) });
+  b.both((s) => { for (let i = 0; i < 3; i++) b.add(SHAPE.cyl(0.08, 0.08, 1, 6), { p: [s * 0.7, -0.2, -i * len / 2.4], c: C.woodD }); });
+}
+
+// One of the nightmare's power cords, snaking over the ground. pts are
+// [x, z] relative to the prop; it ends in a plug with a pink spark.
+export function cable(b, { pts = [[0, 0], [2, 1]], plug = true } = {}) {
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, az] = pts[i], [bx, bz] = pts[i + 1];
+    const dx = bx - ax, dz = bz - az, L = Math.hypot(dx, dz);
+    b.add(SHAPE.cyl(0.07, 0.07, L + 0.06, 6), { p: [(ax + bx) / 2, 0.07, (az + bz) / 2], r: [0, Math.atan2(dx, dz), Math.PI / 2], c: 0x1a1a1e, facet: 0.03 });
+    b.add(SHAPE.ball(0.075, 6, 4), { p: [bx, 0.07, bz], c: 0x1a1a1e });
+  }
+  if (plug) {
+    const [x, z] = pts[pts.length - 1], [px, pz] = pts[pts.length - 2];
+    const a = Math.atan2(x - px, z - pz);
+    b.at([x, 0.12, z], [0, a, 0], 1, () => {
+      b.add(SHAPE.box(0.3, 0.2, 0.35, 0.05), { c: 0xf3e6c8 });
+      b.both((s) => b.add(SHAPE.box(0.04, 0.04, 0.2), { p: [s * 0.07, 0, 0.25], c: C.brass, mat: "metal" }));
+      b.add(SHAPE.sphere(0.06, 0), { p: [0, 0, 0.38], c: C.dreamPink, mat: "glow", glow: 2 });
+    });
+  }
+}
+
+// A drifting low-poly cloud: a flat-bottomed heap of lumps.
+export function cloud(b, { seed = 1, s = 1 } = {}) {
+  const rnd = rng(seed);
+  const n = 5 + Math.floor(rnd() * 4);
+  for (let i = 0; i < n; i++) {
+    const x = (rnd() - 0.5) * 8 * s, z = (rnd() - 0.5) * 3.5 * s, r = (1.4 + rnd() * 1.6) * s * (1 - Math.abs(x) / (9 * s));
+    b.add(SHAPE.blob(r, seed * 11 + i, 0.12, 1), { p: [x, r * 0.35, z], s: [1.2, 0.75, 1], grad: [0xd8d0ec, 0xffffff], facet: 0.05 });
+  }
+}

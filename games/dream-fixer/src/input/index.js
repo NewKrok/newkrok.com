@@ -25,6 +25,7 @@ export class Input {
     this.enabled = false;
     this.touch = new Touch(el, this);
     this.onLockChange = null;
+    this.canLock = () => true;
 
     addEventListener("keydown", (e) => {
       if (!this.enabled) return;
@@ -42,7 +43,9 @@ export class Input {
 
     el.addEventListener("mousedown", (e) => {
       if (!this.enabled || this.touch.active) return;
-      if (!this.locked) { this.lock(); return; }
+      // Only grab the mouse when the game is really being played: clicks on
+      // menus and panels keep the cursor.
+      if (!this.locked) { if (this.canLock() && !e.target.closest?.(".menus, .memcards")) this.lock(); return; }
       if (e.button === 0) { this.mouse.fire = true; this.edges.add("fire"); }
       if (e.button === 2) { this.mouse.alt = true; this.edges.add("alt"); }
     });

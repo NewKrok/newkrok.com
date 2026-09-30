@@ -25,8 +25,9 @@ export const TOOLS = {
     range: 8, cone: 0.42, // radians, half angle
     pull: 24,             // m/s² towards the nozzle
     catchAt: 1.9,
-    unravel: 3.5,         // damage per second to knots in the stream
-    launch: { speed: 24, damage: 9, splash: 2.4, heat: 0.12 },
+    stream: 2.4,          // damage per second to everything in the stream
+    tankSize: 3,          // small glitches it can hold
+    launch: { speed: 24, damage: 11, splash: 2.6, heat: 0.12 },
     blast: { range: 5.5, cone: 0.7, push: 9, damage: 1, heat: 0.28, interval: 0.5 },
   },
 };
@@ -41,7 +42,7 @@ export class ToolState {
     this.overheated = false;
     this.charge = 0;          // 0…1 while the second action is held
     this.charging = false;
-    this.tank = null;         // vacuum: what it has caught
+    this.tank = [];           // vacuum: what it has caught (kinds)
     this.sucking = false;
     this.altHeld = false;
   }
@@ -89,10 +90,10 @@ export class ToolState {
     if (this.overheated && this.heat <= d.unlock) this.overheated = false;
     if (this.overheated) return out;
     if (intent.alt && !this.altHeld && this.cd <= 0) {
-      out.push(this.tank ? { launch: this.tank } : { blast: true });
-      this.addHeat(this.tank ? d.launch.heat : d.blast.heat);
-      this.tank = null;
-      this.cd = d.blast.interval;
+      const has = this.tank.length > 0;
+      out.push(has ? { launch: this.tank.shift() } : { blast: true });
+      this.addHeat(has ? d.launch.heat : d.blast.heat);
+      this.cd = has ? 0.3 : d.blast.interval;
     } else if (intent.fire) {
       this.sucking = true;
       this.addHeat(d.suckHeat * dt);

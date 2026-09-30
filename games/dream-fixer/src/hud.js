@@ -25,6 +25,8 @@ export class Hud {
       <div class="prompt"></div>
       <div class="tune"><div class="lbl"></div><div class="bar"><i></i></div><div class="warn"></div></div>
       <div class="banner"></div>
+      <div class="clickhint"></div>
+      <div class="tankdots"></div>
       <div class="bossbar"><div class="lbl"></div><div class="bar"><i class="lag"></i><i class="fill"></i></div></div>
       <div class="dust"><svg viewBox="0 0 24 24"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></svg><b>0</b></div>`;
     root.appendChild(el);
@@ -58,11 +60,17 @@ export class Hud {
     this.bossLag = el.querySelector(".bossbar .lag");
     el.querySelector(".bossbar .lbl").textContent = t("bossName");
     this.bossLagHp = 1;
+    this.hint = el.querySelector(".clickhint");
+    this.tankEl = el.querySelector(".tankdots");
+    this.hint.textContent = t("clickToAim");
   }
 
   show(on) { this.el.classList.toggle("hidden", !on); }
   // In the Factory: no tools, no wakefulness, just the prompt and the dust.
   hub(on) { this.el.classList.toggle("in-hub", on); }
+  // Desktop play without the mouse grabbed (a lock the browser refused):
+  // say how to get it back.
+  unlocked(on) { if (on !== this.hintOn) { this.hint.classList.toggle("on", on); this.hintOn = on; } }
   destroy() { this.el.remove(); }
   clear() { clearTimeout(this.bannerTimer); this.bannerEl.classList.remove("on"); this.hurt = 0; this.lagHp = 1; }
 
@@ -103,7 +111,14 @@ export class Hud {
     // Objective, prompt and the tuning bar.
     const fixed = run.anchors.length ? `${run.fixedCount}/${run.anchors.length}` : "";
     if (fixed !== this.last.obj) { this.obj.textContent = fixed; this.last.obj = fixed; }
-    const tank = run.activeTool.id === "vacuum" && run.activeTool.tank;
+    const vac = run.activeTool.id === "vacuum" ? run.activeTool : null;
+    const tank = vac && vac.tank.length >= vac.def.tankSize;
+    const tn = vac ? vac.tank.length : -1;
+    if (tn !== this.last.tank) {
+      this.tankEl.classList.toggle("on", tn >= 0);
+      this.tankEl.innerHTML = tn >= 0 ? Array.from({ length: vac.def.tankSize }, (_, i) => `<i class="${i < tn ? "f" : ""}"></i>`).join("") : "";
+      this.last.tank = tn;
+    }
     const key = this.touch ? "🔧" : "[E]";
     const pr = run.nearAnchor ? t("tunePrompt", { key }) : run.nearUse ? t("usePrompt", { key, label: t(run.nearUse.label) }) : tank ? t("tankFull", { key: this.touch ? "⟲" : "[RMB]" }) : "";
     if (pr !== this.last.prompt) { this.prompt.textContent = pr; this.prompt.classList.toggle("on", !!pr); this.last.prompt = pr; }

@@ -22,6 +22,7 @@ export class Body {
     this.landSpeed = 0;                        // how hard the last landing was (for the camera dip)
     this.stepUp = 0;                           // height climbed this step (the camera smooths it)
     this.fell = false;                         // dropped out of the world this step
+    this.pushX = 0; this.pushZ = 0;            // outside drift for the next step (m/s)
     this.r = this.P.radius; this.h = this.P.height;
   }
 
@@ -67,7 +68,10 @@ export class Body {
     }
 
     // ── Across: in small steps so a fast body cannot tunnel through thin walls ──
-    const mx = this.vx * dt, mz = this.vz * dt;
+    // A drift from outside (a vacuum's pull) adds to the walk and is not
+    // eaten by friction; it lasts one step.
+    const mx = (this.vx + this.pushX) * dt, mz = (this.vz + this.pushZ) * dt;
+    this.pushX = 0; this.pushZ = 0;
     const n = Math.max(1, Math.ceil(Math.hypot(mx, mz) / (this.r * 0.5)));
     for (let i = 0; i < n; i++) {
       this.x += mx / n; this.z += mz / n;

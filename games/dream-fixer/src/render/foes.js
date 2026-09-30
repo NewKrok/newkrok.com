@@ -1,6 +1,6 @@
 import * as T from "three";
 import { make } from "./modelkit.js";
-import { kocPark, buzzerPark, knotPark } from "./models/characters.js";
+import { kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./models/characters.js";
 import { C } from "./palette.js";
 import { lerp } from "../config.js";
 
@@ -11,15 +11,15 @@ import { lerp } from "../config.js";
 // heart throbs. Every hit flashes the model white for a moment. Orbs and
 // dream dust are instanced.
 
-const SKINS = { fuzz: kocPark, buzzer: buzzerPark, knot: knotPark };
+const SKINS = { fuzz: kocPark, buzzer: buzzerPark, knot: knotPark, bunny: bunnyPark, tub: tubPark };
 const FLASH = new T.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
-const POP_COLORS = { fuzz: [0xe8a060, 0xc8743a, C.dream, 0xffffff], buzzer: [0xf2c14e, 0x5a3620, C.dream, 0xffffff], knot: [0xe8a060, C.dreamPink, C.dream, 0xffffff] };
+const POP_COLORS = { bunny: [0xc4c0cc, 0x7a7684, C.dream, 0xffffff], tub: [0xffffff, 0x8fd0f0, C.dream, 0xffd23a], fuzz: [0xe8a060, 0xc8743a, C.dream, 0xffffff], buzzer: [0xf2c14e, 0x5a3620, C.dream, 0xffffff], knot: [0xe8a060, C.dreamPink, C.dream, 0xffffff] };
 
 export class FoeView {
   constructor(scene, fx) {
     this.scene = scene; this.fx = fx;
     this.live = new Map();        // foe id → { o, kind, meshes }
-    this.pool = { fuzz: [], buzzer: [], knot: [] };
+    this.pool = { fuzz: [], buzzer: [], knot: [], bunny: [], tub: [] };
     this.group = new T.Group();
     scene.add(this.group);
 
@@ -34,7 +34,11 @@ export class FoeView {
     this.yarn = new T.InstancedMesh(new T.IcosahedronGeometry(0.28, 1), new T.MeshStandardMaterial({ roughness: 0.9, flatShading: true }), 16);
     this.yarn.instanceColor = new T.InstancedBufferAttribute(new Float32Array(16 * 3), 3);
     this.yarn.frustumCulled = false; this.yarn.count = 0; this.yarn.castShadow = true;
-    scene.add(this.orbs, this.motes, this.yarn);
+    this.marks = new T.InstancedMesh(new T.RingGeometry(0.8, 1, 32), new T.MeshBasicMaterial({ toneMapped: false, transparent: true, depthWrite: false, side: T.DoubleSide }), 16);
+    this.marks.instanceColor = new T.InstancedBufferAttribute(new Float32Array(16 * 3), 3);
+    this.marks.frustumCulled = false; this.marks.count = 0;
+    this._x = new T.Vector3(1, 0, 0);
+    scene.add(this.orbs, this.motes, this.yarn, this.marks);
     this._m = new T.Matrix4(); this._q = new T.Quaternion(); this._p = new T.Vector3(); this._s = new T.Vector3(); this._c = new T.Color(); this._e = new T.Euler();
   }
 
@@ -66,7 +70,11 @@ export class FoeView {
       this.fx.ring([e.x, e.y, e.z], [0, 1, 0], C.dream, e.big ? 2.2 : 1.1, 0.35);
       this.fx.puff(e.x, e.y, e.z, e.big ? 1.3 : 0.65);
     } else if (e.type === "spitPop") {
-      this.fx.burst([e.x, e.y, e.z], [0, 1, 0], C.dreamPink, 12, 3, 0.05);
+      if (e.splash) {
+        this.fx.burst([e.x, e.y, e.z], [0, 1, 0], 0xffffff, 24, 4, 0.07);
+        this.fx.ring([e.x, e.y + 0.05, e.z], [0, 1, 0], 0x9fe0ff, e.splash, 0.4);
+        this.fx.puff(e.x, e.y, e.z, 0.7);
+      } else this.fx.burst([e.x, e.y, e.z], [0, 1, 0], C.dreamPink, 12, 3, 0.05);
     }
   }
 
@@ -79,6 +87,10 @@ export class FoeView {
       let v = this.live.get(f.id);
       if (!v) { v = this.obtain(f.kind); this.live.set(f.id, v); }
       const o = v.o, N = o.userData.nodes;
+      // Far off in the haze they are specks: not worth their draw calls.
+      const far = (f.px - run.body.x) ** 2 + (f.pz - run.body.z) ** 2 > 48 * 48;
+      o.visible = !far;
+      if (far) continue;
       o.position.set(lerp(f.lx ?? f.px, f.px, alpha), lerp(f.ly ?? f.py, f.py, alpha), lerp(f.lz ?? f.pz, f.pz, alpha));
       // Turn smoothly towards where the sim faces.
       let d = f.yaw - o.rotation.y;
@@ -88,6 +100,8 @@ export class FoeView {
       const grow = f.state === "spawn" ? easeOutBack(Math.min(1, f.t / 0.5)) : 1;
       if (f.kind === "fuzz") animFuzz(f, N, t, grow);
       else if (f.kind === "buzzer") animBuzzer(f, N, t, grow);
+      else if (f.kind === "bunny") animBunny(f, N, t, grow);
+      else if (f.kind === "tub") animTub(f, N, t, grow);
       else animKnot(f, N, t, grow);
       // Hit flash.
       const flash = f.flash > 0.55;
@@ -101,14 +115,26 @@ export class FoeView {
     // Orbs: pink, wobbling, trailing sparks.
     const { _m, _q, _p, _s, _c } = this;
     let i = 0;
+    let r = 0;
     for (const s of run.spits) {
-      const w = 1 + Math.sin(t * 30 + s.id) * 0.15;
+      const bubble = s.kind === "bubble";
+      const w = (1 + Math.sin(t * (bubble ? 9 : 30) + s.id) * (bubble ? 0.08 : 0.15)) * (bubble ? 2.2 : 1);
       _p.set(s.x, s.y, s.z); _q.identity(); _s.setScalar(w);
       this.orbs.setMatrixAt(i, _m.compose(_p, _q, _s));
-      this.orbs.setColorAt(i, _c.set(C.dreamPink).multiplyScalar(2.2));
-      if (Math.random() < 0.5) this.fx.spark(s.x, s.y, s.z, (Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5), 0.3, 0.05, C.dreamPink, 0);
+      this.orbs.setColorAt(i, _c.set(bubble ? 0x9fe0ff : C.dreamPink).multiplyScalar(bubble ? 1.3 : 2.2));
+      if (Math.random() < 0.5) this.fx.spark(s.x, s.y, s.z, (Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5), 0.3, 0.05, bubble ? 0xffffff : C.dreamPink, 0);
+      // Where a bubble will land: a ring on the ground, tightening.
+      if (bubble && r < 16) {
+        const k = Math.max(0, Math.min(1, s.y - s.ty) / 6);
+        _p.set(s.tx, s.ty + 0.05, s.tz); _q.setFromAxisAngle(this._x, -Math.PI / 2); _s.setScalar(s.splash * (0.8 + k * 0.6));
+        this.marks.setMatrixAt(r, _m.compose(_p, _q, _s));
+        this.marks.setColorAt(r, _c.set(0x9fe0ff).multiplyScalar(0.9 + Math.sin(t * 14) * 0.3));
+        r++;
+      }
       i++;
     }
+    this.marks.count = r;
+    this.marks.instanceMatrix.needsUpdate = true; if (this.marks.instanceColor) this.marks.instanceColor.needsUpdate = true;
     this.orbs.count = i;
     this.orbs.instanceMatrix.needsUpdate = true; this.orbs.instanceColor.needsUpdate = true;
     i = 0;
@@ -180,4 +206,30 @@ function animKnot(f, N, t, grow) {
   const s = 1 + Math.sin(t * 3 + f.phase) * 0.07 + p * 0.5;
   N.core.scale.setScalar(s * grow);
   N.heap.scale.set(grow * (1 + p * 0.08), grow * (1 - p * 0.06), grow * (1 + p * 0.08));
+}
+
+function animBunny(f, N, t, grow) {
+  const b = f.body, sp = b.speed2D;
+  const ph = (f.age * 11 + f.phase) % Math.PI;
+  const hop = b.grounded && sp > 0.5 ? Math.sin(ph) * 0.12 : 0;
+  let sy = 1, sxz = 1;
+  if (f.state === "windup") { sy = 0.7; sxz = 1.2; }
+  else if (f.state === "lunge") { sy = 1.2; sxz = 0.85; }
+  N.body.position.y = 0.22 + hop;
+  N.body.scale.set(sxz * grow, sy * grow, sxz * grow);
+  N.ears.rotation.x = -hop * 3 + Math.sin(t * 5 + f.phase) * 0.1 + (f.state === "lunge" ? 0.6 : 0);
+}
+
+function animTub(f, N, t, grow) {
+  const b = f.body, sp = b.speed2D;
+  // Waddle: rock side to side, legs taking turns.
+  const w = Math.sin(f.age * 6 + f.phase) * Math.min(1, sp);
+  N.body.rotation.z = w * 0.08;
+  N.body.position.y = 0.3 + Math.abs(w) * 0.04;
+  for (const [n, s] of [["legFL", 1], ["legBR", 1], ["legFR", -1], ["legBL", -1]]) N[n].rotation.x = w * s * 0.4;
+  const wind = f.state === "windup" ? Math.min(1, f.t / 0.8) : 0;
+  N.shower.rotation.x = -wind * 0.7 + Math.sin(t * 2 + f.phase) * 0.05;
+  N.shower.scale.setScalar(1 + wind * 0.15);
+  N.mouth.scale.set(1, 1 + wind * 0.8, 1);
+  N.body.scale.set(grow * (1 + wind * 0.04), grow * (1 - wind * 0.05), grow);
 }

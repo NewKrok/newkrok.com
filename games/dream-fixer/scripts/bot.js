@@ -62,7 +62,12 @@ function walk(route) {
       // Jump at the take-off point, or whenever it walks into a ledge.
       const j = B.grounded && ((jump && !jumped && tr >= 1.6) || (i > 10 && B.speed2D < 1));
       if (j) jumped = true;
-      step({ forward: 1, jump: jumped && B.vy > 0, jumpPressed: j });
+      // Shoot at whatever comes close on the way (the walk keeps its heading).
+      const intent = { forward: 1, jump: jumped && B.vy > 0, jumpPressed: j };
+      const near = run.foes.some((f) => f.alive && Math.hypot(f.px - B.x, f.pz - B.z) < 7);
+      if (near && i % 3) { aimAndFire(intent); intent.forward = 0.4; }
+      step(intent);
+      B.yaw = Math.atan2(-(x - B.x), -(z - B.z));
     }
   }
 }
@@ -77,17 +82,20 @@ for (const a of run.anchors) {
   if (Math.hypot(B.x - a.x, B.z - a.z) > 2.5) { const r = route[route.length - 1]; B.place(r[0], run.kit.floorAt(r[0], r[1]), r[1]); }
   step({ usePressed: true });
   if (a.state !== "tuning") { console.log(a.id, "could not start tuning at", B.x.toFixed(1), B.z.toFixed(1)); continue; }
-  let i = 0;
+  let i = 0, rewalks = 0;
   while (a.state === "tuning" && i++ < 60 * 120) {
     const intent = {};
     // Stay in the ring: drift back towards the anchor, strafing.
-    const dx = a.x - B.x, dz = a.z - B.z, d = Math.hypot(dx, dz);
+    let dx = a.x - B.x, dz = a.z - B.z, d = Math.hypot(dx, dz);
+    // Drifted out of the dream and back at another anchor: walk back.
+    if (d > a.ring + 3 && rewalks++ < 3) { walk(route); dx = a.x - B.x; dz = a.z - B.z; d = Math.hypot(dx, dz); }
     aimAndFire(intent);
     const sn = Math.sin(B.yaw), cs = Math.cos(B.yaw);
     const wantX = d > 3.5 ? dx / d : 0, wantZ = d > 3.5 ? dz / d : 0;
     intent.forward = -sn * wantX - cs * wantZ;
     intent.strafe = cs * wantX - sn * wantZ + Math.sin(run.time * 0.8) * 0.6;
     step(intent);
+    if (process.env.DEBUG && i % 300 === 0) console.log("   tune", a.id, (i / 60) | 0, "p", a.progress.toFixed(2), "in", a.inside, "you", B.x.toFixed(1), B.y.toFixed(1), B.z.toFixed(1), "hp", run.hp | 0, "foes", run.foes.filter((f) => f.alive).map((f) => f.kind[0]).join(""));
   }
   // Mop up what is left of the ambient glitches nearby.
   console.log(`${a.id.padEnd(8)} walk ${tWalk.toFixed(1)}s  tune ${(i / 60).toFixed(1)}s  ${a.state}  hp ${Math.round(run.hp)}  faints ${run.faints}`);
@@ -107,6 +115,7 @@ for (let i = 0; i < 60 * 240 && !run.won; i++) {
     if (S.ring && Math.abs(d - S.ring.r) < 1.6 && B.grounded) { intent.jumpPressed = true; intent.jump = true; }
   }
   step(intent);
+  if (process.env.DEBUG && i % 600 === 0) console.log("  t", (i / 60) | 0, "you", B.x.toFixed(1), B.y.toFixed(1), B.z.toFixed(1), "boss", S ? `${S.state} ${S.hp | 0} ${S.x.toFixed(1)},${S.z.toFixed(1)}` : "-", "hp", run.hp | 0, "heat", run.activeTool.heat.toFixed(2), run.activeTool.id);
 }
 console.log(`boss     ${run.won ? "down" : "NOT down"} after ${(run.time - tb).toFixed(1)}s  faints ${run.faints}`);
 console.log(`total ${(run.time - t0).toFixed(1)}s  popped ${run.stats.popped}  hits ${run.stats.hits}/${run.stats.shots}  dust ${run.dust}  min hp ${Math.round(minHp)}  hurt ${Math.round(hurtTotal)}  faints ${run.faints}  alive ${run.foes.filter((f) => f.alive).length}`);

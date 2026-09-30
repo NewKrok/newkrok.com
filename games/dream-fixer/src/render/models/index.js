@@ -1,10 +1,10 @@
 import { stabilizer, fuzzVacuum } from "./tools.js";
-import { csavar, kocPark, buzzerPark, knotPark } from "./characters.js";
+import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./characters.js";
 import { anchor } from "./dream.js";
 import { vacuumBoss } from "./boss.js";
 import { jobBoard, workbench, desk, lift, dreamTank, pipe, almos, crate, shelf, rug, hangLamp, dock } from "./factory.js";
 import { memoryBubble } from "./dream.js";
-import { tree, bush, rock, bench, lamp, bone, tennisBall, hydrant, doghouse, fence, flowers, grass } from "./park.js";
+import { tree, bush, rock, bench, lamp, bone, tennisBall, hydrant, doghouse, fence, flowers, grass, hurdle, tyre, pole, tunnel, sign, water, lilypad, reeds, gazebo, dock as jetty, cable, cloud } from "./park.js";
 
 // ── Model registry ───────────────────────────────────────────────────────
 // Everything the model viewer (?model=<id>) can show, with the distance
@@ -49,6 +49,8 @@ export const MODELS = {
     build: knotPark, frame: 3,
     anim: (o, t) => { const s = 1 + Math.sin(t * 3) * 0.08; o.userData.nodes.core.scale.setScalar(s); },
   },
+  bunny: { build: bunnyPark, frame: 1 },
+  tub: { build: tubPark, frame: 3 },
   boss: {
     build: vacuumBoss, frame: 7,
     anim: (o, t) => {
@@ -81,6 +83,18 @@ export const MODELS = {
   fence: { build: fence, frame: 5 },
   flowers: { build: flowers, frame: 2 },
   grass: { build: grass, frame: 1.4 },
+  hurdle: { build: hurdle, frame: 3 },
+  tyre: { build: tyre, frame: 3.2 },
+  pole: { build: pole, frame: 1.4 },
+  tunnel: { build: tunnel, frame: 5 },
+  sign: { build: sign, frame: 2 },
+  water: { build: water, frame: 14 },
+  lilypad: { build: lilypad, frame: 1.4 },
+  reeds: { build: reeds, frame: 2 },
+  gazebo: { build: gazebo, frame: 6 },
+  jetty: { build: jetty, frame: 5 },
+  cable: { build: cable, frame: 3 },
+  cloud: { build: cloud, frame: 14 },
   memory: { build: memoryBubble, frame: 1.6, anim: (o, t) => { o.userData.nodes.item.rotation.y = t; } },
   jobBoard: { build: jobBoard, frame: 3 },
   workbench: { build: workbench, frame: 3.4 },

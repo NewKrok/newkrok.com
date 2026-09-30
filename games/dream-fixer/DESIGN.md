@@ -84,6 +84,17 @@ A történet három csatornán jut el a játékoshoz:
 4. **Ébredés nélkül:** az ügyfél nyugodtan alszik tovább. Jön egy rövid
    zárókép, és vissza a Gyárba.
 
+### Morzsa parkja (1. fejezet)
+
+Lebegő szigetek: a nagy gyep középen (itt jön elő a főellenség), terasz a
+kutyaházzal, nyugatra híd egy akadálypályás kutyafuttatóra, keletre híd egy
+tavas kertre, északkeletre csontlépcső egy kis szigetre. A három horgony a
+tóban, a kutyafuttatón és a kis szigeten van. Amíg a horgonyok törve vannak,
+az ég szürke-lila, a levegőben rózsaszín hibaszilánkok lebegnek, a horgonyok
+körül sötét folt van a földön, és a gyepen a Porszívó kábelei kígyóznak;
+minden megjavított horgonnyal tisztul az ég. Elszórt hibák már az elején is
+vannak, a saját dolgukkal foglalkoznak, amíg közel nem mész.
+
 ### Szerszámok (a „fegyverek”)
 
 Egyik szerszámnak sincs lőszere. A casual játék érdekében hő- vagy
@@ -92,7 +103,7 @@ töltéskorlát van, ami magától visszaáll.
 | Szerszám | Fő funkció | Másodlagos | Mikor jön |
 | --- | --- | --- | --- |
 | **Stabilizátor** | Gyors, pontos „kisimító” lövés | Feltöltött lövés | 1. fejezet |
-| **Kócszívó** | Beszívja a kis hibákat és az álomport | Kilövi a beszívott dolgot lövedékként | 1. fejezet |
+| **Kócszívó** | A sugara mindent koptat, amit ér; a kis hibákat (legfeljebb hármat) és az álomport beszívja | A beszívott hibát szétpukkanó fonalgombócként lövi vissza, üres tartállyal légfúvás | 1. fejezet |
 | **Habágyú** | Lelassító hab | Megszilárduló habplatform (puzzle és mozgás) | 2. fejezet |
 | **Csengő** | Hanghullám, ami eltaszít | Kisebb hibák elaltatása | 3. fejezet |
 | **Villáskulcs** | Közelharc és tárgyak megütése | — | Mindig nálad van |
@@ -113,6 +124,10 @@ Kóc egy dühös mókus-gombolyag, a konyhában egy pattogó gombóc.
 | **Ásító** | Nagy és lassú. Az ásítása lökéshullám, amit át kell ugrani. |
 | **Tükrös** | Utánozza a mozgásodat, és egy trükkel kell legyőzni (pl. a hab). |
 | **Csomó** | Álló „fészek”, ami kócokat termel. A horgony szerelésekor a legfontosabb célpont. |
+| **Porcica** | Apró, gyors porcica-nyuszi, falkában jön. Egy lövés elég rá, a Kócszívó egyszerre többet is beszív. (A Porszívó kártevői.) |
+| **Fürdőkád** | Lassú, erős, távolról íves pályán szappanbuborékot lő; a földön gyűrű mutatja, hová esik. Túl nagy a beszíváshoz. |
+
+Morzsa parkjában a Kóc bőre egy összegabalyodott, dühös **mókus**: a kutya álmában a hibák annak alakját öltik, amit a kutya egész nap kerget.
 
 ### Casual szabályok
 

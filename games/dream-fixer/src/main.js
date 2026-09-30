@@ -128,6 +128,7 @@ async function startGame() {
   });
 
   input.enabled = true;
+  input.canLock = () => state === "play";
   input.onLockChange = (locked) => {
     if (locked) return;
     if (expectUnlock) { expectUnlock = false; return; }
@@ -213,6 +214,7 @@ async function startGame() {
     const edges = input.pressed();
     if (state === "play") {
       hud.touch = input.isTouch;
+      hud.unlocked(!input.isTouch && !input.locked);
       if (edges.has("pause")) { if (input.isTouch) openMenu(showPause); else input.unlock(); }
       look = input.look();
       run.body.look(look[0], look[1]);

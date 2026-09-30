@@ -11,6 +11,7 @@ import { FoeView } from "./foes.js";
 import { BossView } from "./boss.js";
 import { Companion, MemoryView } from "./companion.js";
 import { AnchorView } from "./anchors.js";
+import { DreamSky } from "./dreamsky.js";
 import { C } from "./palette.js";
 import { damp, lerp } from "../config.js";
 
@@ -119,13 +120,15 @@ export class GameView {
     }
     const def = run.def, kit = run.kit;
     const g = this.level = new T.Group();
-    g.add(skyDome(def.sky));
+    const sky = skyDome(def.sky);
+    g.add(sky);
     this.scene.fog = new T.Fog(def.fog.color, def.fog.near, def.fog.far);
     this.sun = new Sun(this.scene, { ...def.sun, box: 26, mapSize: 2048 });
     this.sun.light.castShadow = this.quality === "high";
     this.vm.setLights(def.sun.color, def.sun.dir, def.sun.sky, def.sun.ground);
     for (const m of buildLevelMeshes(kit)) g.add(m);
     this.anchors = new AnchorView(g, kit.anchors);
+    this.weather = new DreamSky(g, def, kit, { sky, fog: this.scene.fog, sun: this.sun });
     this.memories = new MemoryView(g, run.memories);
     this.companion.placed = false;
     this.lampCount = Math.min(LAMP_LIGHTS, def.lamps ?? 3);
@@ -257,6 +260,7 @@ export class GameView {
     }
 
     this.anchors.update(run, dt, t, this.fx);
+    this.weather.update(run, dt, t);
     this.memories.update(dt, t, this.fx);
     this.companion.update(run, dt, t, this.talking);
 

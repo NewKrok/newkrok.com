@@ -176,3 +176,9 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; border-radius: 
 .result-card h2 { color: var(--mint); }
 .touch-ui.hub .tbtn[data-t="fire"], .touch-ui.hub .tbtn[data-t="alt"], .touch-ui.hub .tbtn[data-t="tool"] { display: none; }
 @media (pointer: coarse) { .dialog { width: min(420px, 56vw); padding: 7px 11px 9px; } .dialog .text { font-size: 14px; } .memcard { width: min(260px, 40vw); } }
+.hud .clickhint { position: absolute; left: 50%; top: calc(50% + 40px); transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; background: rgba(20, 26, 44, 0.75); font-weight: 700; opacity: 0; transition: opacity 0.2s; }
+.hud .clickhint.on { opacity: 1; }
+.hud .tankdots { position: absolute; left: 50%; top: calc(50% + 26px); transform: translateX(-50%); display: flex; gap: 5px; opacity: 0; }
+.hud .tankdots.on { opacity: 1; }
+.hud .tankdots i { width: 9px; height: 9px; border-radius: 50%; border: 2px solid rgba(255, 210, 122, 0.8); }
+.hud .tankdots i.f { background: #ffd27a; box-shadow: 0 0 6px #ffd27a; }

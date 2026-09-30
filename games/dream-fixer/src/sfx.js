@@ -18,8 +18,9 @@ export class Sfx {
         case "pop": A.play(e.big ? "bigPop" : "pop", 0, e.x, e.z); break;
         case "spawn": if (e.kind === "knot") A.play("knotSpawn", 0, e.x, e.z); break;
         case "spit": A.play("spit", 0, e.x, e.z); break;
-        case "spitPop": A.play("orbPop", 0, e.x, e.z); break;
-        case "windup": A.play("windup", 0, e.x, e.z); break;
+        case "spitPop": A.play(e.splash ? "splash" : "orbPop", 0, e.x, e.z); break;
+        case "tubWindup": A.play("tubWindup", 0, e.x, e.z); break;
+        case "windup": A.play(e.kind === "bunny" ? "squeak" : "windup", 0, e.x, e.z); break;
         case "bonk": A.play("bonk", 0, e.x, e.z); break;
         case "hurt": A.play("hurt"); break;
         case "faint": A.play("faint"); break;

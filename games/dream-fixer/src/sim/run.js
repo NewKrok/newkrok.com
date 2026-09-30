@@ -323,30 +323,34 @@ export class Run {
     const d = tool.def, b = this.body;
     const [ax, ay, az] = this.aimDir();
     const nx = b.x + ax * 0.6, ny = b.eyeY + ay * 0.6, nz = b.z + az * 0.6;
+    const full = tool.tank.length >= d.tankSize;
     for (const f of this.foes) {
       if (!f.alive || f.state === "spawn") continue;
       const l = this.inCone(f.px, f.cy, f.pz, d.range, d.cone);
       if (!l || !this.canSee(f.px, f.cy, f.pz)) continue;
-      if (f.kind === "knot") {
-        // Knots cannot be moved, but the stream unravels them.
-        f.unravel = (f.unravel || 0) + d.unravel * dt;
-        while (f.unravel >= 1) { f.unravel -= 1; damageFoe(this, f, 1, 0, 0, false); if (!f.alive) break; }
-        continue;
+      // The stream wears everything down (knots unravel twice as fast).
+      f.stream = (f.stream || 0) + d.stream * dt * (f.kind === "knot" ? 2 : 1);
+      if (f.stream >= 0.5) {
+        const dmg = f.stream; f.stream = 0;
+        if (damageFoe(this, f, dmg, 0, 0, false)) { this.stats.popped++; continue; }
       }
+      if (!f.def.catchable) continue;             // too big to move
       const ex = nx - f.px, ey = ny - f.cy, ez = nz - f.pz, el = Math.hypot(ex, ey, ez) || 1;
       // A full tank only draws weakly: shoot it empty first.
-      const k = d.pull * (1.3 - Math.min(1, l / d.range)) * dt * (tool.tank ? 0.25 : 1);
+      const k = d.pull * (1.3 - Math.min(1, l / d.range)) * dt * (full ? 0.25 : 1);
       if (f.body) {
         f.body.vx += ex / el * k * 1.6; f.body.vz += ez / el * k * 1.6;
         if (f.body.grounded && l < 4) { f.body.vy = 2.5; f.body.grounded = false; }
       } else { f.vx += ex / el * k * 1.4; f.vy += ey / el * k * 1.4; f.vz += ez / el * k * 1.4; }
       f.state = "sucked"; f.t = 0;
-      if (l < d.catchAt && !tool.tank) {
+      if (l < d.catchAt && !full) {
+        // Caught: into the tank it goes (that counts as smoothed out).
         f.alive = false;
-        tool.tank = f.kind;
+        tool.tank.push(f.kind);
         this.stats.popped++;
-        this.events.push({ type: "catch", kind: f.kind, id: f.id, x: f.px, y: f.cy, z: f.pz });
-        this.dropDust(f.px, f.cy, f.pz, Math.ceil(f.def.dust / 2));
+        this.events.push({ type: "catch", kind: f.kind, id: f.id, x: f.px, y: f.cy, z: f.pz, n: tool.tank.length });
+        this.dropDust(f.px, f.cy, f.pz, f.def.dust);
+        if (tool.tank.length >= d.tankSize) break;
       }
     }
     for (const s of this.spits) if (this.inCone(s.x, s.y, s.z, d.range, d.cone)) {
@@ -359,7 +363,16 @@ export class Run {
       m.vx += ex / el * 60 * dt; m.vy += ey / el * 60 * dt; m.vz += ez / el * 60 * dt;
       m.t = Math.max(m.t, 0.46);
     }
-    if (this.boss) this.boss.sucked?.(this, dt);
+    // The boss feels the stream too (its bag more).
+    const B = this.boss;
+    if (B?.alive && !B.invulnerable) {
+      for (const [x, y, z, r, mul, part] of B.hitSpheres()) {
+        if (!this.inCone(x, y, z, d.range + r, d.cone + 0.15)) continue;
+        B.stream = (B.stream || 0) + d.stream * dt * mul;
+        if (B.stream >= 0.6) { B.damage(this, B.stream, part); B.stream = 0; }
+        break;
+      }
+    }
   }
 
   // Shoot what the tank holds: a heavy yarn ball that bursts on impact.
@@ -418,17 +431,30 @@ export class Run {
     for (const s of this.spits) {
       if (s.life <= 0) continue;
       s.life -= dt;
+      if (s.g) s.vy -= s.g * dt;
       const l = Math.hypot(s.vx, s.vy, s.vz) * dt;
       const hit = this.world.raycast(s.x, s.y, s.z, s.vx * dt / l, s.vy * dt / l, s.vz * dt / l, l);
       s.x += s.vx * dt; s.y += s.vy * dt; s.z += s.vz * dt;
-      if (hit) { s.life = 0; this.events.push({ type: "spitPop", x: s.x, y: s.y, z: s.z }); continue; }
-      if (!s.harmless && (s.x - cx) ** 2 + ((s.y - cy) / 1.6) ** 2 + (s.z - cz) ** 2 < 0.5 ** 2) {
+      const landed = s.splash && s.vy < 0 && s.y <= s.ty + 0.1;
+      if (hit || landed) { this.burstSpit(s); continue; }
+      if (!s.harmless && (s.x - cx) ** 2 + ((s.y - cy) / 1.6) ** 2 + (s.z - cz) ** 2 < (s.splash ? 0.7 : 0.5) ** 2) {
+        if (s.splash) { this.burstSpit(s); continue; }
         s.life = 0;
         this.hurt(s.dmg, s.x, s.z);
         this.events.push({ type: "spitPop", x: s.x, y: s.y, z: s.z, onYou: true });
       }
     }
     this.spits = this.spits.filter((s) => s.life > 0);
+  }
+
+  // An orb ends; a soap bubble bursts and soaks anyone near.
+  burstSpit(s) {
+    s.life = 0;
+    if (s.splash && !s.harmless) {
+      const b = this.body;
+      if (Math.hypot(b.x - s.x, b.z - s.z) < s.splash && Math.abs(b.y + 0.8 - s.y) < 2) this.hurt(s.dmg, s.x, s.z);
+    }
+    this.events.push({ type: "spitPop", x: s.x, y: s.y, z: s.z, splash: s.splash || 0, kind: s.kind });
   }
 
   stepDust(dt) {

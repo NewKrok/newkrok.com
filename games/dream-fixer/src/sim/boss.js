@@ -17,7 +17,6 @@ import { Body } from "./player.js";
 export const BOSS = {
   hp: 160, r: 1.25, h: 2.4,
   speed: [2.6, 3.4],
-  pull: [9, 11.5],              // m/s² on you while it sucks
   gulp: 16, sweep: 12, orbDmg: 8,
   bagMul: 2.5, clogMul: 3,
 };
@@ -160,12 +159,14 @@ export class Boss {
         const ex = n[0] - P.x, ey = n[1] - (P.y + 1), ez = n[2] - P.z, el = Math.hypot(ex, ey, ez);
         // In front of the nozzle and not too far: pulled in.
         const facing = -(ex * this.nozzleDir[0] + ez * this.nozzleDir[2]) / Math.max(0.01, Math.hypot(ex, ez));
-        if (el < 15 && facing > 0.45) {
-          const k = BOSS.pull[this.phase - 1] * dt * (1 - el / 18);
-          P.vx += ex / el * k; P.vz += ez / el * k;
-          if (!P.grounded) P.vy += ey / el * k * 0.3;
+        if (el < 16 && facing > 0.2) {
+          // A drift towards the nozzle, stronger up close: running away
+          // still wins, standing still does not.
+          const h = Math.hypot(ex, ez) || 1;
+          const v = (2.2 + 4.2 * Math.max(0, 1 - el / 15)) * (this.phase === 2 ? 1.2 : 1);
+          P.pushX += ex / h * v; P.pushZ += ez / h * v;
         }
-        if (el < 1.9) {
+        if (el < 2.3) {
           // Gulp! and spat back out.
           run.hurt(BOSS.gulp, n[0], n[2]);
           P.vx = -ex / el * 11; P.vz = -ez / el * 11; P.vy = 6.5; P.grounded = false;
