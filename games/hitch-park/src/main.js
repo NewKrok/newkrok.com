@@ -213,6 +213,7 @@ function startDriving({ retry = false } = {}) {
   G.snapCam = true;                 // start in the chosen view, no glide from the overview
   hideScreens();
   hud.banner(t("banner_go"), "#7ee787", 0.9);
+  hud.markPlayer();
   updateCamLabel();
 }
 
@@ -298,6 +299,12 @@ function openLevels() {
   }
   renderLevelSelect();
   showScreen("menu-levels", { push: G.phase === "menu" && !!$("#menu-main.active") });
+  // Start at the job last picked, not at the top of the list.
+  const card = $(`.lvl[data-level="${G.levelIdx}"]`);
+  if (card) {
+    card.focus({ preventScroll: true });
+    requestAnimationFrame(() => card.scrollIntoView({ block: "center" }));
+  }
 }
 
 // ── Sim events → sound, floaters, shake ──────────────────────────────────
@@ -310,6 +317,16 @@ function onSimEvent(type, e) {
     hud.floater(e.x, e.y, `${t("fl_crash")} −${SCORE.crash}`, "#ff5c5c");
     audio.play("crash");
     G.shake = Math.max(G.shake, 1);
+  } else if (type === "mine") {
+    // A mine: the rig is thrown, and the job starts again after a moment.
+    hud.blast(e.x, e.y);
+    hud.banner(t("banner_mine"), "#ff5c5c", 2.4);
+    audio.play("boom");
+    G.shake = 2.2;
+    G.phase = "boom";
+    G.boomAt = G.time + 2.6;
+    sim.scoring = false;
+    track("level_mine", { ...levelInfo(LEVELS[G.levelIdx]), time_s: Math.round(G.clock) });
   } else if (type === "cone") {
     hud.floater(e.x, e.y - 8, `${t("fl_cone")} −${SCORE.cone}`, "#ffb347");
     audio.play("cone");
@@ -651,7 +668,8 @@ function frame(now) {
   G.time += dt;
   pollPad();
 
-  if (G.phase === "play" || G.phase === "done") {
+  if (G.phase === "boom" && G.time >= G.boomAt) restart();
+  if (G.phase === "play" || G.phase === "done" || G.phase === "boom") {
     acc += dt;
     while (acc >= DT) {
       acc -= DT;
@@ -677,7 +695,7 @@ function frame(now) {
   const v = sim.veh;
   const driving = G.phase === "play";
   audio.drive({
-    active: driving || G.phase === "done",
+    active: driving || G.phase === "done" || G.phase === "boom",
     speed: v.speed, throttle: driving ? v.throttle : 0, skid: v.skid, loose: v.skidLoose,
     reverse: driving && v.gear < 0, clearance: driving && v.gear < 0 ? sim.rearClearance() : Infinity,
     hazard: driving && sim.parked.some((p) => p.hazard > 0), dt, truck: v.key === "truck",
@@ -688,11 +706,11 @@ function frame(now) {
     : [0, 0];
   if (G.phase !== "menu" && G.phase !== "paused") scene.adapt(dt);
   // How far the screen is between the last two physics steps.
-  const alpha = G.phase === "play" || G.phase === "done" ? acc / DT : 1;
+  const alpha = G.phase === "play" || G.phase === "done" || G.phase === "boom" ? acc / DT : 1;
   const pip = scene.render(sim, {
     alpha,
     // In the intro, a picked view is previewed behind the card.
-    phase: G.phase === "paused" || G.phase === "done" || (G.phase === "intro" && G.introPreview) ? "play" : G.phase,
+    phase: G.phase === "paused" || G.phase === "done" || G.phase === "boom" || (G.phase === "intro" && G.introPreview) ? "play" : G.phase,
     time: G.time, dt, camMode: G.camMode, camDist: G.camDist,
     showGuide: settings.guide && G.phase === "play", rearCam: settings.rearCam && G.phase === "play",
     hold: G.hold, shake, snap: G.snapCam,

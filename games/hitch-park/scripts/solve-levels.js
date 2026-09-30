@@ -64,6 +64,8 @@ function buildGrid(lvl) {
       }
     }
   }
+  // Mines are off limits (tow vehicle and trailer alike).
+  for (const m of lvl.mines ?? []) fillCircle(m.x, m.y, 3);
   // Chamfer distance (px) to the nearest blocked pixel, for quick tests.
   const dist = new Float32Array(W * H);
   for (let i = 0; i < W * H; i++) dist[i] = g[i] ? 0 : 1e9;
@@ -424,9 +426,9 @@ const VIA = {
   carshow: [{ x: 1310, y: 330, a: -PI / 2, w: 60, l: 140 }, { x: 1000, y: 240, a: PI, w: 90, l: 140 }],
   pipeyard: [{ x: 700, y: 640, a: 0, w: 90, l: 150 }, { x: 900, y: 360, a: 0, w: 120, l: 160 }],
   courtyard: [{ x: 780, y: 600, a: 0, w: 50, l: 100 }],
-  missilebase: [{ x: 1420, y: 600, a: -PI / 2, w: 80, l: 150 }, { x: 900, y: 400, a: PI, w: 80, l: 150 }],
-  railhead: [{ x: 1000, y: 950, a: PI, w: 100, l: 240 }, { x: 300, y: 640, a: -PI / 2, w: 130, l: 240 }, { x: 760, y: 560, a: 0, w: 130, l: 240 }],
-  forestcamp: [{ x: 640, y: 650, a: 0, w: 90, l: 150 }, { x: 1080, y: 460, a: -2.3, w: 120, l: 170 }, { x: 640, y: 290, a: PI, w: 130, l: 170 }],
+  railhead: [{ x: 1150, y: 700, a: -PI / 2, w: 160, l: 260 }, { x: 1050, y: 200, a: 0, w: 120, l: 260 }],
+  missilebase: [{ x: 950, y: 530, a: 0, w: 140, l: 240 }],
+  forestcamp: [{ x: 360, y: 580, a: PI, w: 110, l: 170 }, { x: 250, y: 560, a: PI / 2, w: 80, l: 140 }],
 };
 
 // Try the strategies in turn: forward search (straight-line heuristic),

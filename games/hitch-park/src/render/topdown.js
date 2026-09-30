@@ -513,6 +513,8 @@ function drawStaticTop(p, def) {
     case "tank": drawTankTop(p, def.color ?? ARMY_GREEN, x, y, a, def.turret ?? 0); return;
     case "parkedtrailer": drawTrailerTop(p, def.trailer, x, y, a); return;
     case "sandbags": p.poly(box(def.w, def.h), 0xb59a66, 1, 0x7d6a44, 0.8); return;
+    case "troops": p.poly(box(def.w, def.h), 0x4f5b35, 1, 0x2f3a1e, 1); return;
+    case "wire": p.poly(box(def.w, 1.5), 0x2c3036); return;
     case "hesco": p.poly(box(def.w, def.h), 0xc9b27a, 1, 0x8a8f86, 1.2); return;
     case "watchtower": p.poly(box(def.s ?? 22, def.s ?? 22), 0x6b5a3a, 1, 0x3b3f45, 1); return;
     case "radar": circle(def.r ?? 12, 0x8a8f86); p.circle(x, y, (def.r ?? 12) * 0.5, 0xd8dde3); return;
@@ -544,6 +546,7 @@ export function drawLevelThumb(canvas, lvl) {
   const p = new Painter(ctx);
   for (const c of lvl.parked) drawCarTop(p, CAR_TYPES[c.type], c.color, c.x, c.y, c.a);
   for (const st of lvl.statics) drawStaticTop(p, st);
+  for (const m of lvl.mines ?? []) p.circle(m.x, m.y, 3, 0x2c2e24);
   const b = lvl.bay;
   p.poly(xform(b.x, b.y, b.a, rectPts(-b.l / 2, -b.w / 2, b.l / 2, b.w / 2)), 0xffd166, 0.55, 0xffd166, 3 / s * 0.6);
   drawRigTop(p, lvl.vehicle ?? "car", lvl.trailer, lvl.start.x, lvl.start.y, lvl.start.a, lvl.color);

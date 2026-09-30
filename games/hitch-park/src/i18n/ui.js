@@ -38,7 +38,7 @@ export const UI = {
     set_pad: "Gamepad", pad_none: "No gamepad found — connect one and press any button.", pad_mapping: "mapping", pad_buttons: "buttons", pad_axes: "axes", padHintOff: "🎮 Plays with a gamepad too — connect one and press any button.", padHintOn: "🎮 Gamepad ready: A drives off, B goes back.",
     hud_bumps: "BUMPS", hud_cones: "CONES", hud_hitch: "HITCH {d}°", hud_jack: "JACK-KNIFE!", hud_hold: "HOLD",
     chip_in: "IN BAY", chip_square: "SQUARE", chip_stopped: "STOPPED", hud_rear: "REAR",
-    banner_go: "GO", banner_parked: "PARKED!", fl_bump: "BUMP", fl_crash: "CRASH", fl_cone: "CONE",
+    banner_go: "GO", banner_mine: "BOOM! A MINE", banner_parked: "PARKED!", fl_bump: "BUMP", fl_crash: "CRASH", fl_cone: "CONE",
     webgl_title: "WebGL is not available", webgl_text: "Hitch & Park needs a browser with WebGL. Try another browser or enable hardware acceleration.",
   },
   de: {
@@ -77,7 +77,7 @@ export const UI = {
     set_pad: "Gamepad", pad_none: "Kein Gamepad gefunden — anschließen und eine Taste drücken.", pad_mapping: "Belegung", pad_buttons: "Tasten", pad_axes: "Achsen", padHintOff: "🎮 Auch mit Gamepad spielbar — anschließen und eine Taste drücken.", padHintOn: "🎮 Gamepad bereit: A fährt los, B geht zurück.",
     hud_bumps: "REMPLER", hud_cones: "HÜTCHEN", hud_hitch: "KNICK {d}°", hud_jack: "EINGEKNICKT!", hud_hold: "HALT",
     chip_in: "IN BUCHT", chip_square: "GERADE", chip_stopped: "STEHT", hud_rear: "HECK",
-    banner_go: "LOS", banner_parked: "GEPARKT!", fl_bump: "REMPLER", fl_crash: "CRASH", fl_cone: "HÜTCHEN",
+    banner_go: "LOS", banner_mine: "BUMM! EINE MINE", banner_parked: "GEPARKT!", fl_bump: "REMPLER", fl_crash: "CRASH", fl_cone: "HÜTCHEN",
     webgl_title: "WebGL ist nicht verfügbar", webgl_text: "Hitch & Park braucht einen Browser mit WebGL. Probiere einen anderen Browser oder aktiviere die Hardwarebeschleunigung.",
   },
   es: {
@@ -116,7 +116,7 @@ export const UI = {
     set_pad: "Mando", pad_none: "No hay mando — conéctalo y pulsa un botón.", pad_mapping: "asignación", pad_buttons: "botones", pad_axes: "ejes", padHintOff: "🎮 También se juega con mando — conéctalo y pulsa un botón.", padHintOn: "🎮 Mando listo: A arranca, B vuelve.",
     hud_bumps: "GOLPES", hud_cones: "CONOS", hud_hitch: "ENGANCHE {d}°", hud_jack: "¡CRUZADO!", hud_hold: "FRENO",
     chip_in: "DENTRO", chip_square: "RECTO", chip_stopped: "PARADO", hud_rear: "TRASERA",
-    banner_go: "¡YA!", banner_parked: "¡APARCADO!", fl_bump: "GOLPE", fl_crash: "CHOQUE", fl_cone: "CONO",
+    banner_go: "¡YA!", banner_mine: "¡BUM! UNA MINA", banner_parked: "¡APARCADO!", fl_bump: "GOLPE", fl_crash: "CHOQUE", fl_cone: "CONO",
     webgl_title: "WebGL no está disponible", webgl_text: "Hitch & Park necesita un navegador con WebGL. Prueba otro navegador o activa la aceleración por hardware.",
   },
   hu: {
@@ -155,7 +155,7 @@ export const UI = {
     set_pad: "Kontroller", pad_none: "Nincs kontroller — csatlakoztasd, és nyomj meg egy gombot.", pad_mapping: "kiosztás", pad_buttons: "gombok", pad_axes: "tengelyek", padHintOff: "🎮 Kontrollerrel is játszható — csatlakoztasd, és nyomj meg egy gombot.", padHintOn: "🎮 Kontroller kész: A indulás, B vissza.",
     hud_bumps: "KOCCANÁS", hud_cones: "BÓJÁK", hud_hitch: "SZÖG {d}°", hud_jack: "BEBICSAKLIK!", hud_hold: "ÁLL",
     chip_in: "BENT", chip_square: "EGYENES", chip_stopped: "ÁLL", hud_rear: "HÁTSÓ",
-    banner_go: "MEHET", banner_parked: "BEPARKOLVA!", fl_bump: "KOCCANÁS", fl_crash: "ÜTKÖZÉS", fl_cone: "BÓJA",
+    banner_go: "MEHET", banner_mine: "BUMM! AKNA", banner_parked: "BEPARKOLVA!", fl_bump: "KOCCANÁS", fl_crash: "ÜTKÖZÉS", fl_cone: "BÓJA",
     webgl_title: "A WebGL nem érhető el", webgl_text: "A Hitch & Park WebGL-t támogató böngészőt igényel. Próbálj másik böngészőt, vagy kapcsold be a hardveres gyorsítást.",
   },
   zh: {
@@ -194,7 +194,7 @@ export const UI = {
     set_pad: "手柄", pad_none: "未检测到手柄——连接后按任意键。", pad_mapping: "映射", pad_buttons: "按键", pad_axes: "摇杆轴", padHintOff: "🎮 也支持手柄——连接后按任意键。", padHintOn: "🎮 手柄已就绪：A 出发，B 返回。",
     hud_bumps: "碰撞", hud_cones: "锥桶", hud_hitch: "挂钩 {d}°", hud_jack: "折叠！", hud_hold: "驻车",
     chip_in: "在车位内", chip_square: "已摆正", chip_stopped: "已停稳", hud_rear: "后视",
-    banner_go: "出发", banner_parked: "停好了！", fl_bump: "碰撞", fl_crash: "撞车", fl_cone: "锥桶",
+    banner_go: "出发", banner_mine: "轰！踩到地雷", banner_parked: "停好了！", fl_bump: "碰撞", fl_crash: "撞车", fl_cone: "锥桶",
     webgl_title: "WebGL 不可用", webgl_text: "Hitch & Park 需要支持 WebGL 的浏览器。请尝试其他浏览器或开启硬件加速。",
   },
   fr: {
@@ -233,7 +233,7 @@ export const UI = {
     set_pad: "Manette", pad_none: "Aucune manette — branche-la et appuie sur un bouton.", pad_mapping: "mappage", pad_buttons: "boutons", pad_axes: "axes", padHintOff: "🎮 Se joue aussi à la manette — branche-la et appuie sur un bouton.", padHintOn: "🎮 Manette prête : A pour partir, B pour revenir.",
     hud_bumps: "ACCROCS", hud_cones: "CÔNES", hud_hitch: "ATTELAGE {d}°", hud_jack: "PORTEFEUILLE !", hud_hold: "FREIN",
     chip_in: "DANS LA PLACE", chip_square: "DROIT", chip_stopped: "ARRÊTÉ", hud_rear: "ARRIÈRE",
-    banner_go: "GO", banner_parked: "GARÉ !", fl_bump: "ACCROC", fl_crash: "ACCIDENT", fl_cone: "CÔNE",
+    banner_go: "GO", banner_mine: "BOUM ! UNE MINE", banner_parked: "GARÉ !", fl_bump: "ACCROC", fl_crash: "ACCIDENT", fl_cone: "CÔNE",
     webgl_title: "WebGL n'est pas disponible", webgl_text: "Hitch & Park nécessite un navigateur compatible WebGL. Essaie un autre navigateur ou active l'accélération matérielle.",
   },
 };

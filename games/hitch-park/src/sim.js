@@ -246,9 +246,20 @@ export function createSim({ onEvent = () => {} } = {}) {
     const tb = new Body(BodyType.DYNAMIC, new Vec2(tp.x, tp.y));
     tb.rotation = start.a;
     const tmat = new Material(0.12, 0.6, 0.8, t.density, 0.001);
-    tb.shapes.add(new Polygon(toVecs(carOutline(t.len, t.wid, trailerKey === "caravan" ? 0.35 : 0.08)), tmat));
     const bx = t.len / 2 * M;
-    if (t.bar > 0) tb.shapes.add(new Polygon([new Vec2(bx - 1, -t.wid * 0.28 * M), new Vec2(couplerX, -1.2), new Vec2(couplerX, 1.2), new Vec2(bx - 1, t.wid * 0.28 * M)], tmat));
+    if (trailerKey === "fieldgun") {
+      // The gun is no box: shield over the axle, a narrow barrel back to
+      // the muzzle and the split trail forward to the towing eye. Denser,
+      // so it weighs what the box did.
+      const gmat = new Material(0.12, 0.6, 0.8, t.density * 1.45, 0.001);
+      const ax = t.axle * M;
+      tb.shapes.add(new Polygon(Polygon.rect(ax - 1, -t.wid * 0.43 * M, 5, t.wid * 0.86 * M), gmat));
+      tb.shapes.add(new Polygon(Polygon.rect(-bx, -3.5, bx + ax, 7), gmat));
+      tb.shapes.add(new Polygon([new Vec2(ax, -t.wid * 0.22 * M), new Vec2(couplerX, -1.2), new Vec2(couplerX, 1.2), new Vec2(ax, t.wid * 0.22 * M)], gmat));
+    } else {
+      tb.shapes.add(new Polygon(toVecs(carOutline(t.len, t.wid, trailerKey === "caravan" ? 0.35 : 0.08)), tmat));
+      if (t.bar > 0) tb.shapes.add(new Polygon([new Vec2(bx - 1, -t.wid * 0.28 * M), new Vec2(couplerX, -1.2), new Vec2(couplerX, 1.2), new Vec2(bx - 1, t.wid * 0.28 * M)], tmat));
+    }
     const wOut = t.wid / 2 + t.wheelOut;
     if (t.wheelOut > 0) {
       // Fenders stick out past the bed: they are part of what can hit things.
@@ -343,6 +354,7 @@ export function createSim({ onEvent = () => {} } = {}) {
     space.clear();
     installListeners();
     S.parked = [];
+    S.mines = (level.mines ?? []).map((m) => ({ x: m.x, y: m.y, live: true }));
     S.cones = [];
     S.movables = [];
     S.statics = [];
@@ -614,9 +626,38 @@ export function createSim({ onEvent = () => {} } = {}) {
     parkedFriction();
     space.step(DT, 10, 4);
     S.time += DT;
+    if (S.scoring) checkMines();
     if (v.dent) v.dent = Math.max(0, v.dent - DT * 2);
     S.park = evalParking();
     return S.park;
+  }
+
+  // Mines (the minefield on the artillery range): a buried charge goes off
+  // under the tow vehicle or the trailer, throwing the rig.
+  function checkMines() {
+    const v = S.veh, t = v.trailer.spec;
+    const parts = [
+      { b: v.chassis, hl: v.spec.len / 2 * M + 1, hw: v.spec.wid / 2 * M + 1 },
+      // The trailer sets one off with its wheels (a barrel hanging over
+      // it does not).
+      { b: v.trailer.body, cx: t.axle * M, hl: t.wheelR * M + 2, hw: (t.wid / 2 + Math.max(0, t.wheelOut) + t.wheelW / 2) * M },
+    ];
+    for (const m of S.mines) {
+      if (!m.live) continue;
+      for (const { b, cx = 0, hl, hw } of parts) {
+        const dx = m.x - b.position.x, dy = m.y - b.position.y;
+        const c = Math.cos(b.rotation), sn = Math.sin(b.rotation);
+        if (Math.abs(dx * c + dy * sn - cx) > hl || Math.abs(-dx * sn + dy * c) > hw) continue;
+        m.live = false;
+        for (const q of [v.chassis, v.trailer.body]) {
+          const ex = q.position.x - m.x, ey = q.position.y - m.y, d = Math.hypot(ex, ey) || 1;
+          q.applyImpulse(Vec2.weak(ex / d * q.mass * 60, ey / d * q.mass * 60));
+          q.angularVel += (Math.random() - 0.5) * 3;
+        }
+        onEvent("mine", { x: m.x, y: m.y });
+        return;
+      }
+    }
   }
 
   // Predicted path of the trailer axle for the current steering (kinematic

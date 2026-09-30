@@ -1230,6 +1230,24 @@ export class Scene3D {
         m.body.rotation.z = rz;
         return m.body;
       }
+      case "troops": {
+        // A company on parade: rows of soldiers, olive with a helmet.
+        const n = Math.max(1, Math.floor(def.w / 10)), m = Math.max(1, Math.floor(def.h / 10));
+        const uni = this.matCached("uniform", () => { const mt = new T.MeshStandardMaterial({ color: 0x4f5b35, roughness: 0.9 }); mt.userData.vc = true; return mt; });
+        const helmet = this.matCached("helmet", () => { const mt = new T.MeshStandardMaterial({ color: 0x3e472a, roughness: 0.8 }); mt.userData.vc = true; return mt; });
+        for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) {
+          const u = -def.w / 2 + (i + 0.5) * def.w / n, v = -def.h / 2 + (j + 0.5) * def.h / m;
+          at(g.cylZ8, uni, u, v, 7, 2.2, 1.6, 14);
+          at(g.sphere, helmet, u, v, 15.4, 1.9, 1.9, 1.5);
+        }
+        return null;
+      }
+      case "wire": {
+        // Barbed-wire fence: a post at one end, three strands.
+        at(g.box, g.darkMetal, -def.w / 2 + 1, 0, 7, 1.2, 1.2, 14);
+        for (const z of [4, 8.5, 13]) at(g.box, g.darkMetal, 0, 0, z, def.w, 0.35, 0.35);
+        return null;
+      }
       case "sandbags": {
         // Stacked bags: three courses, each a little narrower, two tones.
         const h = def.height ?? 11, n = 3, ch = h / n;
@@ -1447,6 +1465,31 @@ export class Scene3D {
     const g = this;
     const P = this.parts();
     if (d.kind === "pontoon") P.add(g.box, g.wood, d.x, -d.y, 1, 0, d.w, d.h, 2.4);
+    else if (d.kind === "camonet") {
+      // Camouflage net on four poles: a see-through sheet, so the bay under
+      // it stays visible from above.
+      const net = this.matCached("camonet", () => new T.MeshStandardMaterial({
+        roughness: 1, side: T.DoubleSide, alphaTest: 0.5, map: canvasTex(128, 128, (c, w, h) => {
+          const rnd = lcg(31);
+          for (let i = 0; i < 260; i++) {
+            c.fillStyle = ["#4b5a2e", "#6b6a3a", "#3a4424", "#7a6a44"][i % 4];
+            c.beginPath(); c.ellipse(rnd() * w, rnd() * h, 4 + rnd() * 9, 3 + rnd() * 6, rnd() * 3, 0, Math.PI * 2); c.fill();
+          }
+          c.globalCompositeOperation = "destination-out";
+          for (let y = 0; y < h; y += 8) for (let x = (y / 8) % 2 ? 4 : 0; x < w; x += 8) c.fillRect(x, y, 4, 4);
+        }, { repeat: true }),
+      }));
+      const sheet = new T.Mesh(g.plane, net);
+      sheet.scale.set(d.w, d.h, 1);
+      sheet.position.set(d.x, -d.y, d.height);
+      sheet.castShadow = true;
+      net.map.repeat.set(d.w / 64, d.h / 64);
+      const grp = new T.Group();
+      grp.add(sheet);
+      for (const [u, v] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) P.add(g.cylZ8, g.wood, d.x + u * (d.w / 2 - 10), -d.y + v * (d.h / 2 - 6), d.height / 2, 0, 1.3, 1.3, d.height);
+      grp.add(P.merged());
+      return grp;
+    }
     else if (d.kind === "boat") {
       const b = this.buildBoatHull(d.len, d.len * 0.34, [0x8a1f24, 0x1f3a5a, 0x2f6b4a, 0x5b4a8a][lv.boats.length % 4]);
       b.position.set(d.x, -d.y, -4);
@@ -1544,6 +1587,14 @@ export class Scene3D {
     for (const s of sim.statics) {
       const extra = this.buildStatic(P, s.def, lvl, trees, lamps);
       if (extra) lv.group.add(extra);
+    }
+    // Mines: half-buried discs with a pressure cap.
+    if (lvl.mines?.length) {
+      const mineMat = this.matCached("mine", () => { const mt = new T.MeshStandardMaterial({ color: 0x4a4c3a, roughness: 0.7, metalness: 0.4 }); mt.userData.vc = true; return mt; });
+      for (const m of lvl.mines) {
+        P.add(g.cylZ8, mineMat, m.x, -m.y, 0.4, 0, 3, 3, 1.4);
+        P.add(g.cylZ8, g.darkMetal, m.x, -m.y, 1.2, 0, 1, 1, 0.8);
+      }
     }
     for (const d of lvl.decor ?? []) {
       const extra = this.buildDecor(d, lv);

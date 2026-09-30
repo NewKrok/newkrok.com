@@ -101,6 +101,13 @@ what made headless level checking possible.
   distance fields are Float64: in Float32, rounding made equal-cost cells
   look improvable and the search re-expanded them endlessly, which is what
   used to make big levels take many minutes and run out of memory.
+- A trailer that is not a box needs its own collision shape: the field
+  gun was a full 4.4 × 2 m rectangle, so its invisible corners touched the
+  wire. It is now shield + barrel + trail, denser to keep the old mass.
+- Mines (`level.mines`) are checked in `sim.step` against the tow vehicle's
+  outline and the trailer's axle; the solver treats them as obstacles.
+- Players asked for varied starts: middle of the map, top, inside a shed
+  nose-in (back out first), not always bottom-left.
 - Bugs playtesting kept finding: segmented hedges whose gap doesn't line up
   with the road (build them from separate lines), a shortcut that lets you
   drive forwards into the bay, props dropped in the only gateway, lamps
