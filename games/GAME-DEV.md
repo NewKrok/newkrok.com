@@ -96,15 +96,52 @@ what made headless level checking possible.
   overlaps, a blocked bay, or a start inside something. Run it after every
   change.
 - `npm run solve-levels [-- <n>]` searches for a way to park (hybrid A*)
-  and flags levels that can be done without reversing. It is slow and hungry:
-  lorry levels can run out of memory, and long routes need stop-over poses
-  (the `VIA` table). Run one level at a time, `nice`d, never several in
-  parallel: it makes the machine unusable.
+  and flags levels that can be done without reversing. Long routes need
+  stop-over poses (the `VIA` table). Run one level at a time, `nice`d. Its
+  distance fields are Float64: in Float32, rounding made equal-cost cells
+  look improvable and the search re-expanded them endlessly, which is what
+  used to make big levels take many minutes and run out of memory.
+- A trailer that is not a box needs its own collision shape: the field
+  gun was a full 4.4 × 2 m rectangle, so its invisible corners touched the
+  wire. It is now shield + barrel + trail, denser to keep the old mass.
+- Mines (`level.mines`) are checked in `sim.step` against the tow vehicle's
+  outline and the trailer's axle; the solver treats them as obstacles.
+- Players asked for varied starts: middle of the map, top, inside a shed
+  nose-in (back out first), not always bottom-left.
 - Bugs playtesting kept finding: segmented hedges whose gap doesn't line up
   with the road (build them from separate lines), a shortcut that lets you
   drive forwards into the bay, props dropped in the only gateway, lamps
   standing on the road (lamps take an arm angle `a`), and the bay facing
   the other way from the parked vehicles next to it.
+
+## Input
+
+- Keyboard, pointer drag and gamepad all feed one `readInput()` per physics
+  step. The steering rack can be told to stay where it was left
+  (`holdSteer`, the "Steering centres itself" setting: always / not
+  reversing / never) for keys, d-pad and stick; pointer drag is absolute and
+  always re-centres. Pointer drag can be limited to steering only, leaving
+  throttle to the keys or the pad.
+- Gamepad (`src/gamepad.js`): every connected pad is read and merged
+  (following one "active" pad broke when the system listed the controller
+  twice). A button or axis only counts once it has been seen at rest, so a
+  stuck button or an axis resting at ±1 on another device cannot hold a
+  direction. Non-standard pads get their d-pad from the hat axis (9), only
+  their first twelve buttons are read (12+ are Home, Capture …) and the face
+  buttons are reordered (Switch pads by letter, others by position).
+  A HORI Switch pad on macOS Chrome shows up as two devices and sends no
+  stick data at all, only the hat and the buttons.
+  Settings show the raw readout for checking a player's controller.
+- Menus are driven by moving the DOM focus: up / down picks the nearest row
+  first, then the control closest across; left / right stays in the row;
+  with nothing further, it scrolls the screen, and so does the right stick.
+  A clicks the focused control (or the screen's primary button), B does
+  what Escape does. A `pad-nav` class on `<body>` shows the focus until a
+  key is pressed (segmented buttons need an inner ring: `overflow: hidden`
+  clips an outline).
+- To test the pad headless, stub `navigator.getGamepads` in an init script
+  and hold each button for longer than a frame: software GL runs at a few
+  frames per second, so a short tap falls between two polls.
 
 ## Testing without a screen
 

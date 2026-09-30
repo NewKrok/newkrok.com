@@ -21,6 +21,8 @@ export class Hud {
     this.ctx = canvas.getContext("2d");
     this.W = 1; this.H = 1; this.dpr = 1; this.u = 1;
     this.floaters = [];
+    this.blasts = [];
+    this.marker = 0;             // seconds left of the "your rig" marker
     this.banners = [];
   }
 
@@ -40,8 +42,15 @@ export class Hud {
     this.banners.push({ text, color, t: 0, life });
     if (this.banners.length > 3) this.banners.shift();
   }
-  clearFx() { this.floaters = []; this.banners = []; }
+  clearFx() { this.floaters = []; this.banners = []; this.blasts = []; this.marker = 0; }
+  // A mine going off at a world point.
+  blast(x, y) { this.blasts.push({ x, y, t: 0, life: 2.2 }); }
+  // Point out the player's rig for a few seconds (start of a job).
+  markPlayer(sec = 3.2) { this.marker = sec; }
   tick(dt) {
+    for (const b of this.blasts) b.t += dt;
+    this.blasts = this.blasts.filter((b) => b.t < b.life);
+    this.marker = Math.max(0, this.marker - dt);
     for (const f of this.floaters) f.t += dt;
     this.floaters = this.floaters.filter((f) => f.t < f.life);
     for (const b of this.banners) b.t += dt;
@@ -94,11 +103,13 @@ export class Hud {
     if (s.phase === "menu") return;
     if (s.pip) this.#drawPip(s);
     if (s.phase === "play") this.#drawNav(s);
+    this.#drawBlasts(s);
+    if (this.marker > 0 && s.phase === "play") this.#drawMarker(s);
     this.#drawFloaters(s);
     ctx.save();
     ctx.scale(this.u, this.u);
     const W = this.W / this.u, H = this.H / this.u;
-    if (s.phase === "play" || s.phase === "paused" || s.phase === "done" || s.phase === "intro") this.#drawHud(s, W, H);
+    if (s.phase === "play" || s.phase === "paused" || s.phase === "done" || s.phase === "boom" || s.phase === "intro") this.#drawHud(s, W, H);
     this.#drawBanners(W);
     ctx.restore();
     if (s.joy) this.#drawJoystick(s.joy);
@@ -257,6 +268,49 @@ export class Hud {
     this.#text("● " + t("hud_rear"), r.x + 37, r.y + 15.5, 10, "#ff6b6b", "center", 800);
   }
 
+  #drawBlasts(s) {
+    const ctx = this.ctx;
+    for (const b of this.blasts) {
+      const p = s.project(b.x, b.y, 4);
+      if (!p) continue;
+      const k = b.t / b.life, u = this.u;
+      // Flash, fireball, then a drifting smoke cloud.
+      if (b.t < 0.18) { ctx.fillStyle = `rgba(255,240,200,${0.55 * (1 - b.t / 0.18)})`; ctx.fillRect(0, 0, this.W, this.H); }
+      const r = (30 + 110 * Math.sqrt(k)) * u;
+      const gr = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+      const fire = clamp(1 - k * 3, 0, 1), smoke = clamp(1 - k, 0, 1) * 0.75;
+      gr.addColorStop(0, `rgba(255,${Math.round(200 * fire + 60)},${Math.round(80 * fire + 40)},${Math.max(fire, smoke * 0.8)})`);
+      gr.addColorStop(0.45, `rgba(${Math.round(120 + 120 * fire)},${Math.round(70 + 50 * fire)},40,${smoke})`);
+      gr.addColorStop(1, "rgba(40,36,32,0)");
+      ctx.fillStyle = gr;
+      ctx.beginPath(); ctx.arc(p.x, p.y - k * 40 * u, r, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  #drawMarker(s) {
+    const ctx = this.ctx, v = s.sim.veh.chassis;
+    const p = s.project(v.position.x, v.position.y, 30);
+    if (!p) return;
+    const u = this.u, t = this.marker;
+    const fade = clamp(t / 0.6, 0, 1);
+    const bob = Math.sin(t * 7) * 5 * u;
+    ctx.globalAlpha = fade;
+    // Pulsing ring round the car and a bouncing arrow over it.
+    const r = (26 + ((3.2 - t) * 1.6 % 1) * 26) * u;
+    ctx.strokeStyle = `rgba(255,209,102,${1 - ((3.2 - t) * 1.6 % 1)})`;
+    ctx.lineWidth = 3 * u;
+    ctx.beginPath(); ctx.arc(p.x, p.y + 18 * u, r, 0, Math.PI * 2); ctx.stroke();
+    const ay = p.y - 34 * u + bob;
+    ctx.fillStyle = "#ffd166";
+    ctx.strokeStyle = "rgba(0,0,0,0.55)";
+    ctx.lineWidth = 3 * u;
+    ctx.beginPath();
+    ctx.moveTo(p.x, ay + 14 * u); ctx.lineTo(p.x - 13 * u, ay - 4 * u); ctx.lineTo(p.x - 5 * u, ay - 4 * u); ctx.lineTo(p.x - 5 * u, ay - 20 * u);
+    ctx.lineTo(p.x + 5 * u, ay - 20 * u); ctx.lineTo(p.x + 5 * u, ay - 4 * u); ctx.lineTo(p.x + 13 * u, ay - 4 * u); ctx.closePath();
+    ctx.stroke(); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
   #drawFloaters(s) {
     const ctx = this.ctx;
     for (const f of this.floaters) {
@@ -305,11 +359,16 @@ export class Hud {
     ctx.strokeStyle = "rgba(255,255,255,0.5)";
     ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(j.ox, j.oy, R, 0, Math.PI * 2); ctx.stroke();
-    const dx = clamp(j.x - j.ox, -R, R), dy = clamp(j.y - j.oy, -R, R);
+    const dx = clamp(j.x - j.ox, -R, R), dy = j.steerOnly ? 0 : clamp(j.y - j.oy, -R, R);
     ctx.fillStyle = "rgba(255,209,102,0.85)";
     ctx.beginPath(); ctx.arc(j.ox + dx, j.oy + dy, 17, 0, Math.PI * 2); ctx.fill();
-    this.#text("▲", j.ox, j.oy - 43, 12, "rgba(255,255,255,0.75)", "center", 800);
-    this.#text("R", j.ox, j.oy + 43, 12, "rgba(255,255,255,0.75)", "center", 800);
+    if (j.steerOnly) {
+      // Steering only: a left / right slider.
+      ctx.beginPath(); ctx.moveTo(j.ox - R, j.oy); ctx.lineTo(j.ox + R, j.oy); ctx.stroke();
+    } else {
+      this.#text("▲", j.ox, j.oy - 43, 12, "rgba(255,255,255,0.75)", "center", 800);
+      this.#text("R", j.ox, j.oy + 43, 12, "rgba(255,255,255,0.75)", "center", 800);
+    }
     ctx.globalAlpha = 1;
   }
 }

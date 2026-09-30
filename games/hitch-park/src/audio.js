@@ -124,6 +124,13 @@ export class Audio {
         for (const f of [420, 610, 890]) this.#tone(d, t + 0.01, 0.35, { type: "square", freq: f, freqEnd: f * 0.8, gain: 0.03 });
         break;
       }
+      case "boom": {
+        // Mine: a deep thump, a long rumbling blast and debris crackle.
+        this.#tone(d, t, 1.4, { freq: 70, freqEnd: 22, gain: 0.85, attack: 0.004 });
+        this.#noise(d, t, 1.8, { type: "lowpass", freq: 2400, freqEnd: 90, gain: 0.85, attack: 0.004 });
+        this.#noise(d, t + 0.05, 0.6, { type: "highpass", freq: 2500, gain: 0.18 });
+        break;
+      }
       case "cone":
         this.#noise(d, t, 0.08, { freq: 1600, q: 3, gain: 0.3 });
         this.#tone(d, t, 0.1, { type: "triangle", freq: 520, freqEnd: 300, gain: 0.12 });

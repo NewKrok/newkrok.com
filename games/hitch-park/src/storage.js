@@ -15,6 +15,9 @@ const write = (key, value) => {
 export const DEFAULT_SETTINGS = {
   master: 0.8, sfx: 0.9, music: 0.5,
   guide: true, rearCam: true, camMode: 0, quality: "high",
+  autoCentre: "always",        // keyboard steering centres itself: always | forward (not in reverse) | never
+  pointer: "full",             // mouse / touch drag: full (drive + steer) | steer (steering only)
+  mouseLook: false,            // the camera turns with the mouse's position across the screen
 };
 
 export function loadSettings() {

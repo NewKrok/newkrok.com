@@ -4,12 +4,31 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <meta name="theme-color" content="#0b0f17" />
-    <meta name="description" content="Hitch & Park — back a trailer into the bay. A physics parking game by NewKrok." />
-    <title>Hitch & Park</title>
+    <meta name="description" content="Back the trailer into the bay: a free 3D physics parking game in your browser. 48 levels in 8 chapters, from a box trailer to caravans, boats, a semi-trailer and a tank on a low loader. Keyboard, mouse, touch and gamepad." />
+    <title>Hitch & Park — trailer parking game</title>
+    <!-- The game is shown inside newkrok.com/gamer-zone/hitch-park; that page is the one to index. -->
+    <link rel="canonical" href="https://newkrok.com/gamer-zone/hitch-park" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NewKrok" />
+    <meta property="og:url" content="https://newkrok.com/gamer-zone/hitch-park" />
+    <meta property="og:title" content="Hitch & Park — trailer parking game" />
+    <meta property="og:description" content="Back the trailer into the bay: 48 levels of 3D physics parking, free in your browser." />
+    <meta property="og:image" content="https://newkrok.com/games/hitch-park/media/preview.webp" />
+    <meta property="og:image:width" content="480" />
+    <meta property="og:image:height" content="270" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:creator" content="@KSomoracz" />
+    <meta name="twitter:title" content="Hitch & Park — trailer parking game" />
+    <meta name="twitter:description" content="Back the trailer into the bay: 48 levels of 3D physics parking, free in your browser." />
+    <meta name="twitter:image" content="https://newkrok.com/games/hitch-park/media/preview.webp" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%230b0f17%22/%3E%3Cpath d=%22M20 48V16h13a10 10 0 0 1 0 20H20%22 fill=%22none%22 stroke=%22%23ffd166%22 stroke-width=%227%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E" />
     <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
+    <noscript>
+      <h1>Hitch &amp; Park</h1>
+      <p>A 3D physics parking game: back a trailer into the bay, nose out, square and stopped. 48 levels in 8 chapters with box trailers, boats, caravans, a semi-trailer, a field gun, a missile and a tank on a low loader. Plays with keyboard, mouse, touch or a gamepad. It needs JavaScript and WebGL.</p>
+    </noscript>
     <div id="app">
       <canvas id="hud"></canvas>
 
@@ -83,6 +102,17 @@
           </table>
           <h3 data-i18n="h_touch"></h3>
           <p data-i18n-html="p_touch"></p>
+          <h3 data-i18n="h_pad"></h3>
+          <table class="keys">
+            <tr><td><kbd>LS</kbd> / <kbd>✥</kbd></td><td data-i18n="k_steer"></td></tr>
+            <tr><td><kbd>RT</kbd> · <kbd>LT</kbd></td><td data-i18n="pad_drive"></td></tr>
+            <tr><td><kbd>A</kbd> / <kbd>X</kbd></td><td data-i18n="k_brake"></td></tr>
+            <tr><td><kbd>Y</kbd></td><td data-i18n="k_cam"></td></tr>
+            <tr><td><kbd>RS</kbd></td><td data-i18n="pad_look"></td></tr>
+            <tr><td><kbd>LB</kbd> · <kbd>RB</kbd></td><td data-i18n="k_aids"></td></tr>
+            <tr><td><kbd>Back</kbd> · <kbd>Start</kbd></td><td data-i18n="k_restart"></td></tr>
+          </table>
+          <p data-i18n-html="p_pad"></p>
           <h3 data-i18n="h_tips"></h3>
           <ul>
             <li data-i18n-html="tip1"></li>
@@ -116,6 +146,19 @@
               <button data-value="0" data-i18n="cam0"></button><button data-value="1" data-i18n="cam1"></button><button data-value="2" data-i18n="cam2"></button>
             </div>
           </div>
+          <h3 data-i18n="set_controls"></h3>
+          <div class="row wide"><span data-i18n="set_centre"></span>
+            <div class="seg" data-setting="autoCentre">
+              <button data-value="always" data-i18n="centre_always"></button><button data-value="forward" data-i18n="centre_fwd"></button><button data-value="never" data-i18n="centre_never"></button>
+            </div>
+          </div>
+          <div class="row wide"><span data-i18n="set_pointer"></span>
+            <div class="seg" data-setting="pointer">
+              <button data-value="full" data-i18n="ptr_full"></button><button data-value="steer" data-i18n="ptr_steer"></button>
+            </div>
+          </div>
+          <label class="row"><span data-i18n="set_mouselook"></span><input type="checkbox" data-setting="mouseLook" /></label>
+          <div class="row wide pad-row"><span data-i18n="set_pad"></span><small class="pad-info" data-bind="padInfo"></small></div>
           <h3 data-i18n="set_graphics"></h3>
           <div class="row"><span data-i18n="set_quality"></span>
             <div class="seg" data-setting="quality">
@@ -140,6 +183,7 @@
             <li><span class="star-i">★</span> <span data-i18n="goalBumps"></span></li>
             <li><span class="star-i">★</span> <span data-i18n="goalPar"></span></li>
           </ul>
+          <p class="pad-hint" data-bind="padHint"></p>
           <div class="view-pick">
             <div class="vp-title" data-i18n="viewTitle"></div>
             <div class="vp-options">
