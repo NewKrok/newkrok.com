@@ -21,6 +21,7 @@ export class Gamepad {
     this.info = null;            // { id, mapping, axes, buttons } of the pads, for the settings readout
     this.onConnect = null;
     this.repeat = { dir: null, next: 0 };
+    this.calib = new Map();      // per pad: axes seen at rest, hat seen centred
     if (typeof window !== "undefined") {
       window.addEventListener("gamepadconnected", () => this.onConnect?.(true));
       window.addEventListener("gamepaddisconnected", () => this.onConnect?.(false));
@@ -43,17 +44,35 @@ export class Gamepad {
     const push = (i, v) => { if (v > (now[i] ?? 0)) now[i] = v; };
     const stick = (i, v) => { v = deadzone(v); if (Math.abs(v) > Math.abs(axes[i])) axes[i] = v; };
     for (const p of pads) {
-      p.buttons.forEach((b, i) => push(i, typeof b === "number" ? b : Math.max(b.value, b.pressed ? 1 : 0)));
       const std = p.mapping === "standard";
-      if (Math.abs(p.axes[0] ?? 0) <= 1 && Math.abs(p.axes[1] ?? 0) <= 1) { stick(0, p.axes[0] ?? 0); stick(1, p.axes[1] ?? 0); }
-      // Without the standard mapping axes 2 / 3 may be triggers resting at −1.
-      if (std) { stick(2, p.axes[2] ?? 0); stick(3, p.axes[3] ?? 0); }
+      // A button or axis only counts once it has been seen at rest: a
+      // button stuck down or an axis sitting at ±1 on some other device
+      // would otherwise hold a direction (the menu focus kept running down).
+      const key = `${p.index}:${p.id}`;
+      let cal = this.calib.get(key);
+      if (!cal) { cal = { rest: new Set(), up: new Set(), hat: false }; this.calib.set(key, cal); }
+      p.buttons.forEach((b, i) => {
+        const v = typeof b === "number" ? b : Math.max(b.value, b.pressed ? 1 : 0);
+        if (v < 0.2) cal.up.add(i);
+        if (cal.up.has(i)) push(i, v);
+      });
+      const axis = (i) => {
+        const v = Number(p.axes[i]) || 0;
+        if (Math.abs(v) < DEAD) cal.rest.add(i);
+        return cal.rest.has(i) && Math.abs(v) <= 1.01 ? v : 0;
+      };
+      stick(0, axis(0)); stick(1, axis(1));
+      // Without the standard mapping axes 2 / 3 may be triggers.
+      if (std) { stick(2, axis(2)); stick(3, axis(3)); }
       else {
         // Non-standard pads report the d-pad as a hat switch on axis 9:
         // eight positions from −1 (up) clockwise, above 1 when centred.
+        // Trusted only after it has shown the centred value, and only at
+        // one of the eight positions.
         const hat = p.axes[9];
-        if (hat != null && Math.abs(hat) <= 1.05) {
-          const k = Math.round((hat + 1) * 3.5) % 8;
+        if (hat != null && hat > 1.1) cal.hat = true;
+        const k = hat == null ? -1 : Math.round((hat + 1) * 3.5);
+        if (cal.hat && k >= 0 && k <= 7 && Math.abs(hat - (k / 3.5 - 1)) < 0.06) {
           if (k === 7 || k <= 1) push(BTN.UP, 1);
           if (k >= 1 && k <= 3) push(BTN.RIGHT, 1);
           if (k >= 3 && k <= 5) push(BTN.DOWN, 1);
