@@ -319,32 +319,36 @@ export class Scene3D {
     const z0 = 2.6, zb = Math.min(H * 0.55, 10.6);
     const P = this.parts();
     const paint = this.paintMat(color);
-    const bs = 1.4;
-    const bodyGeo = owned(new T.ExtrudeGeometry(roundedRectShape(L - bs * 2, W - bs * 2, 4), { depth: zb - z0 - bs * 2, bevelEnabled: true, bevelThickness: bs, bevelSize: bs, bevelSegments: 2, curveSegments: 3 }));
-    P.add(bodyGeo, paint, 0, 0, z0 + bs);
-    const cabTop = H - 1.1;
-    P.add(taperGeo(X(spec.rg), X(spec.ws), W * 0.9, X(spec.rb), X(spec.rf), W * 0.74, cabTop - (zb - 0.5)), g.glass, 0, 0, zb - 0.5);
-    const rl = X(spec.rf) - X(spec.rb);
-    P.add(taperGeo(-rl / 2 - 0.3, rl / 2 + 0.3, W * 0.76, -rl / 2 + 0.6, rl / 2 - 0.6, W * 0.7, 1.2), paint, (X(spec.rf) + X(spec.rb)) / 2, 0, cabTop);
-    if (spec.bed) {
-      const bx0 = X(0.97), bx1 = X(0.58), bl = bx1 - bx0;
-      P.add(g.box, g.trim, (bx0 + bx1) / 2, 0, zb + 0.2, 0, bl, W - 3, 0.6);
-      for (const s of [-1, 1]) P.add(g.box, paint, (bx0 + bx1) / 2, s * (W / 2 - 1), zb + 1.8, 0, bl, 1.2, 3.6);
-      P.add(g.box, paint, bx0 + 0.6, 0, zb + 1.8, 0, 1.2, W - 1, 3.6);
+    if (spec.jeep) this.#jeepShell(P, spec, paint, o, L, W);
+    else if (spec.lorry) this.#cargoShell(P, spec, paint, o, L, W, H);
+    else {
+      const bs = 1.4;
+      const bodyGeo = owned(new T.ExtrudeGeometry(roundedRectShape(L - bs * 2, W - bs * 2, 4), { depth: zb - z0 - bs * 2, bevelEnabled: true, bevelThickness: bs, bevelSize: bs, bevelSegments: 2, curveSegments: 3 }));
+      P.add(bodyGeo, paint, 0, 0, z0 + bs);
+      const cabTop = H - 1.1;
+      P.add(taperGeo(X(spec.rg), X(spec.ws), W * 0.9, X(spec.rb), X(spec.rf), W * 0.74, cabTop - (zb - 0.5)), g.glass, 0, 0, zb - 0.5);
+      const rl = X(spec.rf) - X(spec.rb);
+      P.add(taperGeo(-rl / 2 - 0.3, rl / 2 + 0.3, W * 0.76, -rl / 2 + 0.6, rl / 2 - 0.6, W * 0.7, 1.2), paint, (X(spec.rf) + X(spec.rb)) / 2, 0, cabTop);
+      if (spec.bed) {
+        const bx0 = X(0.97), bx1 = X(0.58), bl = bx1 - bx0;
+        P.add(g.box, g.trim, (bx0 + bx1) / 2, 0, zb + 0.2, 0, bl, W - 3, 0.6);
+        for (const s of [-1, 1]) P.add(g.box, paint, (bx0 + bx1) / 2, s * (W / 2 - 1), zb + 1.8, 0, bl, 1.2, 3.6);
+        P.add(g.box, paint, bx0 + 0.6, 0, zb + 1.8, 0, 1.2, W - 1, 3.6);
+      }
+      if (o.rails) for (const s of [-1, 1]) P.add(g.box, g.darkMetal, (X(spec.rf) + X(spec.rb)) / 2, s * W * 0.3, cabTop + 1.8, 0, rl * 0.9, 0.9, 0.9);
+      for (const s of [-1, 1]) P.add(g.box, g.trim, s * (L / 2 - 0.4), 0, z0 + 2, 0, 1.8, W - 2.5, 3.2);
+      P.add(g.box, g.trim, L / 2 + 0.25, 0, zb - 3, 0, 0.6, W * 0.45, 2.4);
+      for (const s of [-1, 1]) P.add(g.box, o.headMat || g.head, L / 2 - 0.2, s * (W / 2 - 3.2), zb - 2, 0, 1, 4, 1.8);
+      const tailMat = o.tailMat || g.tail;
+      for (const s of [-1, 1]) P.add(g.box, tailMat, -L / 2 + 0.2, s * (W / 2 - 2.9), zb - 1.8, 0, 1, 4.2, 2);
+      if (o.revMat) for (const s of [-1, 1]) P.add(g.box, o.revMat, -L / 2 + 0.15, s * (W / 2 - 5.9), zb - 1.8, 0, 0.9, 1.6, 1.4);
+      if (o.hazardMat) {
+        for (const [sx, sy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) P.add(g.box, o.hazardMat, sx * (L / 2 - 1.6), sy * (W / 2 + 0.05), zb - 1.9, 0, 2, 0.6, 1.2);
+      }
+      P.add(g.box, g.plate, -L / 2 - 0.15, 0, z0 + 3.4, 0, 0.3, 6, 1.6);
+      P.add(g.box, g.plate, L / 2 + 0.15, 0, z0 + 2.4, 0, 0.3, 6, 1.4);
+      for (const s of [-1, 1]) P.add(g.box, paint, X(spec.ws) - 1.2, s * (W / 2 + 1), zb + 1.1, 0, 2.2, 1.8, 1.4);
     }
-    if (o.rails) for (const s of [-1, 1]) P.add(g.box, g.darkMetal, (X(spec.rf) + X(spec.rb)) / 2, s * W * 0.3, cabTop + 1.8, 0, rl * 0.9, 0.9, 0.9);
-    for (const s of [-1, 1]) P.add(g.box, g.trim, s * (L / 2 - 0.4), 0, z0 + 2, 0, 1.8, W - 2.5, 3.2);
-    P.add(g.box, g.trim, L / 2 + 0.25, 0, zb - 3, 0, 0.6, W * 0.45, 2.4);
-    for (const s of [-1, 1]) P.add(g.box, o.headMat || g.head, L / 2 - 0.2, s * (W / 2 - 3.2), zb - 2, 0, 1, 4, 1.8);
-    const tailMat = o.tailMat || g.tail;
-    for (const s of [-1, 1]) P.add(g.box, tailMat, -L / 2 + 0.2, s * (W / 2 - 2.9), zb - 1.8, 0, 1, 4.2, 2);
-    if (o.revMat) for (const s of [-1, 1]) P.add(g.box, o.revMat, -L / 2 + 0.15, s * (W / 2 - 5.9), zb - 1.8, 0, 0.9, 1.6, 1.4);
-    if (o.hazardMat) {
-      for (const [sx, sy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) P.add(g.box, o.hazardMat, sx * (L / 2 - 1.6), sy * (W / 2 + 0.05), zb - 1.9, 0, 2, 0.6, 1.2);
-    }
-    P.add(g.box, g.plate, -L / 2 - 0.15, 0, z0 + 3.4, 0, 0.3, 6, 1.6);
-    P.add(g.box, g.plate, L / 2 + 0.15, 0, z0 + 2.4, 0, 0.3, 6, 1.4);
-    for (const s of [-1, 1]) P.add(g.box, paint, X(spec.ws) - 1.2, s * (W / 2 + 1), zb + 1.1, 0, 2.2, 1.8, 1.4);
     // Live (player) wheels sit where the physics wheels are.
     const r = (o.wheelR ?? VEHICLES.car.wheelR) * M, ww = (o.wheelW ?? VEHICLES.car.wheelW) * M;
     const axF = o.wheelbase ? o.wheelbase / 2 * M : L / 2 - 0.9 * M;
@@ -388,6 +392,66 @@ export class Scene3D {
       }
     }
     return { body, shell, wheels, L, W, H, zb };
+  }
+
+  // Classic open jeep: a low tub, flat bonnet between flat wings, a
+  // windscreen frame, seats, a spare wheel on the back and a star on top.
+  #jeepShell(P, spec, paint, o, L, W) {
+    const g = this, X = (f) => L / 2 - f * L;
+    const hx = X(0.42);
+    P.add(g.box, paint, (hx - L / 2) / 2, 0, 7.5, 0, hx + L / 2, W - 0.8, 8);
+    P.add(g.box, paint, (L / 2 + hx) / 2, 0, 8.2, 0, L / 2 - hx, W * 0.64, 9.4);
+    for (const sd of [-1, 1]) {
+      P.add(g.box, paint, (L / 2 + hx) / 2 + 1, sd * (W / 2 - 1.8), 10, 0, L / 2 - hx - 2, 3.6, 0.8);
+      P.add(g.box, g.trim, X(0.55), sd * W * 0.22, 9.5, 0, 4, 5, 3);
+      P.add(g.box, g.trim, X(0.64), sd * W * 0.22, 13, 0, 1, 5, 5);
+      P.add(g.box, o.headMat || g.head, L / 2 - 0.3, sd * W * 0.3, 10.4, 0, 0.8, 2.6, 2.6);
+    }
+    P.add(g.box, g.trim, X(0.82), 0, 9.5, 0, 4.5, W - 4, 3);
+    P.add(g.box, g.trim, L / 2 + 0.2, 0, 8, 0, 0.6, W * 0.5, 6.4);
+    for (let k = -3; k <= 3; k++) P.add(g.box, g.darkMetal, L / 2 + 0.55, k * W * 0.065, 8, 0, 0.2, 0.7, 5.4);
+    // Windscreen: frame and glass, leaning back a little.
+    P.add(g.box, paint, hx - 0.5, 0, 18.3, 0, 0.9, W - 0.6, 0.9, 0, -0.18);
+    for (const sd of [-1, 1]) P.add(g.box, paint, hx - 0.2, sd * (W / 2 - 0.9), 15, 0, 0.9, 0.9, 7, 0, -0.18);
+    P.add(g.box, g.glass, hx - 0.2, 0, 15, 0, 0.3, W - 2.4, 6, 0, -0.18);
+    P.add(g.cylZ8, g.darkMetal, X(0.5), -W * 0.22, 13.5, 0, 1.8, 1.8, 0.4, 0.5);
+    P.add(g.disc, g.white, (L / 2 + hx) / 2, 0, 12.95, 0, 3, 3, 1);
+    // Spare wheel and a jerrycan on the tail.
+    P.add(g.cyl, g.tire, -L / 2 - 1.4, 0, 9, Math.PI / 2, 4.2, 2.4, 4.2);
+    P.add(g.box, paint, -L / 2 - 0.9, W * 0.34, 7, 0, 1.8, 3, 5);
+    const tailMat = o.tailMat || g.tail;
+    for (const sd of [-1, 1]) P.add(g.box, tailMat, -L / 2 + 0.1, sd * (W / 2 - 1.2), 9.5, 0, 0.8, 1.8, 1.8);
+    if (o.revMat) P.add(g.box, o.revMat, -L / 2 + 0.1, -W * 0.2, 9.5, 0, 0.7, 1.4, 1.2);
+    if (o.hazardMat) for (const [sx, sy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) P.add(g.box, o.hazardMat, sx * (L / 2 - 1.4), sy * (W / 2 + 0.05), 9, 0, 1.6, 0.6, 1.2);
+    P.add(g.box, g.plate, -L / 2 - 0.15, 0, 5.4, 0, 0.3, 5, 1.4);
+  }
+
+  // Army truck: short bonnet, cab, a canvas tilt over the load bed, and a
+  // spare wheel behind the cab.
+  #cargoShell(P, spec, paint, o, L, W, H) {
+    const g = this, X = (f) => L / 2 - f * L;
+    const b1 = X(0.13), c1 = X(0.35), bedFront = X(0.37);
+    P.add(g.box, g.darkMetal, 0, 0, 8, 0, L - 2, W * 0.55, 3.4);
+    P.add(g.box, paint, (L / 2 + b1) / 2, 0, 13, 0, L / 2 - b1, W * 0.62, 10);
+    for (const sd of [-1, 1]) P.add(g.box, paint, (L / 2 + b1) / 2 + 0.5, sd * (W / 2 - 3), 11.5, 0, L / 2 - b1 - 1, 6, 1);
+    P.add(g.box, paint, (b1 + c1) / 2, 0, 19, 0, b1 - c1, W - 1, 22);
+    P.add(g.box, paint, (b1 + c1) / 2, 0, 30.6, 0, b1 - c1 + 1, W + 0.4, 1.4);
+    P.add(g.box, g.glass, b1 + 0.2, 0, 24, 0, 0.5, W - 5, 7);
+    for (const sd of [-1, 1]) P.add(g.box, g.glass, (b1 + c1) / 2 + 1, sd * (W / 2 - 0.3), 24, 0, (b1 - c1) * 0.5, 0.5, 6.5);
+    P.add(g.box, g.trim, L / 2 + 0.2, 0, 12, 0, 0.6, W * 0.5, 8);
+    P.add(g.box, g.darkMetal, L / 2 + 1, 0, 6.5, 0, 1.6, W, 2.6);
+    for (const sd of [-1, 1]) P.add(g.box, o.headMat || g.head, L / 2 + 0.4, sd * (W / 2 - 4), 14, 0, 0.8, 3, 3);
+    // Load bed and canvas tilt.
+    const bl = bedFront + L / 2;
+    P.add(g.box, g.darkMetal, (bedFront - L / 2) / 2, 0, 11, 0, bl, W, 1.6);
+    for (const sd of [-1, 1]) P.add(g.box, paint, (bedFront - L / 2) / 2, sd * (W / 2 - 0.6), 14, 0, bl, 1.2, 5);
+    P.add(taperGeo(-bl / 2, bl / 2, W - 0.4, -bl / 2 + 0.5, bl / 2 - 0.5, W - 6, H - 16), paint, (bedFront - L / 2) / 2, 0, 16);
+    P.add(g.cyl, g.tire, (c1 + bedFront) / 2, 0, 16, Math.PI / 2, 5.5, 3, 5.5);
+    const tailMat = o.tailMat || g.tail;
+    for (const sd of [-1, 1]) P.add(g.box, tailMat, -L / 2 - 0.2, sd * (W / 2 - 2.4), 10, 0, 0.8, 3, 2);
+    if (o.revMat) for (const sd of [-1, 1]) P.add(g.box, o.revMat, -L / 2 - 0.2, sd * (W / 2 - 5.4), 10, 0, 0.7, 1.8, 1.4);
+    if (o.hazardMat) for (const [sx, sy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) P.add(g.box, o.hazardMat, sx * (L / 2 - 2), sy * (W / 2 + 0.05), 11, 0, 2.4, 0.6, 1.4);
+    P.add(g.box, g.plate, -L / 2 - 0.3, 0, 7.5, 0, 0.3, 6, 1.6);
   }
 
   // ── Trailer models ─────────────────────────────────────────────────────
@@ -1668,7 +1732,7 @@ export class Scene3D {
     decal.renderOrder = 3;
     bayGrp.add(decal);
     const curtainMat = owned(new T.MeshBasicMaterial({ map: g.fadeTex, color: 0xffd166, transparent: true, opacity: 0.45, depthWrite: false, side: T.DoubleSide, blending: T.AdditiveBlending }));
-    const CH = lvl.vehicle === "truck" ? 34 : 22;
+    const CH = lvl.vehicle === "truck" || VEHICLES[lvl.vehicle]?.heavy ? 34 : 22;
     for (const [px, py, len, rot] of [[0, bay.w / 2, bay.l, 0], [0, -bay.w / 2, bay.l, 0], [bay.l / 2, 0, bay.w, Math.PI / 2], [-bay.l / 2, 0, bay.w, Math.PI / 2]]) {
       const c = new T.Mesh(g.plane, curtainMat);
       c.scale.set(len, CH, 1);

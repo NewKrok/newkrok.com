@@ -88,6 +88,20 @@ export function drawCarTop(p, spec, color, x, y, a) {
   const L = spec.len * M, W = spec.wid * M;
   const P = (pts) => xform(x, y, a, pts);
   p.poly(xform(x + 1.8, y + 2.6, a, rrectPts(0, 0, L + 1, W + 1, 4)), 0x000000, 0.28);
+  if (spec.jeep) {
+    // Open jeep: bonnet between wings, windscreen bar, seats in the tub,
+    // spare wheel on the tail, star on the bonnet.
+    const hx = L / 2 - 0.42 * L;
+    p.poly(P(rrectPts(0, 0, L, W, 2, 2)), color, 1, shade(color, -0.45), 0.8);
+    p.poly(P(rectPts(hx, -W * 0.32, L / 2 - 0.5, W * 0.32)), shade(color, 0.06));
+    p.poly(P(rectPts(-L / 2 + 1.5, -W / 2 + 1.5, hx - 1.5, W / 2 - 1.5)), 0x2a2c30);
+    for (const sd of [-1, 1]) p.poly(P(rectPts(hx - 8, sd * W * 0.22 - 2.5, hx - 3, sd * W * 0.22 + 2.5)), 0x3a3d42);
+    p.poly(P(rectPts(-L / 2 + 2, -W / 2 + 2.5, -L / 2 + 6.5, W / 2 - 2.5)), 0x3a3d42);
+    p.line(P([hx, -W / 2 + 0.5, hx, W / 2 - 0.5]), 0x1b2430, 1.2);
+    p.circle(...xform(x, y, a, [(L / 2 + hx) / 2, 0]), 2.2, 0xf1f1ec);
+    p.poly(P(rectPts(-L / 2 - 2.6, -4, -L / 2, 4)), 0x16171a);
+    return;
+  }
   if (spec.lorry || spec.tractor) {
     // Cab at the front, box body (or chassis) behind.
     const cab = (spec.tractor ? 0.42 : 0.26) * L;

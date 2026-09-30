@@ -78,6 +78,31 @@ export const VEHICLES = {
     brake: 7.5, roll: 0.4, engineBrake: 1.5, mu: 1.05,
     density: 1.3, hitchLimit: 1.32, hitchWarn: 0.9,
   },
+  // A classic open jeep: short, light and quick to turn.
+  jeep: {
+    name: "Classic jeep", body: "jeep",
+    len: 3.4, wid: 1.6, h: 1.8, wheelbase: 2.03, track: 1.5,
+    wheelR: 0.36, wheelW: 0.22,
+    hitch: 0.35, hitchX: -(3.4 / 2 + 0.35),
+    maxSteer: 0.66, steerRate: 2.1, steerReturn: 1.2,
+    drive: 4.0, driveRear: true,
+    vmaxF: 8.5, vmaxR: 4.0,
+    brake: 7.0, roll: 0.4, engineBrake: 1.5, mu: 1.0,
+    density: 1.05, hitchLimit: 1.32, hitchWarn: 0.9,
+  },
+  // A 4×4 army truck with a canvas tilt, the classic gun tractor: long,
+  // heavy and slow on the steering.
+  cargo: {
+    name: "Army truck", body: "cargo", heavy: true,
+    len: 7.0, wid: 2.45, h: 3.2, wheelbase: 4.0, track: 2.3,
+    wheelR: 0.55, wheelW: 0.34,
+    hitch: 0.45, hitchX: -(7.0 / 2 + 0.45),
+    maxSteer: 0.6, steerRate: 1.4, steerReturn: 0.9,
+    drive: 3.6, driveRear: true,
+    vmaxF: 7.5, vmaxR: 3.4,
+    brake: 6.0, roll: 0.35, engineBrake: 1.2, mu: 1.0,
+    density: 1.1, hitchLimit: 1.32, hitchWarn: 0.9,
+  },
   truck: {
     name: "Tractor unit",
     len: 6.2, wid: 2.5, h: 3.4, wheelbase: 3.8, track: 2.05,
@@ -142,6 +167,8 @@ export const CAR_TYPES = {
   // Army: the utility vehicle (troop bed at the back) and a canvas-backed truck.
   mil:    { len: 4.9, wid: 2.18, h: 1.86, ws: 0.3,  rf: 0.4,  rb: 0.62, rg: 0.64, hood: 0.8, bed: true },
   armytruck: { len: 8.0, wid: 2.5, h: 3.3, ws: 0.03, rf: 0.06, rb: 0.26, rg: 0.28, hood: 0.1, lorry: true, canvas: true },
+  jeep:   { len: 3.4, wid: 1.6,  h: 1.8,  ws: 0.42, rf: 0.45, rb: 0.9,  rg: 0.95, hood: 0.4, jeep: true },
+  cargo:  { len: 7.0, wid: 2.45, h: 3.2,  ws: 0.12, rf: 0.14, rb: 0.34, rg: 0.36, hood: 0.12, lorry: true, canvas: true, bonnet: true },
 };
 export const ARMY_GREEN = 0x4b5a2e;
 export const ARMY_SAND = 0xb59a66;

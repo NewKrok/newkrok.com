@@ -698,7 +698,7 @@ function frame(now) {
     active: driving || G.phase === "done" || G.phase === "boom",
     speed: v.speed, throttle: driving ? v.throttle : 0, skid: v.skid, loose: v.skidLoose,
     reverse: driving && v.gear < 0, clearance: driving && v.gear < 0 ? sim.rearClearance() : Infinity,
-    hazard: driving && sim.parked.some((p) => p.hazard > 0), dt, truck: v.key === "truck",
+    hazard: driving && sim.parked.some((p) => p.hazard > 0), dt, truck: v.key === "truck" || !!v.spec.heavy,
   });
 
   const shake = G.shake > 0

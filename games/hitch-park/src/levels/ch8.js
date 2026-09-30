@@ -31,7 +31,7 @@ const MINES = "rgba(200,60,50,0.9)";
 function barracks() {
   const bay = { x: 870, y: 100, a: PI / 2, w: 44, l: 48 };
   return level({
-    id: "barracks", vehicle: "army", color: OLIVE, name: "Barracks", title: "Mess Call", trailer: "kitchen", par: 95, sun: "golden",
+    id: "barracks", vehicle: "jeep", color: OLIVE, name: "Barracks", title: "Mess Call", trailer: "kitchen", par: 95, sun: "golden",
     brief: "Two companies are on parade and the cooks want the field kitchen at their door, up the alley beside the mess hall. Round the flagpole, don't scatter the troops, and back it up the alley.",
     w: 1300, h: 900, base: "grass", edge: "fence", backdrop: "fields",
     surfaces: [
@@ -118,7 +118,7 @@ function artilleryRange() {
     [[100, 600, 600, 900], ...fields]).filter((t) => distToLine(lane, t.x, t.y) > 90);
   const inClearing = (x, y) => x < 560 && y > 590;
   return level({
-    id: "range", vehicle: "army", color: OLIVE, name: "Artillery range", title: "Gun Line", trailer: "fieldgun", par: 130, sun: "golden",
+    id: "range", vehicle: "cargo", color: OLIVE, name: "Artillery range", title: "Gun Line", trailer: "fieldgun", par: 130, sun: "golden",
     brief: "The only way to the gun park is the wired lane through the minefield. Keep the gun's barrel off the wire on the bends, then reverse it into the middle pit, barrel first.",
     w: 1400, h: 900, base: "grass", edge: "fence", backdrop: "fields",
     surfaces: [
@@ -162,7 +162,7 @@ function missileBase() {
   const bay = { x: south[target], y: 700, a: -PI / 2, w: 44, l: 110 };
   const apron = [230, 420, 1270, 650];
   return level({
-    id: "missilebase", vehicle: "army", color: OLIVE, name: "Missile base", title: "Launch Window", trailer: "missile", par: 150, sun: "night",
+    id: "missilebase", vehicle: "army", color: ARMY_SAND, name: "Missile base", title: "Launch Window", trailer: "missile", par: 150, sun: "night",
     brief: "In through the north gate and down the avenue. Shelter D is across a narrow apron with missiles on both sides and blast walls sticking out between the doors: find the room to swing eight metres of missile round.",
     w: 1500, h: 900, base: "grass", edge: "fence", backdrop: "fields",
     surfaces: [
@@ -247,7 +247,7 @@ function forestCamp() {
     [[clearing[0] - 20, clearing[1] - 20, clearing[2] + 20, clearing[3] + 20]])
     .filter((t) => distToLine(road1, t.x, t.y) > 58 && distToLine(spur, t.x, t.y) > 52);
   return level({
-    id: "forestcamp", vehicle: "army", color: OLIVE, name: "Forest camp", title: "Under the Trees", trailer: "missile", par: 180, sun: "dusk",
+    id: "forestcamp", vehicle: "cargo", color: OLIVE, name: "Forest camp", title: "Under the Trees", trailer: "missile", par: 180, sun: "dusk",
     brief: "Hide the missile before dark. The net is at the end of a dead-end track that bends through the trees: from the clearing you have to reverse eight metres of missile round the bend and under it.",
     w: 1500, h: 1000, base: "grass", edge: "none", backdrop: "forest",
     surfaces: [
