@@ -105,6 +105,11 @@ kbd {
 .pad-hint { margin: 10px 0 0; font-size: 13px; color: var(--dim); text-align: center; }
 .pad-info { font: 12px/1.45 ui-monospace, monospace; color: var(--dim); text-align: right; white-space: pre-wrap; word-break: break-word; max-width: 70%; }
 .pad-nav :focus { outline: 2px solid var(--gold) !important; outline-offset: 2px; }
+/* Gamepad focus: segmented buttons clip an outline, so they get an inner
+   ring; the settings row holding the focus is lit as well. */
+.pad-nav .seg button:focus { outline: none !important; background: rgba(255, 209, 102, 0.28); color: #fff; box-shadow: inset 0 0 0 2px var(--gold); }
+.pad-nav .seg button.on:focus { background: var(--gold); color: var(--gold-ink); box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px var(--gold-ink); }
+.pad-nav .settings .row:focus-within { background: rgba(255, 209, 102, 0.08); box-shadow: inset 3px 0 0 var(--gold); }
 .btn:hover, .btn:focus-visible { background: rgba(40, 52, 72, 0.95); border-color: rgba(255, 255, 255, 0.22); outline: none; }
 .btn:active { transform: translateY(1px) scale(0.99); }
 .btn.primary { background: var(--gold); color: var(--gold-ink); border-color: transparent; }
@@ -208,7 +213,7 @@ kbd {
 .keys { border-collapse: collapse; width: 100%; }
 .keys td { padding: 6px 8px; border-bottom: 1px solid var(--edge); vertical-align: middle; }
 .keys td:first-child { white-space: nowrap; width: 40%; }
-.settings .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--edge); }
+.settings .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 10px; margin: 0 -10px; border-bottom: 1px solid var(--edge); border-radius: 6px; }
 .settings input[type="range"] { width: min(240px, 45vw); accent-color: var(--gold); }
 .settings input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--gold); }
 .seg { display: inline-flex; border: 1px solid var(--edge); border-radius: 9px; overflow: hidden; }

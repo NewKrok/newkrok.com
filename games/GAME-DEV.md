@@ -110,17 +110,24 @@ what made headless level checking possible.
 ## Input
 
 - Keyboard, pointer drag and gamepad all feed one `readInput()` per physics
-  step. Keys and the d-pad are all-or-nothing, so the steering rack can be
-  told to stay where it was left (`holdSteer`, the "Keyboard steering centres
-  itself" setting: always / not reversing / never); stick and pointer
-  steering are absolute and always re-centre. Pointer drag can be limited to
-  steering only, leaving throttle to the keys or the pad.
-- Gamepad (`src/gamepad.js`): polled once a frame with the standard
-  mapping, edge-detected per frame, with key-repeat for menu navigation.
-  Menus are driven by moving the DOM focus to the nearest control in the
-  pushed direction; A clicks the focused control (or the screen's primary
-  button), B does what Escape does. A `pad-nav` class on `<body>` shows the
-  focus ring until a key is pressed.
+  step. The steering rack can be told to stay where it was left
+  (`holdSteer`, the "Steering centres itself" setting: always / not
+  reversing / never) for keys, d-pad and stick; pointer drag is absolute and
+  always re-centres. Pointer drag can be limited to steering only, leaving
+  throttle to the keys or the pad.
+- Gamepad (`src/gamepad.js`): every connected pad is read and merged
+  (following one "active" pad broke when the system listed the controller
+  twice). A button or axis only counts once it has been seen at rest, so a
+  stuck button or an axis resting at ±1 on another device cannot hold a
+  direction. Non-standard pads get their d-pad from the hat axis (9).
+  Settings show the raw readout for checking a player's controller.
+- Menus are driven by moving the DOM focus: up / down picks the nearest row
+  first, then the control closest across; left / right stays in the row;
+  with nothing further, it scrolls the screen, and so does the right stick.
+  A clicks the focused control (or the screen's primary button), B does
+  what Escape does. A `pad-nav` class on `<body>` shows the focus until a
+  key is pressed (segmented buttons need an inner ring: `overflow: hidden`
+  clips an outline).
 - To test the pad headless, stub `navigator.getGamepads` in an init script
   and hold each button for longer than a frame: software GL runs at a few
   frames per second, so a short tap falls between two polls.

@@ -1,12 +1,12 @@
 // ── Gamepad ──────────────────────────────────────────────────────────────
 // Polled once a frame through the Gamepad API (standard mapping):
 //   left stick / d-pad  steer (menus: move the focus)
+//   right stick         zoom (menus: scroll)
 //   RT / LT             drive / reverse (brakes first when rolling the other way)
 //   A / X               brake (menus: A presses the focused button)
 //   B                   back          Start  pause
 //   Y                   camera        Back   restart
 //   LB / RB             reversing camera / path guide
-//   right stick         zoom
 
 export const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, BACK: 8, START: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 
@@ -96,14 +96,14 @@ export class Gamepad {
   pressed(i) { return this.down(i) && !((this.prev[i] ?? 0) > 0.5); }
   any() { return this.now.some((v) => v > 0.5) || this.axes.some((v) => v !== 0); }
 
-  // Driving input from the pad. `digital` tells d-pad steering from the
-  // stick, so a released stick still re-centres the wheel.
+  // Driving input from the pad: the d-pad steers full lock, the stick
+  // in proportion.
   drive() {
-    let steer = this.axes[0], digital = false;
-    if (this.down(BTN.LEFT)) { steer = -1; digital = true; }
-    if (this.down(BTN.RIGHT)) { steer = 1; digital = true; }
+    let steer = this.axes[0];
+    if (this.down(BTN.LEFT)) steer = -1;
+    if (this.down(BTN.RIGHT)) steer = 1;
     const throttle = this.value(BTN.RT) - this.value(BTN.LT);
-    return { steer, throttle: Math.abs(throttle) < 0.08 ? 0 : throttle, brake: this.down(BTN.A) || this.down(BTN.X), digital };
+    return { steer, throttle: Math.abs(throttle) < 0.08 ? 0 : throttle, brake: this.down(BTN.A) || this.down(BTN.X) };
   }
 
   // Menu direction with key-repeat: "up" | "down" | "left" | "right" | null.

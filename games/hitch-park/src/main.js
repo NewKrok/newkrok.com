@@ -321,11 +321,11 @@ const keys = {};
 let joy = null;                // { id, ox, oy, x, y } in CSS px
 const pad = new Gamepad();
 let padActive = false;         // the pad drove this frame (else keys / pointer)
-let digitalSteer = true;       // last steering came from keys or the d-pad
+let digitalSteer = true;       // last steering came from keys or the pad (can hold)
 
-// Keyboard and d-pad steering is all or nothing, so for parking the wheel
-// can be set to stay where it is left instead of centring itself (the
-// `autoCentre` setting); stick and pointer steering are absolute anyway.
+// For parking the wheel can be set to stay where it is left instead of
+// centring itself (the `autoCentre` setting): keys, d-pad and the pad's
+// stick; pointer drag is absolute and always centres.
 function readInput() {
   let throttle = 0, steer = 0;
   if (keys.ArrowUp || keys.KeyW) throttle += 1;
@@ -337,7 +337,8 @@ function readInput() {
   if (padActive) {
     const p = pad.drive();
     if (p.throttle) throttle = clamp(throttle + p.throttle, -1, 1);
-    if (p.steer) { steer = p.steer; digitalSteer = p.digital; }
+    // The stick follows the centring setting too, like the d-pad.
+    if (p.steer) { steer = p.steer; digitalSteer = true; }
     brake ||= p.brake;
   }
   if (joy) {
@@ -559,25 +560,42 @@ function moveFocus(dir) {
     audio.play("hover");
     return;
   }
+  // Up / down: the nearest row first, then the control in it closest
+  // across (the old single score jumped past narrow controls, such as the
+  // language list under the Back button). Left / right: within the row.
   const r0 = cur.getBoundingClientRect();
   const cx = r0.left + r0.width / 2, cy = r0.top + r0.height / 2;
-  const [ux, uy] = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[dir];
-  let best = null, bestScore = Infinity;
+  const vertical = dir === "up" || dir === "down", sgn = dir === "down" || dir === "right" ? 1 : -1;
+  const cands = [];
   for (const el of list) {
     if (el === cur) continue;
     const r = el.getBoundingClientRect();
-    const dx = r.left + r.width / 2 - cx, dy = r.top + r.height / 2 - cy;
-    const along = dx * ux + dy * uy;
-    if (along <= 4) continue;
-    const across = Math.abs(dx * uy - dy * ux);
-    const score = along + across * 2.5;
-    if (score < bestScore) { bestScore = score; best = el; }
+    const ex = r.left + r.width / 2, ey = r.top + r.height / 2;
+    if (vertical) {
+      if ((ey - cy) * sgn <= 4) continue;
+      const gap = sgn > 0 ? r.top - r0.bottom : r0.top - r.bottom;
+      cands.push({ el, gap: Math.max(0, gap), across: Math.abs(ex - cx) });
+    } else {
+      if ((ex - cx) * sgn <= 4 || r.top >= r0.bottom - 2 || r.bottom <= r0.top + 2) continue;
+      cands.push({ el, gap: Math.abs(ex - cx), across: 0 });
+    }
+  }
+  let best = null;
+  if (cands.length) {
+    const near = Math.min(...cands.map((c) => c.gap)) + 12;
+    best = cands.filter((c) => c.gap <= near).sort((p, q) => p.across - q.across || p.gap - q.gap)[0].el;
   }
   if (best) {
     best.focus({ preventScroll: true });
     best.scrollIntoView({ block: "nearest", behavior: "smooth" });
     audio.play("hover");
-  }
+  } else if (vertical) scrollScreen(sgn * 160, true);
+}
+
+// Scrolls the open scrolling screen (How to play, levels, settings).
+function scrollScreen(dy, smooth = false) {
+  const scr = $(".screen.scroll.active");
+  if (scr) scr.scrollBy({ top: dy, behavior: smooth ? "smooth" : "instant" });
 }
 
 function pollPad() {
@@ -598,6 +616,8 @@ function pollPad() {
     else if (P(BTN.RB)) toggleGuide();
     return;
   }
+  // Right stick scrolls the screen.
+  if (pad.axes[3]) scrollScreen(pad.axes[3] * 16);
   const dir = pad.nav(G.time);
   if (dir) { document.body.classList.add("pad-nav"); moveFocus(dir); }
   const onScreen = (id) => $(`#${id}.active`);
