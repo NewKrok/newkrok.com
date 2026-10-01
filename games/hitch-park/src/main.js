@@ -83,12 +83,12 @@ function updateIngameButtons() {
   $("#hud").style.visibility = $(".screen.scroll.active") ? "hidden" : "";
   $("#ingame").classList.toggle("hidden", G.phase !== "play" || anyScreen);
 }
-function toast(msg) {
+function toast(msg, ms = 1800) {
   const t = $("#toast");
   t.textContent = msg;
   t.classList.add("show");
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => t.classList.remove("show"), 1800);
+  toast.timer = setTimeout(() => t.classList.remove("show"), ms);
 }
 const bind = (name, value, root = document) => $$(`[data-bind="${name}"]`, root).forEach((el) => { el.textContent = value; });
 
@@ -405,6 +405,19 @@ async function renderBoard() {
   };
   $("[data-bind=boardRows]").innerHTML = r.top.map(row).join("") + (r.you ? `<tr class="gap"><td colspan="4"></td></tr>${row(r.you)}` : "");
 }
+// What the replay check did to runs sent earlier, one toast after another.
+function showNotices(list) {
+  const msgs = list.map((n) => {
+    const L = LEVELS.find((l) => l.id === n.level);
+    if (!L) return null;
+    const job = L.index + 1;
+    return n.status === "rejected"
+      ? t("lb_notice_rejected", { n: job })
+      : t("lb_notice_adjusted", { n: job, score: n.score, time: fmtTime(n.steps * DT) });
+  }).filter(Boolean);
+  msgs.forEach((m, i) => setTimeout(() => toast(m, 5500), 1200 + i * 6000));
+}
+
 function boardStep(d) {
   board.level = (board.level + d + LEVELS.length) % LEVELS.length;
   renderBoard();
@@ -878,7 +891,10 @@ function boot() {
   new ResizeObserver(resize).observe(app);
   resize();
   goMain();
-  lb.probe().then((ok) => $$(".lb-only").forEach((el) => el.classList.toggle("hidden", !ok)));
+  lb.probe().then((ok) => {
+    $$(".lb-only").forEach((el) => el.classList.toggle("hidden", !ok));
+    if (ok) lb.notices().then(showNotices);
+  });
   track("game_open", { lang: getLang(), returning: cleared() > 0, levels_cleared: cleared(), stars: totalStars(progress), embedded: window.parent !== window });
   requestAnimationFrame((t) => { last = t; frame(t); });
   // Let the first frames render behind the loader, then reveal.

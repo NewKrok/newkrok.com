@@ -80,6 +80,13 @@ export const lb = {
     return r;
   },
 
+  // Runs whose replay check changed the result or rejected them, each once.
+  async notices() {
+    if (!player) return [];
+    const r = await call("notices.php");
+    return r.notices ?? [];
+  },
+
   level: (id, limit = 10) => call(`board.php?level=${encodeURIComponent(id)}&limit=${limit}`),
   overall: (limit = 10) => call(`board.php?scope=total&limit=${limit}`),
 };

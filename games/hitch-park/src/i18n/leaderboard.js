@@ -3,6 +3,7 @@
 
 export const LB_UI = {
   en: {
+    lb_notice_adjusted: "Job {n}: after the replay check your record counts as {score} pts ({time}).", lb_notice_rejected: "Job {n}: your record did not hold up in the replay check and was taken off the board.",
     lb_title: "Leaderboard", lb_open: "Leaderboard", lb_job: "This job", lb_overall: "Overall",
     lb_join: "Put it on the leaderboard", lb_sending: "Sending to the leaderboard…",
     lb_rank: "#{rank} of {total} on this job", lb_rankBest: "Your best: #{rank} of {total} on this job",
@@ -17,6 +18,7 @@ export const LB_UI = {
     lb_col_name: "Name", lb_col_score: "Score", lb_col_time: "Time", lb_col_jobs: "Jobs", lb_record: "record {score} · {name}",
   },
   hu: {
+    lb_notice_adjusted: "{n}. feladat: a visszajátszás ellenőrzése után a rekordod {score} ponttal ({time}) számít.", lb_notice_rejected: "{n}. feladat: a rekordod nem ment át a visszajátszás ellenőrzésén, lekerült a listáról.",
     lb_title: "Ranglista", lb_open: "Ranglista", lb_job: "Ez a feladat", lb_overall: "Összesített",
     lb_join: "Fel a ranglistára", lb_sending: "Küldés a ranglistára…",
     lb_rank: "{rank}. hely ({total} játékosból) ezen a feladaton", lb_rankBest: "Legjobb eredményed: {rank}. hely ({total} játékosból)",
@@ -31,6 +33,7 @@ export const LB_UI = {
     lb_col_name: "Név", lb_col_score: "Pont", lb_col_time: "Idő", lb_col_jobs: "Feladat", lb_record: "rekord {score} · {name}",
   },
   de: {
+    lb_notice_adjusted: "Auftrag {n}: Nach der Prüfung der Wiederholung zählt dein Rekord mit {score} Punkten ({time}).", lb_notice_rejected: "Auftrag {n}: Dein Rekord hat die Prüfung der Wiederholung nicht bestanden und wurde entfernt.",
     lb_title: "Bestenliste", lb_open: "Bestenliste", lb_job: "Dieser Auftrag", lb_overall: "Gesamt",
     lb_join: "In die Bestenliste eintragen", lb_sending: "Wird eingetragen…",
     lb_rank: "Platz {rank} von {total} bei diesem Auftrag", lb_rankBest: "Deine Bestleistung: Platz {rank} von {total}",
@@ -45,6 +48,7 @@ export const LB_UI = {
     lb_col_name: "Name", lb_col_score: "Punkte", lb_col_time: "Zeit", lb_col_jobs: "Aufträge", lb_record: "Rekord {score} · {name}",
   },
   es: {
+    lb_notice_adjusted: "Trabajo {n}: tras comprobar la repetición, tu récord cuenta con {score} puntos ({time}).", lb_notice_rejected: "Trabajo {n}: tu récord no ha superado la comprobación de la repetición y se ha retirado.",
     lb_title: "Clasificación", lb_open: "Clasificación", lb_job: "Este trabajo", lb_overall: "General",
     lb_join: "Subir a la clasificación", lb_sending: "Enviando a la clasificación…",
     lb_rank: "Puesto {rank} de {total} en este trabajo", lb_rankBest: "Tu mejor marca: puesto {rank} de {total}",
@@ -59,6 +63,7 @@ export const LB_UI = {
     lb_col_name: "Nombre", lb_col_score: "Puntos", lb_col_time: "Tiempo", lb_col_jobs: "Trabajos", lb_record: "récord {score} · {name}",
   },
   fr: {
+    lb_notice_adjusted: "Mission {n} : après vérification du replay, ton record compte pour {score} points ({time}).", lb_notice_rejected: "Mission {n} : ton record n'a pas passé la vérification du replay et a été retiré.",
     lb_title: "Classement", lb_open: "Classement", lb_job: "Cette mission", lb_overall: "Général",
     lb_join: "Inscrire au classement", lb_sending: "Envoi au classement…",
     lb_rank: "{rank}e sur {total} pour cette mission", lb_rankBest: "Ton meilleur : {rank}e sur {total}",
@@ -73,6 +78,7 @@ export const LB_UI = {
     lb_col_name: "Nom", lb_col_score: "Score", lb_col_time: "Temps", lb_col_jobs: "Missions", lb_record: "record {score} · {name}",
   },
   zh: {
+    lb_notice_adjusted: "第 {n} 关：回放校验后，你的纪录按 {score} 分（{time}）计算。", lb_notice_rejected: "第 {n} 关：你的纪录未通过回放校验，已从榜上移除。",
     lb_title: "排行榜", lb_open: "排行榜", lb_job: "本关", lb_overall: "总榜",
     lb_join: "登上排行榜", lb_sending: "正在提交到排行榜…",
     lb_rank: "本关第 {rank} 名（共 {total} 人）", lb_rankBest: "你的最好成绩：第 {rank} 名（共 {total} 人）",

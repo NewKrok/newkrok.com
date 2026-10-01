@@ -244,15 +244,17 @@ function hp_entry(array $r, int $rank, ?int $me): array {
   ];
 }
 
-// After a rejection: the player's best becomes their best run left on the
-// level's current fingerprint, or nothing.
+// After a check: the player's best becomes their best run left on the
+// level's current fingerprint (with checked results), or nothing.
 function hp_rebuild_best(int $playerId, string $levelId): void {
   hp_q('DELETE FROM hp_best WHERE level_id = ? AND player_id = ?', [$levelId, $playerId]);
   $levels = hp_levels();
   if (!isset($levels[$levelId])) return;
+  // Verified results first among equals: a claim still waiting for its
+  // check never pushes a checked run of the same score aside.
   $r = hp_q('SELECT id, level_fp, score, steps, stars, status, created_at FROM hp_runs
     WHERE player_id = ? AND level_id = ? AND level_fp = ? AND status <> 2
-    ORDER BY score DESC, steps ASC, id ASC LIMIT 1', [$playerId, $levelId, $levels[$levelId]['fp']])->fetch();
+    ORDER BY score DESC, steps ASC, status DESC, id ASC LIMIT 1', [$playerId, $levelId, $levels[$levelId]['fp']])->fetch();
   if ($r) hp_q('INSERT INTO hp_best (level_id, player_id, level_fp, run_id, score, steps, stars, verified, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [$levelId, $playerId, $r['level_fp'], $r['id'], $r['score'], $r['steps'], $r['stars'], (int)$r['status'] === 1 ? 1 : 0, $r['created_at']]);
 }

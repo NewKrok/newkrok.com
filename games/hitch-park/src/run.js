@@ -95,23 +95,27 @@ export function holdStep(hold, ps) {
   return ps.inside && ps.aligned && ps.stopped ? hold + DT : Math.max(0, hold - DT * 2);
 }
 
-// Plays a run back on a sim. The run is valid when the rig is parked on
-// exactly its last step and no mine went off on the way.
-export function replayRun(sim, level, inputs) {
+// Plays a run back on a sim and scores what really happens: the replay
+// check takes this result, not the one the game claimed. A run that parks
+// before its last input ends there; one that has not parked when the inputs
+// run out gets up to `extend` more steps of braking to finish the hold.
+// Fails only when the rig never parks or a mine goes off.
+export const REPLAY_EXTEND = 180;            // 3 s
+const BRAKE = { throttle: 0, steer: 0, brake: true, holdSteer: false };
+export function replayRun(sim, level, inputs, { extend = 0 } = {}) {
   sim.load(level);
   sim.scoring = true;
   let hold = 0;
-  for (let i = 0; i < inputs.length; i++) {
-    const ps = sim.step(inputs[i]);
+  for (let i = 0; i < inputs.length + extend; i++) {
+    const ps = sim.step(i < inputs.length ? inputs[i] : BRAKE);
     if (sim.mines.some((m) => !m.live)) return { ok: false, reason: "mine", step: i + 1 };
     hold = holdStep(hold, ps);
     if (hold >= PARK_HOLD) {
-      if (i !== inputs.length - 1) return { ok: false, reason: "parked early", step: i + 1 };
-      const stats = { steps: inputs.length, hits: sim.hits, crashes: sim.crashes, cones: sim.coneHits, acc: ps.acc };
+      const stats = { steps: i + 1, hits: sim.hits, crashes: sim.crashes, cones: sim.coneHits, acc: ps.acc };
       return { ok: true, ...stats, ...scoreRun(level, stats) };
     }
   }
-  return { ok: false, reason: "not parked", step: inputs.length };
+  return { ok: false, reason: "not parked", step: inputs.length + extend };
 }
 
 // ── Level fingerprint ────────────────────────────────────────────────────

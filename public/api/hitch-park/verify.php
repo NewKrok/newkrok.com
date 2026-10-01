@@ -18,20 +18,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 hp_method('POST');
 $in = hp_body();
 $done = 0;
+// The replay's result is the one that counts: a run that parks is kept
+// with the time and score the check computed (adjusted = 1 when that is not
+// what the game claimed), one that does not park is rejected. Either way
+// the player's best on the level is worked out again from their runs.
 foreach (($in['results'] ?? []) as $res) {
   $id = (int)($res['id'] ?? 0);
-  $run = hp_q('SELECT id, player_id, level_id FROM hp_runs WHERE id = ? AND status = 0', [$id])->fetch();
+  $run = hp_q('SELECT id, player_id, level_id, score, steps FROM hp_runs WHERE id = ? AND status = 0', [$id])->fetch();
   if (!$run) continue;
+  $reason = isset($res['reason']) ? substr(preg_replace('/[^\w .:,\-→]/u', '', (string)$res['reason']), 0, 96) : null;
   $db = hp_db();
   $db->beginTransaction();
   if (!empty($res['ok'])) {
-    hp_q('UPDATE hp_runs SET status = 1, verified_at = ? WHERE id = ?', [hp_now(), $id]);
-    hp_q('UPDATE hp_best SET verified = 1 WHERE run_id = ?', [$id]);
+    $v = [];
+    foreach (['steps', 'score', 'stars', 'hits', 'crashes', 'cones'] as $k) {
+      if (!isset($res[$k]) || !is_int($res[$k]) || $res[$k] < 0) { $db->rollBack(); hp_fail(400, 'bad_result'); }
+      $v[$k] = $res[$k];
+    }
+    $eff = isset($res['effective']) && preg_match('/^[0-9a-f]{64}$/', (string)$res['effective']) ? (string)$res['effective'] : null;
+    $copied = $eff !== null && hp_q('SELECT 1 FROM hp_runs WHERE level_id = ? AND effective_hash = ? AND player_id <> ? AND status = 1 LIMIT 1',
+      [$run['level_id'], $eff, $run['player_id']])->fetchColumn();
+    if ($copied) {
+      hp_q('UPDATE hp_runs SET status = 2, reason = ?, effective_hash = ?, verified_at = ? WHERE id = ?', ['copied replay', $eff, hp_now(), $id]);
+      hp_rebuild_best((int)$run['player_id'], (string)$run['level_id']);
+      $db->commit();
+      $done++;
+      continue;
+    }
+    $adjusted = $v['score'] !== (int)$run['score'] || $v['steps'] !== (int)$run['steps'] || !empty($res['adjusted']);
+    hp_q('UPDATE hp_runs SET status = 1, verified_at = ?, adjusted = ?, reason = ?, claimed_score = ?, claimed_steps = ?, effective_hash = ?,
+      score = ?, steps = ?, stars = ?, hits = ?, crashes = ?, cones = ? WHERE id = ?',
+      [hp_now(), $adjusted ? 1 : 0, $adjusted ? $reason : null, $run['score'], $run['steps'], $eff,
+       $v['score'], $v['steps'], $v['stars'], $v['hits'], $v['crashes'], $v['cones'], $id]);
   } else {
-    $reason = substr(preg_replace('/[^\w .:,\-]/', '', (string)($res['reason'] ?? 'mismatch')), 0, 64);
-    hp_q('UPDATE hp_runs SET status = 2, reason = ?, verified_at = ? WHERE id = ?', [$reason, hp_now(), $id]);
-    if (hp_q('SELECT 1 FROM hp_best WHERE run_id = ?', [$id])->fetchColumn()) hp_rebuild_best((int)$run['player_id'], (string)$run['level_id']);
+    hp_q('UPDATE hp_runs SET status = 2, reason = ?, verified_at = ? WHERE id = ?', [$reason ?? 'mismatch', hp_now(), $id]);
   }
+  hp_rebuild_best((int)$run['player_id'], (string)$run['level_id']);
   $db->commit();
   $done++;
 }

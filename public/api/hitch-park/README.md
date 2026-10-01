@@ -15,9 +15,14 @@ PHP 7.4+ and MySQL 5.7+ / MariaDB 10.2+, deployed with the rest of the site
    player's best on that level.
 3. **Check** (`verify.php`, every 15 minutes): the GitHub Action
    `.github/workflows/hitch-park-verify.yml` replays the waiting runs with the
-   game's own physics (`games/hitch-park/scripts/verify-runs.js`). A run
-   passes only when it parks on exactly its last step with the claimed score,
-   stars, bumps, crashes and cones. Rejected runs drop off the board.
+   game's own physics (`games/hitch-park/scripts/verify-runs.js`). **The
+   replay's result is the one that counts**: a run that parks is kept with the
+   time and score the replay gives (cut at the moment it parks, or finished
+   with up to 3 s of braking), marked `adjusted` when that differs from the
+   claim; a run that never parks, or that is another player's verified run
+   again (compared on the inputs that really drove it), is rejected. The
+   player is told about adjusted and rejected runs the next time the game
+   starts (`notices.php`).
 4. **Boards** (`board.php`) list verified runs only; players see their own
    run straight away, marked as waiting for the check.
 
@@ -54,8 +59,9 @@ No admin page; in phpMyAdmin:
 - Hide a player everywhere: `UPDATE hp_players SET banned = 1 WHERE name = '…';`
 - Free a name: rename or delete the row in `hp_players`.
 - Why runs were rejected: `SELECT level_id, browser, reason, COUNT(*) FROM hp_runs WHERE status = 2 GROUP BY 1, 2, 3;`
-  Many rejections from one browser would point to a determinism gap in that
-  engine rather than to cheating.
+- Runs the check had to correct: `SELECT browser, COUNT(*) FROM hp_runs WHERE adjusted = 1 GROUP BY 1;`
+  Many of those from one browser point to a determinism gap in that engine
+  rather than to cheating.
 
 ## Local development
 
