@@ -65,7 +65,39 @@ Check: `https://newkrok.com/api/hitch-park/board.php?scope=total` answers
 `{"total":0,…}`; run the "Hitch & Park leaderboard check" workflow by hand.
 
 GitHub pauses scheduled workflows after 60 days without a commit to the
-repository; re-enable it on the Actions tab if that happens.
+repository; re-enable it on the Actions tab if that happens. Scheduled runs
+can also start 10–30 minutes late when GitHub is busy; waiting runs are not
+lost, the next run takes them all.
+
+## Hosting notes
+
+- Document root: `/home/xtozeqfm/newkrok.com` on the cPanel host
+  (`cl01.webspacecontrol.com`), behind Varnish and Cloudflare.
+- **The account's PHP is 5.4** (CloudLinux PHP selector, shared with the
+  other sites on the account), which cannot even parse this API. Do not
+  raise it account-wide; `.htaccess` here hands this folder's `.php` files to
+  alt-php 8.3 (`SetHandler application/x-httpd-alt-php83___lsphp`). Other
+  alt-php versions (7.4–8.5) work the same way. The first request after a
+  while can be slow while the 8.3 worker starts.
+- PHP errors land in `error_log` in this folder on the server (cPanel File
+  Manager).
+- The deploy (FTP, `.ftp-deploy-sync-state.json`) never deletes files it did
+  not upload; remove stray ones in the File Manager.
+
+## Limits and abuse
+
+- Requests per salted IP hash and 10 minutes: player (create, rename,
+  delete) 20, submit 120 (and 60 per player), start 300, ghost 300, notices
+  120, board 600; then `429 slow_down`.
+- Bodies up to about 200 KB, runs up to 20 minutes.
+- Names: 3–16 letters, digits, space and `. _ -`; refused when the folded
+  name (no case, accents, spaces or punctuation, `0 1 3 4 5 7 @ $` read as
+  letters) contains a word of `HP_RUDE` in `lib.php`, or matches a
+  `reserved_names` entry. Substring matching also catches harmless names
+  (e.g. "grapes"); nobody reviews names, see Moderation.
+- Ghost links are `<run id>-<HMAC>` (`hp_ghost_code`), so runs cannot be
+  listed by counting ids. Rotating `LB_RUN_SECRET` breaks shared links and
+  run tokens of levels in progress.
 
 ## Moderation
 
@@ -86,6 +118,8 @@ HP_CONFIG=/path/to/dev-config.php php -S 127.0.0.1:5312 -t public
 # dev-config.php may set 'levels_file' => the output of
 #   npm run leaderboard-levels --workspace=games/hitch-park
 cd games/hitch-park && VITE_LB_API=/api/hitch-park npm run dev   # proxies /api to :5312
+# or against the live API (runs sent this way land on the real boards):
+cd games/hitch-park && LB_PROXY=https://newkrok.com VITE_LB_API=/api/hitch-park npm run dev
 LB_API=http://127.0.0.1:5312/api/hitch-park LB_VERIFY_TOKEN=… npm run verify-runs
 ```
 
