@@ -482,7 +482,9 @@ async function shareGhost() {
   const url = `${location.origin}/gamer-zone/hitch-park?ghost=${s.run}`;
   const text = t("gh_shareText", { score: s.score, n: L.index + 1 });
   track("ghost_share", levelInfo(L));
-  if (navigator.share) {
+  // Phones and tablets: the share sheet (it has Copy, chat apps …). On a
+  // desktop the sheet often has no Copy (Safari on macOS), so copy at once.
+  if (navigator.share && matchMedia("(pointer: coarse)").matches) {
     try { await navigator.share({ title: "Hitch & Park", text, url }); return; } catch (e) { if (e?.name === "AbortError") return; }
   }
   try {
