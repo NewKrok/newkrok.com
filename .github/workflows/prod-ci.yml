@@ -54,6 +54,7 @@ jobs:
           dangerous-clean-slate: false
       # Creates any leaderboard table that is missing (safe to repeat).
       - name: Leaderboard tables
-        run: curl -fsS -X POST -H "X-Verify-Token: $LB_VERIFY_TOKEN" -H "Content-Type: application/json" -d '{}' https://newkrok.com/api/hitch-park/install.php
+        run: |
+          curl -fsS -X POST -H "X-Verify-Token: $LB_VERIFY_TOKEN" -H "Content-Type: application/json" -d '{}' https://newkrok.com/api/hitch-park/install.php
         env:
           LB_VERIFY_TOKEN: ${{ secrets.LB_VERIFY_TOKEN }}

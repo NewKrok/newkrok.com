@@ -274,7 +274,10 @@ function finishLevel() {
   track("level_complete", { ...levelInfo(L), stars, score, time_s: Math.round(time), bumps, first_clear: rec.first });
   if (rec.first && cleared() === LEVELS.length) track("all_complete", { stars: totalStars(progress) });
   G.run = { level: L, ...stats, score, stars, replay: G.rec.encode(), sent: false };
-  if (rec.isBest) saveGhost(L.id, { fp: levelFingerprint(L), replay: G.run.replay, steps: stats.steps, score });
+  // Your best run's ghost; a best set before ghosts existed has no replay,
+  // so until it is beaten the latest parked run stands in.
+  const myGhost = loadGhost(L.id, levelFingerprint(L));
+  if (rec.isBest || !myGhost || score > myGhost.score) saveGhost(L.id, { fp: levelFingerprint(L), replay: G.run.replay, steps: stats.steps, score });
   G.lbState = lb.available ? (lb.player ? { kind: "sending" } : { kind: "join" }) : null;
   if (lb.available && lb.player) submitRun(G.run);
   G.result = { score, stars, time, hits: sim.hits, crashes: sim.crashes, cones: sim.coneHits, acc: ps.acc, timeBonus, accBonus, isBest: rec.isBest && !rec.first };
