@@ -1,3 +1,9 @@
+# The hosting account runs PHP 5.4 by default (CloudLinux selector, shared
+# with other sites); this folder needs 7.4+, so it gets alt-php 8.3 here.
+<FilesMatch "\.php$">
+  SetHandler application/x-httpd-alt-php83___lsphp
+</FilesMatch>
+
 # Only the endpoints are reachable; the library, the config and the schema
 # are not.
 <FilesMatch "^(lib\.php|config(\.sample)?\.php|schema\.sql|README\.md)$">
