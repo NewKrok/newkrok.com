@@ -1809,6 +1809,57 @@ export class Scene3D {
     this.camPos = null;
   }
 
+  // ── Ghost rig ──────────────────────────────────────────────────────────
+  // A see-through copy of the rig, driven by its own sim (src/ghost.js).
+  // Built the first time a level shows one; goes with the level.
+  ghostMat() {
+    return this.matCached("ghost", () => new T.MeshStandardMaterial({
+      color: 0xa8dcff, emissive: 0x2f78d0, emissiveIntensity: 0.6, roughness: 0.5,
+      transparent: true, opacity: 0.36, depthWrite: false,
+    }));
+  }
+  buildGhost(gsim) {
+    const lv = this.lv, v = gsim.veh, mat = this.ghostMat();
+    const o = { live: true, tailMat: mat, revMat: mat, headMat: mat };
+    const car = v.key === "truck"
+      ? this.buildTruckModel(PLAYER_COLOR, o)
+      : this.buildCarModel(CAR_TYPES[v.spec.body ?? "wagon"], PLAYER_COLOR, {
+        ...o, rails: v.spec.body === "wagon" || v.spec.body === "suv",
+        wheelbase: v.spec.wheelbase, wheelR: v.spec.wheelR, wheelW: v.spec.wheelW,
+      });
+    const trailer = v.trailer.key === "semi"
+      ? this.buildSemiModel({ live: true, tailMat: mat, company: "" })
+      : this.buildTrailerModel(v.trailer.key, { tailMat: mat });
+    const group = new T.Group();
+    group.add(car.body, trailer.body);
+    group.traverse((m) => {
+      if (!m.isMesh) return;
+      m.material = mat;
+      m.castShadow = false;
+      m.receiveShadow = false;
+      m.renderOrder = 3;
+    });
+    lv.group.add(group);
+    lv.ghost = { group, car, trailer };
+  }
+  syncGhost(gsim, alpha) {
+    const lv = this.lv;
+    if (!gsim) { if (lv.ghost) lv.ghost.group.visible = false; return; }
+    if (!lv.ghost) this.buildGhost(gsim);
+    const gh = lv.ghost, v = gsim.veh;
+    gh.group.visible = true;
+    const cp = gsim.pose(v.chassis, alpha), ca = cp.a;
+    this.placeOnGround(gh.car.body, cp.x, cp.y, ca, v.spec.len / 2 * M);
+    for (const w3 of gh.car.wheels) {
+      const phys = v.wheels[w3.front ? (w3.ly > 0 ? 0 : 1) : (w3.ly > 0 ? 2 : 3)];
+      w3.pivot.rotation.z = -wrapPi(gsim.pose(phys.body, alpha).a - ca);
+      w3.spin.rotation.y = phys.spin;
+    }
+    const tp = gsim.pose(v.trailer.body, alpha);
+    this.placeOnGround(gh.trailer.body, tp.x, tp.y, tp.a, v.trailer.spec.len / 2 * M);
+    for (let i = 0; i < gh.trailer.wheels.length; i++) { const w = gh.trailer.wheels[i]; w.spin.rotation.y = v.trailer.wheels[w.phys ?? i].spin; }
+  }
+
   // ── Lorries ────────────────────────────────────────────────────────────
   // Tractor unit. Wheels in the same order as the car's: FL, FR, RL, RR.
   buildTruckModel(color, o = {}) {
@@ -2219,6 +2270,7 @@ export class Scene3D {
   render(sim, view) {
     if (!this.lv || this.lv.gen !== sim.gen) this.buildLevel(sim);
     this.sync(sim, view);
+    this.syncGhost(view.ghost ?? null, view.alpha ?? 1);
     this.placeCamera(sim, view);
     this.renderer.render(this.scene, this.camera);
     return this.renderPip(sim, view);

@@ -8,6 +8,7 @@ const IframeView = ({ url, title = "content" }) => (
     height="100%"
     src={url}
     allowFullScreen
+    allow="fullscreen; gamepad; clipboard-write; web-share"
     frameBorder="0"
   ></iframe>
 );

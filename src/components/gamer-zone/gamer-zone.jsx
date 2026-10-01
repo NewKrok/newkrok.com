@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router";
+import { Route, Routes, useLocation } from "react-router";
 
 import IframeView from "../../ui/iframe-view/iframe-view";
 import List from "../../ui/list/list";
@@ -87,7 +87,9 @@ const GamePage = ({ game }) => {
     image: game.preview,
     jsonLd: game.jsonLd,
   });
-  return <IframeView url={game.url} title={game.label} />;
+  // The page's query (e.g. a shared Hitch & Park ghost, ?ghost=123) goes on to the game.
+  const { search } = useLocation();
+  return <IframeView url={game.url + search} title={game.label} />;
 };
 
 const GameList = () => {

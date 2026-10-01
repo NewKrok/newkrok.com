@@ -31,6 +31,7 @@
     </noscript>
     <div id="app">
       <canvas id="hud"></canvas>
+      <div id="ghost-chip" class="ghost-chip hidden"></div>
 
       <div id="loading" class="screen active">
         <div class="loader"><div class="logo small">HITCH <span>&amp;</span> PARK</div><div class="bar"><i></i></div></div>
@@ -56,6 +57,7 @@
           <div class="menu-buttons">
             <button class="btn primary" data-action="continue"><span data-bind="continueLabel"></span></button>
             <button class="btn" data-action="levels" data-i18n="levels"></button>
+            <button class="btn lb-only hidden" data-action="board" data-i18n="lb_open"></button>
             <button class="btn" data-action="howto" data-i18n="howto"></button>
             <button class="btn" data-action="settings" data-i18n="settings"></button>
           </div>
@@ -167,6 +169,7 @@
           </div>
           <h3 data-i18n="set_progress"></h3>
           <div class="row"><span data-i18n="set_progressRow"></span><button class="btn small danger" data-action="reset" data-i18n="set_reset"></button></div>
+          <div class="row"><span data-i18n="set_privacyRow"></span><a class="btn small" href="/privacy" target="_blank" rel="noopener" data-i18n="lb_privacy"></a></div>
         </div>
       </section>
 
@@ -177,7 +180,7 @@
           <h2 data-bind="introTitle"></h2>
           <p class="brief" data-bind="introBrief"></p>
           <canvas class="rig" width="360" height="80"></canvas>
-          <div class="facts"><span data-bind="introTrailer"></span><span data-bind="introPar"></span><span data-bind="introBest"></span></div>
+          <div class="facts"><span data-bind="introTrailer"></span><span data-bind="introPar"></span><span data-bind="introBest"></span><span data-bind="introRecord"></span></div>
           <ul class="goals">
             <li><span class="star-i">★</span> <span data-i18n="goalPark"></span></li>
             <li><span class="star-i">★</span> <span data-i18n="goalBumps"></span></li>
@@ -192,6 +195,10 @@
               <button class="vp" data-cam="2"><svg viewBox="0 0 48 32"><rect x="2" y="2" width="44" height="28" rx="4"/><rect x="8" y="8" width="32" height="16" rx="1"/><circle cx="18" cy="16" r="2"/><rect x="28" y="12" width="6" height="8"/></svg><span data-i18n="cam2"></span></button>
             </div>
             <div class="vp-hint" data-i18n="viewHint"></div>
+            <div class="ghost-pick hidden">
+              <span class="gp-title" data-i18n="gh_title"></span>
+              <div class="seg gp-options"></div>
+            </div>
           </div>
           <div class="actions">
             <button class="btn ghost" data-action="levels"><span data-i18n="levels"></span> <kbd>Esc</kbd></button>
@@ -221,12 +228,51 @@
           <div class="result-stars"><span class="rs">★</span><span class="rs">★</span><span class="rs">★</span></div>
           <table class="rows"><tbody data-bind="resultRows"></tbody></table>
           <div class="score-line"><span data-i18n="r_score"></span><b data-bind="resultScore">0</b><em data-bind="resultBest" data-i18n="newBest" class="best hidden"></em></div>
+          <div class="lb-line hidden" data-bind="lbLine"></div>
           <div class="actions">
             <button class="btn ghost" data-action="levels"><span data-i18n="levels"></span> <kbd>Esc</kbd></button>
             <button class="btn" data-action="restart"><span data-i18n="retry"></span> <kbd>R</kbd></button>
             <button class="btn primary" data-action="next"><span data-bind="nextLabel"></span> <kbd>Enter</kbd></button>
           </div>
         </div>
+      </section>
+
+      <!-- Leaderboard -->
+      <section id="menu-board" class="screen scroll">
+        <div class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="lb_title"></h2>
+          <div class="seg lb-tabs"><button data-tab="job" data-i18n="lb_job"></button><button data-tab="overall" data-i18n="lb_overall"></button></div>
+        </div>
+        <div class="board panel">
+          <div class="board-level">
+            <button class="btn small ghost" data-action="boardPrev" aria-label="Previous job">‹</button>
+            <div><div class="eyebrow" data-bind="boardSite"></div><b data-bind="boardTitle"></b></div>
+            <button class="btn small ghost" data-action="boardNext" aria-label="Next job">›</button>
+          </div>
+          <table class="board-rows"><thead data-bind="boardHead"></thead><tbody data-bind="boardRows"></tbody></table>
+          <p class="board-msg" data-bind="boardMsg"></p>
+          <div class="board-foot">
+            <span data-bind="boardMe"></span>
+            <button class="btn small" data-action="lbName" data-bind="boardNameBtn"></button>
+          </div>
+          <p class="board-note"><span data-i18n="lb_note"></span> <a class="privacy-link" href="/privacy" target="_blank" rel="noopener" data-i18n="lb_privacy"></a></p>
+          <div class="board-delete"><button class="btn small ghost danger" data-action="lbDelete" data-i18n="lb_delete"></button></div>
+        </div>
+      </section>
+
+      <!-- Leaderboard name -->
+      <section id="lb-name" class="screen dim">
+        <form class="panel card narrow" data-form="lbName" novalidate>
+          <h2 data-i18n="lb_nameTitle"></h2>
+          <p class="brief"><span data-i18n="lb_nameText"></span> <a class="privacy-link" href="/privacy" target="_blank" rel="noopener" data-i18n="lb_privacy"></a></p>
+          <input class="name-input" name="name" maxlength="16" autocomplete="nickname" spellcheck="false" data-i18n-ph="lb_namePh" />
+          <p class="form-err" data-bind="lbNameErr"></p>
+          <div class="actions">
+            <button type="button" class="btn ghost" data-action="back" data-i18n="lb_cancel"></button>
+            <button type="submit" class="btn primary" data-i18n="lb_save"></button>
+          </div>
+        </form>
       </section>
 
       <div id="toast" class="toast"></div>

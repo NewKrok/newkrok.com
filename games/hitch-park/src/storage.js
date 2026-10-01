@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS = {
   autoCentre: "always",        // keyboard steering centres itself: always | forward (not in reverse) | never
   pointer: "full",             // mouse / touch drag: full (drive + steer) | steer (steering only)
   mouseLook: false,            // the camera turns with the mouse's position across the screen
+  ghost: "best",               // ghost rig to drive against: off | best (own best run) | record
 };
 
 export function loadSettings() {
@@ -71,4 +72,17 @@ export const totalStars = (progress) => progress.best.reduce((s, b) => s + (b?.s
 export function firstUnfinished(progress, count) {
   for (let i = 0; i < count; i++) if (!progress.best[i]) return i;
   return count - 1;
+}
+
+// The replay of the best run per level, for the "my best" ghost. Kept with
+// the level's fingerprint: a reworked level drops its old ghost.
+const KEY_GHOSTS = "hitch-park.ghosts.v1";
+export function loadGhost(levelId, fp) {
+  const g = read(KEY_GHOSTS)?.[levelId];
+  return g && g.fp === fp && typeof g.replay === "string" ? g : null;
+}
+export function saveGhost(levelId, ghost) {
+  const all = read(KEY_GHOSTS) ?? {};
+  all[levelId] = ghost;
+  write(KEY_GHOSTS, all);
 }

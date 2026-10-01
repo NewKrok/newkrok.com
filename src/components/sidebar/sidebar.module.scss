@@ -153,7 +153,7 @@
 
   .Name {
     position: absolute;
-    bottom: 5.75rem;
+    bottom: 7rem;
     font-family: "Kanit", sans-serif;
     transform: rotate(-90deg);
     font-size: 3rem;
@@ -163,11 +163,12 @@
 
     @media screen and (max-width: 600px) {
       font-size: 2rem;
-      bottom: 4.5rem;
+      bottom: 5.5rem;
     }
   }
 }
 
+.Privacy,
 .Cookies {
   position: absolute;
   bottom: 0.75rem;
@@ -188,6 +189,15 @@
   @media screen and (max-width: 600px) {
     font-size: 0.6rem;
     bottom: 0.5rem;
+  }
+}
+
+.Privacy {
+  bottom: 2rem;
+  text-decoration: none;
+
+  @media screen and (max-width: 600px) {
+    bottom: 1.6rem;
   }
 }
 
