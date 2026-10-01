@@ -321,3 +321,13 @@ select#lang-select { font: 700 14px var(--font); background: var(--panel-2); col
 .board-delete { text-align: center; margin-top: 6px; }
 .board-delete .btn { font-size: 12px; padding: 6px 10px; }
 a.btn { text-decoration: none; }
+
+/* ── Ghost ───────────────────────────────────────────────────────────── */
+.ghost-pick { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 209, 102, 0.2); }
+.gp-title { font-weight: 800; font-size: 13px; color: #a8dcff; }
+.gp-options { display: flex; max-width: 100%; min-width: 0; }
+.gp-options button { max-width: 170px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gp-options button[data-ghost="off"] { flex-shrink: 0; }
+.gp-options button.on { background: #a8dcff; color: #0b1a2b; }
+.ghost-chip { position: absolute; top: calc(max(14px, env(safe-area-inset-top)) + 76px); left: 50%; transform: translateX(-50%); z-index: 3; pointer-events: none;
+  background: rgba(10, 20, 34, 0.75); border: 1px solid rgba(168, 220, 255, 0.45); color: #cfeaff; border-radius: 16px; padding: 5px 12px; font: 700 13px var(--font); white-space: nowrap; max-width: 60vw; overflow: hidden; text-overflow: ellipsis; }

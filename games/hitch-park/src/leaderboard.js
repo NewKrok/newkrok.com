@@ -95,6 +95,10 @@ export const lb = {
     return r.notices ?? [];
   },
 
+  // The level's record run, or a shared one by id: { id, name, score, steps, replay, level }.
+  ghostRecord: (levelId) => call(`ghost.php?level=${encodeURIComponent(levelId)}`),
+  ghostRun: (id) => call(`ghost.php?run=${encodeURIComponent(id)}`),
+
   level: (id, limit = 10) => call(`board.php?level=${encodeURIComponent(id)}&limit=${limit}`),
   overall: (limit = 10) => call(`board.php?scope=total&limit=${limit}`),
 };

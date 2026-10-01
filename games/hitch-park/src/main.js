@@ -1,5 +1,6 @@
 import { DT, PARK_HOLD, SCORE, clamp, fmtTime, fmtPar } from "./config.js";
-import { quantizeInput, createRecorder, scoreRun, holdStep } from "./run.js";
+import { quantizeInput, createRecorder, scoreRun, holdStep, levelFingerprint } from "./run.js";
+import { createGhost } from "./ghost.js";
 import { LEVELS, CHAPTERS } from "./levels.js";
 import { createSim } from "./sim.js";
 import { Scene3D } from "./render/scene3d.js";
@@ -11,7 +12,7 @@ import { track } from "./analytics.js";
 import { lb } from "./leaderboard.js";
 import {
   loadSettings, saveSettings, loadProgress, recordResult, isUnlocked, totalStars, firstUnfinished,
-  saveProgress,
+  saveProgress, loadGhost, saveGhost,
 } from "./storage.js";
 import { t, levelText, setLang, detectLang, getLang, LANGS } from "./i18n/index.js";
 
@@ -49,6 +50,10 @@ const G = {
 };
 
 const sim = createSim({ onEvent: onSimEvent });
+const ghost = createGhost();
+G.ghostChoice = settings.ghost;   // off | best | record | shared (a link, not saved)
+G.ghostOpts = {};                 // what the open level offers: { best, record, shared }
+G.sharedGhost = null;             // the run a shared link brought
 
 // ── Screens ──────────────────────────────────────────────────────────────
 let screenStack = [];          // for "back"
@@ -176,6 +181,7 @@ function openIntro(idx) {
   G.levelIdx = idx;
   const L = LEVELS[idx];
   sim.load(L);
+  ghost.clear();
   G.phase = "intro";
   G.clock = 0; G.hold = 0; G.result = null; G.shake = 0;
   hud.clearFx();
@@ -197,6 +203,7 @@ function openIntro(idx) {
     if (top && G.phase === "intro" && G.levelIdx === idx) bind("introRecord", `🏆 ${t("lb_record", { score: top.score, name: top.name })}`, root);
   });
   renderViewPick();
+  prepareGhosts(idx);
   renderPadHint();
   const cv = $("canvas.rig", root);
   const ctx = cv.getContext("2d");
@@ -221,6 +228,11 @@ function startDriving({ retry = false } = {}) {
   sim.scoring = true;
   G.rec = createRecorder();         // every input from here to the bay: the run's replay
   lb.prepare(LEVELS[G.levelIdx]);
+  const gp = pickedGhost();
+  if (gp && ghost.set(LEVELS[G.levelIdx], gp)) {
+    ghost.reset();
+    if (!retry) track("ghost_race", { ...levelInfo(LEVELS[G.levelIdx]), ghost: gp.kind });
+  } else ghost.clear();
   G.snapCam = true;                 // start in the chosen view, no glide from the overview
   G.look = 0;
   hideScreens();
@@ -262,6 +274,7 @@ function finishLevel() {
   track("level_complete", { ...levelInfo(L), stars, score, time_s: Math.round(time), bumps, first_clear: rec.first });
   if (rec.first && cleared() === LEVELS.length) track("all_complete", { stars: totalStars(progress) });
   G.run = { level: L, ...stats, score, stars, replay: G.rec.encode(), sent: false };
+  if (rec.isBest) saveGhost(L.id, { fp: levelFingerprint(L), replay: G.run.replay, steps: stats.steps, score });
   G.lbState = lb.available ? (lb.player ? { kind: "sending" } : { kind: "join" }) : null;
   if (lb.available && lb.player) submitRun(G.run);
   G.result = { score, stars, time, hits: sim.hits, crashes: sim.crashes, cones: sim.coneHits, acc: ps.acc, timeBonus, accBonus, isBest: rec.isBest && !rec.first };
@@ -347,7 +360,8 @@ function renderLbLine() {
   else if (s.kind === "error") el.innerHTML = `<span>${esc(s.msg)}</span>`;
   else {
     const line = t(s.improved ? "lb_rank" : "lb_rankBest", { rank: `<b>${s.rank}</b>`, total: s.total });
-    el.innerHTML = `<span>🏆 ${line}</span>${open}${s.verified ? "" : `<small>${t("lb_checking")}</small>`}`;
+    const share = s.run ? `<button class="btn small" data-action="ghostShare">👻 ${t("gh_share")}</button>` : "";
+    el.innerHTML = `<span>🏆 ${line}</span>${open}${share}${s.verified ? "" : `<small>${t("lb_checking")}</small>`}`;
   }
 }
 
@@ -406,6 +420,91 @@ async function renderBoard() {
   };
   $("[data-bind=boardRows]").innerHTML = r.top.map(row).join("") + (r.you ? `<tr class="gap"><td colspan="4"></td></tr>${row(r.you)}` : "");
 }
+// ── Ghosts ───────────────────────────────────────────────────────────────
+// The intro offers the rigs the level has: your own best run (kept in this
+// browser), the record (from the leaderboard) and a run a link brought.
+function prepareGhosts(idx) {
+  const L = LEVELS[idx];
+  const opts = G.ghostOpts = {};
+  const mine = loadGhost(L.id, levelFingerprint(L));
+  if (mine) opts.best = { kind: "best", name: t("gh_you"), score: mine.score, steps: mine.steps, replay: mine.replay };
+  if (G.sharedGhost?.level === L.id) opts.shared = { kind: "shared", ...G.sharedGhost };
+  renderGhostPick();
+  if (lb.available) lb.ghostRecord(L.id).then((r) => {
+    if (r.error || G.ghostOpts !== opts) return;
+    opts.record = { kind: "record", ...r };
+    renderGhostPick();
+  });
+}
+function ghostKind() {
+  const o = G.ghostOpts, c = G.ghostChoice;
+  if (c === "off" || o[c]) return c;
+  return ["shared", "best", "record"].find((k) => o[k]) ?? "off";
+}
+const pickedGhost = () => G.ghostOpts[ghostKind()] ?? null;
+function renderGhostPick() {
+  const o = G.ghostOpts;
+  const kinds = ["shared", "best", "record"].filter((k) => o[k]);
+  $(".ghost-pick").classList.toggle("hidden", !kinds.length);
+  if (!kinds.length) return;
+  const label = (k) => (k === "best" ? `${t("gh_best")} · ${o.best.score}` : `${k === "record" ? "🏆" : "👥"} ${esc(o[k].name)} · ${o[k].score}`);
+  const cur = ghostKind();
+  $(".gp-options").innerHTML = ["off", ...kinds]
+    .map((k) => `<button data-ghost="${k}" class="${k === cur ? "on" : ""}">${k === "off" ? t("gh_off") : label(k)}</button>`).join("");
+}
+function chooseGhost(k) {
+  G.ghostChoice = k;
+  if (k !== "shared") { settings.ghost = k; saveSettings(settings); }
+  renderGhostPick();
+}
+
+// The chip under the HUD while a ghost drives.
+let chipText = null;
+function updateGhostChip() {
+  const on = ghost.active && (G.phase === "play" || G.phase === "paused" || G.phase === "done" || G.phase === "boom");
+  const text = !on ? "" : ghost.parked
+    ? t("gh_parked", { name: ghost.info.name, time: fmtTime(ghost.time * DT) })
+    : t("gh_chip", { name: ghost.info.name });
+  if (text === chipText) return;
+  chipText = text;
+  const el = $("#ghost-chip");
+  el.textContent = text;
+  el.classList.toggle("hidden", !on);
+}
+
+// "Challenge a friend": a link that opens this job with your best run as the ghost.
+async function shareGhost() {
+  const s = G.lbState, L = LEVELS[G.levelIdx];
+  if (!s?.run) return;
+  const url = `${location.origin}/gamer-zone/hitch-park?ghost=${s.run}`;
+  const text = t("gh_shareText", { score: s.score, n: L.index + 1 });
+  track("ghost_share", levelInfo(L));
+  if (navigator.share) {
+    try { await navigator.share({ title: "Hitch & Park", text, url }); return; } catch (e) { if (e?.name === "AbortError") return; }
+  }
+  try {
+    await navigator.clipboard.writeText(`${text} ${url}`);
+    toast(t("gh_copied"), 3000);
+  } catch {
+    prompt(t("gh_share"), url);
+  }
+}
+
+// A shared link (?ghost=<run id>): straight to that job with that ghost,
+// even when the job is not open yet.
+function openSharedGhost() {
+  const id = new URLSearchParams(location.search).get("ghost");
+  if (!id || !/^\d+$/.test(id)) return;
+  lb.ghostRun(id).then((r) => {
+    const L = !r.error && LEVELS.find((l) => l.id === r.level);
+    if (!L) { toast(t("gh_missing"), 3500); return; }
+    G.sharedGhost = { level: L.id, id: r.id, name: r.name, score: r.score, steps: r.steps, replay: r.replay };
+    G.ghostChoice = "shared";
+    track("ghost_link_open", levelInfo(L));
+    if (G.phase === "menu") openIntro(L.index);
+  });
+}
+
 // What the replay check did to runs sent earlier, one toast after another.
 function showNotices(list) {
   const msgs = list.map((n) => {
@@ -581,6 +680,8 @@ app.addEventListener("click", (e) => {
     openIntro(i);
     return;
   }
+  const gb = e.target.closest(".gp-options button");
+  if (gb) { audio.play("click"); chooseGhost(gb.dataset.ghost); return; }
   const tab = e.target.closest(".lb-tabs button");
   if (tab) { audio.play("click"); board.tab = tab.dataset.tab; renderBoard(); return; }
   const vp = e.target.closest(".vp");
@@ -606,6 +707,7 @@ app.addEventListener("click", (e) => {
     case "boardPrev": boardStep(-1); break;
     case "boardNext": boardStep(1); break;
     case "lbName": G.lbRenaming = !!lb.player; openNameDialog(); break;
+    case "ghostShare": shareGhost(); break;
     case "lbDelete":
       if (confirm(t("lb_confirmDelete"))) lb.deleteMe().then((r) => {
         toast(r.error ? t(LB_ERRORS[r.error] ?? "lb_err") : t("lb_deleted"), 3500);
@@ -815,6 +917,7 @@ function frame(now) {
       if (playing) G.rec.push(input);
       const prevGear = sim.veh.gear;
       const ps = sim.step(input);
+      if (ghost.active) ghost.step();      // in step with the player, on its own sim
       if (playing) {
         G.clock += DT;
         if (sim.veh.gear !== prevGear) audio.play("gear");
@@ -863,7 +966,9 @@ function frame(now) {
     time: G.time, dt, camMode: G.camMode, camDist: G.camDist,
     showGuide: settings.guide && G.phase === "play", rearCam: settings.rearCam && G.phase === "play",
     hold: G.hold, shake, snap: G.snapCam,
+    ghost: ghost.active && (G.phase === "play" || G.phase === "paused" || G.phase === "done" || G.phase === "boom") ? ghost.sim : null,
   });
+  updateGhostChip();
   G.snapCam = false;
   hud.draw({
     sim, phase: G.phase, clock: G.clock, hold: G.hold,
@@ -902,6 +1007,7 @@ function boot() {
     $$(".lb-only").forEach((el) => el.classList.toggle("hidden", !ok));
     if (ok) lb.notices().then(showNotices);
   });
+  openSharedGhost();
   track("game_open", { lang: getLang(), returning: cleared() > 0, levels_cleared: cleared(), stars: totalStars(progress), embedded: window.parent !== window });
   requestAnimationFrame((t) => { last = t; frame(t); });
   // Let the first frames render behind the loader, then reveal.
@@ -909,7 +1015,7 @@ function boot() {
 }
 
 // Debug handle for automated checks (dev server only).
-if (import.meta.env.DEV) window.__hitchPark = { G, sim, LEVELS, openIntro, startDriving, finishLevel, keys, get scene() { return scene; } };
+if (import.meta.env.DEV) window.__hitchPark = { G, sim, ghost, LEVELS, openIntro, startDriving, finishLevel, keys, get scene() { return scene; } };
 
 boot();
 window.focus();

@@ -25,6 +25,12 @@ PHP 7.4+ and MySQL 5.7+ / MariaDB 10.2+, deployed with the rest of the site
    starts (`notices.php`).
 4. **Boards** (`board.php`) list verified runs only; players see their own
    run straight away, marked as waiting for the check.
+5. **Ghosts** (`ghost.php`): the game can drive a recorded run again beside
+   the player on a sim of its own: the level's record (best verified run),
+   or any run by id from a "Challenge a friend" link
+   (`https://newkrok.com/gamer-zone/hitch-park?ghost=<run id>`; the site
+   passes the query on to the game's iframe). The player's own best ghost
+   stays in the browser.
 
 The physics is bit-for-bit deterministic on every JavaScript engine because
 `games/hitch-park/src/detmath.js` replaces the engine's `Math.sin`, `cos`,

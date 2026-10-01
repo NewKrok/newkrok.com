@@ -176,6 +176,10 @@ test run within seconds.
   stores it exactly (`quantizeInput` in `src/run.js`).
 - Scoring and the parking hold live in `src/run.js` and are shared by the
   game and the verifier; change them there only.
+- Ghost rigs (`src/ghost.js`) lean on the same determinism: a second
+  `createSim()` gets the recorded inputs step for step beside the player's
+  sim and the scene draws its rig see-through. Cheap: a step costs some
+  30 µs in Node.
 - `SIM_VERSION` in `src/run.js`: bump it when a physics or tuning change
   alters how a run plays out. Every level's board starts afresh instead of
   the verifier rejecting the old records.

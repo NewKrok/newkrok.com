@@ -1,7 +1,7 @@
 <?php
 // POST {token, run, level, fp, steps, score, stars, hits, crashes, cones,
 //       replay, browser?}
-//   → {improved, rank, total, score, steps, stars, verified}
+//   → {improved, rank, total, score, steps, stars, verified, run}
 // Keeps the run when it beats the player's best on the level; the replay
 // check (verify.php) confirms or rejects it later.
 require __DIR__ . '/lib.php';
@@ -66,4 +66,5 @@ hp_send([
   'rank' => hp_rank($level['id'], $level['fp'], $best, (int)$me['id']),
   'total' => hp_board_size($level['id'], $level['fp'], (int)$me['id']),
   'score' => (int)$best['score'], 'steps' => (int)$best['steps'], 'stars' => (int)$best['stars'], 'verified' => (bool)$best['verified'],
+  'run' => (int)$best['run_id'],                                     // for a shared ghost link
 ]);
