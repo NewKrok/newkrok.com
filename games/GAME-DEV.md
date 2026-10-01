@@ -155,6 +155,31 @@ Open a level through the debug handle, switch to the overview camera, take
 a screenshot and look at it. This caught most layout mistakes before anyone
 played them. Stop the dev server and the browser when done.
 
+## Leaderboard and determinism
+
+Hitch & Park's leaderboard trusts no score from the browser: the server
+stores the run's inputs and a GitHub Action replays them with the game's
+physics (setup and API: `public/api/hitch-park/README.md`). That only works
+if a replay gives the same result everywhere, and out of the box it does
+not: `Math.sin`, `cos` and `pow` differ in the last bits between engines,
+even between Node 22 and Chrome 141, and the physics drifted apart on every
+test run within seconds.
+
+- `src/detmath.js` swaps the trig the sim and nape-js use (`sin`, `cos`,
+  `tan`, `atan`, `atan2`, `asin`, `acos`, `hypot`) for musl/fdlibm ports made
+  of `+ − × ÷` and `sqrt`, which IEEE 754 fixes to the bit. It is installed
+  globally by `config.js`'s first import, before any level is built
+  (level geometry uses trig too). About 1 ulp from the native results.
+- No `Math.random` in a run that can finish (the one in the mine blast is
+  fine: a mine ends the attempt), no wall-clock time in the sim.
+- Analog input is rounded to 1/64 before the sim sees it, so the replay
+  stores it exactly (`quantizeInput` in `src/run.js`).
+- Scoring and the parking hold live in `src/run.js` and are shared by the
+  game and the verifier; change them there only.
+- `SIM_VERSION` in `src/run.js`: bump it when a physics or tuning change
+  alters how a run plays out. Every level's board starts afresh instead of
+  the verifier rejecting the old records.
+
 ## Notes from Last Lantern
 
 `last-lantern` (a survivor roguelite grown out of nape-js' Swarm Night demo)

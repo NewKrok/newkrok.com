@@ -1,0 +1,15 @@
+# Only the endpoints are reachable; the library, the config and the schema
+# are not.
+<FilesMatch "^(lib\.php|config(\.sample)?\.php|schema\.sql|README\.md)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+<IfModule mod_headers.c>
+  Header set Cache-Control "no-store"
+  Header set X-Content-Type-Options "nosniff"
+</IfModule>

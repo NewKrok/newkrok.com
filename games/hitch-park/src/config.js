@@ -1,3 +1,4 @@
+import "./detmath.js";   // must stay first: levels and the sim need the same trig on every engine
 // ── Hitch & Park — shared constants ──────────────────────────────────────
 // World units are pixels of the 900 × 500 site (12 px per metre). The 3D
 // scene uses the same units: world (x, y) → three (x, −y, z) with z up.

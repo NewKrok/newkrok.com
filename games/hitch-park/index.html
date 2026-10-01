@@ -56,6 +56,7 @@
           <div class="menu-buttons">
             <button class="btn primary" data-action="continue"><span data-bind="continueLabel"></span></button>
             <button class="btn" data-action="levels" data-i18n="levels"></button>
+            <button class="btn lb-only hidden" data-action="board" data-i18n="lb_open"></button>
             <button class="btn" data-action="howto" data-i18n="howto"></button>
             <button class="btn" data-action="settings" data-i18n="settings"></button>
           </div>
@@ -177,7 +178,7 @@
           <h2 data-bind="introTitle"></h2>
           <p class="brief" data-bind="introBrief"></p>
           <canvas class="rig" width="360" height="80"></canvas>
-          <div class="facts"><span data-bind="introTrailer"></span><span data-bind="introPar"></span><span data-bind="introBest"></span></div>
+          <div class="facts"><span data-bind="introTrailer"></span><span data-bind="introPar"></span><span data-bind="introBest"></span><span data-bind="introRecord"></span></div>
           <ul class="goals">
             <li><span class="star-i">★</span> <span data-i18n="goalPark"></span></li>
             <li><span class="star-i">★</span> <span data-i18n="goalBumps"></span></li>
@@ -221,12 +222,50 @@
           <div class="result-stars"><span class="rs">★</span><span class="rs">★</span><span class="rs">★</span></div>
           <table class="rows"><tbody data-bind="resultRows"></tbody></table>
           <div class="score-line"><span data-i18n="r_score"></span><b data-bind="resultScore">0</b><em data-bind="resultBest" data-i18n="newBest" class="best hidden"></em></div>
+          <div class="lb-line hidden" data-bind="lbLine"></div>
           <div class="actions">
             <button class="btn ghost" data-action="levels"><span data-i18n="levels"></span> <kbd>Esc</kbd></button>
             <button class="btn" data-action="restart"><span data-i18n="retry"></span> <kbd>R</kbd></button>
             <button class="btn primary" data-action="next"><span data-bind="nextLabel"></span> <kbd>Enter</kbd></button>
           </div>
         </div>
+      </section>
+
+      <!-- Leaderboard -->
+      <section id="menu-board" class="screen scroll">
+        <div class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="lb_title"></h2>
+          <div class="seg lb-tabs"><button data-tab="job" data-i18n="lb_job"></button><button data-tab="overall" data-i18n="lb_overall"></button></div>
+        </div>
+        <div class="board panel">
+          <div class="board-level">
+            <button class="btn small ghost" data-action="boardPrev" aria-label="Previous job">‹</button>
+            <div><div class="eyebrow" data-bind="boardSite"></div><b data-bind="boardTitle"></b></div>
+            <button class="btn small ghost" data-action="boardNext" aria-label="Next job">›</button>
+          </div>
+          <table class="board-rows"><thead data-bind="boardHead"></thead><tbody data-bind="boardRows"></tbody></table>
+          <p class="board-msg" data-bind="boardMsg"></p>
+          <div class="board-foot">
+            <span data-bind="boardMe"></span>
+            <button class="btn small" data-action="lbName" data-bind="boardNameBtn"></button>
+          </div>
+          <p class="board-note" data-i18n="lb_note"></p>
+        </div>
+      </section>
+
+      <!-- Leaderboard name -->
+      <section id="lb-name" class="screen dim">
+        <form class="panel card narrow" data-form="lbName" novalidate>
+          <h2 data-i18n="lb_nameTitle"></h2>
+          <p class="brief" data-i18n="lb_nameText"></p>
+          <input class="name-input" name="name" maxlength="16" autocomplete="nickname" spellcheck="false" data-i18n-ph="lb_namePh" />
+          <p class="form-err" data-bind="lbNameErr"></p>
+          <div class="actions">
+            <button type="button" class="btn ghost" data-action="back" data-i18n="lb_cancel"></button>
+            <button type="submit" class="btn primary" data-i18n="lb_save"></button>
+          </div>
+        </form>
       </section>
 
       <div id="toast" class="toast"></div>

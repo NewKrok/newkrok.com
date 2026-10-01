@@ -1,0 +1,35 @@
+name: Hitch & Park leaderboard check
+
+# Replays the leaderboard runs that wait for a check with the game's own
+# physics (games/hitch-park/scripts/verify-runs.js) and tells the server
+# which ones hold up. Needs two repository secrets:
+#   LB_API           https://newkrok.com/api/hitch-park
+#   LB_VERIFY_TOKEN  the verify_token in the server's config.php
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: hitch-park-verify
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install the game's dependencies only
+        run: npm ci --workspace=games/hitch-park --include-workspace-root=false --ignore-scripts --no-audit --no-fund
+      - name: Check runs
+        working-directory: games/hitch-park
+        env:
+          LB_API: ${{ secrets.LB_API }}
+          LB_VERIFY_TOKEN: ${{ secrets.LB_VERIFY_TOKEN }}
+        run: npm run verify-runs
