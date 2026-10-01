@@ -168,6 +168,7 @@
           </div>
           <h3 data-i18n="set_progress"></h3>
           <div class="row"><span data-i18n="set_progressRow"></span><button class="btn small danger" data-action="reset" data-i18n="set_reset"></button></div>
+          <div class="row"><span data-i18n="set_privacyRow"></span><a class="btn small" href="/privacy" target="_blank" rel="noopener" data-i18n="lb_privacy"></a></div>
         </div>
       </section>
 
@@ -250,7 +251,8 @@
             <span data-bind="boardMe"></span>
             <button class="btn small" data-action="lbName" data-bind="boardNameBtn"></button>
           </div>
-          <p class="board-note" data-i18n="lb_note"></p>
+          <p class="board-note"><span data-i18n="lb_note"></span> <a class="privacy-link" href="/privacy" target="_blank" rel="noopener" data-i18n="lb_privacy"></a></p>
+          <div class="board-delete"><button class="btn small ghost danger" data-action="lbDelete" data-i18n="lb_delete"></button></div>
         </div>
       </section>
 
@@ -258,7 +260,7 @@
       <section id="lb-name" class="screen dim">
         <form class="panel card narrow" data-form="lbName" novalidate>
           <h2 data-i18n="lb_nameTitle"></h2>
-          <p class="brief" data-i18n="lb_nameText"></p>
+          <p class="brief"><span data-i18n="lb_nameText"></span> <a class="privacy-link" href="/privacy" target="_blank" rel="noopener" data-i18n="lb_privacy"></a></p>
           <input class="name-input" name="name" maxlength="16" autocomplete="nickname" spellcheck="false" data-i18n-ph="lb_namePh" />
           <p class="form-err" data-bind="lbNameErr"></p>
           <div class="actions">

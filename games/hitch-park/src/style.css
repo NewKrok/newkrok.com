@@ -317,3 +317,7 @@ select#lang-select { font: 700 14px var(--font); background: var(--panel-2); col
   .board { padding: 10px 10px 14px; }
   .board-rows td.t, .board-rows th.t { display: none; }
 }
+.privacy-link { color: var(--dim); white-space: nowrap; }
+.board-delete { text-align: center; margin-top: 6px; }
+.board-delete .btn { font-size: 12px; padding: 6px 10px; }
+a.btn { text-decoration: none; }

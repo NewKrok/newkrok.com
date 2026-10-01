@@ -3,6 +3,7 @@
 
 export const LB_UI = {
   en: {
+    lb_privacy: "Privacy", lb_delete: "Delete my leaderboard data", lb_confirmDelete: "Delete your leaderboard name and all your runs for good?", lb_deleted: "Your leaderboard data has been deleted.", set_privacyRow: "What is stored and why",
     lb_notice_adjusted: "Job {n}: after the replay check your record counts as {score} pts ({time}).", lb_notice_rejected: "Job {n}: your record did not hold up in the replay check and was taken off the board.",
     lb_title: "Leaderboard", lb_open: "Leaderboard", lb_job: "This job", lb_overall: "Overall",
     lb_join: "Put it on the leaderboard", lb_sending: "Sending to the leaderboard…",
@@ -18,6 +19,7 @@ export const LB_UI = {
     lb_col_name: "Name", lb_col_score: "Score", lb_col_time: "Time", lb_col_jobs: "Jobs", lb_record: "record {score} · {name}",
   },
   hu: {
+    lb_privacy: "Adatvédelem", lb_delete: "Ranglistás adataim törlése", lb_confirmDelete: "Végleg törlöd a ranglistás neved és az összes meneted?", lb_deleted: "A ranglistás adataidat töröltük.", set_privacyRow: "Mit tárolunk és miért",
     lb_notice_adjusted: "{n}. feladat: a visszajátszás ellenőrzése után a rekordod {score} ponttal ({time}) számít.", lb_notice_rejected: "{n}. feladat: a rekordod nem ment át a visszajátszás ellenőrzésén, lekerült a listáról.",
     lb_title: "Ranglista", lb_open: "Ranglista", lb_job: "Ez a feladat", lb_overall: "Összesített",
     lb_join: "Fel a ranglistára", lb_sending: "Küldés a ranglistára…",
@@ -33,6 +35,7 @@ export const LB_UI = {
     lb_col_name: "Név", lb_col_score: "Pont", lb_col_time: "Idő", lb_col_jobs: "Feladat", lb_record: "rekord {score} · {name}",
   },
   de: {
+    lb_privacy: "Datenschutz", lb_delete: "Meine Bestenlisten-Daten löschen", lb_confirmDelete: "Deinen Namen und alle deine Läufe endgültig aus der Bestenliste löschen?", lb_deleted: "Deine Bestenlisten-Daten wurden gelöscht.", set_privacyRow: "Was gespeichert wird und warum",
     lb_notice_adjusted: "Auftrag {n}: Nach der Prüfung der Wiederholung zählt dein Rekord mit {score} Punkten ({time}).", lb_notice_rejected: "Auftrag {n}: Dein Rekord hat die Prüfung der Wiederholung nicht bestanden und wurde entfernt.",
     lb_title: "Bestenliste", lb_open: "Bestenliste", lb_job: "Dieser Auftrag", lb_overall: "Gesamt",
     lb_join: "In die Bestenliste eintragen", lb_sending: "Wird eingetragen…",
@@ -48,6 +51,7 @@ export const LB_UI = {
     lb_col_name: "Name", lb_col_score: "Punkte", lb_col_time: "Zeit", lb_col_jobs: "Aufträge", lb_record: "Rekord {score} · {name}",
   },
   es: {
+    lb_privacy: "Privacidad", lb_delete: "Borrar mis datos de la clasificación", lb_confirmDelete: "¿Borrar para siempre tu nombre y todas tus partidas de la clasificación?", lb_deleted: "Se han borrado tus datos de la clasificación.", set_privacyRow: "Qué se guarda y por qué",
     lb_notice_adjusted: "Trabajo {n}: tras comprobar la repetición, tu récord cuenta con {score} puntos ({time}).", lb_notice_rejected: "Trabajo {n}: tu récord no ha superado la comprobación de la repetición y se ha retirado.",
     lb_title: "Clasificación", lb_open: "Clasificación", lb_job: "Este trabajo", lb_overall: "General",
     lb_join: "Subir a la clasificación", lb_sending: "Enviando a la clasificación…",
@@ -63,6 +67,7 @@ export const LB_UI = {
     lb_col_name: "Nombre", lb_col_score: "Puntos", lb_col_time: "Tiempo", lb_col_jobs: "Trabajos", lb_record: "récord {score} · {name}",
   },
   fr: {
+    lb_privacy: "Confidentialité", lb_delete: "Supprimer mes données du classement", lb_confirmDelete: "Supprimer définitivement ton nom et toutes tes parties du classement ?", lb_deleted: "Tes données du classement ont été supprimées.", set_privacyRow: "Ce qui est enregistré et pourquoi",
     lb_notice_adjusted: "Mission {n} : après vérification du replay, ton record compte pour {score} points ({time}).", lb_notice_rejected: "Mission {n} : ton record n'a pas passé la vérification du replay et a été retiré.",
     lb_title: "Classement", lb_open: "Classement", lb_job: "Cette mission", lb_overall: "Général",
     lb_join: "Inscrire au classement", lb_sending: "Envoi au classement…",
@@ -78,6 +83,7 @@ export const LB_UI = {
     lb_col_name: "Nom", lb_col_score: "Score", lb_col_time: "Temps", lb_col_jobs: "Missions", lb_record: "record {score} · {name}",
   },
   zh: {
+    lb_privacy: "隐私", lb_delete: "删除我的排行榜数据", lb_confirmDelete: "永久删除你的排行榜名字和所有成绩？", lb_deleted: "你的排行榜数据已删除。", set_privacyRow: "存储哪些数据及原因",
     lb_notice_adjusted: "第 {n} 关：回放校验后，你的纪录按 {score} 分（{time}）计算。", lb_notice_rejected: "第 {n} 关：你的纪录未通过回放校验，已从榜上移除。",
     lb_title: "排行榜", lb_open: "排行榜", lb_job: "本关", lb_overall: "总榜",
     lb_join: "登上排行榜", lb_sending: "正在提交到排行榜…",

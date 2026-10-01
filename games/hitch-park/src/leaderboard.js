@@ -50,6 +50,14 @@ export const lb = {
     return { name: r.name };
   },
 
+  // Deletes the player and all their runs on the server, then forgets them.
+  async deleteMe() {
+    if (!player) return { error: "no_player" };
+    const r = await call("player.php", { method: "POST", body: { token: player.token, delete: true } });
+    if (!r.error || r.error === "no_player") { player = null; write(null); runTokens.clear(); return { deleted: true }; }
+    return r;
+  },
+
   // At the start of every attempt: a run token for the level. One that was
   // not used yet is kept for the retry (it only has to be older than the run).
   prepare(level) {

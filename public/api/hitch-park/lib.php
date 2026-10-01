@@ -86,13 +86,14 @@ function hp_header(string $name): ?string {
 }
 
 // ── Rate limiting ────────────────────────────────────────────────────────
-// Counts per 10-minute window; the IP is only kept as a salted hash.
+// Counts per 10-minute window; the IP is only kept as a salted hash, and
+// only for the current and the previous window.
 function hp_rate(string $what, string $who, int $max): void {
   $k = sha1($what . '|' . $who . '|' . hp_config()['run_secret']);
   $win = intdiv(time(), 600);
   hp_q('INSERT INTO hp_rate (k, win, n) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE n = n + 1', [$k, $win]);
   $n = (int)hp_q('SELECT n FROM hp_rate WHERE k = ? AND win = ?', [$k, $win])->fetchColumn();
-  if (mt_rand(1, 100) === 1) hp_q('DELETE FROM hp_rate WHERE win < ?', [$win - 1]);
+  hp_q('DELETE FROM hp_rate WHERE win < ?', [$win - 1]);   // no counter outlives 20 minutes (privacy page)
   if ($n > $max) hp_fail(429, 'slow_down');
 }
 function hp_ip(): string { return (string)($_SERVER['REMOTE_ADDR'] ?? ''); }

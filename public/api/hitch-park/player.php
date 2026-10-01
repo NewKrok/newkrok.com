@@ -2,10 +2,23 @@
 // POST {name, token?} → {name, token}
 // Without a token: a new player with that name (the token is the player's
 // only key, kept by the game). With one: renames that player.
+// POST {token, delete: true} → {deleted: true}: the player, all their runs
+// and board entries are deleted for good (the privacy page points here).
 require __DIR__ . '/lib.php';
 hp_method('POST');
 $in = hp_body();
 hp_rate('player', hp_ip(), 20);
+
+if (!empty($in['delete'])) {
+  $me = hp_player(isset($in['token']) ? (string)$in['token'] : null);
+  $db = hp_db();
+  $db->beginTransaction();
+  hp_q('DELETE FROM hp_best WHERE player_id = ?', [$me['id']]);
+  hp_q('DELETE FROM hp_runs WHERE player_id = ?', [$me['id']]);
+  hp_q('DELETE FROM hp_players WHERE id = ?', [$me['id']]);
+  $db->commit();
+  hp_send(['deleted' => true]);
+}
 [$name, $key] = hp_check_name($in['name'] ?? null);
 
 $me = hp_player(isset($in['token']) ? (string)$in['token'] : null, false);

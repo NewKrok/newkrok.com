@@ -5,6 +5,7 @@ import { BrowserRouter, Navigate, Routes } from "react-router-dom";
 import CookieConsent from "./ui/cookie-consent/cookie-consent";
 import DeveloperArea from "./components/developer-area/developer-area";
 import GamerZone from "./components/gamer-zone/gamer-zone";
+import Privacy from "./components/privacy/privacy";
 import { Route } from "react-router";
 import SideBar from "./components/sidebar/sidebar";
 
@@ -17,6 +18,7 @@ const App = () => {
           <Routes>
             <Route index path="/gamer-zone/*" element={<GamerZone />} />
             <Route path="/developer-area/*" element={<DeveloperArea />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route path="*" element={<Navigate to="/gamer-zone" replace />} />
           </Routes>
         </div>

@@ -392,6 +392,7 @@ async function renderBoard() {
   $("[data-bind=boardHead]").innerHTML = `<tr><th>#</th><th>${t("lb_col_name")}</th>${overall ? `<th class="num t">${t("lb_col_jobs")}</th>` : `<th class="num t">${t("lb_col_time")}</th>`}<th class="num">${t("lb_col_score")}</th></tr>`;
   bind("boardMe", lb.player ? t("lb_playingAs", { name: lb.player.name }) : "");
   bind("boardNameBtn", lb.player ? t("lb_change") : t("lb_setName"));
+  $(".board-delete").classList.toggle("hidden", !lb.player);
   bind("boardMsg", "…");
   $("[data-bind=boardRows]").innerHTML = "";
   const r = overall ? await lb.overall(10) : await lb.level(L.id, 10);
@@ -605,6 +606,12 @@ app.addEventListener("click", (e) => {
     case "boardPrev": boardStep(-1); break;
     case "boardNext": boardStep(1); break;
     case "lbName": G.lbRenaming = !!lb.player; openNameDialog(); break;
+    case "lbDelete":
+      if (confirm(t("lb_confirmDelete"))) lb.deleteMe().then((r) => {
+        toast(r.error ? t(LB_ERRORS[r.error] ?? "lb_err") : t("lb_deleted"), 3500);
+        if (!r.error) { track("leaderboard_delete"); renderBoard(); }
+      });
+      break;
     case "reset":
       if (confirm(t("confirmReset"))) {
         progress.best = [];
