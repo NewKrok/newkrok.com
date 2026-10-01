@@ -28,7 +28,8 @@ PHP 7.4+ and MySQL 5.7+ / MariaDB 10.2+, deployed with the rest of the site
 5. **Ghosts** (`ghost.php`): the game can drive a recorded run again beside
    the player on a sim of its own: the level's record (best verified run),
    or any run by id from a "Challenge a friend" link
-   (`https://newkrok.com/gamer-zone/hitch-park?ghost=<run id>`; the site
+   (`https://newkrok.com/gamer-zone/hitch-park?ghost=<run id>-<HMAC>`, signed
+   so runs cannot be listed by counting ids; the site
    passes the query on to the game's iframe). The player's own best ghost
    stays in the browser.
 

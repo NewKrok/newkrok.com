@@ -363,7 +363,7 @@ function renderLbLine() {
   else if (s.kind === "error") el.innerHTML = `<span>${esc(s.msg)}</span>`;
   else {
     const line = t(s.improved ? "lb_rank" : "lb_rankBest", { rank: `<b>${s.rank}</b>`, total: s.total });
-    const share = s.run ? `<button class="btn small" data-action="ghostShare">👻 ${t("gh_share")}</button>` : "";
+    const share = s.ghost ? `<button class="btn small" data-action="ghostShare">👻 ${t("gh_share")}</button>` : "";
     el.innerHTML = `<span>🏆 ${line}</span>${open}${share}${s.verified ? "" : `<small>${t("lb_checking")}</small>`}`;
   }
 }
@@ -478,8 +478,8 @@ function updateGhostChip() {
 // "Challenge a friend": a link that opens this job with your best run as the ghost.
 async function shareGhost() {
   const s = G.lbState, L = LEVELS[G.levelIdx];
-  if (!s?.run) return;
-  const url = `${location.origin}/gamer-zone/hitch-park?ghost=${s.run}`;
+  if (!s?.ghost) return;
+  const url = `${location.origin}/gamer-zone/hitch-park?ghost=${s.ghost}`;
   const text = t("gh_shareText", { score: s.score, n: L.index + 1 });
   track("ghost_share", levelInfo(L));
   // Phones and tablets: the share sheet (it has Copy, chat apps …). On a
@@ -495,15 +495,16 @@ async function shareGhost() {
   }
 }
 
-// A shared link (?ghost=<run id>): straight to that job with that ghost,
+// A shared link (?ghost=<code from the server>): straight to that job with that ghost,
 // even when the job is not open yet.
 function openSharedGhost() {
   const id = new URLSearchParams(location.search).get("ghost");
-  if (!id || !/^\d+$/.test(id)) return;
+  if (!id) return;
+  if (!/^\d+-[\w-]{12}$/.test(id)) { toast(t("gh_missing"), 3500); return; }
   lb.ghostRun(id).then((r) => {
     const L = !r.error && LEVELS.find((l) => l.id === r.level);
     if (!L) { toast(t("gh_missing"), 3500); return; }
-    G.sharedGhost = { level: L.id, id: r.id, name: r.name, score: r.score, steps: r.steps, replay: r.replay };
+    G.sharedGhost = { level: L.id, name: r.name, score: r.score, steps: r.steps, replay: r.replay };
     G.ghostChoice = "shared";
     track("ghost_link_open", levelInfo(L));
     if (G.phase === "menu") openIntro(L.index);

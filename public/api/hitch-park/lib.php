@@ -184,6 +184,18 @@ function hp_check_run_token($token, string $level, int $steps): string {
   return (string)$d['n'];
 }
 
+// ── Ghost links ──────────────────────────────────────────────────────────
+// A shared ghost is "<run id>-<12 chars of HMAC>": the id alone cannot be
+// guessed into a link, so runs cannot be listed by counting. Changing
+// run_secret makes the old links stop working.
+function hp_ghost_code(int $runId): string {
+  return $runId . '-' . substr(hp_b64url(hash_hmac('sha256', 'ghost:' . $runId, hp_config()['run_secret'], true)), 0, 12);
+}
+function hp_ghost_run_id($code): ?int {
+  if (!is_string($code) || !preg_match('/^(\d{1,10})-([A-Za-z0-9_-]{12})$/', $code, $m)) return null;
+  return hash_equals(hp_ghost_code((int)$m[1]), $code) ? (int)$m[1] : null;
+}
+
 // ── Replays ──────────────────────────────────────────────────────────────
 // Same format as run.js: base64 of 4-byte runs (count, throttle + 64,
 // steer + 64, flags). Returns the number of steps, or fails.
