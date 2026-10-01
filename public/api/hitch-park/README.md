@@ -41,19 +41,27 @@ A board belongs to a level's **fingerprint** (`levelFingerprint()` in
 physics or tuning change, starts that level's board afresh. Old runs stay in
 the database.
 
-## Setup (once)
+## Setup
 
-1. Create a MySQL database and user in the hosting panel.
-2. Import `schema.sql` (phpMyAdmin → Import).
-3. Copy `config.sample.php` to `config.php` **on the server** next to it
-   (it is git-ignored and the deploy never touches it) and fill in the
-   database details and two long random secrets:
-   `php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"`
-4. In GitHub → Settings → Secrets and variables → Actions add
-   `LB_API` = `https://newkrok.com/api/hitch-park` and
-   `LB_VERIFY_TOKEN` = the `verify_token` from `config.php`.
-5. Check: `https://newkrok.com/api/hitch-park/board.php?scope=total` answers
-   `{"total":0,…}`; run the "Hitch & Park leaderboard check" workflow by hand.
+Done once (2026-10-01): database and user `xtozeqfm_hitchpark` on the
+cPanel host (MariaDB, `localhost`), and these repository secrets:
+
+| Secret | What |
+| --- | --- |
+| `LB_DB_NAME`, `LB_DB_USER`, `LB_DB_PASS` | the database |
+| `LB_RUN_SECRET` | signs the run tokens |
+| `LB_VERIFY_TOKEN` | lets the replay check and the deploy call `verify.php` / `install.php` |
+| `LB_API` | `https://newkrok.com/api/hitch-park`, for the replay check |
+
+Every deploy (`.github/workflows/prod-ci.yml`) writes `config.php` into the
+build from the secrets (`scripts/write-lb-config.js`; `.htaccess` keeps it
+from being served), uploads it, then calls `install.php`, which creates any
+missing table from `schema.sql`. A new column on an existing table needs an
+`ALTER TABLE` by hand (phpMyAdmin). To rotate a secret, change it in GitHub
+and redeploy.
+
+Check: `https://newkrok.com/api/hitch-park/board.php?scope=total` answers
+`{"total":0,…}`; run the "Hitch & Park leaderboard check" workflow by hand.
 
 GitHub pauses scheduled workflows after 60 days without a commit to the
 repository; re-enable it on the Actions tab if that happens.
