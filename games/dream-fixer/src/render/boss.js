@@ -11,7 +11,7 @@ import { lerp, damp } from "../config.js";
 
 const FLASH = new T.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
 
-export class BossView {
+class VacuumBossView {
   constructor(scene, fx) {
     this.scene = scene; this.fx = fx;
     this.o = null;
@@ -111,3 +111,15 @@ export class BossView {
 }
 
 const easeOut = (x) => 1 - (1 - x) ** 3;
+
+// ── Whichever nightmare the dream has ──
+// One view per boss kind, made when that boss first shows up.
+const VIEWS = { vacuum: VacuumBossView };
+
+export class BossView {
+  constructor(scene, fx) { this.scene = scene; this.fx = fx; this.views = {}; }
+  view(kind) { return (this.views[kind] ??= new VIEWS[kind](this.scene, this.fx)); }
+  clear() { for (const v of Object.values(this.views)) v.clear(); }
+  onEvent(e, run) { if (run.boss) this.view(run.boss.kind).onEvent(e, run); }
+  update(run, alpha, dt, t) { if (run.boss) this.view(run.boss.kind).update(run, alpha, dt, t); }
+}

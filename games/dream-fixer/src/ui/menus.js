@@ -1,17 +1,13 @@
 import { t, LANGS, getLang, memoryText, outroText, line, noteText } from "../i18n/index.js";
 import { UPGRADES, ITEMS, TABS, level, maxLevel, nextCost, pocketFor, isLocked } from "../data/upgrades.js";
 import { ITEM_ICONS } from "./icons.js";
+import { CLIENTS, MEMORY_OWNER, isOpen, memoriesOf } from "../levels/index.js";
 
 // ── Menus and panels ─────────────────────────────────────────────────────
 // Plain DOM over the 3D view: the title screen, settings, how to play,
 // pause, the job board and the workbench (opened from the Factory), the
 // memory cards and the result of a dream. Each screen is built on demand;
 // only one is open at a time.
-
-const CLIENTS = [
-  { id: "park", level: "park", memories: 5 },
-  { id: "school" }, { id: "kitchen" }, { id: "garden" }, { id: "space" },
-];
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -125,7 +121,7 @@ export class Menus {
     const who = (w) => t(w === "csavar" ? "csavar" : "margo");
     const sections = chapters.map(([pre, title]) => {
       const lines = progress.log.filter((id) => id.startsWith(pre + "_"));
-      const mems = Object.keys(MEMORY_OWNER).filter((m) => MEMORY_OWNER[m] === pre);
+      const mems = memoriesOf(pre);
       if (!lines.length && !mems.some((m) => progress.memories.includes(m))) return "";
       const talk = lines.map((id) => { const [w, text] = line(id); return `<p class="jl ${w}"><b>${esc(who(w))}</b> ${esc(text)}</p>`; }).join("");
       const found = mems.map((m) => {
@@ -147,11 +143,11 @@ export class Menus {
   board(progress, { onTake, onClose }) {
     const cards = CLIENTS.map((c) => {
       const [name, desc] = t(`c_${c.id}`);
-      if (!c.level) return `<div class="client locked"><div class="photo q">?</div><div class="info"><b>${esc(name)}</b><p>${esc(desc)}</p><span class="tag">${esc(t("board_next"))}</span></div></div>`;
+      if (!isOpen(c, progress)) return `<div class="client locked"><div class="photo q">?</div><div class="info"><b>${esc(name)}</b><p>${esc(desc)}</p><span class="tag">${esc(t("board_next"))}</span></div></div>`;
       const done = progress.done.includes(c.id), found = progress.memories.filter((m) => MEMORY_OWNER[m] === c.id).length;
       const taken = progress.picked === c.level;
       return `<div class="client ${done ? "done" : "new"}"><div class="photo paw"></div><div class="info"><b>${esc(name)}</b><p>${esc(desc)}</p>
-        <span class="tag">${esc(done ? t("board_fixed") : t("board_new"))}</span> <span class="tag soft">${esc(t("memories"))} ${found}/${c.memories}</span></div>
+        <span class="tag">${esc(done ? t("board_fixed") : t("board_new"))}</span> <span class="tag soft">${esc(t("memories"))} ${found}/${memoriesOf(c.level).length}</span></div>
         <button class="btn ${taken ? "ghost" : ""}" data-a="take" data-level="${c.level}">${esc(taken ? t("board_taken") : done ? t("board_again") : t("board_take"))}</button></div>`;
     }).join("");
     this.show("board", `<div class="panel wide board"><h2>${esc(t("board_title"))}</h2><div class="clients">${cards}</div><div class="actions"><button class="btn ghost" data-a="close">${esc(t("close"))}</button></div></div>`,
@@ -236,7 +232,7 @@ export class Menus {
   result(run, { onFactory, onAgain }) {
     const s = run.stats, m = Math.floor(run.time / 60), sec = String(Math.floor(run.time % 60)).padStart(2, "0");
     const mems = run.memories.filter((x) => x.got).length;
-    this.show("result", `<div class="panel narrow result-card"><h2>${esc(t("dreamFixed"))}</h2><p>${esc(t("dreamFixedSub"))}</p><p class="outro">${esc(outroText())}</p><table>
+    this.show("result", `<div class="panel narrow result-card"><h2>${esc(t("dreamFixed"))}</h2><p>${esc(t("dreamFixedSub"))}</p><p class="outro">${esc(outroText(run.def.id))}</p><table>
       <tr><td>${esc(t("r_time"))}</td><td>${m}:${sec}</td></tr><tr><td>${esc(t("r_dust"))}</td><td>+${run.dust} ✦</td></tr>
       <tr><td>${esc(t("memories"))}</td><td>${mems}/${run.memories.length}</td></tr>
       <tr><td>${esc(t("r_popped"))}</td><td>${s.popped}</td></tr><tr><td>${esc(t("r_faints"))}</td><td>${run.faints}</td></tr></table>
@@ -261,7 +257,4 @@ export class Menus {
     setTimeout(() => { fn(); setTimeout(() => this.fader.classList.remove("on"), hold); }, 450);
   }
 }
-
-// Which dream each memory belongs to (for the board's counters).
-export const MEMORY_OWNER = { hedgehog: "park", leash: "park", photo: "park", slipper: "park", cord: "park" };
 export { getLang };

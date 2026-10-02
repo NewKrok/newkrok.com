@@ -1,3 +1,5 @@
+import { hasLine } from "../i18n/index.js";
+
 // ── Story beats ──────────────────────────────────────────────────────────
 // Watches a Run (its events and state) and queues the radio lines at the
 // right moments. One director per level; a line is said once per visit.
@@ -9,76 +11,90 @@
 const near = (run, kind, d) => run.foes.some((f) => f.alive && f.kind === kind && Math.hypot(f.px - run.body.x, f.pz - run.body.z) < d);
 const from = (run, x, z) => Math.hypot(run.body.x - x, run.body.z - z);
 
-// A random line from a pool (ids prefix_1 … prefix_n) not yet said this
-// visit; null when they have all been used.
-function pick(D, prefix, n) {
-  const left = Array.from({ length: n }, (_, i) => `${prefix}_${i + 1}`).filter((id) => !D.said.has(id));
+// A random line from a pool (ids prefix_1 … prefix_n, as many as are
+// written) not yet said this visit; null when they have all been used.
+function pick(D, prefix) {
+  const left = [];
+  for (let i = 1; hasLine(`${prefix}_${i}`); i++) if (!D.said.has(`${prefix}_${i}`)) left.push(`${prefix}_${i}`);
   return left.length ? left[Math.floor(Math.random() * left.length)] : null;
 }
-const sayOne = (D, prefix, n) => { const id = pick(D, prefix, n); if (id) D.say(id); return !!id; };
+const sayOne = (D, prefix) => { const id = pick(D, prefix); if (id) D.say(id); return !!id; };
+// A line only if the dream has one written for that beat.
+const sayIf = (D, id, again) => { if (hasLine(id)) D.say(id, again); };
 
-const DIRECTORS = {
-  park: {
-    start(D) { D.say("park_in1"); },
+// ── What every dream's radio does ──
+// The same beats in every dream, each in that dream's own lines (ids
+// `<dream>_<beat>`): the intro in two pieces, tuning, each anchor fixed,
+// memories, fainting, hearts, falls, a crowd, a long quiet, leaving the
+// ring. A dream adds:
+//   meet   [kind, metres, beat]: a glitch introduced the first time you
+//          come that close to one (one at a time, after a quiet spell)
+//   on     { "event" or "event:kind": beat } for its own events (the boss…)
+//   events (D, run, e, S) for anything more particular.
+function dreamDirector(dream, o = {}) {
+  const L = (beat) => `${dream}_${beat}`;
+  return {
+    start(D) { sayIf(D, L("in1")); },
     events(D, run, e, S) {
-      if (e.type === "tuneStart") D.say("park_tune");
-      if (e.type === "anchorFixed") {
-        if (e.left === 2) D.say("park_fix1");
-        else if (e.left === 1) { D.say("park_fix2"); if (run.anchors.find((a) => a.id === "island")?.state !== "fixed") D.say("park_island"); }
-        else D.say("park_all");
-      }
-      if (e.type === "spawn" && e.kind === "knot") D.say("park_knot");
-      if (e.type === "memory") D.say("park_memory");
-      if (e.type === "nut") D.say("park_nut");
-      if (e.type === "bossRise") D.say("park_boss");
-      if (e.type === "bossAttack" && e.attack === "suck") D.say("park_suck");
-      if (e.type === "bossClog") D.say("park_clog");
-      if (e.type === "bossPhase") D.say("park_phase");
-      if (e.type === "faint") D.say("park_faint");
-      if (e.type === "heal") D.say("park_heart");
+      if (e.type === "tuneStart") sayIf(D, L("tune"));
+      if (e.type === "anchorFixed") sayIf(D, L(e.left ? `fix${run.anchors.length - e.left}` : "all"));
+      if (e.type === "memory") sayIf(D, L("memory"));
+      if (e.type === "faint") sayIf(D, L("faint"));
+      if (e.type === "heal") sayIf(D, L("heart"));
       // Falling off now and then: a dig from Margo (on the 2nd, 4th, 7th…).
       if (e.type === "respawn") {
         S.falls = (S.falls || 0) + 1;
-        if ([2, 4, 7, 11].includes(S.falls)) sayOne(D, "park_fall", 4);
+        if ([2, 4, 7, 11].includes(S.falls)) sayOne(D, L("fall"));
       }
-      if (e.type === "bossPop") D.say("park_win");
+      const beat = o.on?.[`${e.type}:${e.kind ?? e.attack}`] ?? o.on?.[e.type];
+      if (beat) sayIf(D, L(beat));
+      o.events?.(D, run, e, S);
     },
     frame(D, run, dt, S) {
       const q = (s) => S.quiet > s, sp = run.kit.spawn;
       // The intro, a piece at a time: what is wrong here once you take a
       // look round, where the anchors are once you set off.
-      if (!D.said.has("park_in2") && q(3) && (from(run, sp.x, sp.z) > 5 || S.time > 10)) D.say("park_in2");
+      if (!D.said.has(L("in2")) && q(3) && (from(run, sp.x, sp.z) > 5 || S.time > 10)) sayIf(D, L("in2"));
 
       // Each glitch the first time you meet it (one at a time).
       if (q(2.5)) {
-        if (near(run, "bunny", 12)) D.say("park_bunny");
-        else if (near(run, "fuzz", 14)) D.say("park_foe");
-        else if (near(run, "tub", 18)) D.say("park_tub");
-        else if (near(run, "buzzer", 16)) D.say("park_buzzer");
+        const m = o.meet?.find(([kind, d, beat]) => !D.said.has(L(beat)) && near(run, kind, d));
+        if (m) sayIf(D, L(m[2]));
       }
-      if (run.nearAnchor && q(1)) D.say("park_anchor");
+      if (run.nearAnchor && q(1)) sayIf(D, L("anchor"));
       // In between: a quip when a crowd is after you, a warning when you
       // are fading, a bit of chatter after a long quiet.
       S.cool = Math.max(0, (S.cool || 0) - dt);
       if (S.cool <= 0 && !run.boss) {
         const chasing = run.foes.filter((f) => f.alive && (f.aware || f.group) && Math.hypot(f.px - run.body.x, f.pz - run.body.z) < 12).length;
-        if (run.hp < run.maxHp * 0.3 && q(3) && sayOne(D, "park_low", 2)) S.cool = 30;
-        else if (chasing >= 4 && q(20) && sayOne(D, "park_swarm", 3)) S.cool = 40;
-        else if (q(55) && !run.tuning && sayOne(D, "park_idle", 4)) S.cool = 30;
+        if (run.hp < run.maxHp * 0.3 && q(3) && sayOne(D, L("low"))) S.cool = 30;
+        else if (chasing >= 4 && q(20) && sayOne(D, L("swarm"))) S.cool = 40;
+        else if (q(55) && !run.tuning && sayOne(D, L("idle"))) S.cool = 30;
       }
       const tu = run.tuning;
       S.outT = tu && !tu.inside ? (S.outT || 0) + dt : 0;
-      if (S.outT > 1.5 && (S.ringT || 0) <= 0) { D.say("park_ring", true); S.ringT = 14; }
+      if (S.outT > 1.5 && (S.ringT || 0) <= 0) { sayIf(D, L("ring"), true); S.ringT = 14; }
       S.ringT = (S.ringT || 0) - dt;
     },
-  },
+  };
+}
+
+const DIRECTORS = {
+  park: dreamDirector("park", {
+    meet: [["bunny", 12, "bunny"], ["fuzz", 14, "foe"], ["tub", 18, "tub"], ["buzzer", 16, "buzzer"]],
+    on: { "spawn:knot": "knot", nut: "nut", bossRise: "boss", "bossAttack:suck": "suck", bossClog: "clog", bossPhase: "phase", bossPop: "win" },
+    events(D, run, e) {
+      // Two down: where the last one is, if it is the island.
+      if (e.type === "anchorFixed" && e.left === 1 && run.anchors.find((a) => a.id === "island")?.state !== "fixed") D.say("park_island");
+    },
+  }),
   factory: {
     start(D, run, P) {
       // First time in: the welcome. Back from a dream: how it went. Any
       // other time: one of a handful of greetings, at random.
       if (P.justBack) D.say("hub_back1");
       else if (!P.log.includes("hub_intro1")) { D.say("hub_intro1"); D.say("hub_intro2"); }
-      else sayOne(D, "hub_greet", 6);
+      else sayOne(D, "hub_greet");
     },
     events() {},
     frame(D, run, dt, S) {
@@ -95,7 +111,8 @@ const DIRECTORS = {
 export class Director {
   constructor(dialog) { this.dialog = dialog; this.d = null; this.state = {}; }
   begin(run, progress) {
-    this.d = DIRECTORS[run.def.id] ?? null;
+    // A dream without its own director still gets the common beats.
+    this.d = DIRECTORS[run.def.id] ?? (run.def.hub ? null : dreamDirector(run.def.id));
     this.state = { P: progress };
     this.dialog.reset();
     this.d?.start(this.dialog, run, progress);

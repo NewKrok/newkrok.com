@@ -1,6 +1,6 @@
 import * as T from "three";
 import { Builder, compose } from "./modelkit.js";
-import { cloud } from "./models/park.js";
+import { MODELS } from "./models/index.js";
 import { rng } from "../rng.js";
 import { C } from "./palette.js";
 import { damp } from "../config.js";
@@ -34,7 +34,7 @@ export class DreamSky {
     // Clouds: one merged mesh round the islands, the whole ring slowly turning.
     this.clouds = null;
     if (def.clouds) {
-      const Cd = def.clouds, rnd = rng(17), b = new Builder();
+      const Cd = def.clouds, rnd = rng(17), b = new Builder(), cloud = MODELS[Cd.model ?? "cloud"].build;
       for (let i = 0; i < Cd.count; i++) {
         const a = (i / Cd.count) * Math.PI * 2 + rnd() * 0.3, r = reach + Cd.rMin + rnd() * (Cd.rMax - Cd.rMin);
         const y = Cd.yMin + rnd() * (Cd.yMax - Cd.yMin), s = 1.2 + rnd() * 2.2;

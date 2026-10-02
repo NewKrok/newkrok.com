@@ -1,6 +1,6 @@
 import * as T from "three";
 import { make, MAT } from "./modelkit.js";
-import { stabilizer, STABILIZER_MUZZLE, fuzzVacuum, VACUUM_MUZZLE } from "./models/tools.js";
+import { stabilizer, STABILIZER_MUZZLE, fuzzVacuum, VACUUM_MUZZLE, foamCannon, FOAM_MUZZLE } from "./models/tools.js";
 import { damp } from "../config.js";
 
 // ── The tool in your hand ────────────────────────────────────────────────
@@ -14,6 +14,7 @@ const WARM = new T.Color(0xffb04a), HOT = new T.Color(0xff4a3a);
 const TOOLS = {
   stabilizer: { build: stabilizer, muzzle: STABILIZER_MUZZLE, cool: new T.Color(0x7ff5e0) },
   vacuum: { build: fuzzVacuum, muzzle: VACUUM_MUZZLE, cool: new T.Color(0xffd27a), at: [0.015, -0.035, -0.08] },
+  foam: { build: foamCannon, muzzle: FOAM_MUZZLE, cool: new T.Color(0x9fe0ff), at: [0.005, -0.02, -0.03] },
 };
 
 export class ViewModel {
@@ -91,6 +92,9 @@ export class ViewModel {
     this.suckT = s.sucking ? this.suckT + dt : 0;
     if (s.launched) { this.kick = 1.4; this.flapKick = 1; this.flash = 1; }
     if (s.blasted) { this.kick = 0.9; this.flash = 1; }
+    if (s.sprayed) { this.kick = Math.min(1.6, this.kick + 0.18); this.flash = Math.max(this.flash, 0.4); }
+    if (s.blobbed) { this.kick = 1.2; this.pumpKick = 1; this.flash = 1; }
+    this.pumpKick = damp(this.pumpKick || 0, 0, 7, dt);
     this.flapKick = damp(this.flapKick, 0, 8, dt);
 
     const bx = Math.sin(this.bobT) * 0.012 * this.bobAmt, by = -Math.abs(Math.cos(this.bobT)) * 0.012 * this.bobAmt;
@@ -118,6 +122,9 @@ export class ViewModel {
       N.tank.scale.setScalar(0.4 + this.tankFill * 0.8 + (n ? Math.sin(s.t * 9) * 0.08 : 0));
     }
     if (N.flap) N.flap.rotation.x = -this.flapKick * 1.1;
+    // Foam Cannon: the pump jerks back on a blob, the foam in the window sinks as it runs hot.
+    if (N.pump) N.pump.position.z = -0.105 + 0.06 + this.pumpKick * 0.03;
+    if (N.foam) N.foam.scale.y = Math.max(0.08, 1 - s.heat);
     // Glow colour: cool → orange → red with the heat, brighter on each shot.
     const c = tool.glowMat.color;
     if (s.heat < 0.6) c.copy(tool.cool).lerp(WARM, s.heat / 0.6); else c.copy(WARM).lerp(HOT, (s.heat - 0.6) / 0.4);

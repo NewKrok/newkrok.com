@@ -3,6 +3,9 @@
 // by itself. Run it hot and it stops for a moment (overheated) until it
 // has cooled to `unlock`.
 
+// The order tools sit in your hands (and on the number keys).
+export const TOOL_ORDER = ["stabilizer", "vacuum", "foam"];
+
 export const TOOLS = {
   stabilizer: {
     interval: 0.14,       // seconds between shots while held
@@ -31,6 +34,19 @@ export const TOOLS = {
     launch: { speed: 24, damage: 5.5, splash: 2.6, heat: 0.12 },
     blast: { range: 5.5, cone: 0.7, push: 9, damage: 1, heat: 0.28, interval: 0.5 },
   },
+  // Held: sprays globs of foam in an arc. A glitch soaks it up and slows
+  // down, and one full of foam is stuck fast for a moment. Second action:
+  // a big blob that sets where it lands: a step on the ground (or on
+  // another step), a ledge on a wall.
+  foam: {
+    interval: 0.075, heat: 0.04, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
+    speed: 17, up: 2.2, gravity: 13, life: 1.4, r: 0.2, spread: 0.05,
+    soak: 0.2,            // foam one glob leaves on a glitch (1 = stuck)
+    blob: { speed: 15, up: 2.5, gravity: 16, heat: 0.36, interval: 0.55, r: 0.45 },
+    // What a blob sets into: radius, height of a step, depth of a ledge,
+    // how long it lasts (and blinks before it goes), how many at once.
+    step: { r: 1.1, h: 1.0, ledge: 0.5, life: 15, warn: 3, max: 3 },
+  },
 };
 
 export class ToolState {
@@ -52,6 +68,7 @@ export class ToolState {
   // The vacuum reports { suck } / { launch } / { blast } actions instead.
   step(intent, dt, out) {
     if (this.id === "vacuum") return this.stepVacuum(intent, dt, out);
+    if (this.id === "foam") return this.stepFoam(intent, dt, out);
     const d = this.def;
     this.cd -= dt;
     this.sinceShot += dt;
@@ -99,6 +116,28 @@ export class ToolState {
       this.sucking = true;
       this.addHeat(d.suckHeat * dt);
       out.push({ suck: true });
+    }
+    this.altHeld = !!intent.alt;
+    return out;
+  }
+
+  // The Foam Cannon reports { spray } while held and { blob } on a press.
+  stepFoam(intent, dt, out) {
+    const d = this.def;
+    this.cd -= dt;
+    this.sinceShot += dt;
+    if (this.sinceShot > d.coolDelay) this.heat = Math.max(0, this.heat - d.cool * dt);
+    if (this.overheated && this.heat <= d.unlock) this.overheated = false;
+    if (!this.overheated) {
+      if (intent.alt && !this.altHeld && this.cd <= 0) {
+        out.push({ blob: true });
+        this.addHeat(d.blob.heat);
+        this.cd = d.blob.interval;
+      } else if (intent.fire && this.cd <= 0) {
+        out.push({ spray: true });
+        this.addHeat(d.heat);
+        this.cd = d.interval;
+      }
     }
     this.altHeld = !!intent.alt;
     return out;

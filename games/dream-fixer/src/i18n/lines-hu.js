@@ -68,7 +68,7 @@ export const MEMORIES_HU = {
   slipper: ["Fél papucs", "Bizonyíték. Dora nem örült neki. Biscuit rendkívül büszke volt."],
   cord: ["Egy kábel a szekrényben", "A szekrényben lakik, és üvöltve jön elő. A kutyának soha senki nem magyarázza el."],
 };
-export const OUTRO_HU = "Biscuit most a tóról álmodik. Dora vasárnap hazajön.";
+export const OUTRO_HU = { park: "Biscuit most a tóról álmodik. Dora vasárnap hazajön." };
 // What the radio leaves out, kept as notes in the journal (unlocked by the line).
 export const NOTES_HU = {
   park_in2: ["Horgonyok", "Három álomhorgony tartja egyben az álmot. Figyeld a rózsaszín füstöt és a sötét foltokat a földön, nyomj E-t egy horgonynál, és maradj a körben, amíg hangol: közben hullámokban jönnek a hibák."],

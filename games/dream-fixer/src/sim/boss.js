@@ -24,7 +24,8 @@ export const BOSS = {
 const SHOULDER = [-1.0, 1.05, -0.72];
 const HOSE = 2.2;
 
-export class Boss {
+export class VacuumBoss {
+  kind = "vacuum";
   constructor(run, x, z, arena) {
     const y = run.kit.floorAt(x, z);
     this.body = new Body(x, y, z, { radius: BOSS.r, height: BOSS.h, step: 0.5, speed: BOSS.speed[0], accel: 12, jump: 0 });
@@ -269,3 +270,10 @@ export class Boss {
     run.events.push({ type: "bossAttack", attack: s });
   }
 }
+
+// ── Every nightmare, by the kind a level's `boss` names ──
+// A boss is stepped by the Run and must offer: alive, hp, maxHp, x/y/z,
+// invulnerable, hitSpheres() → [[x, y, z, r, damage multiplier, part]],
+// damage(run, dmg, part) and step(run, dt). It may offer ballHit(run, g),
+// splash(run, g) and blasted(run, ax, az, def) for what the tools throw at it.
+export const BOSSES = { vacuum: VacuumBoss };

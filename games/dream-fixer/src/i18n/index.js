@@ -35,8 +35,11 @@ export function t(key, vars) {
 const STORY = { en: { lines: LINES_EN, memories: MEMORIES_EN, outro: OUTRO_EN, notes: NOTES_EN }, hu: { lines: LINES_HU, memories: MEMORIES_HU, outro: OUTRO_HU, notes: NOTES_HU } };
 // [speaker, text] of a story line.
 export const line = (id) => STORY[lang].lines[id] ?? LINES_EN[id] ?? ["margo", id];
+// Is there a line with this id? (English is always complete.)
+export const hasLine = (id) => id in LINES_EN;
 export const memoryText = (id) => STORY[lang].memories[id] ?? MEMORIES_EN[id] ?? [id, ""];
-export const outroText = () => STORY[lang].outro ?? OUTRO_EN;
+// The closing words on a dream's result card.
+export const outroText = (dream) => STORY[lang].outro[dream] ?? OUTRO_EN[dream] ?? "";
 // [title, text] of the journal note a line unlocks, or null.
 export const noteText = (id) => STORY[lang].notes[id] ?? NOTES_EN[id] ?? null;
 

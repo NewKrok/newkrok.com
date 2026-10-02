@@ -73,7 +73,7 @@ export const MEMORIES_EN = {
   slipper: ["Half a slipper", "Evidence. Dora was not amused. Biscuit was extremely proud."],
   cord: ["A cord in the cupboard", "It lives in the cupboard and comes out roaring. Nobody ever explains it to the dog."],
 };
-export const OUTRO_EN = "Biscuit dreams of the lake now. Dora comes home on Sunday.";
+export const OUTRO_EN = { park: "Biscuit dreams of the lake now. Dora comes home on Sunday." };
 // What the radio leaves out, kept as notes in the journal (unlocked by the line).
 export const NOTES_EN = {
   park_in2: ["Anchors", "Three dream anchors hold a dream together. Look for the pink wisps and the dark patches on the ground, press E by one and stay inside its ring while it tunes: glitches come at you in waves."],

@@ -54,8 +54,8 @@ export const ITEM = {
   cocoa: { heal: 25 },
 };
 
-// Not on sale yet: the vacuum's upgrades wait until you have the vacuum.
-export const isLocked = (u, progress) => u.needs === "vacuum" && !progress.vacuum && !progress.done.includes("park");
+// Not on sale yet: a tool's upgrades wait until you have the tool.
+export const isLocked = (u, progress) => !!u.needs && !progress.tools.includes(u.needs);
 
 export const level = (owned = {}, id) => (owned[id] === true ? 1 : Number(owned[id]) || 0);
 export const maxLevel = (u) => u.costs.length;

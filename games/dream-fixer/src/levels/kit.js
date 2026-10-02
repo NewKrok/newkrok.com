@@ -93,6 +93,8 @@ export class Kit {
 export function buildLevel(def) {
   const k = new Kit();
   def.build(k);
+  // The memories are listed in the level's data (the board counts them).
+  for (const [id, x, z, y] of def.memories ?? []) k.memory(id, x, z, y);
   k.world.killY = def.killY ?? -30;
   return k;
 }

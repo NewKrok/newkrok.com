@@ -1,4 +1,4 @@
-import { stabilizer, fuzzVacuum } from "./tools.js";
+import { stabilizer, fuzzVacuum, foamCannon } from "./tools.js";
 import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./characters.js";
 import { anchor } from "./dream.js";
 import { vacuumBoss } from "./boss.js";
@@ -16,6 +16,7 @@ const spin = (node, axis, speed) => (o, t) => { const n = o.userData.nodes[node]
 export const MODELS = {
   stabilizer: { build: stabilizer, frame: 0.55 },
   vacuum: { build: fuzzVacuum, frame: 0.55, anim: (o, t) => { o.userData.nodes.fan.rotation.z = t * 20; } },
+  foam: { build: foamCannon, frame: 0.55, anim: (o, t) => { o.userData.nodes.pump.position.z = -0.105 + 0.06 + Math.abs(Math.sin(t * 2)) * 0.03; } },
   csavar: {
     build: csavar, frame: 1.1,
     anim: (o, t) => {

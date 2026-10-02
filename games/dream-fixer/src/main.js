@@ -1,11 +1,11 @@
 import { DT } from "./config.js";
 import { loadSettings, saveSettings, loadProgress, saveProgress, resetProgress } from "./storage.js";
-import { setLang, detectLang } from "./i18n/index.js";
+import { setLang, detectLang, hasLine } from "./i18n/index.js";
 import { Input } from "./input/index.js";
 import { Hud } from "./hud.js";
 import { Run } from "./sim/run.js";
-import { park } from "./levels/park.js";
-import { factory } from "./levels/factory.js";
+import { LEVELS } from "./levels/index.js";
+import { TOOL_ORDER } from "./sim/tools.js";
 import { Audio } from "./audio.js";
 import { Sfx } from "./sfx.js";
 import { Dialog } from "./story/dialog.js";
@@ -22,8 +22,6 @@ import { track } from "./analytics.js";
 const q = new URLSearchParams(location.search);
 if (import.meta.env.DEV && q.has("model")) import("./viewer.js").then((m) => m.startViewer(q.get("model")));
 else startGame();
-
-const LEVELS = { park, factory };
 
 async function startGame() {
   const { GameView } = await import("./render/scene.js");
@@ -57,7 +55,8 @@ async function startGame() {
     items: progress.items,
     memoriesFound: progress.memories,
     noTools: !!def.hub,
-    tools: progress.vacuum && !def.hub ? ["stabilizer", "vacuum"] : ["stabilizer"],
+    // The tools you have earned (a test level brings its own).
+    tools: def.hub ? ["stabilizer"] : [...(def.tools ?? progress.tools)].sort((a, b) => TOOL_ORDER.indexOf(a) - TOOL_ORDER.indexOf(b)),
   });
 
   let run = null;
@@ -76,7 +75,7 @@ async function startGame() {
     input.touch.ui.classList.toggle("hub", !!def.hub);
     if (def.hub) run.dust = progress.dust;      // the purse, shown in the HUD
     audio.setSong(def.song ?? id);
-    if (!def.hub) track("dream_start", { dream: id });
+    if (!def.hub && !def.dev) track("dream_start", { dream: id });
   }
 
   // ── Screens ──
@@ -128,8 +127,8 @@ async function startGame() {
     onReset: () => { resetProgress(progress); startLevel("factory"); showTitle(); },
   });
 
-  // Dust gathered in a dream is kept even if you leave early.
-  const bankDust = () => { if (inDream() && !run.banked) { progress.dust += run.dust; run.banked = true; save(); } };
+  // Dust gathered in a dream is kept even if you leave early (not from a test level).
+  const bankDust = () => { if (inDream() && !run.def.dev && !run.banked) { progress.dust += run.dust; run.banked = true; save(); } };
 
   const showPause = () => menus.pause({
     inDream: inDream(),
@@ -185,7 +184,9 @@ async function startGame() {
     } else if (id === "journal") openMenu(() => menus.journal(progress, { onClose: resume }));
     else if (id === "radio") {
       // Margo picks up with one of her lines, never the same one twice running.
-      const pool = ["hub_radio", ...Array.from({ length: 7 }, (_, i) => `hub_radio_${i + 2}`)].filter((x) => x !== lastRadio);
+      const all = ["hub_radio"];
+      for (let i = 2; hasLine(`hub_radio_${i}`); i++) all.push(`hub_radio_${i}`);
+      const pool = all.filter((x) => x !== lastRadio);
       lastRadio = pool[Math.floor(Math.random() * pool.length)];
       if (!dialog.busy) dialog.say(lastRadio, true);
     }
@@ -203,8 +204,8 @@ async function startGame() {
       else if (e.type === "memory") {
         menus.memory(e.id);
         if (!progress.memories.includes(e.id)) { progress.memories.push(e.id); save(); }
-      } else if (e.type === "toolUnlocked" && e.tool === "vacuum") { progress.vacuum = true; save(); }
-      else if (e.type === "itemUse") {
+      } else if (e.type === "toolUnlocked" && !run.def.dev && !progress.tools.includes(e.tool)) { progress.tools.push(e.tool); save(); }
+      else if (e.type === "itemUse" && !run.def.dev) {
         progress.items[e.id] = Math.max(0, (progress.items[e.id] || 0) - 1); save();
         track("kit_use", { id: e.id, dream: run.def.id });
       }
@@ -236,6 +237,8 @@ async function startGame() {
 
   startLevel("factory");
   showTitle();
+  // (dev) ?level=<id> starts there instead, Play goes straight in.
+  if (import.meta.env.DEV && LEVELS[q.get("level")]) startLevel(q.get("level"));
 
   // ── Loop ──
   let last = performance.now(), acc = 0, time = 0;
@@ -268,8 +271,8 @@ async function startGame() {
         if (first) {
           intent.item = ["pillow", "espresso", "cocoa"].find((id) => edges.has(`item_${id}`));
           const n = run.tools.length;
-          if (edges.has("tool1")) intent.toolTo = 0;
-          else if (edges.has("tool2") && n > 1) intent.toolTo = 1;
+          const k = [1, 2, 3, 4].find((i) => edges.has(`tool${i}`) && i <= n);
+          if (k) intent.toolTo = k - 1;
           else if (edges.has("toolNext")) intent.toolTo = (run.tool + 1) % n;
           else if (edges.has("toolPrev")) intent.toolTo = (run.tool - 1 + n) % n;
         }
@@ -278,7 +281,7 @@ async function startGame() {
         acc -= DT;
       }
       // Presses between two steps must not be lost.
-      if (first) for (const k of ["jump", "use", "tool1", "tool2", "toolNext", "toolPrev", "item_pillow", "item_espresso", "item_cocoa"]) if (edges.has(k)) input.edges.add(k);
+      if (first) for (const k of ["jump", "use", "tool1", "tool2", "tool3", "tool4", "toolNext", "toolPrev", "item_pillow", "item_espresso", "item_cocoa"]) if (edges.has(k)) input.edges.add(k);
       onEvents(run.events);
       view.consume(run.events);
       run.events.length = 0;
@@ -311,7 +314,7 @@ async function startGame() {
       place(x, z, yaw = 0, pitch = 0) { const b = run.body; b.place(x, run.kit.floorAt(x, z), z, yaw); b.pitch = pitch; b.px = b.x; b.py = b.y; b.pz = b.z; },
       spawn(kind, x, z) { return run.spawn(kind, x, z); },
       // Jump to the boss fight: all anchors fixed, both tools.
-      toBoss() { for (const a of run.anchors) { a.state = "fixed"; a.progress = 1; } run.unlockTool("vacuum"); run.foes.forEach((f) => { f.alive = false; }); },
+      toBoss() { for (const a of run.anchors) { a.state = "fixed"; a.progress = 1; } if (run.def.unlockTool) run.unlockTool(run.def.unlockTool.id); run.foes.forEach((f) => { f.alive = false; }); },
     };
   }
 }

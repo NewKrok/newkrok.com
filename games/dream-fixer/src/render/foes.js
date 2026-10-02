@@ -1,6 +1,6 @@
 import * as T from "three";
 import { make } from "./modelkit.js";
-import { kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./models/characters.js";
+import { MODELS } from "./models/index.js";
 import { C } from "./palette.js";
 import { lerp } from "../config.js";
 
@@ -11,7 +11,9 @@ import { lerp } from "../config.js";
 // heart throbs. Every hit flashes the model white for a moment. Orbs and
 // dream dust are instanced.
 
-const SKINS = { fuzz: kocPark, buzzer: buzzerPark, knot: knotPark, bunny: bunnyPark, tub: tubPark };
+// The looks a dream gives each kind (model ids), unless its level says
+// otherwise. A skin keeps the nodes its kind's animation moves.
+const SKINS = { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub" };
 const FLASH = new T.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
 const POP_COLORS = { bunny: [0xc4c0cc, 0x7a7684, C.dream, 0xffffff], tub: [0xffffff, 0x8fd0f0, C.dream, 0xffd23a], fuzz: [0xe8a060, 0xc8743a, C.dream, 0xffffff], buzzer: [0xf2c14e, 0x5a3620, C.dream, 0xffffff], knot: [0xe8a060, C.dreamPink, C.dream, 0xffffff], pillow: [0xffffff, 0xf4eaff, 0xd8c8ff, C.dreamPink] };
 
@@ -19,7 +21,8 @@ export class FoeView {
   constructor(scene, fx) {
     this.scene = scene; this.fx = fx;
     this.live = new Map();        // foe id → { o, kind, meshes }
-    this.pool = { fuzz: [], buzzer: [], knot: [], bunny: [], tub: [] };
+    this.skins = SKINS;
+    this.pool = {};
     this.group = new T.Group();
     scene.add(this.group);
 
@@ -80,17 +83,27 @@ export class FoeView {
     this.live.clear();
   }
 
+  // A new dream: its own skins (the pooled models of the last one go).
+  setSkins(skins = {}) {
+    const next = { ...SKINS, ...skins };
+    if (JSON.stringify(next) === JSON.stringify(this.skins)) return;
+    this.clear();
+    for (const list of Object.values(this.pool)) for (const v of list) { this.group.remove(v.o); v.o.traverse((m) => m.isMesh && m.geometry.dispose()); }
+    this.pool = {};
+    this.skins = next;
+  }
+
   obtain(kind) {
-    const v = this.pool[kind].pop();
+    const v = (this.pool[kind] ??= []).pop();
     if (v) { v.o.visible = true; return v; }
-    const o = make(SKINS[kind]);
+    const o = make(MODELS[this.skins[kind]].build);
     const meshes = [];
     o.traverse((m) => { if (m.isMesh) { meshes.push(m); m.userData.mat = m.material; } });
     this.group.add(o);
     return { o, kind, meshes, flashing: false };
   }
 
-  release(v) { v.o.visible = false; this.pool[v.kind].push(v); }
+  release(v) { v.o.visible = false; (this.pool[v.kind] ??= []).push(v); }
 
   onEvent(e) {
     if (e.type === "pop") {

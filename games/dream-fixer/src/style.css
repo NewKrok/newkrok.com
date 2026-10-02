@@ -205,6 +205,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; border-radius: 
 .ico svg { width: 72%; height: 72%; fill: #3a2a1a; stroke: #3a2a1a; }
 .ico.stabilizer { background: linear-gradient(135deg, #7ff5e0, #2f7f86); }
 .ico.vacuum { background: linear-gradient(135deg, #ffd27a, #c0683a); }
+.ico.foam { background: linear-gradient(135deg, #9fe0ff, #2f7f86); }
 .ico.me { background: linear-gradient(135deg, #ffb3d9, #c0394f); }
 .ico.cog { background: linear-gradient(135deg, #b8f0ff, #3d5e8f); }
 .ico.kit { background: linear-gradient(135deg, #fff2c8, #e3b35c); }
@@ -254,6 +255,8 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; border-radius: 
 .hud .tankdots.on { opacity: 1; }
 .hud .tankdots i { width: 9px; height: 9px; border-radius: 50%; border: 2px solid rgba(255, 210, 122, 0.8); }
 .hud .tankdots i.f { background: #ffd27a; box-shadow: 0 0 6px #ffd27a; }
+.hud .tankdots.foam i { border-color: rgba(159, 224, 255, 0.85); }
+.hud .tankdots.foam i.f { background: #9fe0ff; box-shadow: 0 0 6px #9fe0ff; }
 
 /* ── Gamepad: a clear focus ring while the pad drives the menus ── */
 body.pad-nav .menus button:focus, body.pad-nav .menus input:focus { outline: 3px solid var(--brass); outline-offset: 3px; }

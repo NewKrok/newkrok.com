@@ -1,10 +1,11 @@
-// ── Static world ─────────────────────────────────────────────────────────
+// ── The solid world ──────────────────────────────────────────────────────
 // A level's solid geometry as simple convex pieces: boxes (turned about
 // y), ramps (a box whose top slopes along its own x) and upright
 // cylinders. Each piece knows its floor height, pushes circles out of
 // itself in the ground plane and answers ray casts. Pieces may overlap and
 // stack: a bridge over a path is just a box with its bottom above head
-// height. A uniform grid over (x, z) keeps the queries local.
+// height. A uniform grid over (x, z) keeps the queries local. Nearly all
+// of it is the level; foam steps are added and taken out while you play.
 
 const CELL = 4;
 
@@ -40,6 +41,19 @@ export class World {
         a.push(c);
       }
     return c;
+  }
+
+  // Take a piece out again (foam that has set and then melts away). The
+  // walking grid of the glitches is baked once and does not see these.
+  remove(c) {
+    for (let i = Math.floor(c.minX / CELL); i <= Math.floor(c.maxX / CELL); i++)
+      for (let j = Math.floor(c.minZ / CELL); j <= Math.floor(c.maxZ / CELL); j++) {
+        const a = this.grid.get(i * 73856093 ^ j * 19349663);
+        const k = a ? a.indexOf(c) : -1;
+        if (k >= 0) a.splice(k, 1);
+      }
+    const k = this.colliders.indexOf(c);
+    if (k >= 0) this.colliders.splice(k, 1);
   }
 
   // Pieces whose footprint may touch the circle (x, z, r). The returned

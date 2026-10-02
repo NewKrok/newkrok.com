@@ -13,6 +13,7 @@ import { Companion, MemoryView } from "./companion.js";
 import { AnchorView } from "./anchors.js";
 import { DreamSky } from "./dreamsky.js";
 import { WaterView } from "./water.js";
+import { FoamView } from "./foam.js";
 import { C } from "./palette.js";
 import { damp, lerp } from "../config.js";
 
@@ -37,6 +38,7 @@ export class GameView {
     this.fx = new Fx(this.scene);
     this.foes = new FoeView(this.scene, this.fx);
     this.bossView = new BossView(this.scene, this.fx);
+    this.foamView = new FoamView(this.scene, this.fx);
     this.companion = new Companion(this.scene);
     this.talking = false;
     this.shake = 0;
@@ -118,8 +120,10 @@ export class GameView {
       this.scene.remove(this.sun.hemi, this.sun.light, this.sun.light.target);
       this.foes.clear();
       this.bossView.clear();
+      this.foamView.clear();
     }
     const def = run.def, kit = run.kit;
+    this.foes.setSkins(def.skins);
     const g = this.level = new T.Group();
     const sky = skyDome(def.sky);
     g.add(sky);
@@ -146,7 +150,12 @@ export class GameView {
     const events = this.pending;
     for (const e of events) {
       this.water.onEvent(e);
-      if (e.type === "shot") {
+      if (e.type.startsWith("foam")) {
+        this.foamView.onEvent(e);
+        if (e.type === "foamSpray") this.sprayed = true;
+        if (e.type === "foamBlob") { this.blobbed = true; this.muzzleFlash = Math.max(this.muzzleFlash || 0, 0.5); }
+        if (e.type === "foamSet" && Math.hypot(e.x - run.body.x, e.z - run.body.z) < 6) this.shake = Math.min(1, this.shake + 0.12);
+      } else if (e.type === "shot") {
         const end = [e.o[0] + e.d[0] * e.t, e.o[1] + e.d[1] * e.t, e.o[2] + e.d[2] * e.t];
         const from = this.muzzleWorld();
         const big = e.big;
@@ -316,8 +325,9 @@ export class GameView {
       heat: tool.heat, charge: tool.charge, overheated: tool.overheated,
       shot: !!this.shotThisFrame, big: this.shotThisFrame || 0, hidden: run.opts.noTools,
       sucking: tool.sucking, tank: tool.tank, launched: this.launched, blasted: this.blasted,
+      sprayed: this.sprayed, blobbed: this.blobbed,
     });
-    this.shotThisFrame = 0; this.launched = false; this.blasted = false;
+    this.shotThisFrame = 0; this.launched = false; this.blasted = false; this.sprayed = false; this.blobbed = false;
     // The vacuum's stream: flecks rushing into the nozzle.
     if (tool.sucking) this.suckStream(run, dt);
     this.muzzleFlash = damp(this.muzzleFlash || 0, 0, 20, dt);
@@ -327,6 +337,7 @@ export class GameView {
 
     this.foes.update(run, alpha, dt, t);
     this.bossView.update(run, alpha, dt, t);
+    this.foamView.update(run, alpha, dt, t, m);
     this.fx.update(dt);
     this.adapt(dt);
     this.composer.render(dt);

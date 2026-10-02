@@ -187,6 +187,25 @@ kellék, például gurítható dolog.
 | `input/` | Egér és billentyűzet, érintés, (később) kontroller egyetlen közös interfész mögött. |
 | `story/` | Rádióüzenetek, triggerek, emléktárgy-szövegek (EN/HU az `i18n`-ben). |
 
+**Új álom felvétele.** Egy álom egyetlen pályafájl a `levels/` alatt; a
+kód többi része az adataiból dolgozik:
+- `levels/index.js`: a `LEVELS`-be kerül, a `CLIENTS`-ben az ügyfél kap
+  egy `level`-t (az `after` mondja meg, melyik álom után hív).
+- A pálya adatai: `song`, `skins` (a hibák kinézete modell-id-kkel),
+  `memories` (`[id, x, z, y]`), `boss` (`kind` + aréna), `unlockTool`
+  (melyik szerszám, hány horgony után), `tiers` (a hullámok), `botRoutes`.
+- Főellenség: a `sim/boss.js` `BOSSES` és a `render/boss.js` `VIEWS`
+  táblájába, a nevével (`boss_<kind>`) az i18n-ben.
+- Szövegek: a rádió közös ütemei (`<álom>_in1`, `_tune`, `_fix1`, `_all`,
+  `_fall_1…`, `_idle_1…` stb.) maguktól szólnak, ha meg vannak írva; a
+  különlegeseket a `story/director.js` `on` és `meet` adata köti
+  eseményekhez. A zárómondat az `OUTRO_*` táblában van.
+- Ellenőrzés: `node scripts/bot.js [seed] [nehézség] [casual|sharp] <álom>`.
+
+**Fejlesztői pályák:** a `dev: true` pálya nem kerül a táblára, és nem
+ment haladást; `?level=<id>` (csak dev) ott indít. A `lab` a Habágyú
+próbapályája, minden szerszámmal.
+
 **Modellminőség:** lesz egy fejlesztői modellnéző (`?model=<id>`), ami egy
 modellt forgatva mutat. A headless screenshotokon így minden modellt
 külön megnézhetünk és finomíthatunk, mielőtt pályára kerül.

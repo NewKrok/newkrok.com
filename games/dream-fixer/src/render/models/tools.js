@@ -159,3 +159,68 @@ export function fuzzVacuum(b, { hand = true } = {}) {
   b.add(SHAPE.cyl(0.018, 0.018, 0.008, 12), { p: [-0.06, CY, 0.03], r: [0, 0, RX], c: C.cream });
   if (hand) glovedHand(b);
 }
+
+// The Foam Cannon: a fat enamel canister with brass end caps and a window
+// onto the glowing foam inside, a pressure gauge on top, a pump on the
+// left and a flat duckbill nozzle. Nodes: "needle" (the heat), "pump"
+// (kicks back on a blob), "foam" (the level in the window).
+export const FOAM_MUZZLE = [0, 0.04, -0.29];
+const FOAM_GLOW = 0x9fe0ff;
+
+export function foamCannon(b, { hand = true } = {}) {
+  const CY = 0.04, zc = -0.105;
+  b.at([0, -0.055, 0.045], [-0.3, 0, 0], 1, () => {
+    b.add(SHAPE.box(0.042, 0.13, 0.058, 0.013), { grad: [C.woodD, C.woodL], facet: 0.08 });
+    b.add(SHAPE.box(0.048, 0.018, 0.064, 0.006), { p: [0, -0.068, 0], c: C.brassD, mat: "metal" });
+  });
+  b.add(SHAPE.box(0.01, 0.03, 0.012, 0.003), { p: [0, -0.012, -0.03], r: [0.25, 0, 0], c: C.iron, mat: "metal" });
+  b.add(SHAPE.torus(0.03, 0.0045, 5, 12, Math.PI), { p: [0, -0.005, -0.028], r: [0, RX, Math.PI], c: C.brassD, mat: "metal" });
+  b.add(SHAPE.box(0.05, 0.026, 0.11, 0.008), { p: [0, CY - 0.038, 0.0], c: C.brassD, mat: "metal" });
+
+  // ── Canister ──
+  b.add(SHAPE.cyl(0.044, 0.044, 0.15, 14, 0.006), { p: [0, CY, zc], r: [RX, 0, 0], grad: [C.tealD, C.teal], facet: 0.03 });
+  for (const z of [zc + 0.05, zc - 0.05]) b.add(SHAPE.torus(0.045, 0.005, 5, 18), { p: [0, CY, z], c: C.cream });
+  // Brass caps: a flat one at the back (by your hand), a dome at the front.
+  b.add(SHAPE.cyl(0.036, 0.042, 0.012, 14, 0.004), { p: [0, CY, zc + 0.08], r: [RX, 0, 0], c: C.brass, mat: "metal" });
+  b.add(SHAPE.cyl(0.01, 0.01, 0.012, 8), { p: [0, CY, zc + 0.09], r: [RX, 0, 0], c: C.brassD, mat: "metal" });
+  b.add(SHAPE.lathe([[0.045, 0], [0.043, 0.01], [0.036, 0.02], [0.022, 0.027], [0, 0.029]], 14), { p: [0, CY, zc - 0.075], r: [-RX, 0, 0], grad: [C.brassD, C.brass], mat: "metal" });
+  // A window down the right side, the foam glowing behind it.
+  b.add(SHAPE.box(0.006, 0.04, 0.08, 0.002), { p: [0.043, CY, zc], c: C.brass, mat: "metal" });
+  b.node("foam", [0.044, CY - 0.01, zc], [0, 0, 0], (n) => n.add(SHAPE.box(0.004, 0.02, 0.066), { p: [0, 0.01, 0], c: FOAM_GLOW, mat: "glow", glow: 1.8 }));
+  b.add(SHAPE.box(0.004, 0.032, 0.07), { p: [0.047, CY, zc], c: 0xd8f4ff, mat: "glass" });
+
+  // ── Neck and duckbill nozzle ──
+  b.add(SHAPE.cyl(0.02, 0.024, 0.06, 10), { p: [0, CY, zc - 0.12], r: [RX, 0, 0], c: C.copper, mat: "metal" });
+  b.add(SHAPE.torus(0.024, 0.005, 4, 12), { p: [0, CY, zc - 0.105], c: C.copperD, mat: "metal" });
+  b.add(SHAPE.box(0.074, 0.03, 0.05, 0.01), { p: [0, CY, FOAM_MUZZLE[2] + 0.03], grad: [C.brassD, C.brassL], mat: "metal" });
+  b.add(SHAPE.box(0.06, 0.008, 0.006), { p: [0, CY, FOAM_MUZZLE[2] + 0.004], c: FOAM_GLOW, mat: "glow", glow: 2.2 });
+  // Little foam bubbles stuck on the lip.
+  for (const [x, y, r] of [[-0.024, 0.016, 0.008], [0.018, 0.017, 0.006], [0.03, -0.012, 0.007], [-0.01, -0.016, 0.005]])
+    b.add(SHAPE.sphere(r, 0), { p: [x, CY + y, FOAM_MUZZLE[2] + 0.012], c: C.white });
+
+  // ── Gauge on top, facing the player ──
+  b.at([0, CY + 0.05, -0.05], [0.85, 0, 0], 1, () => {
+    b.add(SHAPE.cyl(0.006, 0.006, 0.02, 6), { p: [0, -0.012, 0], c: C.brass, mat: "metal" });
+    b.add(SHAPE.cyl(0.026, 0.026, 0.012, 16, 0.003), { c: C.brass, mat: "metal" });
+    b.add(SHAPE.cyl(0.021, 0.021, 0.004, 16), { p: [0, 0.006, 0], c: 0xd8ccb0, facet: 0 });
+    for (let i = 0; i < 5; i++) {
+      const a = -1.2 + i * 0.6;
+      b.add(SHAPE.box(0.0018, 0.002, 0.005), { p: [Math.sin(a) * 0.015, 0.0085, -Math.cos(a) * 0.015], r: [0, -a, 0], c: i > 3 ? C.red : C.black, facet: 0 });
+    }
+    b.node("needle", [0, 0.0095, 0], [0, 0, 0], (n) => {
+      n.add(SHAPE.box(0.0024, 0.0016, 0.017), { p: [0, 0, -0.007], c: C.red, facet: 0 });
+      n.add(SHAPE.cyl(0.003, 0.003, 0.003, 8), { c: C.black });
+    });
+    b.add(SHAPE.cyl(0.022, 0.022, 0.003, 16), { p: [0, 0.011, 0], c: 0xffffff, mat: "glass" });
+  });
+
+  // ── Pump on the left: a rod and a red knob ──
+  b.add(SHAPE.cyl(0.01, 0.01, 0.1, 8), { p: [-0.052, CY + 0.01, zc], r: [RX, 0, 0], c: C.iron, mat: "metal" });
+  b.node("pump", [-0.052, CY + 0.01, zc + 0.06], [0, 0, 0], (n) => {
+    n.add(SHAPE.cyl(0.006, 0.006, 0.04, 6), { r: [RX, 0, 0], c: C.steel, mat: "metal" });
+    n.add(SHAPE.ball(0.014, 8, 6), { p: [0, 0, 0.024], c: C.red });
+  });
+  for (const z of [zc - 0.035, zc + 0.035]) b.add(SHAPE.box(0.012, 0.01, 0.01, 0.002), { p: [-0.046, CY + 0.01, z], c: C.brassD, mat: "metal" });
+
+  if (hand) glovedHand(b);
+}

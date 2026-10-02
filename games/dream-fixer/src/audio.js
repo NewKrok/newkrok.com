@@ -11,7 +11,7 @@
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const hz = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
-const GAP = { zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
+const GAP = { foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
 
 const SONGS = {
   menu: { root: 60, bpm: 76, scale: [0, 2, 4, 7, 9], prog: [0, -3, 5, -5], lead: "box", drums: 0 },
@@ -194,6 +194,13 @@ export class Audio {
       case "cogZap": S(0.07, { type: "square", freq: 2400, freqEnd: 900, gain: 0.022 }); N(0.05, { type: "highpass", freq: 6000, gain: 0.025 }); break;
       case "ping": [91, 96].forEach((n, i) => at(i * 0.09, (tt) => this.#bell(d, tt, hz(n), 0.045, 0.6, 0.4))); break;
       case "ballPop": S(0.25, { freq: 120, freqEnd: 50, gain: 0.25, verb: 0.2 }); N(0.3, { type: "lowpass", freq: 1500, freqEnd: 200, gain: 0.15 }); break;
+      case "foamSpray": N(0.09, { type: "bandpass", freq: 1400 + Math.random() * 300, freqEnd: 700, q: 1.4, gain: 0.05 }); break;
+      case "foamBlob": S(0.22, { freq: 320, freqEnd: 110, gain: 0.16 }); N(0.25, { type: "lowpass", freq: 1400, freqEnd: 300, gain: 0.12 }); break;
+      case "foamSplat": N(0.07, { type: "bandpass", freq: 2200, q: 2, gain: 0.025 }); break;
+      case "foamSet": S(0.3, { type: "triangle", freq: 170, freqEnd: 260, gain: 0.08 }); N(0.35, { type: "lowpass", freq: 900, freqEnd: 300, gain: 0.12 }); at(0.18, (tt) => this.#bell(d, tt, hz(79), 0.04, 0.6, 0.3)); break;
+      case "foamGone": [0, 0.07, 0.15].forEach((dt) => at(dt, (tt) => this.#tone(d, tt, 0.08, { freq: 900 + Math.random() * 600, freqEnd: 1800, gain: 0.04 }))); break;
+      case "foamStuck": N(0.3, { type: "bandpass", freq: 600, freqEnd: 1500, q: 2, gain: 0.08 }); S(0.2, { freq: 250, freqEnd: 400, gain: 0.05 }); break;
+      case "foamFree": S(0.1, { freq: 700, freqEnd: 1400, gain: 0.05 }); break;
       case "newTool": [67, 72, 76, 79, 84].forEach((n, i) => at(i * 0.07, (tt) => this.#bell(d, tt, hz(n), 0.07, 1.2, 0.5))); break;
       // Anchors.
       case "tuneStart": S(0.8, { type: "triangle", freq: 220, freqEnd: 440, gain: 0.08, verb: 0.4 }); break;

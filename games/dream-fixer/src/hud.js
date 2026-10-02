@@ -65,7 +65,7 @@ export class Hud {
     this.bossEl = el.querySelector(".bossbar");
     this.bossFill = el.querySelector(".bossbar .fill");
     this.bossLag = el.querySelector(".bossbar .lag");
-    el.querySelector(".bossbar .lbl").textContent = t("bossName");
+    this.bossLbl = el.querySelector(".bossbar .lbl");
     this.bossLagHp = 1;
     this.hint = el.querySelector(".clickhint");
     this.tankEl = el.querySelector(".tankdots");
@@ -94,7 +94,7 @@ export class Hud {
     if (e.type === "bossClog") this.banner(t("bossClog"), true);
     if (e.type === "itemUse") this.kitFlash = e.id;
     if (e.type === "itemNo") this.banner(t("kit_awake"));
-    if (e.type === "toolUnlocked" && e.tool === "vacuum") this.bannerTimer = setTimeout(() => this.banner(t("toolVacuum"), true), 2600);
+    if (e.type === "toolUnlocked") this.bannerTimer = setTimeout(() => this.banner(t(`toolGot_${e.tool}`), true), 2600);
   }
 
   banner(text, good = false) {
@@ -159,13 +159,18 @@ export class Hud {
       this.kitFlash = null;
       this.last.kit = kitKey;
     }
-    const vac = run.activeTool.id === "vacuum" ? run.activeTool : null;
+    // Under the crosshair: what the vacuum's tank holds, or how many foam
+    // steps the Foam Cannon can still set before the oldest melts.
+    const tool0 = run.activeTool;
+    const vac = tool0.id === "vacuum" ? tool0 : null;
     const tank = vac && vac.tank.length >= vac.def.tankSize;
-    const tn = vac ? vac.tank.length : -1;
-    if (tn !== this.last.tank) {
-      this.tankEl.classList.toggle("on", tn >= 0);
-      this.tankEl.innerHTML = tn >= 0 ? Array.from({ length: vac.def.tankSize }, (_, i) => `<i class="${i < tn ? "f" : ""}"></i>`).join("") : "";
-      this.last.tank = tn;
+    const dots = vac ? [vac.tank.length, vac.def.tankSize] : tool0.id === "foam" ? [run.foam.left(tool0), tool0.def.step.max] : null;
+    const dk = dots ? `${tool0.id}:${dots}` : "";
+    if (dk !== this.last.tank) {
+      this.tankEl.classList.toggle("on", !!dots);
+      this.tankEl.classList.toggle("foam", tool0.id === "foam");
+      this.tankEl.innerHTML = dots ? Array.from({ length: dots[1] }, (_, i) => `<i class="${i < dots[0] ? "f" : ""}"></i>`).join("") : "";
+      this.last.tank = dk;
     }
     const key = this.touch ? "🔧" : this.pad ? "(X)" : "[E]";
     const pr = run.nearAnchor ? t("tunePrompt", { key }) : run.nearUse ? t("usePrompt", { key, label: t(run.nearUse.label) }) : tank ? t("tankFull", { key: this.touch ? "⟲" : this.pad ? "[LT]" : "[RMB]" }) : "";
@@ -180,6 +185,7 @@ export class Hud {
     const B = run.boss;
     this.bossEl.classList.toggle("on", !!B && B.alive && B.state !== "rise" || !!B && B.state === "rise" && B.t > 1);
     if (B) {
+      if (B.kind !== this.bossKind) { this.bossKind = B.kind; this.bossLbl.textContent = t(`boss_${B.kind}`); }
       const f = B.hp / B.maxHp;
       this.bossLagHp = f > this.bossLagHp ? f : Math.max(f, this.bossLagHp - dt * 0.3);
       this.bossFill.style.transform = `scaleX(${f.toFixed(3)})`;

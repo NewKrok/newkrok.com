@@ -1,15 +1,16 @@
 import { DT } from "../config.js";
 import { Body } from "./player.js";
-import { ToolState } from "./tools.js";
+import { ToolState, TOOL_ORDER } from "./tools.js";
 import { World } from "./world.js";
 import { Foe, stepFoes, damageFoe, startle } from "./foes.js";
 import { Anchor, stepAnchors, startTuning } from "./anchors.js";
-import { Boss } from "./boss.js";
+import { BOSSES } from "./boss.js";
 import { Nav } from "./nav.js";
 import { buildLevel } from "../levels/kit.js";
 import { rng } from "../rng.js";
 import { toolDef, maxHpFor, magnetFor, perksFor, ITEM } from "../data/upgrades.js";
 import { Cog } from "./cog.js";
+import { Foam } from "./foam.js";
 
 // ── One visit to a dream ─────────────────────────────────────────────────
 // Everything that happens in a level, with no rendering: the body, the
@@ -56,6 +57,7 @@ export class Run {
     this.tool = 0;
     this.switchT = 0;
     this.balls = [];              // what the vacuum shoots back out
+    this.foam = new Foam();       // the Foam Cannon's globs and steps
     this.time = 0;
     this.events = [];
     this.hp = this.maxHp; this.hurtT = 9; this.invuln = 0;
@@ -110,9 +112,12 @@ export class Run {
 
   unlockTool(id) {
     if (this.tools.some((t) => t.id === id)) return;
-    this.tools.push(new ToolState(id, toolDef(id, this.opts.upgrades)));
+    const held = this.activeTool, got = new ToolState(id, toolDef(id, this.opts.upgrades));
+    this.tools.push(got);
+    this.tools.sort((a, b) => TOOL_ORDER.indexOf(a.id) - TOOL_ORDER.indexOf(b.id));
+    this.tool = this.tools.indexOf(held);
     this.events.push({ type: "toolUnlocked", tool: id });
-    this.switchTool(this.tools.length - 1);
+    this.switchTool(this.tools.indexOf(got));
   }
 
   switchTool(i) {
@@ -288,9 +293,12 @@ export class Run {
       if (shot.suck) this.suck(tool, dt);
       else if (shot.launch) this.launch(tool, shot.launch);
       else if (shot.blast) this.blast(tool);
+      else if (shot.spray) this.foam.spray(this, tool);
+      else if (shot.blob) this.foam.blob(this, tool);
       else this.fire(tool, shot);
     }
     this.stepBalls(dt);
+    this.foam.step(this, dt);
     if (intent.item) this.useItem(intent.item);
 
     stepAnchors(this, dt);
@@ -304,8 +312,8 @@ export class Run {
       this.coreT -= dt;
       if (this.coreT <= 0) {
         const B = this.def.boss;
-        this.boss = new Boss(this, B.x, B.z, B.arena);
-        this.events.push({ type: "bossRise", x: B.x, z: B.z });
+        this.boss = new BOSSES[B.kind](this, B.x, B.z, B.arena);
+        this.events.push({ type: "bossRise", kind: B.kind, x: B.x, z: B.z });
       }
     }
     if (this.boss) {

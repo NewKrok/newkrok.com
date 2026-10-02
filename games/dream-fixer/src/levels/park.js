@@ -18,9 +18,19 @@ export const park = {
   killY: -25,
   // Loose glitches leave you be this close to where you arrive.
   calm: 10,
-  unlockAfterFirst: "vacuum",
+  song: "park",
+  // The Fuzz Vacuum turns up once the first anchor holds.
+  unlockTool: { id: "vacuum", anchors: 1 },
   // The nightmare comes up in the middle of the lawn.
-  boss: { x: 0, z: 5, arena: { minX: -17, maxX: 17, minZ: -2, maxZ: 19 } },
+  boss: { kind: "vacuum", x: 0, z: 5, arena: { minX: -17, maxX: 17, minZ: -2, maxZ: 19 } },
+  // The glitches' looks here (model ids; the dream skins every kind).
+  skins: { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub" },
+  // Biscuit's memories, tucked away off the paths and well away from the
+  // anchors: behind the doghouse, round the far side of the agility
+  // tunnel, in the shade under the floating bone steps, between the rock
+  // and the tree in the lawn's corner, behind a tree at the back of the
+  // pond garden. [id, x, z, y]
+  memories: [["hedgehog", -16.5, -15.2], ["leash", -52, 9.6], ["photo", 12, -17, 0], ["slipper", 16.4, 18.1], ["cord", 55.5, 27.1]],
   sky: { top: 0x3f7fd8, horizon: 0xffc9a0, bottom: 0xe8a8c8, sunDir: [-0.5, 0.35, -0.7], sunGlow: 0xffe0b0 },
   fog: { color: 0xf0c4a8, near: 90, far: 320 },
   sun: { color: 0xffe2c0, intensity: 2.4, dir: [-0.5, 0.75, -0.6], sky: 0xb0c8f0, ground: 0x5a6a3a, hemi: 0.85 },
@@ -138,17 +148,6 @@ export const park = {
       waves: [[0, ["buzzer", 2]], [0.3, ["fuzz", 3]], [0.55, ["knot", 1], ["buzzer", 1]], [0.8, ["bunny", 6]]],
       spawns: [[12, -24], [21, -24.5], [20.5, -32], [12.5, -31.5]],
     });
-
-    // Biscuit's memories, tucked away off the paths and well away from
-    // the anchors: behind the doghouse, round the far side of the agility
-    // tunnel, in the shade under the floating bone steps, between the rock
-    // and the tree in the lawn's corner, behind a tree at the back of the
-    // pond garden.
-    k.memory("hedgehog", -16.5, -15.2);
-    k.memory("leash", -52, 9.6);
-    k.memory("photo", 12, -17, 0);
-    k.memory("slipper", 16.4, 18.1);
-    k.memory("cord", 55.5, 27.1);
 
     // Glitches already loose in the dream, minding their own business
     // until you come near. Met a kind at a time: only dust bunnies on the

@@ -105,14 +105,18 @@ export function stepFoes(run, dt) {
   }
   for (const f of run.foes) {
     f.lx = f.px; f.ly = f.py; f.lz = f.pz;      // for the renderer's interpolation
-    f.age += dt; f.t += dt;
+    f.age += dt;
     f.flash = Math.max(0, f.flash - dt * 6);
     if (!f.alive) continue;
+    // Foam slows a glitch's whole world down (stuck fast: it stops).
+    const fdt = foamed(run, f, dt);
+    f.t += fdt;
     if (f.state === "spawn") { if (f.t > 0.5) setState(f, "idle"); else continue; }
-    if (f.kind === "fuzz" || f.kind === "bunny") fuzz(run, f, dt, px, pz);
-    else if (f.kind === "tub") tub(run, f, dt, px, pz);
-    else if (f.kind === "buzzer") buzzer(run, f, dt, px, pcy, pz);
-    else if (f.kind === "knot") knot(run, f, dt, px, pz);
+    if (!fdt) continue;
+    if (f.kind === "fuzz" || f.kind === "bunny") fuzz(run, f, fdt, px, pz);
+    else if (f.kind === "tub") tub(run, f, fdt, px, pz);
+    else if (f.kind === "buzzer") buzzer(run, f, fdt, px, pcy, pz);
+    else if (f.kind === "knot") knot(run, f, fdt, px, pz);
   }
   // Fuzzes do not stack on each other or on you.
   const list = run.foes;
@@ -134,6 +138,38 @@ export function stepFoes(run, dt) {
 }
 
 function setState(f, s) { f.state = s; f.t = 0; }
+
+// ── Foam ──
+// f.foam builds up as the Foam Cannon hits it and dries off by itself; it
+// slows the glitch down by up to SLOW. Full up, it is stuck fast for HOLD
+// seconds (and takes more from every tool), then comes out still soggy.
+export const FOAM = { slow: 0.75, dry: 0.22, hold: 2.6, after: 0.6, hurt: 1.5 };
+
+function foamed(run, f, dt) {
+  if (f.stuckT > 0) {
+    f.stuckT -= dt;
+    if (f.stuckT <= 0) { f.foam = FOAM.after; run.events.push({ type: "foamFree", id: f.id, x: f.px, y: f.cy, z: f.pz }); }
+    return 0;
+  }
+  if (!f.foam) return dt;
+  f.foam = Math.max(0, f.foam - FOAM.dry * dt);
+  return dt * (1 - FOAM.slow * Math.min(1, f.foam));
+}
+
+// Foam on a glitch (`amount`, 1 fills it); `hold` overrides how long a
+// full one stays stuck.
+export function foamFoe(run, f, amount, hold = FOAM.hold) {
+  if (!f.alive || f.stuckT > 0) return;
+  f.foam = (f.foam || 0) + amount;
+  startle(run, f);
+  if (f.foam >= 1) {
+    f.foam = 1; f.stuckT = hold;
+    if (f.body) { f.body.vx = 0; f.body.vz = 0; }
+    else { f.vx = 0; f.vy = 0; f.vz = 0; }
+    if (f.state !== "spawn") setState(f, "idle");
+    run.events.push({ type: "foamStuck", id: f.id, kind: f.kind, x: f.px, y: f.cy, z: f.pz });
+  }
+}
 
 // The last guard at the brink: a walker that stepped off a drop on its own
 // (crowded, sliding along the edge) is put back where it stood.
@@ -549,13 +585,15 @@ export function startle(run, f) {
 // Hit a glitch; returns true if that finished it.
 export function damageFoe(run, f, dmg, dx, dz, big) {
   if (!f.alive || f.state === "spawn" && f.t < 0.2) return false;
-  f.hp -= dmg;
+  // Stuck in foam: it cannot dodge or roll with it.
+  const stuck = f.stuckT > 0;
+  f.hp -= stuck ? dmg * FOAM.hurt : dmg;
   f.flash = 1;
   // Hit from afar: it comes for you, and so do the ones round it. The calm
   // of the arrival spot is over once you start a fight.
   if (!f.group) { notice(run, f); f.provoked = ALERT.provoked; alert(run, f, ALERT.hit, ALERT.provoked); }
   run.calm = null;
-  const k = f.def.knock * (big ? 2.2 : 1);
+  const k = stuck ? 0 : f.def.knock * (big ? 2.2 : 1);
   if (f.body && k > 0) {
     f.body.vx += dx * 3.5 * k; f.body.vz += dz * 3.5 * k;
     if (big) { f.body.vy = 3; f.body.grounded = false; }

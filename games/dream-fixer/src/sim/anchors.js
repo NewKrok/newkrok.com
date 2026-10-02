@@ -86,7 +86,8 @@ function fix(run, a) {
   run.checkpoint = { x: a.x, y: a.y, z: a.z + 2.2, yaw: run.body.yaw };
   run.checkpoint.y = run.kit.floorAt(run.checkpoint.x, run.checkpoint.z, a.y + 1);
   run.hp = Math.max(run.hp, run.maxHp);
-  // The Factory sends the Fuzz Vacuum down after the first anchor.
-  if (run.def.unlockAfterFirst && run.anchors.filter((o) => o.state === "fixed").length === 1) run.pendingUnlock = run.def.unlockAfterFirst;
+  // The Factory may send a new tool down once enough anchors hold.
+  const U = run.def.unlockTool;
+  if (U && run.fixedCount === U.anchors) run.pendingUnlock = U.id;
   run.events.push({ type: "anchorFixed", anchor: a.id, x: a.x, y: a.y, z: a.z, left: run.anchors.filter((o) => o.state !== "fixed").length });
 }

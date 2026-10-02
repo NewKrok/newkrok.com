@@ -41,6 +41,8 @@ export class Sfx {
           this.dustT = 0.5;
           A.play("dust", this.dustCombo);
           break;
+        case "foamSpray": case "foamBlob": A.play(e.type); break;
+        case "foamSplat": case "foamSet": case "foamGone": case "foamStuck": case "foamFree": A.play(e.type, 0, e.x, e.z); break;
         case "toolSwitch": A.play("switch"); break;
         case "toolUnlocked": A.play("newTool"); break;
         case "catch": A.play("catch"); break;
@@ -93,7 +95,7 @@ export class Sfx {
     A.loop("buzz", near < 12 ? 1 - near / 12 : 0);
     // Music: the dream's tune, busier with glitches about, the nightmare's own theme for the boss.
     const alive = run.foes.filter((f) => f.alive).length;
-    A.setSong(run.won ? "win" : B?.alive || run.coreT > 0 ? "boss" : run.def.song ?? "park");
+    A.setSong(run.won ? "win" : B?.alive || run.coreT > 0 ? "boss" : run.def.song ?? run.def.id);
     A.setIntensity(Math.min(1, alive / 6 + (tu ? 0.35 : 0)));
   }
 }
