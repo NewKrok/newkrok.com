@@ -11,7 +11,7 @@
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const hz = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
-const GAP = { zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07 };
+const GAP = { zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15 };
 
 const SONGS = {
   menu: { root: 60, bpm: 76, scale: [0, 2, 4, 7, 9], prog: [0, -3, 5, -5], lead: "box", drums: 0 },
@@ -163,6 +163,10 @@ export class Audio {
       case "squeak": S(0.12, { type: "triangle", freq: 1200, freqEnd: 1800, gain: 0.04 }); break;
       case "tubWindup": S(0.7, { type: "sine", freq: 180, freqEnd: 420, gain: 0.08 }); N(0.6, { freq: 900, freqEnd: 2000, q: 1, gain: 0.05, attack: 0.2 }); break;
       case "splash": N(0.4, { type: "lowpass", freq: 3000, freqEnd: 400, gain: 0.18 }); S(0.2, { freq: 700, freqEnd: 1600, gain: 0.05 }); [0.05, 0.12, 0.2].forEach((dt) => at(dt, (tt) => this.#tone(d, tt, 0.08, { freq: 1400 + Math.random() * 800, freqEnd: 2600, gain: 0.03 }))); break;
+      case "wade": N(0.2, { type: "lowpass", freq: 2200, freqEnd: 500, gain: 0.08 }); at(0.04, (tt) => this.#tone(d, tt, 0.06, { freq: 900 + Math.random() * 500, freqEnd: 1700, gain: 0.025 })); break;
+      case "chitter": [0, 0.06, 0.12].forEach((dt) => at(dt, (tt) => this.#tone(d, tt, 0.04, { type: "triangle", freq: 1900 + Math.random() * 400, freqEnd: 2500, gain: 0.035 }))); break;
+      case "nut": N(0.16, { type: "bandpass", freq: 900, freqEnd: 2200, q: 2, gain: 0.06 }); break;
+      case "nutHit": S(0.07, { type: "triangle", freq: 950, freqEnd: 520, gain: 0.09 }); N(0.04, { freq: 2500, q: 3, gain: 0.04 }); break;
       case "knotSpawn": N(0.3, { type: "lowpass", freq: 900, freqEnd: 300, gain: 0.08 }); S(0.2, { type: "triangle", freq: 200, freqEnd: 320, gain: 0.04 }); break;
       // You.
       case "hurt": S(0.2, { type: "triangle", freq: 330, freqEnd: 160, gain: 0.08 }); S(0.2, { type: "sine", freq: 340, freqEnd: 170, gain: 0.05, detune: 30 }); break;

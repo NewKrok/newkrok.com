@@ -12,6 +12,7 @@ import { BossView } from "./boss.js";
 import { Companion, MemoryView } from "./companion.js";
 import { AnchorView } from "./anchors.js";
 import { DreamSky } from "./dreamsky.js";
+import { WaterView } from "./water.js";
 import { C } from "./palette.js";
 import { damp, lerp } from "../config.js";
 
@@ -130,6 +131,7 @@ export class GameView {
     this.anchors = new AnchorView(g, kit.anchors);
     this.weather = new DreamSky(g, def, kit, { sky, fog: this.scene.fog, sun: this.sun });
     this.memories = new MemoryView(g, run.memories);
+    this.water = new WaterView(g, kit, this.fx);
     this.companion.placed = false;
     this.lampCount = Math.min(LAMP_LIGHTS, def.lamps ?? 3);
     this.lampSpots = kit.lights;
@@ -143,6 +145,7 @@ export class GameView {
   applyEvents(run) {
     const events = this.pending;
     for (const e of events) {
+      this.water.onEvent(e);
       if (e.type === "shot") {
         const end = [e.o[0] + e.d[0] * e.t, e.o[1] + e.d[1] * e.t, e.o[2] + e.d[2] * e.t];
         const from = this.muzzleWorld();
@@ -261,6 +264,7 @@ export class GameView {
 
     this.anchors.update(run, dt, t, this.fx);
     this.weather.update(run, dt, t);
+    this.water.update(run, dt, t);
     this.memories.update(dt, t, this.fx);
     this.companion.update(run, dt, t, this.talking);
 

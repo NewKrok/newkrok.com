@@ -37,8 +37,18 @@ export class FoeView {
     this.marks = new T.InstancedMesh(new T.RingGeometry(0.8, 1, 32), new T.MeshBasicMaterial({ toneMapped: false, transparent: true, depthWrite: false, side: T.DoubleSide }), 16);
     this.marks.instanceColor = new T.InstancedBufferAttribute(new Float32Array(16 * 3), 3);
     this.marks.frustumCulled = false; this.marks.count = 0;
+    // Nuts the squirrels throw: a brown kernel under a darker cap, spinning.
+    const NUTS = 24;
+    const nutMat = new T.MeshStandardMaterial({ roughness: 0.55, flatShading: true });
+    this.nuts = new T.InstancedMesh(new T.IcosahedronGeometry(0.16, 1).scale(1, 1.25, 1).translate(0, -0.04, 0), nutMat, NUTS);
+    this.caps = new T.InstancedMesh(new T.SphereGeometry(0.165, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2).scale(1.05, 0.7, 1.05).translate(0, 0.05, 0), nutMat, NUTS);
+    for (const m of [this.nuts, this.caps]) {
+      m.instanceColor = new T.InstancedBufferAttribute(new Float32Array(NUTS * 3), 3);
+      for (let i = 0; i < NUTS; i++) m.setColorAt(i, new T.Color(m === this.nuts ? 0xc9883e : 0x5e3a1e));
+      m.frustumCulled = false; m.count = 0; m.castShadow = true;
+    }
     this._x = new T.Vector3(1, 0, 0);
-    scene.add(this.orbs, this.motes, this.yarn, this.marks);
+    scene.add(this.orbs, this.motes, this.yarn, this.marks, this.nuts, this.caps);
     this._m = new T.Matrix4(); this._q = new T.Quaternion(); this._p = new T.Vector3(); this._s = new T.Vector3(); this._c = new T.Color(); this._e = new T.Euler();
   }
 
@@ -74,6 +84,9 @@ export class FoeView {
         this.fx.burst([e.x, e.y, e.z], [0, 1, 0], 0xffffff, 24, 4, 0.07);
         this.fx.ring([e.x, e.y + 0.05, e.z], [0, 1, 0], 0x9fe0ff, e.splash, 0.4);
         this.fx.puff(e.x, e.y, e.z, 0.7);
+      } else if (e.kind === "nut") {
+        if (e.onYou) return;
+        for (let i = 0; i < 8; i++) this.fx.spark(e.x, e.y, e.z, (Math.random() - 0.5) * 4, 1.5 + Math.random() * 2.5, (Math.random() - 0.5) * 4, 0.5, 0.05, i % 2 ? 0x8a5a2a : 0xd8a060, 12);
       } else this.fx.burst([e.x, e.y, e.z], [0, 1, 0], C.dreamPink, 12, 3, 0.05);
     }
   }
@@ -116,7 +129,26 @@ export class FoeView {
     const { _m, _q, _p, _s, _c } = this;
     let i = 0;
     let r = 0;
+    let n = 0;
+    const nut = (x, y, z, spin) => {
+      if (n >= 24) return;
+      _p.set(x, y, z); _q.setFromEuler(this._e.set(spin, spin * 0.7, 0)); _s.setScalar(1);
+      _m.compose(_p, _q, _s);
+      this.nuts.setMatrixAt(n, _m); this.caps.setMatrixAt(n, _m);
+      n++;
+    };
+    // A squirrel winding up holds its nut over its head.
+    for (const f of run.foes) {
+      if (!f.alive || f.state !== "throw" || !this.live.get(f.id)?.o.visible) continue;
+      const k = Math.min(1, f.t / 0.6), fwd = 0.12 - k * 0.22;
+      nut(f.px - Math.sin(f.yaw) * fwd, f.py + f.def.h + 0.3 + k * 0.2, f.pz - Math.cos(f.yaw) * fwd, Math.sin(t * 3) * 0.3);
+    }
     for (const s of run.spits) {
+      if (s.kind === "nut") {
+        nut(s.x, s.y, s.z, t * 14 + s.id);
+        if (Math.random() < 0.6) this.fx.spark(s.x, s.y, s.z, 0, 0.2, 0, 0.25, 0.04, 0xffe0a8, 0);
+        continue;
+      }
       const bubble = s.kind === "bubble";
       const w = (1 + Math.sin(t * (bubble ? 9 : 30) + s.id) * (bubble ? 0.08 : 0.15)) * (bubble ? 2.2 : 1);
       _p.set(s.x, s.y, s.z); _q.identity(); _s.setScalar(w);
@@ -133,6 +165,8 @@ export class FoeView {
       }
       i++;
     }
+    this.nuts.count = this.caps.count = n;
+    for (const m of [this.nuts, this.caps]) m.instanceMatrix.needsUpdate = true;
     this.marks.count = r;
     this.marks.instanceMatrix.needsUpdate = true; if (this.marks.instanceColor) this.marks.instanceColor.needsUpdate = true;
     this.orbs.count = i;
@@ -171,6 +205,7 @@ function animFuzz(f, N, t, grow) {
   const b = f.body, sp = b.speed2D;
   let sy, sxz = 1, hop = 0, lean = 0;
   if (f.state === "windup") { const k = Math.min(1, f.t / 0.5); sy = 1 - 0.3 * k; sxz = 1 + 0.2 * k; lean = -0.25 * k; }
+  else if (f.state === "throw") { const k = Math.min(1, f.t / 0.6); sy = 1 + 0.12 * k; sxz = 1 - 0.06 * k; lean = -0.45 * k + (k > 0.85 ? (k - 0.85) * 5 : 0); }
   else if (f.state === "lunge") { sy = 1.2; sxz = 0.88; lean = 0.5; }
   else if (f.state === "stun") { sy = 0.85 + Math.sin(f.t * 40) * 0.08; sxz = 1.1; }
   else if (b.grounded && sp > 0.5) {

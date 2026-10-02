@@ -1,10 +1,12 @@
 import { Body } from "./player.js";
+import { World } from "./world.js";
 
 // ── Glitches ─────────────────────────────────────────────────────────────
 // What goes wrong in a dream. Nobody dies: a glitch that runs out of `hp`
 // is smoothed out and pops into dream dust.
 //
-//  fuzz    (Kóc)     hops at you, winds up, bonks.
+//  fuzz    (Kóc)     hops at you, winds up, bonks; from a few metres off
+//                    it may lob a nut at you instead.
 //  buzzer  (Zizegő)  circles overhead and spits slow, shootable orbs.
 //  knot    (Csomó)   sits still and keeps tangling out new fuzzes.
 //  bunny   (Porcica) a dust bunny: tiny, quick, comes in packs, nips.
@@ -20,6 +22,10 @@ const MELEE = {
   fuzz: { windup: 0.5, lunge: 7.5, reach: 1.8, cd: 1.8, attackers: 2 },
   bunny: { windup: 0.3, lunge: 6.5, reach: 1.3, cd: 1.4, attackers: 2 },
 };
+// The fuzz's nut: thrown from between min and max metres, a few at a time.
+const THROW = { min: 4.5, max: 16, windup: 0.6, cd: 3.2, cdRand: 2.6, throwers: 2, speed: 12, dmg: 4 };
+// A walker will not step off a drop deeper than this.
+const DROP = 1.4;
 
 export const FOES = {
   fuzz: { hp: 3, r: 0.36, h: 0.8, speed: 4.3, dmg: 7, dust: 3, hitR: 0.44, hitY: 0.4, knock: 1, catchable: true },
@@ -75,7 +81,12 @@ export class Foe {
 export function stepFoes(run, dt) {
   const P = run.body, px = P.x, pz = P.z, pcy = P.y + 1.0;
   run.attackers = { fuzz: 0, bunny: 0 };
-  for (const f of run.foes) if (f.alive && f.kind in run.attackers && (f.state === "windup" || f.state === "lunge")) run.attackers[f.kind]++;
+  run.throwers = 0;
+  for (const f of run.foes) {
+    if (!f.alive) continue;
+    if (f.kind in run.attackers && (f.state === "windup" || f.state === "lunge")) run.attackers[f.kind]++;
+    if (f.state === "throw") run.throwers++;
+  }
   for (const f of run.foes) {
     f.lx = f.px; f.ly = f.py; f.lz = f.pz;      // for the renderer's interpolation
     f.age += dt; f.t += dt;
@@ -98,23 +109,63 @@ export function stepFoes(run, dt) {
       const dx = b.body.x - a.body.x, dz = b.body.z - a.body.z, d = Math.hypot(dx, dz), m = a.def.r + b.def.r;
       if (d < m && d > 1e-4) {
         const k = (m - d) / d * 0.5;
-        a.body.x -= dx * k; a.body.z -= dz * k; b.body.x += dx * k; b.body.z += dz * k;
+        shove(run, a.body, -dx * k, -dz * k); shove(run, b.body, dx * k, dz * k);
       }
     }
     const dx = a.body.x - px, dz = a.body.z - pz, d = Math.hypot(dx, dz), m = a.def.r + P.r;
-    if (d < m && d > 1e-4 && Math.abs(a.body.y - P.y) < 1.2) { a.body.x += dx / d * (m - d); a.body.z += dz / d * (m - d); }
+    if (d < m && d > 1e-4 && Math.abs(a.body.y - P.y) < 1.2) shove(run, a.body, dx / d * (m - d), dz / d * (m - d));
   }
 }
 
 function setState(f, s) { f.state = s; f.t = 0; }
 
+// Crowding pushes a walker aside, but never over the edge of a drop.
+function shove(run, b, dx, dz) {
+  if (b.grounded && floorBelow(run.world, b.x + dx * 4, b.z + dz * 4, b.y) < b.y - DROP) return;
+  b.x += dx; b.z += dz;
+}
+
 // Is it paying attention to you? Wave glitches always are; loose ones only
-// once you come close, and they give up if you get well away.
-function aware(f, dist) {
+// once you come close, and they give up if you get well away. Around the
+// spot where you arrive the dream is calm: loose glitches leave you be
+// there (time to listen to Margó and look round).
+function aware(run, f, dist) {
   if (f.group) return true;
+  const c = run.calm, P = run.body;
+  if (c && Math.hypot(P.x - c.x, P.z - c.z) < c.r) return (f.aware = false);
   if (dist < 14) f.aware = true;
   else if (dist > 28) f.aware = false;      // lost you: back home
   return f.aware;
+}
+
+// Highest floor under (x, z) that a body standing at y could drop onto,
+// or −Infinity over the void.
+function floorBelow(world, x, z, y) {
+  let best = -Infinity;
+  for (const c of world.query(x, z, 0.05)) {
+    if (!world.overlaps(c, x, z, 0.05)) continue;
+    const top = World.topAt(c, x, z);
+    if (top <= y + 0.5 && top > best) best = top;
+  }
+  return best;
+}
+
+// Would walking this way take the body off a ledge? Walkers look a step
+// ahead and stop at the brink instead of wandering off the island.
+function brink(run, b, intent) {
+  let f = intent.forward || 0, s = intent.strafe || 0;
+  const len = Math.hypot(f, s);
+  if (len < 0.05) return false;
+  f /= len; s /= len;
+  const sn = Math.sin(b.yaw), cs = Math.cos(b.yaw);
+  const wx = -sn * f + cs * s, wz = -cs * f - sn * s;
+  // In the air (a hop over a rope), measured from the floor below.
+  const ref = b.grounded ? b.y : Math.min(b.y, floorBelow(run.world, b.x, b.z, b.y));
+  if (ref === -Infinity) return false;
+  for (const k of [b.r + 0.35, b.r + 0.9]) {
+    if (floorBelow(run.world, b.x + wx * k, b.z + wz * k, b.y) < ref - DROP) return true;
+  }
+  return false;
 }
 
 function fuzz(run, f, dt, px, pz) {
@@ -127,7 +178,7 @@ function fuzz(run, f, dt, px, pz) {
   switch (f.state) {
     case "idle":
     case "chase": {
-      if (!aware(f, dist)) {
+      if (!aware(run, f, dist)) {
         // Minding its own business: pottering about near where it started.
         f.home ??= [b.x, b.z];
         const hx = f.home[0] - b.x, hz = f.home[1] - b.z;
@@ -145,15 +196,36 @@ function fuzz(run, f, dt, px, pz) {
       } else intent.forward = dist > 1.2 ? 1 : 0;
       // Stuck against a ledge: hop.
       if (b.grounded && dist > 2 && b.speed2D < 0.8 && f.t > 0.3 && !waiting) { intent.jumpPressed = true; f.t = 0; }
-      if (dist < M.reach && Math.abs(dy) < 1.2 && !waiting) { setState(f, "windup"); run.attackers[f.kind]++; run.events.push({ type: "windup", kind: f.kind, x: b.x, z: b.z }); }
+      if (dist < M.reach && Math.abs(dy) < 1.2 && !waiting) { setState(f, "windup"); run.attackers[f.kind]++; run.events.push({ type: "windup", kind: f.kind, x: b.x, z: b.z }); break; }
+      // A fuzz a little way off (or one that cannot reach you) may stop and
+      // lob a nut instead (not the nightmare's own: the boss is busy enough).
+      f.throwCd = (f.throwCd ?? 1 + run.rnd() * 2.5) - dt;
+      if (f.kind === "fuzz" && f.group !== "boss" && f.throwCd <= 0 && b.grounded && dist > THROW.min && dist < THROW.max && run.throwers < THROW.throwers) {
+        if (run.canSee(b.x, b.y + 0.7, b.z)) {
+          setState(f, "throw"); run.throwers++;
+          run.events.push({ type: "nutWindup", x: b.x, z: b.z });
+        } else f.throwCd = 0.5;
+      }
       break;
     }
+    case "throw":
+      f.yaw = angTo(b.x, b.z, px, pz);
+      speedMul = 0;
+      if (f.t > THROW.windup) {
+        throwNut(run, f);
+        f.throwCd = THROW.cd + run.rnd() * THROW.cdRand;
+        setState(f, "chase");
+      }
+      break;
     case "windup":
       f.yaw = angTo(b.x, b.z, px, pz);
       speedMul = 0;
       if (f.t > M.windup) {
         setState(f, "lunge");
-        const k = M.lunge / Math.max(dist, 0.1);
+        // Over a drop, only as far as you (a full lunge would overshoot the edge).
+        const ux = dx / Math.max(dist, 0.1), uz = dz / Math.max(dist, 0.1);
+        const edge = floorBelow(run.world, b.x + ux * 2.2, b.z + uz * 2.2, b.y) < b.y - DROP;
+        const k = (edge ? Math.min(M.lunge, dist / 0.3) : M.lunge) / Math.max(dist, 0.1);
         b.vx = dx * k; b.vz = dz * k; b.vy = f.kind === "bunny" ? 2.6 : 3.2; b.grounded = false;
         f.hitDone = false;
       }
@@ -181,6 +253,7 @@ function fuzz(run, f, dt, px, pz) {
   }
   const holdVel = f.state === "lunge" || f.state === "stun" || f.state === "sucked";
   b.yaw = f.yaw;
+  if (!holdVel && brink(run, b, intent)) { intent.forward = 0; intent.strafe = 0; intent.jumpPressed = false; }
   if (holdVel && (!b.grounded || f.state === "sucked")) {
     // Airborne lunge / knockback: keep the velocity, only gravity and walls.
     const vx = b.vx, vz = b.vz;
@@ -188,6 +261,19 @@ function fuzz(run, f, dt, px, pz) {
     b.vx = vx; b.vz = vz;
   } else b.step(run.world, intent, dt, speedMul);
   if (b.fell) { f.alive = false; f.hp = 0; f.lost = true; }
+}
+
+// A nut lobbed in an arc at where you are headed: slow enough to dodge or
+// shoot down, and it only stings.
+function throwNut(run, f) {
+  const b = f.body, P = run.body;
+  const sx = b.x - Math.sin(f.yaw) * 0.25, sy = b.y + f.def.h + 0.15, sz = b.z - Math.cos(f.yaw) * 0.25;
+  const d0 = Math.hypot(P.x - sx, P.z - sz);
+  const T = Math.min(1.4, Math.max(0.45, d0 / THROW.speed)), g = 9;
+  const lead = 0.55 + run.rnd() * 0.3;
+  const tx = P.x + P.vx * T * lead, ty = P.y + 1.0, tz = P.z + P.vz * T * lead;
+  run.spit({ x: sx, y: sy, z: sz, vx: (tx - sx) / T, vy: (ty - sy + 0.5 * g * T * T) / T, vz: (tz - sz) / T, g, dmg: THROW.dmg, kind: "nut", owner: f.id });
+  run.events.push({ type: "nut", x: sx, z: sz });
 }
 
 // The bathtub: keeps its distance and lobs soap bubbles in an arc at where
@@ -198,7 +284,7 @@ function tub(run, f, dt, px, pz) {
   f.cd -= dt;
   const intent = { forward: 0, strafe: 0 };
   if (f.state === "sucked" || f.state === "stun") { if (f.t > 0.3) setState(f, "idle"); }
-  else if (!aware(f, dist)) { f.yaw += Math.sin(f.age * 0.4 + f.phase) * dt * 0.6; }
+  else if (!aware(run, f, dist)) { f.yaw += Math.sin(f.age * 0.4 + f.phase) * dt * 0.6; }
   else {
     const turn = angTo(b.x, b.z, px, pz);
     let dd = Math.atan2(Math.sin(turn - f.yaw), Math.cos(turn - f.yaw));
@@ -218,6 +304,7 @@ function tub(run, f, dt, px, pz) {
     }
   }
   b.yaw = f.yaw;
+  if (brink(run, b, intent)) { intent.forward = 0; intent.strafe = 0; }
   b.step(run.world, intent, dt, f.state === "idle" ? 1 : 0);
   if (b.fell) { f.alive = false; f.hp = 0; f.lost = true; }
 }
@@ -232,12 +319,17 @@ function buzzer(run, f, dt, px, pcy, pz) {
   }
   const dx = f.x - px, dz = f.z - pz, dist = Math.hypot(dx, dz) || 0.01;
   f.cd -= dt;
-  // Orbit you at a distance, bobbing, a few metres up.
-  const a = Math.atan2(dz, dx) + f.dir * dt * 0.55;
-  const want = f.orbit + Math.sin(f.age * 0.6 + f.phase) * 1.5;
-  const tx = px + Math.cos(a) * want, tz = pz + Math.sin(a) * want;
+  // Orbit you at a distance, bobbing, a few metres up; a loose one that has
+  // not noticed you circles lazily over where it started.
+  f.home ??= [f.x, f.y, f.z];
+  const on = aware(run, f, dist);
+  const cx = on ? px : f.home[0], cz = on ? pz : f.home[2];
+  const ox = f.x - cx, oz = f.z - cz;
+  const a = Math.atan2(oz, ox) + f.dir * dt * (on ? 0.55 : 0.3);
+  const want = on ? f.orbit + Math.sin(f.age * 0.6 + f.phase) * 1.5 : 2.5;
+  const tx = cx + Math.cos(a) * want, tz = cz + Math.sin(a) * want;
   const floor = run.kit.floorAt(f.x, f.z, f.y + 1);
-  const ty = Math.max(pcy + 2.2, floor + 1.6) + Math.sin(f.age * 1.7 + f.phase) * 0.5;
+  const ty = (on ? Math.max(pcy + 2.2, floor + 1.6) : f.home[1]) + Math.sin(f.age * 1.7 + f.phase) * 0.5;
   const slow = f.state === "windup" ? 0.25 : 1;
   const ax = (tx - f.x) * 1.4, ay = (ty - f.y) * 2, az = (tz - f.z) * 1.4;
   f.vx += (ax - f.vx) * Math.min(1, dt * 2.5); f.vy += (ay - f.vy) * Math.min(1, dt * 2.5); f.vz += (az - f.vz) * Math.min(1, dt * 2.5);
@@ -253,7 +345,7 @@ function buzzer(run, f, dt, px, pcy, pz) {
   if (f.y < floor + 0.6) { f.y = floor + 0.6; f.vy = Math.max(0, f.vy); }
   f.yaw = angTo(f.x, f.z, px, pz);
 
-  if (f.state === "idle" && f.cd <= 0 && dist < 22 && run.canSee(f.x, f.y, f.z)) setState(f, "windup");
+  if (on && f.state === "idle" && f.cd <= 0 && dist < 22 && run.canSee(f.x, f.y, f.z)) setState(f, "windup");
   if (f.state === "windup" && f.t > 0.6) {
     // Spit an orb at where you are going to be.
     const B = run.body, lead = Math.min(1, dist / 8);

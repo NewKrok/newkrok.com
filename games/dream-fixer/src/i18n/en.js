@@ -76,6 +76,7 @@ export const EN = {
   set_controls: "Controls",
   set_sens: "Mouse sensitivity",
   set_tsens: "Touch sensitivity",
+  set_psens: "Controller look speed",
   set_invert: "Invert looking up/down",
   set_assist: "Aim assist",
   set_auto: "Auto-fire (touch)",
@@ -91,6 +92,6 @@ export const EN = {
   set_progress: "Progress",
   set_reset: "Reset everything",
   set_resetAsk: "Really start over? Dust, upgrades and memories will be gone.",
-  howto_text: "<h3>The job</h3><p>Each night you go down into someone's broken dream. Three <b>anchors</b> hold it together: find them (look for the pink wisps), press <kbd>E</kbd> and stay in the ring until the tuning is done. Glitches come at you while it runs.</p><h3>Tools</h3><p><b>Stabilizer</b>: click to fire, hold right click to charge a big bolt. <b>Fuzz Vacuum</b> (after the first anchor): hold it on glitches and the stream wears them down; small ones (squirrels, dust bunnies, buzzers) it sucks right in, up to three. Right click shoots a catch back out as a bursting yarn ball, or puffs air when the tank is empty. Tools never run out, but they heat up: let them cool.</p><h3>Wakefulness</h3><p>Bonks cost wakefulness; it comes back after a quiet moment. Run out and you just drift back to the last anchor.</p><h3>Keys</h3><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Space</kbd> jump · <kbd>E</kbd> use · <kbd>1</kbd><kbd>2</kbd> / wheel switch tools · <kbd>Esc</kbd> pause</p><h3>Touch</h3><p>Left thumb moves, right thumb looks. The big button fires (and also steers), the others jump, use and switch tools.</p>",
+  howto_text: "<h3>The job</h3><p>Each night you go down into someone's broken dream. Three <b>anchors</b> hold it together: find them (look for the pink wisps), press <kbd>E</kbd> and stay in the ring until the tuning is done. Glitches come at you while it runs.</p><h3>Tools</h3><p><b>Stabilizer</b>: click to fire, hold right click to charge a big bolt. <b>Fuzz Vacuum</b> (after the first anchor): hold it on glitches and the stream wears them down; small ones (squirrels, dust bunnies, buzzers) it sucks right in, up to three. Right click shoots a catch back out as a bursting yarn ball, or puffs air when the tank is empty. Tools never run out, but they heat up: let them cool.</p><h3>Wakefulness</h3><p>Bonks cost wakefulness; it comes back after a quiet moment. Run out and you just drift back to the last anchor.</p><h3>Keys</h3><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Space</kbd> jump · <kbd>E</kbd> use · <kbd>1</kbd><kbd>2</kbd> / wheel switch tools · <kbd>Esc</kbd> pause</p><h3>Controller</h3><p>Left stick moves, right stick looks · <kbd>RT</kbd> fire · <kbd>LT</kbd> charge / shoot the catch back · <kbd>A</kbd> jump · <kbd>X</kbd> use · <kbd>LB</kbd> <kbd>RB</kbd> / <kbd>Y</kbd> switch tools · <kbd>Start</kbd> pause. In menus: stick or d-pad, <kbd>A</kbd> to pick, <kbd>B</kbd> back.</p><h3>Touch</h3><p>Left thumb moves, right thumb looks. The big button fires (and also steers), the others jump, use and switch tools.</p>",
   madeBy: "Krisztian Somoracz, with the help of Claude",
 };

@@ -35,6 +35,8 @@ export class Run {
     this.body = new Body();
     const s = this.kit.spawn;
     this.checkpoint = { ...s };
+    // Loose glitches leave you alone this close to where you arrive.
+    this.calm = levelDef.calm ? { x: s.x, z: s.z, r: levelDef.calm } : null;
     this.body.place(s.x, s.y, s.z, s.yaw);
     this.tools = this.opts.tools.map((id) => new ToolState(id, toolDef(id, this.opts.upgrades)));
     this.tool = 0;
@@ -149,6 +151,14 @@ export class Run {
     b.step(this.world, intent, dt);
     if (b.jumped) this.events.push({ type: "jump" });
     if (b.landSpeed > 4) this.events.push({ type: "land", speed: b.landSpeed });
+    // Water: a ring at every few steps through it, a splash on jumping in.
+    const wy = this.kit.waterAt(b.x, b.z), wet = wy !== null && b.y < wy;
+    if (wet && (!this.wet || b.landSpeed > 3)) this.events.push({ type: "wade", x: b.x, y: wy, z: b.z, vx: b.vx, vz: b.vz, big: Math.max(2, b.landSpeed) });
+    else if (wet && b.speed2D > 0.5) {
+      this.wadeT = (this.wadeT ?? 0) - dt * b.speed2D;
+      if (this.wadeT <= 0) { this.wadeT = 1.6; this.events.push({ type: "wade", x: b.x, y: wy, z: b.z, vx: b.vx, vz: b.vz, big: 0 }); }
+    }
+    this.wet = wet;
     if (b.fell) {
       // Falling out of a dream just puts you back: no harm done.
       const c = this.checkpoint;
@@ -441,7 +451,7 @@ export class Run {
         if (s.splash) { this.burstSpit(s); continue; }
         s.life = 0;
         this.hurt(s.dmg, s.x, s.z);
-        this.events.push({ type: "spitPop", x: s.x, y: s.y, z: s.z, onYou: true });
+        this.events.push({ type: "spitPop", x: s.x, y: s.y, z: s.z, onYou: true, kind: s.kind });
       }
     }
     this.spits = this.spits.filter((s) => s.life > 0);

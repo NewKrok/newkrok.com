@@ -1,7 +1,8 @@
 import { Touch } from "./touch.js";
+import { Gamepad, BTN } from "./gamepad.js";
 
 // ── Input ────────────────────────────────────────────────────────────────
-// Keyboard + mouse (with pointer lock) and touch feed one shared state.
+// Keyboard + mouse (with pointer lock), touch and a gamepad feed one shared state.
 // The game reads it once per frame: look() gives the view turn since the
 // last call, intent() the movement and buttons for the sim, and pressed()
 // the one-shot actions (tool switch, pause…).
@@ -26,9 +27,14 @@ export class Input {
     this.touch = new Touch(el, this);
     this.onLockChange = null;
     this.canLock = () => true;
+    this.pad = new Gamepad();
+    this.padOn = false;           // a pad is connected (polled this frame)
+    this.usingPad = false;        // …and it was the last thing touched
+    this.padLook = [0, 0];
 
     addEventListener("keydown", (e) => {
       if (!this.enabled) return;
+      this.usingPad = false;
       if (e.code === "Tab") e.preventDefault();
       if (!e.repeat) {
         if (ONE_SHOT[e.code]) this.edges.add(ONE_SHOT[e.code]);
@@ -59,6 +65,7 @@ export class Input {
       // Browsers occasionally report one huge jump when the lock settles.
       if (Math.abs(e.movementX) > 400 || Math.abs(e.movementY) > 400) return;
       this.dx += e.movementX; this.dy += e.movementY;
+      if (Math.abs(e.movementX) + Math.abs(e.movementY) > 2) this.usingPad = false;
     });
     addEventListener("wheel", (e) => {
       if (!this.locked) return;
@@ -81,6 +88,27 @@ export class Input {
   }
   unlock() { if (document.pointerLockElement) document.exitPointerLock(); }
 
+  // Once a frame: read the pad; while playing, its right stick turns the
+  // view and its buttons give the same one-shot actions as the keys.
+  poll(dt, playing) {
+    const p = this.pad;
+    this.padOn = p.poll();
+    if (!this.padOn) { this.usingPad = false; return; }
+    if (p.any()) this.usingPad = true;
+    if (!playing) return;
+    const s = this.settings, k = s.padSensitivity ?? 1;
+    // On a curve: small pushes for fine aim, a full push turns fast.
+    const curve = (v) => Math.sign(v) * Math.abs(v) ** 1.7;
+    this.padLook[0] -= curve(p.axes[2]) * 3.6 * k * dt;
+    this.padLook[1] -= curve(p.axes[3]) * 2.5 * k * dt * (s.invertY ? -1 : 1);
+    const P = (b) => p.pressed(b);
+    if (P(BTN.A)) this.edges.add("jump");
+    if (P(BTN.X)) this.edges.add("use");
+    if (P(BTN.Y) || P(BTN.RB) || P(BTN.RIGHT)) this.edges.add("toolNext");
+    if (P(BTN.LB) || P(BTN.LEFT)) this.edges.add("toolPrev");
+    if (P(BTN.START)) this.edges.add("pause");
+  }
+
   key(name) { for (const c of KEYS[name]) if (this.down.has(c)) return true; return false; }
 
   // View turn in radians since the last call ([yaw, pitch]).
@@ -90,7 +118,8 @@ export class Input {
     let yaw = -this.dx * k, pitch = -this.dy * k * (s.invertY ? -1 : 1);
     this.dx = this.dy = 0;
     const [ty, tp] = this.touch.look();
-    yaw += ty; pitch += tp;
+    yaw += ty + this.padLook[0]; pitch += tp + this.padLook[1];
+    this.padLook[0] = this.padLook[1] = 0;
     return [yaw, pitch];
   }
 
@@ -100,12 +129,14 @@ export class Input {
     let forward = (this.key("forward") ? 1 : 0) - (this.key("back") ? 1 : 0);
     let strafe = (this.key("right") ? 1 : 0) - (this.key("left") ? 1 : 0);
     if (t.active) { forward += t.move[1]; strafe += t.move[0]; }
+    const p = this.padOn ? this.pad : null;
+    if (p) { forward -= p.axes[1]; strafe += p.axes[0]; }
     return {
       forward, strafe,
-      jump: this.key("jump") || t.held.jump,
-      fire: this.mouse.fire || t.held.fire,
-      alt: this.mouse.alt || t.held.alt,
-      use: this.key("use") || t.held.use,
+      jump: this.key("jump") || t.held.jump || !!p?.down(BTN.A),
+      fire: this.mouse.fire || t.held.fire || (p?.value(BTN.RT) ?? 0) > 0.35,
+      alt: this.mouse.alt || t.held.alt || (p?.value(BTN.LT) ?? 0) > 0.35,
+      use: this.key("use") || t.held.use || !!p?.down(BTN.X),
     };
   }
 

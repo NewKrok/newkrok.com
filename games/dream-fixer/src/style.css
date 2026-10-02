@@ -182,3 +182,6 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; border-radius: 
 .hud .tankdots.on { opacity: 1; }
 .hud .tankdots i { width: 9px; height: 9px; border-radius: 50%; border: 2px solid rgba(255, 210, 122, 0.8); }
 .hud .tankdots i.f { background: #ffd27a; box-shadow: 0 0 6px #ffd27a; }
+
+/* ── Gamepad: a clear focus ring while the pad drives the menus ── */
+body.pad-nav .menus button:focus, body.pad-nav .menus input:focus { outline: 3px solid var(--brass); outline-offset: 3px; }

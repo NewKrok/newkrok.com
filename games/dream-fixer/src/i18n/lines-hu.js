@@ -12,6 +12,7 @@ export const LINES_HU = {
   park_in3: ["margo", "Az egyik a tóban van a keleti hídon túl, a másik a kutyafuttatón a nyugati hídon át, a harmadik a kis szigeten, fel a csontlépcsőn."],
   park_bunny: ["margo", "Porcicák: a Porszívó kis kártevői. Egy lövés elég mindegyikre, vagy szívd be az egész falkát a Kócszívóval."],
   park_tub: ["margo", "Az ott… egy fürdőkád? A kutyák második legrosszabb rémálma. Szappanbuborékokat lő: figyeld a gyűrűt a földön, és lépj ki belőle!"],
+  park_nut: ["margo", "Vigyázz, a mókusok makkal dobálnak! Ha egyik hátrahőköl, és a feje fölé emeli a makkot, mindjárt dob: lépj félre, vagy lődd le a makkot a levegőben."],
   park_in1: ["margo", "Bent vagy. Lenyírt fű és… teniszlabda illata."],
   park_in2: ["margo", "Nézd csak: szürke, megzúzott ég, rózsaszín hibaszilánkok a levegőben, mindenfelé kábelek. Három álomhorgonynak kellene egyben tartania az álmot, és mindhárom elromlott. Figyeld a rózsaszín füstöt és a sötét foltokat a földön."],
   park_foe: ["margo", "Mókusok! A kutya álmában a hibák annak alakját öltik, amit egész nap kerget, és ezek visszakergetnek. Látod a rózsaszín fonalat? Össze vannak gabalyodva. Simítsd ki őket a Stabilizátorral!"],

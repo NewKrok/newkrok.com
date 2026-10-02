@@ -4,7 +4,7 @@ import { anchor } from "./dream.js";
 import { vacuumBoss } from "./boss.js";
 import { jobBoard, workbench, desk, lift, dreamTank, pipe, almos, crate, shelf, rug, hangLamp, dock } from "./factory.js";
 import { memoryBubble } from "./dream.js";
-import { tree, bush, rock, bench, lamp, bone, tennisBall, hydrant, doghouse, fence, flowers, grass, hurdle, tyre, pole, tunnel, sign, water, lilypad, reeds, gazebo, dock as jetty, cable, cloud } from "./park.js";
+import { tree, bush, rock, bench, lamp, bone, tennisBall, hydrant, doghouse, fence, flowers, grass, hurdle, tyre, pole, tunnel, sign, lilypad, reeds, gazebo, dock as jetty, cable, cloud } from "./park.js";
 
 // ── Model registry ───────────────────────────────────────────────────────
 // Everything the model viewer (?model=<id>) can show, with the distance
@@ -88,7 +88,6 @@ export const MODELS = {
   pole: { build: pole, frame: 1.4 },
   tunnel: { build: tunnel, frame: 5 },
   sign: { build: sign, frame: 2 },
-  water: { build: water, frame: 14 },
   lilypad: { build: lilypad, frame: 1.4 },
   reeds: { build: reeds, frame: 2 },
   gazebo: { build: gazebo, frame: 6 },

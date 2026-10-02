@@ -16,6 +16,7 @@ const DIRECTORS = {
       }
       if (e.type === "spawn" && e.kind === "knot") D.say("park_knot");
       if (e.type === "memory") D.say("park_memory");
+      if (e.type === "nut") D.say("park_nut");
       if (e.type === "bossRise") D.say("park_boss");
       if (e.type === "bossAttack" && e.attack === "suck") D.say("park_suck");
       if (e.type === "bossClog") D.say("park_clog");

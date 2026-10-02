@@ -11,6 +11,7 @@ import { Sfx } from "./sfx.js";
 import { Dialog } from "./story/dialog.js";
 import { Director } from "./story/director.js";
 import { Menus } from "./ui/menus.js";
+import { PadNav } from "./ui/padnav.js";
 import { UPGRADES } from "./data/upgrades.js";
 import { track } from "./analytics.js";
 
@@ -39,11 +40,12 @@ async function startGame() {
   const dialog = new Dialog(app, audio);
   const director = new Director(dialog);
   const menus = new Menus(app, audio);
+  const padNav = new PadNav(app, audio);
 
   const save = () => saveProgress(progress);
   const runOpts = (def) => ({
     difficulty: settings.difficulty,
-    aimAssist: settings.aimAssist ? (input.isTouch ? 0.07 : 0.03) : 0,
+    aimAssist: settings.aimAssist ? (input.isTouch ? 0.07 : input.usingPad ? 0.06 : 0.03) : 0,
     autoFire: settings.autoFire && input.isTouch,
     upgrades: progress.upgrades,
     memoriesFound: progress.memories,
@@ -83,7 +85,8 @@ async function startGame() {
   const resume = () => {
     menus.close();
     audio.unlock();
-    if (!input.isTouch) input.lock();
+    // (A pad plays without the mouse grabbed; a click grabs it again.)
+    if (!input.isTouch && !input.usingPad) input.lock();
     setState("play");
   };
   // Open a menu from play without the lock loss counting as a pause.
@@ -211,11 +214,17 @@ async function startGame() {
     const dt = Math.max(0, Math.min(0.1, (now - last) / 1000));
     last = now;
     let look = [0, 0];
+    const wasPad = input.usingPad;
+    input.poll(dt, state === "play");
+    if (input.usingPad !== wasPad && run) Object.assign(run.opts, liveOpts());
+    if (input.padOn && input.pad.any()) audio.unlock();
     const edges = input.pressed();
+    if (state !== "play" && input.padOn) padNav.frame(input.pad, time);
     if (state === "play") {
       hud.touch = input.isTouch;
-      hud.unlocked(!input.isTouch && !input.locked);
-      if (edges.has("pause")) { if (input.isTouch) openMenu(showPause); else input.unlock(); }
+      hud.pad = input.usingPad;
+      hud.unlocked(!input.isTouch && !input.locked && !input.usingPad);
+      if (edges.has("pause")) { if (input.isTouch || !input.locked) openMenu(showPause); else input.unlock(); }
       look = input.look();
       run.body.look(look[0], look[1]);
       acc += dt;

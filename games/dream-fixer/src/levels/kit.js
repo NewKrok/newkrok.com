@@ -16,6 +16,7 @@ export class Kit {
     this.memories = [];
     this.marks = {};           // named points for the story and the spawner
     this.lights = [];
+    this.waters = [];          // { x, z, w, d, y }: pond surfaces (drawn by the renderer)
     this.floorLimit = 50;      // indoors: below the ceiling
   }
 
@@ -77,6 +78,14 @@ export class Kit {
   memory(id, x, z, y) { this.memories.push({ id, x, z, y: y ?? this.floorAt(x, z) }); }
   // A glitch already loose when you arrive.
   foe(kind, x, z) { this.foes.push({ kind, x, z }); }
+  // Open water: a surface at height y over a w × d rectangle (draw only:
+  // the floor under it is a block of its own).
+  water(x, z, w, d, y) { this.waters.push({ x, z, w, d, y }); }
+  // Water surface height at (x, z), or null on dry land.
+  waterAt(x, z) {
+    for (const p of this.waters) if (Math.abs(x - p.x) < p.w / 2 && Math.abs(z - p.z) < p.d / 2) return p.y;
+    return null;
+  }
   mark(name, x, z, y) { this.marks[name] = { x, y: y ?? this.floorAt(x, z), z }; }
   light(x, y, z, color, intensity = 6, dist = 9) { this.lights.push({ x, y, z, color, intensity, dist }); }
 }

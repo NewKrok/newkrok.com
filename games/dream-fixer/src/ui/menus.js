@@ -90,6 +90,7 @@ export class Menus {
       <h3>${esc(t("set_controls"))}</h3>
       <label class="row"><span>${esc(t("set_sens"))}</span>${range("sensitivity", 0.3, 2.5, 0.05)}</label>
       <label class="row"><span>${esc(t("set_tsens"))}</span>${range("touchSensitivity", 0.3, 2.5, 0.05)}</label>
+      <label class="row"><span>${esc(t("set_psens"))}</span>${range("padSensitivity", 0.3, 2.5, 0.05)}</label>
       <label class="row"><span>${esc(t("set_invert"))}</span>${check("invertY")}</label>
       <label class="row"><span>${esc(t("set_assist"))}</span>${check("aimAssist")}</label>
       <label class="row"><span>${esc(t("set_auto"))}</span>${check("autoFire")}</label>

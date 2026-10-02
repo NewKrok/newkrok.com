@@ -1,0 +1,88 @@
+import { BTN } from "../input/gamepad.js";
+
+// ── Menus with a gamepad ─────────────────────────────────────────────────
+// The left stick / d-pad moves the focus to the nearest control that way
+// (sliders and toggles take left / right themselves), A presses it, B goes
+// back, Start leaves the pause menu. Nothing focused yet: A takes the
+// screen's main button. Taken over from Hitch & Park.
+
+const visible = (el) => el.offsetParent !== null && !el.disabled;
+
+export class PadNav {
+  constructor(root, audio) {
+    this.root = root;
+    this.audio = audio;
+    // The focus ring only shows while the pad is driving the menus.
+    addEventListener("mousemove", (e) => { if (Math.abs(e.movementX) + Math.abs(e.movementY) > 2) document.body.classList.remove("pad-nav"); });
+  }
+
+  focusables() {
+    const scr = this.root.querySelector(".menus .screen");
+    if (!scr) return [];
+    return [...scr.querySelectorAll("button, input")].filter(visible);
+  }
+
+  main(list) { return list.find((b) => b.classList.contains("big")) ?? list.find((b) => b.classList.contains("btn") && !b.classList.contains("ghost")) ?? list[0]; }
+
+  // pad: the Gamepad, time: seconds (for the stick's key-repeat).
+  frame(pad, time) {
+    const dir = pad.nav(time);
+    if (dir) { document.body.classList.add("pad-nav"); this.move(dir); }
+    const P = (b) => pad.pressed(b);
+    if (P(BTN.B)) { this.press("[data-a=back], [data-a=close], [data-a=resume]"); return; }
+    if (P(BTN.START)) { this.press("[data-a=resume]"); return; }
+    if (P(BTN.A)) {
+      document.body.classList.add("pad-nav");
+      const list = this.focusables(), el = document.activeElement;
+      const target = list.includes(el) ? el : this.main(list);
+      if (target?.type === "range") this.move("right");
+      else target?.click();
+    }
+  }
+
+  press(sel) {
+    this.root.querySelector(".menus .screen")?.querySelector(sel)?.click();
+  }
+
+  move(dir) {
+    const list = this.focusables();
+    if (!list.length) return;
+    const cur = document.activeElement;
+    if (!list.includes(cur)) { this.main(list).focus(); return; }
+    if ((dir === "left" || dir === "right") && cur.type === "range") {
+      const d = dir === "right" ? 1 : -1;
+      cur.value = Math.min(Number(cur.max), Math.max(Number(cur.min), Number(cur.value) + d * Number(cur.step || 0.05)));
+      cur.dispatchEvent(new Event("input", { bubbles: true }));
+      this.audio.play("click");
+      return;
+    }
+    // Up / down: the nearest row first, then the control in it closest
+    // across. Left / right: within the row.
+    const r0 = cur.getBoundingClientRect();
+    const cx = r0.left + r0.width / 2, cy = r0.top + r0.height / 2;
+    const vertical = dir === "up" || dir === "down", sgn = dir === "down" || dir === "right" ? 1 : -1;
+    const cands = [];
+    for (const el of list) {
+      if (el === cur) continue;
+      const r = el.getBoundingClientRect();
+      const ex = r.left + r.width / 2, ey = r.top + r.height / 2;
+      if (vertical) {
+        if ((ey - cy) * sgn <= 4) continue;
+        const gap = sgn > 0 ? r.top - r0.bottom : r0.top - r.bottom;
+        cands.push({ el, gap: Math.max(0, gap), across: Math.abs(ex - cx) });
+      } else {
+        if ((ex - cx) * sgn <= 4 || r.top >= r0.bottom - 2 || r.bottom <= r0.top + 2) continue;
+        cands.push({ el, gap: Math.abs(ex - cx), across: 0 });
+      }
+    }
+    if (!cands.length) {
+      if (vertical) cur.closest(".panel")?.scrollBy({ top: sgn * 160, behavior: "smooth" });
+      return;
+    }
+    const near = Math.min(...cands.map((c) => c.gap)) + 12;
+    const best = cands.filter((c) => c.gap <= near).sort((p, q) => p.across - q.across || p.gap - q.gap)[0].el;
+    best.focus({ preventScroll: true });
+    best.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    this.audio.play("click");
+  }
+}

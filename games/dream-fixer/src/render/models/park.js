@@ -238,13 +238,6 @@ export function sign(b, { color = 0xf3e6c8 } = {}) {
   b.at([0, 1.4, -0.05], [Math.PI / 2, 0, 0], 0.12, () => bone(b, { len: 2.6 }));
 }
 
-// Pond water: a flat, gently shaded sheet (draw only).
-export function water(b, { w = 12, d = 12 } = {}) {
-  b.add(SHAPE.box(w, 0.04, d), { p: [0, 0, 0], grad: [0x3a8ab8, 0x6ec2e0], facet: 0.02 });
-  const rnd = rng(3);
-  for (let i = 0; i < 10; i++) b.add(SHAPE.torus(0.3 + rnd() * 0.4, 0.015, 3, 16), { p: [(rnd() - 0.5) * w * 0.8, 0.03, (rnd() - 0.5) * d * 0.8], r: [Math.PI / 2, 0, 0], c: 0xbfe8f8, facet: 0 });
-}
-
 export function lilypad(b, { seed = 1, s = 1 } = {}) {
   const rnd = rng(seed);
   b.add(SHAPE.cyl(0.55 * s, 0.55 * s, 0.05, 12), { p: [0, 0, 0], c: vary(0x4a9a4a, rnd, 0.1), facet: 0.05 });

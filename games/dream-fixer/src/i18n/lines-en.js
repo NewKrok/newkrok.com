@@ -22,6 +22,7 @@ export const LINES_EN = {
   park_tune: ["margo", "Tuning shakes glitches loose. Stay inside the ring and hold your ground!"],
   park_ring: ["csavar", "Bwoop? (Come back into the ring!)"],
   park_fix1: ["margo", "One down, and look, the sky's clearing! I'm sending you the Fuzz Vacuum: hold it on glitches and the stream wears them down; the little ones it sucks right in, then right click fires them back out."],
+  park_nut: ["margo", "Duck! The squirrels throw nuts. One that rears back with a nut over its head is about to throw: step aside, or shoot the nut out of the air."],
   park_buzzer: ["margo", "A Buzzer! It spits slow orbs. You can shoot them out of the air."],
   park_knot: ["margo", "That's a Knot: it keeps tangling out new fuzzes. The Vacuum's stream unravels it."],
   park_memory: ["margo", "Ooh, a memory. Collect those: they tell us what the dream is really about."],

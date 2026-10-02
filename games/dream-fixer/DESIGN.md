@@ -148,8 +148,9 @@ Morzsa parkjában a Kóc bőre egy összegabalyodott, dühös **mókus**: a kuty
   húzással nézel. Gombok: lövés, másodlagos, ugrás, szerelés, és
   szerszámváltó kerék. Beállítható **automatikus lövés**, amikor a célkereszt
   egy hibán áll. Fekvő tájolás, teljes képernyő.
-- **Kontroller:** a Gamepad API később könnyen hozzáadható, a bemenet egy
-  közös `input` rétegen megy át.
+- **Kontroller:** Gamepad API (a Hitch & Park kezelőjéből): bal kar mozgás,
+  jobb kar nézés, RT lövés, LT töltés / második funkció, A ugrás, X használat,
+  LB / RB / Y szerszámváltás, Start szünet; a menükben kar / d-pad, A, B.
 
 ## 6. Technika
 

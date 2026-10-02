@@ -16,6 +16,8 @@ const PATH = { top: 0xd9bf8a, side: 0xb89a68 };
 export const park = {
   id: "park",
   killY: -25,
+  // Loose glitches leave you be this close to where you arrive.
+  calm: 10,
   unlockAfterFirst: "vacuum",
   // The nightmare comes up in the middle of the lawn.
   boss: { x: 0, z: 5, arena: { minX: -17, maxX: 17, minZ: -2, maxZ: 19 } },
@@ -57,8 +59,8 @@ export const park = {
     k.prop("bench", -8.4, -14.2, { y: 1.52, yaw: 0, collide: { w: 1.9, d: 0.6, h: 0.9 } });
     k.prop("lamp", -7, -5, { y: 1.52, collide: { r: 0.2, h: 3.4 } });
     k.light(-7, 1.52 + 3.2, -5, 0xffd08a, 5, 10);
-    k.prop("bush", -18.5, -6, { y: 1.52, opts: { seed: 4, s: 1.1 } });
-    k.prop("bush", -18, -14.5, { y: 1.52, opts: { seed: 9, s: 0.9 } });
+    bush(k, -18.5, -6, 4, 1.1, 1.52);
+    bush(k, -18, -14.5, 9, 0.9, 1.52);
     k.prop("flowers", -11, -7, { y: 1.52, opts: { seed: 3, n: 9, r: 1 } });
 
     // ── Staircase of floating bones to the little island (north-east) ──
@@ -82,8 +84,8 @@ export const park = {
       k.prop("lamp", x, z, { collide: { r: 0.2, h: 3.4 } });
       k.light(x, 3.2, z, 0xffd08a, 5, 10);
     }
-    k.prop("fence", -12, 21.4, { opts: { len: 16, seed: 2 } });
-    k.prop("fence", 14, 21.4, { opts: { len: 12, seed: 5 } });
+    fence(k, -12, 21.4, 16, 2);
+    fence(k, 14, 21.4, 12, 5);
     k.prop("rock", 15, 16.5, { opts: { seed: 3, s: 1.6 }, collide: { r: 0.9, h: 0.7 } });
     k.prop("rock", -19, 14, { opts: { seed: 8, s: 1.2 }, collide: { r: 0.7, h: 0.5 } });
 
@@ -95,7 +97,8 @@ export const park = {
       const a = rnd() * Math.PI * 2, r = 17 + rnd() * 3;
       const x = Math.cos(a) * r, z = Math.sin(a) * r * 0.9;
       if (x < -5 && z < -3) continue;   // not on the terrace
-      k.prop("bush", x, z, { yaw: rnd() * 6, opts: { seed: i + 20, s: 0.8 + rnd() * 0.5 } });
+      const yaw = rnd() * 6;
+      bush(k, x, z, i + 20, 0.8 + rnd() * 0.5, 0, yaw);
     }
     // Grass tufts and flowers scattered over the lawn (not on the path).
     for (let i = 0; i < 90; i++) {
@@ -136,7 +139,7 @@ export const park = {
     // Glitches already loose in the dream, minding their own business
     // until you come near.
     for (const [kind, x, z] of [
-      ["fuzz", -1.5, 1], ["fuzz", 1.8, -1.5], ["bunny", -8, 12], ["bunny", -7, 13], ["bunny", -8.5, 13.5],
+      ["fuzz", -1.5, 1], ["fuzz", 1.8, -1.5], ["bunny", -14, 8], ["bunny", -13, 9.2], ["bunny", -15, 9.5],
       ["buzzer", -12, -8], ["buzzer", 9, -12], ["fuzz", -29, 6], ["fuzz", -31, 5],
       ["tub", -42, 12], ["bunny", -53, 14], ["bunny", -54, 13],
       ["tub", 38, 24], ["fuzz", 48, 3], ["fuzz", 50, 4.5], ["buzzer", 44, 20], ["bunny", 36, 8], ["bunny", 37, 7],
@@ -156,8 +159,10 @@ export const park = {
     k.block(-46, 4, 20, 6, -0.2, 0.03, { flat: { top: 0xe0c89a, side: 0xc0a878 } }, 0.2);
     // Hurdles across the track, a tunnel, weave poles, a tyre.
     for (const [x, z] of [[-38, 2.2], [-42, 3.1], [-46, 3.9]]) {
-      k.prop("hurdle", x, z, { yaw: Math.PI / 2 + 0.2, opts: { h: 0.5 } });
+      const yaw = Math.PI / 2 + 0.2;
+      k.prop("hurdle", x, z, { yaw, opts: { h: 0.5 } });
       k.world.box({ x, z, y0: 0.35, y1: 0.55, hx: 0.06, hz: 1.2, yaw: 0.2 });
+      for (const s of [-1, 1]) k.world.cyl({ x: x + Math.cos(yaw) * 1.2 * s, z: z - Math.sin(yaw) * 1.2 * s, r: 0.09, y0: 0, y1: 0.85 });
     }
     k.prop("tunnel", -52, 5.6, { yaw: Math.PI / 2 + 0.2 });
     for (const s of [-1, 1]) k.world.box({ x: -52 - Math.sin(0.2) * 1.15 * s, z: 5.6 + Math.cos(0.2) * 1.15 * s, y0: 0, y1: 1.15, hx: 2.05, hz: 0.12, yaw: 0.2 });
@@ -169,17 +174,17 @@ export const park = {
     k.block(-54, -5, 5, 3, -0.5, 1.2, { ...STONE });
     k.ramp(-58.3, -5, 3.6, 2.6, 0, 1.2, { ...LAWN }, 0, -0.2);
     k.ramp(-49.7, -5, 3.6, 2.6, 0, 1.2, { ...LAWN }, Math.PI, -0.2);
-    k.prop("sign", -34, 0, { yaw: -Math.PI / 2 - 0.3, opts: { color: 0xffe08a } });
-    k.prop("fence", -46, 18.6, { opts: { len: 22, seed: 7 } });
-    k.prop("fence", -46, -10.6, { yaw: Math.PI, opts: { len: 22, seed: 8 } });
+    k.prop("sign", -34, 0, { yaw: -Math.PI / 2 - 0.3, opts: { color: 0xffe08a }, collide: { r: 0.12, h: 1.75 } });
+    fence(k, -46, 18.6, 22, 7);
+    fence(k, -46, -10.6, 22, 8, Math.PI);
     for (const [x, z, h] of [[-57, 15, 4.4], [-35, 16, 4], [-57, -9, 4.8], [-34, -9, 4.2]]) k.prop("tree", x, z, { opts: { seed: Math.round(-x * 3 + z), h }, collide: { r: 0.4 * h / 4.2, h: 4 } });
     for (let i = 0; i < 40; i++) {
       const x = -46 + (rnd() - 0.5) * 24, z = 4 + (rnd() - 0.5) * 28;
       if (Math.abs(z - 4 - (x + 46) * 0.2) < 3.5) continue;
       k.prop(rnd() < 0.8 ? "grass" : "flowers", x, z, { yaw: rnd() * 6, opts: { seed: i + 300, n: 5 } });
     }
-    k.prop("bush", -58, 3, { opts: { seed: 31, s: 1.1 } });
-    k.prop("bush", -35, 9, { opts: { seed: 32, s: 0.9 } });
+    bush(k, -58, 3, 31, 1.1);
+    bush(k, -35, 9, 32, 0.9);
   },
 
   // ── East: the bridge and the pond garden ──
@@ -194,13 +199,18 @@ export const park = {
     k.block(44, 14, 12, 16, -4, -0.4, { cap: 0x8a7a50, capD: 0x6a5a3a, side: 0x7e5a40, sideD: 0x4a3222 });
     k.block(44, 14, 20, 24, -8, -4, { side: 0x7e5a40, sideD: 0x4a3222 });
     k.block(45, 13, 10, 12, -12, -8, { side: 0x6e4c36, sideD: 0x3e2a1e });
-    k.prop("water", 44, 14, { y: -0.12, opts: { w: 11.9, d: 15.9 } });
+    k.water(44, 14, 11.9, 15.9, -0.12);
     // The anchor's rock in the middle of the pond.
     k.block(44, 14, 3.4, 3.4, -0.6, 0.0, { ...STONE });
     // Lily pads to hop along, reeds at the edges, a jetty.
-    for (const [x, z, s] of [[40, 11, 1], [41.5, 17.5, 0.9], [47.5, 10, 1.1], [48, 18, 0.9], [44, 20, 1], [44, 8.5, 1]]) k.prop("lilypad", x, z, { y: -0.08, opts: { seed: Math.round(x + z), s } });
+    // (Pads hold you up: hop from one to the next over the water.)
+    for (const [x, z, s] of [[40, 11, 1], [41.5, 17.5, 0.9], [47.5, 10, 1.1], [48, 18, 0.9], [44, 20, 1], [44, 8.5, 1]]) {
+      k.prop("lilypad", x, z, { y: -0.08, opts: { seed: Math.round(x + z), s } });
+      k.world.cyl({ x, z, r: 0.55 * s, y0: -0.4, y1: -0.055 });
+    }
     for (const [x, z] of [[38.6, 7], [49.5, 7.2], [38.6, 21], [49.4, 21.2], [38.6, 14.5], [49.4, 13]]) k.prop("reeds", x, z, { opts: { seed: Math.round(x * z) } });
     k.prop("jetty", 44, 22.2, { y: -0.1, opts: { len: 3.6 } });
+    k.world.box({ x: 44, z: 20.6, y0: -0.4, y1: 0.14, hx: 0.8, hz: 1.8 });
     k.prop("gazebo", 51, 24, { collide: { r: 0.3, h: 0.3 } });
     for (let i = 0; i < 6; i++) { const a = (i + 0.5) / 6 * Math.PI * 2; k.world.cyl({ x: 51 + Math.cos(a) * 2.2, z: 24 + Math.sin(a) * 2.2, r: 0.1, y0: 0, y1: 2.7 }); }
     k.world.box({ x: 51, z: 24, y0: 0, y1: 0.3, hx: 2.5, hz: 2.5 });
@@ -213,7 +223,7 @@ export const park = {
       if (x > 37.5 && x < 50.5 && z > 5.5 && z < 22.5) continue;
       k.prop(rnd() < 0.7 ? "grass" : "flowers", x, z, { yaw: rnd() * 6, opts: { seed: i + 400, n: 5 } });
     }
-    k.prop("bush", 54.5, 14, { opts: { seed: 41, s: 1.2 } });
+    bush(k, 54.5, 14, 41, 1.2);
     k.prop("rock", 34, 26, { opts: { seed: 5, s: 1.3 }, collide: { r: 0.8, h: 0.6 } });
   },
 
@@ -229,6 +239,17 @@ export const park = {
     k.nightmare = { x: 0, z: 5 };
   },
 };
+
+// A white picket fence along x; solid, so you cannot walk through it.
+function fence(k, x, z, len, seed, yaw = 0) {
+  k.prop("fence", x, z, { yaw, opts: { len, seed }, collide: { w: len, d: 0.2, h: 1.1 } });
+}
+
+// A bush you bump into (its leaves are soft at the edge: the collider is
+// a little smaller than the foliage).
+function bush(k, x, z, seed, s = 1, y = 0, yaw = 0) {
+  k.prop("bush", x, z, { y, yaw, opts: { seed, s }, collide: { r: 0.5 * s, h: 0.85 * s } });
+}
 
 // A plank bridge between two islands, along x, with posts and ropes.
 function bridge(k, x, z, len, yaw) {
