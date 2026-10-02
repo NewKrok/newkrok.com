@@ -66,7 +66,7 @@ export const EN = {
   u_stab_charge: ["Quick charge", "Charged bolts build up faster and hit harder."],
   u_vac_motor: ["Stronger motor", "The Fuzz Vacuum pulls harder, reaches further and runs cooler."],
   u_vac_bang: ["Bigger bang", "Yarn balls hit harder and burst wider."],
-  u_wake_coffee: ["Night-shift coffee", "20 more wakefulness in every dream."],
+  u_wake_coffee: ["Night-shift coffee", "15 more wakefulness in every dream."],
   u_wake_magnet: ["Dust magnet", "Dream dust flies to you from twice as far."],
   set_lang: "Language",
   set_sound: "Sound",

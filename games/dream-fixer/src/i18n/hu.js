@@ -66,7 +66,7 @@ export const HU = {
   u_stab_charge: ["Gyorstöltés", "A töltött lövés gyorsabban töltődik és erősebbet üt."],
   u_vac_motor: ["Erősebb motor", "A Kócszívó erősebben húz, messzebbre ér és kevésbé melegszik."],
   u_vac_bang: ["Nagyobb durranás", "A fonalgombócok erősebbet ütnek és szélesebben robbannak."],
-  u_wake_coffee: ["Éjszakás kávé", "20-szal több éberség minden álomban."],
+  u_wake_coffee: ["Éjszakás kávé", "15-tel több éberség minden álomban."],
   u_wake_magnet: ["Pormágnes", "Az álompor kétszer messzebbről repül hozzád."],
   set_lang: "Nyelv",
   set_sound: "Hang",

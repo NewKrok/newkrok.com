@@ -20,7 +20,7 @@ export class Hud {
       </svg>
       <div class="hot" data-i18n="overheated"></div>
       <div class="vignette"></div>
-      <div class="wake"><span class="lbl" data-i18n="wakefulness"></span><div class="bar"><i class="lag"></i><i class="fill"></i></div></div>
+      <div class="wake"><span class="lbl" data-i18n="wakefulness"></span><div class="bar"><i class="lag"></i><i class="fill"></i></div><div class="stamina"><i></i></div></div>
       <div class="objective"><span class="lbl"></span> <b></b></div>
       <div class="prompt"></div>
       <div class="tune"><div class="lbl"></div><div class="bar"><i></i></div><div class="warn"></div></div>
@@ -38,6 +38,8 @@ export class Hud {
     this.fill = el.querySelector(".wake .fill");
     this.lag = el.querySelector(".wake .lag");
     this.wake = el.querySelector(".wake");
+    this.stam = el.querySelector(".stamina");
+    this.stamFill = el.querySelector(".stamina i");
     this.vig = el.querySelector(".vignette");
     this.dustEl = el.querySelector(".dust b");
     this.dustBox = el.querySelector(".dust");
@@ -100,6 +102,14 @@ export class Hud {
       this.lag.style.transform = `scaleX(${lag})`;
       this.wake.classList.toggle("low", hp < 0.35);
       this.last.hp = hpr; this.last.lag = lag;
+    }
+    // Breath for running: a thin bar under it, only while not full.
+    const st = Math.round(run.stamina * 100) / 100;
+    if (st !== this.last.stam || run.winded !== this.last.winded) {
+      this.stamFill.style.transform = `scaleX(${st})`;
+      this.stam.classList.toggle("on", st < 1);
+      this.stam.classList.toggle("winded", run.winded);
+      this.last.stam = st; this.last.winded = run.winded;
     }
     this.hurt = Math.max(0, this.hurt - dt * 1.8);
     this.vig.style.opacity = (this.hurt * 0.9 + (hp < 0.35 ? 0.25 + Math.sin(performance.now() / 180) * 0.1 : 0)).toFixed(3);

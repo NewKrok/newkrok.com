@@ -47,6 +47,9 @@ export class FoeView {
       for (let i = 0; i < NUTS; i++) m.setColorAt(i, new T.Color(m === this.nuts ? 0xc9883e : 0x5e3a1e));
       m.frustumCulled = false; m.count = 0; m.castShadow = true;
     }
+    // The "!" over a glitch that has just spotted you.
+    this.bangTex = bangTexture();
+    this.bangs = [];
     this._x = new T.Vector3(1, 0, 0);
     scene.add(this.orbs, this.motes, this.yarn, this.marks, this.nuts, this.caps);
     this._m = new T.Matrix4(); this._q = new T.Quaternion(); this._p = new T.Vector3(); this._s = new T.Vector3(); this._c = new T.Color(); this._e = new T.Euler();
@@ -125,6 +128,28 @@ export class FoeView {
     }
     for (const [id, v] of this.live) if (!seen.has(id)) { this.release(v); this.live.delete(id); }
 
+    // "!": pops up with a bounce, wobbles, bobs, fades at the end.
+    let nb = 0;
+    for (const f of run.foes) {
+      if (!f.alive || !(f.alertT > 0) || !this.live.get(f.id)?.o.visible) continue;
+      let sp = this.bangs[nb];
+      if (!sp) {
+        sp = new T.Sprite(new T.SpriteMaterial({ map: this.bangTex, transparent: true, depthWrite: false, toneMapped: false, fog: false }));
+        sp.renderOrder = 10;
+        this.group.add(sp); this.bangs.push(sp);
+      }
+      const age = 1.1 - f.alertT, pop = easeOutBack(Math.min(1, age / 0.22)), fade = Math.min(1, f.alertT / 0.25);
+      const top = f.def.fly ? 0.7 : (f.def.h ?? 0.8) + 0.55;
+      sp.visible = true;
+      sp.position.set(lerp(f.lx ?? f.px, f.px, alpha), lerp(f.ly ?? f.py, f.py, alpha) + top + Math.sin(age * 9) * 0.05 + (1 - Math.min(1, age / 0.22)) * -0.2, lerp(f.lz ?? f.pz, f.pz, alpha));
+      const s = 0.85 * pop;
+      sp.scale.set(s * 0.75, s, 1);
+      sp.material.rotation = Math.sin(age * 14) * 0.18 * (1 - Math.min(1, age / 0.7));
+      sp.material.opacity = fade;
+      nb++;
+    }
+    for (let k = nb; k < this.bangs.length; k++) this.bangs[k].visible = false;
+
     // Orbs: pink, wobbling, trailing sparks.
     const { _m, _q, _p, _s, _c } = this;
     let i = 0;
@@ -199,12 +224,34 @@ export class FoeView {
   }
 }
 
+// A fat yellow "!" with a dark outline, drawn once.
+function bangTexture() {
+  const c = document.createElement("canvas");
+  c.width = 96; c.height = 128;
+  const g = c.getContext("2d");
+  // Drawn as shapes, not a font: a fat tapering bar and a round dot.
+  const bang = () => {
+    g.beginPath();
+    g.moveTo(26, 10); g.lineTo(70, 10); g.lineTo(58, 82); g.lineTo(38, 82); g.closePath();
+    g.moveTo(62, 106); g.arc(48, 106, 14, 0, Math.PI * 2);
+  };
+  g.lineJoin = "round"; g.lineWidth = 14; g.strokeStyle = "#3a1830";
+  bang(); g.stroke();
+  g.fillStyle = "#ffcc1a"; bang(); g.fill();
+  g.fillStyle = "rgba(255, 250, 210, 0.85)";
+  g.beginPath(); g.moveTo(32, 16); g.lineTo(46, 16); g.lineTo(42, 52); g.lineTo(36, 52); g.closePath(); g.fill();
+  const tex = new T.CanvasTexture(c);
+  tex.colorSpace = T.SRGBColorSpace;
+  return tex;
+}
+
 function easeOutBack(x) { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * (x - 1) ** 3 + c1 * (x - 1) ** 2; }
 
 function animFuzz(f, N, t, grow) {
   const b = f.body, sp = b.speed2D;
   let sy, sxz = 1, hop = 0, lean = 0;
-  if (f.state === "windup") { const k = Math.min(1, f.t / 0.5); sy = 1 - 0.3 * k; sxz = 1 + 0.2 * k; lean = -0.25 * k; }
+  if (f.state === "windup" || f.state === "hop") { const k = Math.min(1, f.t / 0.5); sy = 1 - 0.3 * k; sxz = 1 + 0.2 * k; lean = -0.25 * k; }
+  else if (f.state === "flying") { sy = 1.2; sxz = 0.88; lean = 0.3; }
   else if (f.state === "throw") { const k = Math.min(1, f.t / 0.6); sy = 1 + 0.12 * k; sxz = 1 - 0.06 * k; lean = -0.45 * k + (k > 0.85 ? (k - 0.85) * 5 : 0); }
   else if (f.state === "lunge") { sy = 1.2; sxz = 0.88; lean = 0.5; }
   else if (f.state === "stun") { sy = 0.85 + Math.sin(f.t * 40) * 0.08; sxz = 1.1; }
@@ -248,8 +295,8 @@ function animBunny(f, N, t, grow) {
   const ph = (f.age * 11 + f.phase) % Math.PI;
   const hop = b.grounded && sp > 0.5 ? Math.sin(ph) * 0.12 : 0;
   let sy = 1, sxz = 1;
-  if (f.state === "windup" || f.state === "crouch") { sy = 0.7; sxz = 1.2; }
-  else if (f.state === "lunge") { sy = f.leap ? 1.35 : 1.2; sxz = f.leap ? 0.78 : 0.85; }
+  if (f.state === "windup" || f.state === "crouch" || f.state === "hop") { sy = 0.7; sxz = 1.2; }
+  else if (f.state === "lunge" || f.state === "flying") { sy = f.leap || f.state === "flying" ? 1.35 : 1.2; sxz = f.leap || f.state === "flying" ? 0.78 : 0.85; }
   N.body.position.y = 0.22 + hop;
   N.body.scale.set(sxz * grow, sy * grow, sxz * grow);
   N.ears.rotation.x = -hop * 3 + Math.sin(t * 5 + f.phase) * 0.1 + (f.state === "lunge" ? 0.6 : 0);

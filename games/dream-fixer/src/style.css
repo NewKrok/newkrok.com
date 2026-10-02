@@ -51,6 +51,10 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1b2436; col
 .hud .wake .lag { background: #ffb3d9; }
 .hud .wake .fill { background: linear-gradient(#b5fff2, var(--mint)); }
 .hud .wake.low .fill { background: linear-gradient(#ffd0a8, #ff9a6a); }
+.hud .wake .stamina { position: relative; height: 6px; margin-top: 5px; border-radius: 4px; background: rgba(20, 26, 44, 0.55); overflow: hidden; opacity: 0; transition: opacity 0.3s; }
+.hud .wake .stamina.on { opacity: 1; }
+.hud .wake .stamina i { position: absolute; inset: 0; transform-origin: left center; background: linear-gradient(#fff2b0, var(--brass)); }
+.hud .wake .stamina.winded i { background: linear-gradient(#ffc0a0, #e0704a); animation: pulse 0.5s ease-in-out infinite; }
 .hud .dust { position: absolute; right: calc(22px + env(safe-area-inset-right)); top: calc(18px + env(safe-area-inset-top)); display: flex; align-items: center; gap: 6px; font-size: 22px; font-weight: 800; color: #ffe7a8; text-shadow: 0 2px 0 #7a5220; }
 .hud .dust svg { width: 24px; height: 24px; fill: #ffd27a; filter: drop-shadow(0 0 6px rgba(255, 210, 122, 0.8)); }
 .hud .dust.tick { animation: tick 0.25s ease-out; }
@@ -185,3 +189,4 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; border-radius: 
 
 /* ── Gamepad: a clear focus ring while the pad drives the menus ── */
 body.pad-nav .menus button:focus, body.pad-nav .menus input:focus { outline: 3px solid var(--brass); outline-offset: 3px; }
+@keyframes pulse { 50% { opacity: 0.45; } }

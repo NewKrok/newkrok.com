@@ -20,12 +20,13 @@ export const TOOLS = {
   // tank). Second action: shoot what is in the tank, or, when it is
   // empty, a puff of air that shoves glitches back.
   vacuum: {
-    suckHeat: 0.3,        // per second while sucking
+    suckHeat: 0.45,       // per second while sucking
     cool: 0.55, coolDelay: 0.3, unlock: 0.35,
     range: 8, cone: 0.42, // radians, half angle
-    pull: 24,             // m/s² towards the nozzle
-    catchAt: 1.9,
-    stream: 2.4,          // damage per second to everything in the stream
+    pull: 14,             // m/s² towards the nozzle
+    catchAt: 1.6,
+    stream: 1.6,          // damage per second to everything in the stream
+    worn: 0.5,            // a glitch is caught only once worn down to this share of its hp
     tankSize: 3,          // small glitches it can hold
     launch: { speed: 24, damage: 11, splash: 2.6, heat: 0.12 },
     blast: { range: 5.5, cone: 0.7, push: 9, damage: 1, heat: 0.28, interval: 0.5 },

@@ -15,6 +15,8 @@ const DROP = 1.4;          // deepest drop a walker takes
 const CLEAR = 0.3;         // half the width a walker needs
 const HEAD = 0.8;          // headroom it needs
 const REACH = 140;         // how far the field spreads (metres of path)
+const EDGE = 0.2;          // how far from the brink a walker keeps
+const JUMP = 4.5;          // longest hop over a gap (metres)
 const D8 = [[1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1], [1, 1, Math.SQRT2], [1, -1, Math.SQRT2], [-1, 1, Math.SQRT2], [-1, -1, Math.SQRT2]];
 
 export class Nav {
@@ -28,25 +30,112 @@ export class Nav {
     const n = this.nx * this.nz;
     this.floor = new Float32Array(n).fill(NaN);
     for (let j = 0; j < this.nz; j++) for (let i = 0; i < this.nx; i++) this.floor[j * this.nx + i] = this.bake(x0 + i * CELL, z0 + j * CELL);
-    // Keep off the brink: a cell next to the void (or to a drop too deep to
-    // take) is not walked on, so a walker never treads the very edge.
+    // Keep off the brink: a cell whose floor ends within EDGE of its centre
+    // (the void, or a drop too deep to take) is not walked on, so a walker
+    // never treads the very edge. Narrow things (a bone step) keep their
+    // middle.
     const F = this.floor, edge = [];
+    this.gap = new Uint8Array(n);           // void or brink: what a jump crosses
     for (let j = 0; j < this.nz; j++) for (let i = 0; i < this.nx; i++) {
-      const f = F[j * this.nx + i];
-      if (!(f > -Infinity)) continue;
+      const k = j * this.nx + i, f = F[k];
+      if (f === -Infinity) { this.gap[k] = 1; continue; }
+      if (Number.isNaN(f)) continue;
+      let near = false;
       for (const [di, dj] of D8) {
         const ii = i + di, jj = j + dj;
         const g = ii < 0 || jj < 0 || ii >= this.nx || jj >= this.nz ? -Infinity : F[jj * this.nx + ii];
-        if (g === -Infinity || g < f - DROP) { edge.push(j * this.nx + i); break; }
+        if (g === -Infinity || g < f - DROP) { near = true; break; }
+      }
+      if (!near) continue;
+      const x = x0 + i * CELL, z = z0 + j * CELL;
+      for (const [di, dj] of D8) {
+        const l = Math.hypot(di, dj);
+        if (this.ground(x + di / l * EDGE, z + dj / l * EDGE, f) < f - DROP) { edge.push(k); break; }
       }
     }
-    for (const k of edge) F[k] = NaN;
+    for (const k of edge) { F[k] = NaN; this.gap[k] = 1; }
     for (let k = 0; k < n; k++) if (F[k] === -Infinity) F[k] = NaN;
+    this.jumps();
     this.dist = new Float32Array(n).fill(Infinity);
     this.heap = new Int32Array(n * 4);
     this.hk = new Float32Array(n * 4);
     this.from = -1;
     this.t = 0;
+  }
+
+  // Highest top under (x, z) a body at y could stand on, −Infinity if none.
+  ground(x, z, y) {
+    const w = this.world;
+    let best = -Infinity;
+    for (const c of w.query(x, z, 0.05)) {
+      if (!w.overlaps(c, x, z, 0.05)) continue;
+      const t = World.topAt(c, x, z);
+      if (t <= y + STEP && t > best) best = t;
+    }
+    return best;
+  }
+
+  // Hops over the gaps: from a cell at the brink to one across the void
+  // (another island, the next bone step), up to JUMP away and 1.6 m up,
+  // or up onto / down off a ledge close by, with nothing solid in the way. jumpOut[k] / jumpIn[k]: [cell, cost].
+  jumps() {
+    const { floor: F, gap, nx, nz, world: w } = this;
+    this.jumpOut = new Map(); this.jumpIn = new Map();
+    const R = Math.ceil(JUMP / CELL);
+    // By a gap, or by a ledge too high to step.
+    const brink = (i, j) => {
+      const f = F[j * nx + i];
+      for (const [di, dj] of D8) {
+        const ii = i + di, jj = j + dj;
+        if (ii < 0 || jj < 0 || ii >= nx || jj >= nz) continue;
+        const q = jj * nx + ii;
+        if (gap[q] || Math.abs(F[q] - f) > STEP) return true;
+      }
+      return false;
+    };
+    const hit = {};
+    for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+      const a = j * nx + i, fa = F[a];
+      if (Number.isNaN(fa) || !brink(i, j)) continue;
+      // The nearest landing in each of 16 directions, one going up or
+      // level and one going down.
+      const best = new Array(32).fill(null);
+      for (let dj = -R; dj <= R; dj++) for (let di = -R; di <= R; di++) {
+        const ii = i + di, jj = j + dj;
+        if (ii < 0 || jj < 0 || ii >= nx || jj >= nz) continue;
+        const b = jj * nx + ii, fb = F[b];
+        if (Number.isNaN(fb) || !brink(ii, jj)) continue;
+        const d = Math.hypot(di, dj) * CELL, rise = fb - fa;
+        if (d < 0.7 || d > JUMP || rise > 1.6 || rise < -3) continue;
+        const sec = Math.round((Math.atan2(dj, di) / (2 * Math.PI) + 1) * 16) % 16 + (rise < -0.5 ? 16 : 0);
+        if (best[sec] && best[sec][1] <= d) continue;
+        // Over a real gap, well below both ends (not just along the island
+        // or over a narrow step) …
+        let over = false, walled = false;
+        const steps = Math.ceil(d / CELL) * 2, hi = Math.max(fa, fb), lo = Math.min(fa, fb);
+        for (let s = 1; s < steps; s++) {
+          const u = s / steps, x = this.x0 + (i + di * u) * CELL, z = this.z0 + (j + dj * u) * CELL;
+          const g = this.ground(x, z, hi + 0.3);
+          if (g < lo - 1) over = true;
+          if (this.ground(x, z, hi + 2) > hi + 0.5) walled = true;
+        }
+        // … or straight up onto (or down off) a ledge too high to walk.
+        const ledge = (rise > STEP || rise < -DROP) && d <= 2.6;
+        if (!(over || ledge) || walled) continue;
+        // … with room for the arc.
+        const ax = this.x0 + i * CELL, az = this.z0 + j * CELL, bx = this.x0 + ii * CELL, bz = this.z0 + jj * CELL, y = Math.max(fa, fb) + 0.7;
+        if (w.raycast(ax, y, az, (bx - ax) / d, 0, (bz - az) / d, d, hit)) continue;
+        best[sec] = [b, d];
+      }
+      for (const L of best) {
+        if (!L) continue;
+        const cost = L[1] * 1.3 + 1.5;
+        if (!this.jumpOut.has(a)) this.jumpOut.set(a, []);
+        this.jumpOut.get(a).push([L[0], cost]);
+        if (!this.jumpIn.has(L[0])) this.jumpIn.set(L[0], []);
+        this.jumpIn.get(L[0]).push([a, cost]);
+      }
+    }
   }
 
   // The floor a walker can stand on at (x, z): the highest top with room
@@ -137,6 +226,8 @@ export class Nav {
         const nd = d0 + w * CELL;
         if (nd < dist[q]) { dist[q] = nd; push(q, nd); }
       }
+      const jin = this.jumpIn.get(k);
+      if (jin) for (const [q, c] of jin) { const nd = d0 + c; if (nd < dist[q]) { dist[q] = nd; push(q, nd); } }
     }
   }
 
@@ -161,6 +252,16 @@ export class Nav {
     return true;
   }
 
+  // The best hop out of the cell at (x, z, y) towards you, if any:
+  // [x, z, y] of the landing (for a walker held up at the brink).
+  jumpFrom(x, z, y) {
+    const k = this.near(x, z, y), jo = k >= 0 ? this.jumpOut.get(k) : null;
+    if (!jo) return null;
+    let best = null, bd = this.dist[k];
+    for (const [t, c] of jo) if (this.dist[t] + c * 0.5 < bd) { bd = this.dist[t] + c * 0.5; best = t; }
+    return best === null ? null : [this.x0 + (best % this.nx) * CELL, this.z0 + ((best / this.nx) | 0) * CELL, this.floor[best]];
+  }
+
   // Where a walker at (x, z, y) should head next to reach you: the point a
   // few cells down the field, or null when it is off the field (then it
   // just comes straight).
@@ -168,6 +269,19 @@ export class Nav {
     let k = this.near(x, z, y);
     if (k < 0 || this.dist[k] === Infinity) return null;
     const start = k;
+    // Does the way go over a gap from here? Then hop.
+    const jo = this.jumpOut.get(k);
+    if (jo) {
+      let walk = Infinity, jump = null, jd = Infinity;
+      const i = k % this.nx, j = (k / this.nx) | 0;
+      for (const [di, dj, w] of D8) {
+        const ii = i + di, jj = j + dj;
+        if (ii < 0 || jj < 0 || ii >= this.nx || jj >= this.nz || !this.link(i, j, ii, jj)) continue;
+        walk = Math.min(walk, this.dist[jj * this.nx + ii] + w * CELL);
+      }
+      for (const [t, c] of jo) if (this.dist[t] + c < jd) { jd = this.dist[t] + c; jump = t; }
+      if (jump !== null && jd < walk - 0.01) return [this.x0 + (jump % this.nx) * CELL, this.z0 + ((jump / this.nx) | 0) * CELL, this.dist[jump], this.floor[jump]];
+    }
     const { dist, nx } = this;
     // Walk the field downhill for a few cells and aim there: smoother than
     // stepping cell by cell.

@@ -22,7 +22,10 @@ export const DIFFICULTY = {
   hard: { dmg: 1.5, regen: 0.7 },
 };
 
-export const MAX_HP = 75;
+export const MAX_HP = 50;
+// Breath for running: seconds of running on a full one, seconds to fill it
+// again (after a short rest), and how much back before you can run again.
+const STAMINA = { run: 4, refill: 5, delay: 0.6, again: 0.35 };
 
 export class Run {
   constructor(levelDef, o = {}) {
@@ -46,6 +49,7 @@ export class Run {
     this.time = 0;
     this.events = [];
     this.hp = this.maxHp; this.hurtT = 9; this.invuln = 0;
+    this.stamina = 1; this.winded = false; this.restT = 0; this.sprinting = false;
     this.faints = 0;
     this.foes = []; this.foeSeq = 0;
     this.nav = this.kit.foes.length || levelDef.boss ? new Nav(this.world) : null;
@@ -138,6 +142,7 @@ export class Run {
     b.place(c.x, c.y, c.z, c.yaw);
     this.hp = this.maxHp;
     this.invuln = 1.5;
+    this.stamina = 1; this.winded = false;
     this.spits.length = 0;
     // Glitches right at the checkpoint step back a little.
     for (const f of this.foes) if (f.alive && f.body) {
@@ -150,8 +155,19 @@ export class Run {
   step(intent, dt = DT) {
     this.time += dt;
     const b = this.body;
-    // Running: forward only, half as fast again.
-    this.sprinting = !!intent.sprint && (intent.forward || 0) > 0.3 && !this.opts.noTools;
+    // Running: forward only, half as fast again, while the breath lasts.
+    // Run out and you are winded: no running until you have got some back.
+    const wantRun = !!intent.sprint && (intent.forward || 0) > 0.3 && !this.opts.noTools;
+    this.sprinting = wantRun && !this.winded && (b.grounded || this.sprinting);
+    if (this.sprinting) {
+      this.stamina = Math.max(0, this.stamina - dt / STAMINA.run);
+      this.restT = 0;
+      if (this.stamina <= 0) { this.winded = true; this.sprinting = false; this.events.push({ type: "winded" }); }
+    } else {
+      this.restT += dt;
+      if (this.restT > STAMINA.delay) this.stamina = Math.min(1, this.stamina + dt / STAMINA.refill);
+      if (this.winded && this.stamina >= STAMINA.again) this.winded = false;
+    }
     b.step(this.world, intent, dt, this.sprinting ? 1.45 : 1);
     if (b.jumped) this.events.push({ type: "jump" });
     if (b.landSpeed > 4) this.events.push({ type: "land", speed: b.landSpeed });
@@ -173,7 +189,7 @@ export class Run {
     // Wakefulness comes back on its own after a quiet moment.
     this.hurtT += dt;
     this.invuln = Math.max(0, this.invuln - dt);
-    if (this.hurtT > 2.5 && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + 21 * this.diff.regen * dt);
+    if (this.hurtT > 4 && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + 5 * this.diff.regen * dt);
 
     // Tool switching takes a moment (the view model swaps them).
     if (intent.toolTo !== undefined && intent.toolTo !== this.tool) this.switchTool(intent.toolTo);
@@ -350,15 +366,18 @@ export class Run {
         if (damageFoe(this, f, dmg, 0, 0, false)) { this.stats.popped++; continue; }
       }
       if (!f.def.catchable) continue;             // too big to move
+      // Fresh ones fight the pull: only a glitch the stream has worn down
+      // is drawn in properly (and caught).
+      const worn = f.hp <= f.maxHp * d.worn;
       const ex = nx - f.px, ey = ny - f.cy, ez = nz - f.pz, el = Math.hypot(ex, ey, ez) || 1;
       // A full tank only draws weakly: shoot it empty first.
-      const k = d.pull * (1.3 - Math.min(1, l / d.range)) * dt * (full ? 0.25 : 1);
+      const k = d.pull * (1.3 - Math.min(1, l / d.range)) * dt * (full ? 0.25 : 1) * (worn ? 1 : 0.3);
       if (f.body) {
         f.body.vx += ex / el * k * 1.6; f.body.vz += ez / el * k * 1.6;
         if (f.body.grounded && l < 4) { f.body.vy = 2.5; f.body.grounded = false; }
       } else { f.vx += ex / el * k * 1.4; f.vy += ey / el * k * 1.4; f.vz += ez / el * k * 1.4; }
       f.state = "sucked"; f.t = 0;
-      if (l < d.catchAt && !full) {
+      if (l < d.catchAt && !full && worn) {
         // Caught: into the tank it goes (that counts as smoothed out).
         f.alive = false;
         tool.tank.push(f.kind);
