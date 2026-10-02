@@ -9,6 +9,7 @@ import { factory } from "./levels/factory.js";
 import { Audio } from "./audio.js";
 import { Sfx } from "./sfx.js";
 import { Dialog } from "./story/dialog.js";
+import { Voice } from "./voice.js";
 import { Director } from "./story/director.js";
 import { Menus } from "./ui/menus.js";
 import { PadNav } from "./ui/padnav.js";
@@ -38,6 +39,7 @@ async function startGame() {
   const sfx = new Sfx(audio);
   let hud = new Hud(app);
   const dialog = new Dialog(app, audio);
+  dialog.voice = new Voice(audio, settings);
   const director = new Director(dialog);
   // Every line heard goes into the journal, to read again later.
   dialog.onLine = (id) => { if (!progress.log.includes(id)) { progress.log.push(id); save(); } };
@@ -114,6 +116,8 @@ async function startGame() {
       saveSettings(settings);
       if (k === "lang") { setLang(v); hud.destroy(); hud = new Hud(app); hud.hub(!!run?.def.hub); showSettings(back); }
       if (k === "master" || k === "sfx" || k === "music") audio.setVolumes(settings);
+      if (k === "voiceVol" || k === "master") dialog.voice.setVolume();
+      if (k === "voice" && !v) dialog.voice.stop();
       if (k === "quality") view.setQuality(v);
       if (k === "difficulty" || k === "aimAssist" || k === "autoFire") Object.assign(run.opts, liveOpts());
     },
@@ -260,6 +264,7 @@ async function startGame() {
       // Behind the title the camera looks slowly round the Factory.
       if (state === "title") { run.body.yaw = Math.sin(time * 0.1) * 0.6; run.body.pitch = 0.05; }
     }
+    dialog.pause(state !== "play");
     dialog.update(state === "play" ? dt : 0);
     view.talking = !!dialog.cur;
     sfx.frame(run, dt, state === "play");

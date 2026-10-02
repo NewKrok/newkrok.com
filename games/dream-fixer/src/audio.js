@@ -67,6 +67,11 @@ export class Audio {
     this.sfx.gain.setTargetAtTime(this.vol.sfx * 0.9, t, 0.03);
     this.musicBus.gain.setTargetAtTime(this.vol.music * 0.45, t, 0.05);
   }
+  // Music softer while someone speaks.
+  duck(on) {
+    if (!this.ctx) return;
+    this.musicBus.gain.setTargetAtTime(this.vol.music * 0.45 * (on ? 0.4 : 1), this.ctx.currentTime, on ? 0.08 : 0.4);
+  }
   suspend(yes) { if (this.ctx) { if (yes) this.ctx.suspend(); else this.ctx.resume(); } }
 
   // Where you are and which way you face (for panning).

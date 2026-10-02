@@ -10,7 +10,7 @@ const write = (key, value) => { try { localStorage.setItem(key, JSON.stringify(v
 
 const coarse = typeof matchMedia !== "undefined" && matchMedia("(pointer: coarse)").matches;
 export const DEFAULT_SETTINGS = {
-  lang: null, master: 0.8, sfx: 0.85, music: 0.5,
+  lang: null, master: 0.8, sfx: 0.85, music: 0.5, voice: true, voiceVol: 0.9,
   quality: coarse ? "low" : "high",
   sensitivity: 1, touchSensitivity: 1, padSensitivity: 1, invertY: false,
   aimAssist: true, autoFire: coarse, difficulty: "normal", shake: true,

@@ -60,7 +60,7 @@ export class Menus {
           <div class="row2"><button class="btn ghost" data-a="howto">${esc(t("howto"))}</button><button class="btn ghost" data-a="settings">${esc(t("settings"))}</button></div>
         </div>
       </div>
-      <footer class="credit"><div>${esc(t("madeBy"))}</div><div class="tech">three.js</div></footer>`,
+      <footer class="credit"><div>${esc(t("madeBy"))}</div><div class="tech">three.js · ${esc(t("voiceCredit"))}</div></footer>`,
     { play: onPlay, settings: onSettings, howto: onHowto }, "title");
   }
 
@@ -88,6 +88,8 @@ export class Menus {
       <label class="row"><span>${esc(t("set_master"))}</span>${range("master", 0, 1, 0.05)}</label>
       <label class="row"><span>${esc(t("set_sfx"))}</span>${range("sfx", 0, 1, 0.05)}</label>
       <label class="row"><span>${esc(t("set_music"))}</span>${range("music", 0, 1, 0.05)}</label>
+      <label class="row"><span>${esc(t("set_voice"))}</span>${check("voice")}</label>
+      <label class="row"><span>${esc(t("set_voiceVol"))}</span>${range("voiceVol", 0, 1, 0.05)}</label>
       <h3>${esc(t("set_controls"))}</h3>
       <label class="row"><span>${esc(t("set_sens"))}</span>${range("sensitivity", 0.3, 2.5, 0.05)}</label>
       <label class="row"><span>${esc(t("set_tsens"))}</span>${range("touchSensitivity", 0.3, 2.5, 0.05)}</label>
