@@ -165,12 +165,12 @@ export class GameView {
       } else if (e.type === "hurt") {
         this.shake = Math.min(1, this.shake + 0.5);
       } else if (e.type === "dust") {
-        // Caught: a little gold burst and a flash.
-        this.fx.spark(e.x, e.y, e.z, 0, 1.5, 0, 0.3, 0.16, C.dreamGold, 0);
-        for (let k = 0; k < 7; k++) { const a = Math.random() * Math.PI * 2, u = Math.random() * 2 - 1; this.fx.spark(e.x, e.y, e.z, Math.cos(a) * 2.2, u * 2 + 1, Math.sin(a) * 2.2, 0.35, 0.04, k % 2 ? C.dreamGold : 0xffffff, 3); }
+        // Caught: a ring of gold flecks spreading round you at waist height
+        // (not in front of the eye), and a flash.
+        this.ringBurst(run, C.dreamGold, 6);
         this.muzzleFlash = Math.max(this.muzzleFlash || 0, 0.25);
       } else if (e.type === "heal") {
-        for (let k = 0; k < 16; k++) { const a = Math.random() * Math.PI * 2; this.fx.spark(e.x, e.y, e.z, Math.cos(a) * 2.5, 1 + Math.random() * 2.5, Math.sin(a) * 2.5, 0.5, 0.06, k % 2 ? 0xff7aa0 : 0xffffff, 3); }
+        this.ringBurst(run, 0xff7aa0, 18);
       } else if (e.type === "slam") {
         this.shake = Math.min(1, this.shake + (Math.hypot(e.x - run.body.x, e.z - run.body.z) < 9 ? 0.45 : 0.15));
         this.fx.puff(e.x, run.kit.floorAt(e.x, e.z) + 0.3, e.z, 1.4);
@@ -207,6 +207,15 @@ export class GameView {
       }
     }
     events.length = 0;
+  }
+
+  // Flecks bursting outwards in a ring round you, a metre or more off.
+  ringBurst(run, color, n) {
+    const b = run.body;
+    for (let k = 0; k < n; k++) {
+      const a = Math.random() * Math.PI * 2, r = 1.2 + Math.random() * 0.4;
+      this.fx.spark(b.x + Math.cos(a) * r, b.y + 0.7 + Math.random() * 0.5, b.z + Math.sin(a) * r, Math.cos(a) * 2.2, 1 + Math.random() * 1.5, Math.sin(a) * 2.2, 0.45, 0.04, k % 2 ? color : 0xffffff, 2);
+    }
   }
 
   suckStream(run, dt) {

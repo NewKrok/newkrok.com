@@ -230,16 +230,20 @@ export class FoeView {
     this.yarn.instanceMatrix.needsUpdate = true; this.yarn.instanceColor.needsUpdate = true;
     // Dream dust: gold flecks spinning.
     i = 0;
-    // Drawn to you, they swell, flare and leave a glittering trail.
+    // Drawn to you, they swell, flare and leave a glittering trail; right
+    // in front of the eye they shrink away (never a huge fleck on the lens).
+    const B = run.body, ex = B.x, ey = B.eyeY, ez = B.z;
+    const nearEye = (x, y, z) => Math.max(0, Math.min(1, (Math.hypot(x - ex, y - ey, z - ez) - 0.45) / 1.1));
     for (const m of run.dustMotes) {
       if (i >= 256) break;
       m.glow = Math.min(1, (m.glow || 0) + (m.pull ? dt * 5 : -dt * 3));
+      const k = nearEye(m.x, m.y, m.z);
       _p.set(m.x, m.y + Math.sin(t * 3 + m.id) * 0.04, m.z);
-      _q.setFromEuler(this._e.set(t * (2 + m.glow * 10) + m.id, t * (3 + m.glow * 8) + m.id, 0));
-      _s.setScalar(1 + m.glow * 0.7);
+      _q.setFromEuler(this._e.set(t * (2 + m.glow * 4) + m.id, t * (3 + m.glow * 3) + m.id, 0));
+      _s.setScalar(Math.max(0.001, (1 + m.glow * 0.5) * k));
       this.motes.setMatrixAt(i, _m.compose(_p, _q, _s));
       this.motes.setColorAt(i, _c.set(m.id % 3 ? C.dreamGold : C.dream).multiplyScalar(1.8 + m.glow * 1.6 + Math.sin(t * 8 + m.id) * 0.4));
-      if (m.pull && Math.random() < 0.8) this.fx.spark(m.x, m.y, m.z, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6, 0.3, 0.035 + Math.random() * 0.03, Math.random() < 0.5 ? C.dreamGold : 0xffffff, 0);
+      if (m.pull && k > 0.6 && Math.random() < 0.8) this.fx.spark(m.x, m.y, m.z, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6, 0.3, 0.035 + Math.random() * 0.03, Math.random() < 0.5 ? C.dreamGold : 0xffffff, 0);
       i++;
     }
     this.motes.count = i;
@@ -250,10 +254,10 @@ export class FoeView {
       const blink = h.t > 25 && Math.sin(h.t * 18) < 0;
       _p.set(h.x, h.y + Math.sin(t * 2.5 + h.id) * 0.08, h.z);
       _q.setFromEuler(this._e.set(0, t * 2.2 + h.id, 0));
-      _s.setScalar(blink ? 0.001 : (1.1 + Math.sin(t * 6 + h.id) * 0.08) * Math.min(1, h.t * 4));
+      _s.setScalar(blink ? 0.001 : Math.max(0.001, (1.1 + Math.sin(t * 6 + h.id) * 0.08) * Math.min(1, h.t * 4) * nearEye(h.x, h.y, h.z)));
       this.hearts.setMatrixAt(nh, _m.compose(_p, _q, _s));
       this.hearts.setColorAt(nh, _c.set(0xff5c8a).multiplyScalar(1.5 + (h.pull ? 0.8 : 0)));
-      if (Math.random() < (h.pull ? 0.7 : 0.12)) this.fx.spark(h.x + (Math.random() - 0.5) * 0.3, h.y + (Math.random() - 0.5) * 0.3, h.z + (Math.random() - 0.5) * 0.3, 0, 0.6, 0, 0.45, 0.04, 0xffb0c8, 0);
+      if (nearEye(h.x, h.y, h.z) > 0.6 && Math.random() < (h.pull ? 0.7 : 0.12)) this.fx.spark(h.x + (Math.random() - 0.5) * 0.3, h.y + (Math.random() - 0.5) * 0.3, h.z + (Math.random() - 0.5) * 0.3, 0, 0.6, 0, 0.45, 0.04, 0xffb0c8, 0);
       nh++;
     }
     this.hearts.count = nh;
