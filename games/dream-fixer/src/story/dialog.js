@@ -23,6 +23,7 @@ export class Dialog {
     this.cur = null;
     this.said = new Set();
     this.last = null;
+    this.onLine = null;           // called with each line's id as it starts
   }
 
   // Queue a story line by id (once per visit unless `again`).
@@ -41,6 +42,7 @@ export class Dialog {
       const [who, text] = line(id);
       this.cur = { who, text, t: 0, shown: 0, dur: 2.2 + text.length * 0.05 };
       this.last = id;
+      this.onLine?.(id);
       this.icon.innerHTML = ICONS[who] ?? ICONS.margo;
       this.name.textContent = t(who === "csavar" ? "csavar" : "margoRadio");
       this.el.dataset.who = who;

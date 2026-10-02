@@ -2,16 +2,17 @@
 // his line is what the beeps mean).
 export const LINES_EN = {
   // The Factory, first night.
-  hub_intro1: ["margo", "Evening, rookie! Welcome to the Dream Factory. I'm Margó, your dispatcher on the night shift."],
-  hub_intro2: ["margo", "First night's a gentle one. A dog called Morzsa is having a bad dream. Check the job board, over by the window."],
-  hub_intro3: ["csavar", "Bip-bip! (I'm Csavar. I come along!)"],
-  hub_picked: ["margo", "Good pick. Take the lift down to the dreams. Csavar knows the way."],
+  hub_intro1: ["margo", "Evening, rookie! Welcome to the Dream Factory. I'm Margo, your dispatcher on the night shift."],
+  hub_intro2: ["margo", "First night's a gentle one. A dog called Biscuit is having a bad dream. Check the job board, over by the window."],
+  hub_intro3: ["csavar", "Bip-bip! (I'm Cog. I come along!)"],
+  hub_journal: ["margo", "Missed something on the radio? Don't worry, I write it all in the journal. It's by the shelf, and you can leaf through it in the pause menu on a job, too."],
+  hub_picked: ["margo", "Good pick. Take the lift down to the dreams. Cog knows the way."],
   hub_back1: ["margo", "Welcome back! First dream fixed and you're still in one piece. Coffee's on me."],
   hub_back2: ["margo", "Dream dust buys upgrades at the workbench. That's all the jobs tonight: more dreamers next shift!"],
   hub_nojob: ["margo", "Hold on, rookie: pick a job at the board first. The lift needs to know where to go."],
-  hub_radio: ["margo", "This is Margó. Still here, still on my third coffee. Board, bench or lift: your call."],
+  hub_radio: ["margo", "This is Margo. Still here, still on my third coffee. Board, bench or lift: your call."],
   hub_bench: ["margo", "The workbench. Bring me dream dust and I'll make your tools purr."],
-  // Morzsa's park.
+  // Biscuit's park.
   park_in3: ["margo", "One is in the pond past the east bridge, one on the dog run over the west bridge, and one on the little island up the bone steps."],
   park_bunny: ["margo", "Dust bunnies: the Vacuum Cleaner's little pests. One zap each, or suck the whole pack up with the Fuzz Vacuum."],
   park_tub: ["margo", "Is that… a bathtub? A dog's second-worst nightmare. It lobs soap bubbles: watch the ring on the ground and step out of it!"],
@@ -34,15 +35,15 @@ export const LINES_EN = {
   park_clog: ["margo", "Ha! Clogged! Go for the dust bag on its back!"],
   park_phase: ["margo", "Now it's furious. Jump over that cord!"],
   park_faint: ["margo", "Easy there, rookie. I pulled you back to the last anchor."],
-  park_win: ["margo", "Dream fixed! Morzsa's snoring like a little engine. Come on back up."],
+  park_win: ["margo", "Dream fixed! Biscuit's snoring like a little engine. Come on back up."],
 };
 
-// Morzsa's memories: [title, text].
+// Biscuit's memories: [title, text].
 export const MEMORIES_EN = {
-  hedgehog: ["The squeaky hedgehog", "Dóri bought it on Morzsa's very first day. It has lost its squeak, but not its smell."],
+  hedgehog: ["The squeaky hedgehog", "Dora bought it on Biscuit's very first day. It has lost its squeak, but not its smell."],
   leash: ["The red leash", "It hangs by the door, and every evening at six it comes down. Tonight nobody took it."],
-  photo: ["A photo", "Dóri and Morzsa at the lake. Dóri is away for a week. A week is very, very long."],
-  slipper: ["Half a slipper", "Evidence. Dóri was not amused. Morzsa was extremely proud."],
+  photo: ["A photo", "Dora and Biscuit at the lake. Dora is away for a week. A week is very, very long."],
+  slipper: ["Half a slipper", "Evidence. Dora was not amused. Biscuit was extremely proud."],
   cord: ["A cord in the cupboard", "It lives in the cupboard and comes out roaring. Nobody ever explains it to the dog."],
 };
-export const OUTRO_EN = "Morzsa dreams of the lake now. Dóri comes home on Sunday.";
+export const OUTRO_EN = "Biscuit dreams of the lake now. Dora comes home on Sunday.";

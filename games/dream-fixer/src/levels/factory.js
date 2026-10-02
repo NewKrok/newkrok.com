@@ -3,7 +3,7 @@ import { rng } from "../rng.js";
 // ── The Dream Factory (the hub) ──────────────────────────────────────────
 // The night-shift workshop, between dreams: the job board by the big
 // window (and Álmos, the great dream machine, dozing outside it), the
-// workbench, Margó's desk with the radio, and the lift down to the dreams.
+// workbench, Margo's desk with the radio, and the lift down to the dreams.
 
 const WALL = { side: 0xd9b88a, sideD: 0xb08858, bevel: 0.04 };
 const WAINSCOT = { flat: { top: 0x6a3f24, side: 0x7a4a2a } };
@@ -71,6 +71,10 @@ export const factory = {
     k.prop("dreamTank", -8.8, -5.9, { opts: { color: 0xff8fd0, seed: 2, h: 3 }, collide: { r: 0.8, h: 4.5 } });
     k.prop("dreamTank", 4.6, -6.1, { opts: { color: 0x7ff5e0, seed: 5, h: 2.6 }, collide: { r: 0.8, h: 4.2 } });
     k.prop("shelf", -9.6, -2.4, { yaw: -Math.PI / 2, collide: { w: 1.9, d: 0.5, h: 2.3 } });
+    // The journal on its lectern by the shelf: everything said on the radio.
+    k.prop("lectern", -8.7, -4.2, { yaw: -Math.PI / 2, collide: { r: 0.36, h: 1.3 } });
+    k.use("journal", -8.0, -4.2, { r: 2.2, label: "useJournal" });
+    k.light(-8.3, 2.4, -4.2, 0xffd27a, 0.9, 3.5);
     k.prop("shelf", 9.6, 3.4, { yaw: Math.PI / 2, opts: { seed: 4 }, collide: { w: 1.9, d: 0.5, h: 2.3 } });
     k.prop("rug", 0, 1.8, { opts: { r: 2.4 } });
     for (const [x, z, s] of [[6.8, 5.8, 1], [7.9, 5.9, 0.8], [7.3, 5.8, 0.7]]) k.prop("crate", x, z, { y: s === 0.7 ? 0.8 : 0, yaw: rnd() * 0.6, opts: { seed: Math.round(x * 10), s }, collide: { w: 0.8, d: 0.8, h: 0.8 } });

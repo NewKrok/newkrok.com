@@ -1,4 +1,4 @@
-import { t, LANGS, getLang, memoryText, outroText } from "../i18n/index.js";
+import { t, LANGS, getLang, memoryText, outroText, line } from "../i18n/index.js";
 import { UPGRADES } from "../data/upgrades.js";
 
 // ── Menus and panels ─────────────────────────────────────────────────────
@@ -68,13 +68,14 @@ export class Menus {
     this.show("howto", `<div class="panel wide prose"><h2>${esc(t("howto"))}</h2>${t("howto_text")}<div class="actions"><button class="btn" data-a="back">${esc(t("back"))}</button></div></div>`, { back: onBack }, "dim");
   }
 
-  pause({ inDream, onResume, onSettings, onFactory, onMain }) {
+  pause({ inDream, onResume, onJournal, onSettings, onFactory, onMain }) {
     this.show("pause", `<div class="panel narrow"><h2>${esc(t("paused"))}</h2><div class="menu-buttons">
       <button class="btn big" data-a="resume">${esc(t("resume"))}</button>
+      <button class="btn ghost" data-a="journal">${esc(t("journal"))}</button>
       <button class="btn ghost" data-a="settings">${esc(t("settings"))}</button>
       ${inDream ? `<button class="btn ghost" data-a="factory">${esc(t("toFactory"))}</button>` : ""}
       <button class="btn ghost" data-a="main">${esc(t("mainMenu"))}</button></div></div>`,
-    { resume: onResume, settings: onSettings, factory: onFactory, main: onMain }, "dim");
+    { resume: onResume, journal: onJournal, settings: onSettings, factory: onFactory, main: onMain }, "dim");
   }
 
   settings(S, { onChange, onBack, onReset }) {
@@ -111,6 +112,30 @@ export class Menus {
       });
     }
     for (const i of el.querySelectorAll("input[data-set]")) i.addEventListener("input", () => onChange(i.dataset.set, i.type === "checkbox" ? i.checked : Number(i.value)));
+  }
+
+  // The journal: every radio line heard so far, chapter by chapter (the
+  // Factory, then each dream), and the memories found, to read at leisure.
+  journal(progress, { onClose }) {
+    const chapters = [["hub", t("j_factory")], ...CLIENTS.filter((c) => c.level).map((c) => [c.id, t(`c_${c.id}`)[0]])];
+    const who = (w) => t(w === "csavar" ? "csavar" : "margo");
+    const sections = chapters.map(([pre, title]) => {
+      const lines = progress.log.filter((id) => id.startsWith(pre + "_"));
+      const mems = Object.keys(MEMORY_OWNER).filter((m) => MEMORY_OWNER[m] === pre);
+      if (!lines.length && !mems.some((m) => progress.memories.includes(m))) return "";
+      const talk = lines.map((id) => { const [w, text] = line(id); return `<p class="jl ${w}"><b>${esc(who(w))}</b> ${esc(text)}</p>`; }).join("");
+      const found = mems.map((m) => {
+        if (!progress.memories.includes(m)) return `<li class="missing"><b>???</b></li>`;
+        const [ti, tx] = memoryText(m);
+        return `<li><b>${esc(ti)}</b> ${esc(tx)}</li>`;
+      }).join("");
+      return `<section class="jch"><h3>${esc(title)}</h3>${talk}${mems.length ? `<h4>${esc(t("memories"))} ${mems.filter((m) => progress.memories.includes(m)).length}/${mems.length}</h4><ul class="jmem">${found}</ul>` : ""}</section>`;
+    }).join("");
+    const el = this.show("journal", `<div class="panel wide journal"><h2>${esc(t("journal"))}</h2><div class="jbody">${sections || `<p class="intro">${esc(t("j_empty"))}</p>`}</div>
+      <div class="actions"><button class="btn" data-a="close">${esc(t("close"))}</button></div></div>`, { close: onClose }, "dim");
+    // Open at the latest page.
+    const body = el.querySelector(".jbody");
+    if (body) body.scrollTop = body.scrollHeight;
   }
 
   board(progress, { onTake, onClose }) {

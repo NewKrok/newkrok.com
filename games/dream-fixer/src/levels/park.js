@@ -1,9 +1,9 @@
 import { rng } from "../rng.js";
 
-// ── Morzsa's park (chapter 1) ────────────────────────────────────────────
+// ── Biscuit's park (chapter 1) ────────────────────────────────────────────
 // Islands of lawn floating in an evening sky gone grey with the
 // nightmare: the big lawn in the middle (where the nightmare will come
-// up), a terrace with Morzsa's doghouse, a dog run with an agility course
+// up), a terrace with Biscuit's doghouse, a dog run with an agility course
 // over the west bridge, a pond garden over the east bridge, and a little
 // island up a staircase of giant bones. The three anchors are in the pond,
 // on the dog run and on the little island; the sky clears as they are
@@ -129,7 +129,7 @@ export const park = {
       spawns: [[12, -24], [21, -24.5], [20.5, -32], [12.5, -31.5]],
     });
 
-    // Morzsa's memories, tucked away.
+    // Biscuit's memories, tucked away.
     k.memory("hedgehog", -16.5, -15.2);
     k.memory("leash", 8.6, -13.2);
     k.memory("photo", 20.3, -25.4);

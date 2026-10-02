@@ -5,8 +5,8 @@ import { memoryBubble } from "./models/dream.js";
 import { C } from "./palette.js";
 import { damp } from "../config.js";
 
-// ── Csavar, and the memories ─────────────────────────────────────────────
-// Csavar hovers just ahead and to your left, bobbing, turning his big eye
+// ── Cog, and the memories ─────────────────────────────────────────────
+// Cog hovers just ahead and to your left, bobbing, turning his big eye
 // towards whatever matters (a broken anchor, the nearest glitch), and
 // blinking his antenna when he talks. Memories float in soap bubbles.
 

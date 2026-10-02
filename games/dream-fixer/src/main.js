@@ -39,6 +39,8 @@ async function startGame() {
   let hud = new Hud(app);
   const dialog = new Dialog(app, audio);
   const director = new Director(dialog);
+  // Every line heard goes into the journal, to read again later.
+  dialog.onLine = (id) => { if (!progress.log.includes(id)) { progress.log.push(id); save(); } };
   const menus = new Menus(app, audio);
   const padNav = new PadNav(app, audio);
 
@@ -125,6 +127,7 @@ async function startGame() {
   const showPause = () => menus.pause({
     inDream: inDream(),
     onResume: resume,
+    onJournal: () => menus.journal(progress, { onClose: showPause }),
     onSettings: () => showSettings(showPause),
     onFactory: () => { bankDust(); menus.close(); menus.fade(() => startLevel("factory")); resume(); },
     onMain: () => { bankDust(); startLevel("factory"); showTitle(); },
@@ -161,7 +164,8 @@ async function startGame() {
         onClose: resume,
       });
       openMenu(open);
-    } else if (id === "radio") dialog.say(dialog.last && dialog.last !== "hub_radio" ? dialog.last : "hub_radio", true);
+    } else if (id === "journal") openMenu(() => menus.journal(progress, { onClose: resume }));
+    else if (id === "radio") dialog.say(dialog.last && dialog.last !== "hub_radio" ? dialog.last : "hub_radio", true);
     else if (id === "lift") {
       if (!progress.picked) { dialog.say("hub_nojob", true); return; }
       const lvl = progress.picked;

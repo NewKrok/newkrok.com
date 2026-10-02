@@ -18,7 +18,8 @@ export const DEFAULT_SETTINGS = {
 export function loadSettings() { return { ...DEFAULT_SETTINGS, ...(read(KEY_SETTINGS) ?? {}) }; }
 export function saveSettings(s) { write(KEY_SETTINGS, s); }
 
-const blank = () => ({ dust: 0, done: [], memories: [], upgrades: {}, night: 0, picked: null, vacuum: false, introSeen: false });
+// log: the radio lines heard so far, in order (for the journal).
+const blank = () => ({ dust: 0, done: [], memories: [], upgrades: {}, night: 0, picked: null, vacuum: false, introSeen: false, log: [] });
 export function loadProgress() { return { ...blank(), ...(read(KEY_PROGRESS) ?? {}) }; }
 export function saveProgress(p) { write(KEY_PROGRESS, p); }
 export function resetProgress(p) { for (const k of Object.keys(p)) delete p[k]; Object.assign(p, blank()); saveProgress(p); }

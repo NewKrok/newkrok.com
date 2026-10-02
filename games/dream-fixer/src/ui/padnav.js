@@ -76,7 +76,7 @@ export class PadNav {
       }
     }
     if (!cands.length) {
-      if (vertical) cur.closest(".panel")?.scrollBy({ top: sgn * 160, behavior: "smooth" });
+      if (vertical) { const pn = cur.closest(".panel"); (pn?.querySelector(".jbody") ?? pn)?.scrollBy({ top: sgn * 160, behavior: "smooth" }); }
       return;
     }
     const near = Math.min(...cands.map((c) => c.gap)) + 12;

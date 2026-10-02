@@ -6,7 +6,7 @@ import { C } from "../palette.js";
 
 const RX = Math.PI / 2;
 
-// Csavar, the little workshop robot who flies along into the dreams.
+// Cog, the little workshop robot who flies along into the dreams.
 // Nodes: "body" (bob), "prop" (spins), "armL"/"armR", "eye" (looks around).
 export function csavar(b) {
   b.node("body", [0, 0, 0], [0, 0, 0], (n) => {
@@ -52,7 +52,7 @@ export function csavar(b) {
   });
 }
 
-// A Kóc of Morzsa's park: in a dog's dream the glitches come out as
+// A Kóc of Biscuit's park: in a dog's dream the glitches come out as
 // squirrels, the one thing a dog chases every day, and here they chase
 // back. Tangled, with a strand of glowing pink yarn wound round them (the
 // glitch) and an acorn to throw a fit with. Nodes: "body" (bounce), "tail"

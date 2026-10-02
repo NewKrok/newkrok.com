@@ -38,8 +38,8 @@ const DIRECTORS = {
   },
   factory: {
     start(D, run, P) {
-      if (!P.done.includes("park")) { D.say("hub_intro1"); D.say("hub_intro2"); D.say("hub_intro3"); }
-      else if (P.justBack) { D.say("hub_back1"); D.say("hub_back2"); }
+      if (!P.done.includes("park")) { D.say("hub_intro1"); D.say("hub_intro2"); D.say("hub_intro3"); D.say("hub_journal"); }
+      else if (P.justBack) { D.say("hub_back1"); D.say("hub_back2"); D.say("hub_journal"); }
     },
     events() {},
     frame() {},

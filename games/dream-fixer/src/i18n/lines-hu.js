@@ -1,13 +1,14 @@
 // Sztori (magyar).
 export const LINES_HU = {
-  hub_intro1: ["margo", "Jó estét, újonc! Üdv az Álomgyárban. Margó vagyok, az éjszakás diszpécser."],
-  hub_intro2: ["margo", "Az első éjszaka szelíd lesz. Egy Morzsa nevű kutya rosszat álmodik. Nézd meg a munkatáblát, ott az ablaknál."],
-  hub_intro3: ["csavar", "Bip-bip! (Csavar vagyok. Megyek veled!)"],
-  hub_picked: ["margo", "Jó választás. A lifttel lemész az álmokba. Csavar tudja az utat."],
+  hub_intro1: ["margo", "Jó estét, újonc! Üdv az Álomgyárban. Margo vagyok, az éjszakás diszpécser."],
+  hub_intro2: ["margo", "Az első éjszaka szelíd lesz. Egy Biscuit nevű kutya rosszat álmodik. Nézd meg a munkatáblát, ott az ablaknál."],
+  hub_intro3: ["csavar", "Bip-bip! (Cog vagyok. Megyek veled!)"],
+  hub_journal: ["margo", "Ha valamit elszalasztasz a rádión, ne aggódj: mindent beírok a naplóba. Ott van a polc mellett, és munka közben a szünetben is belelapozhatsz."],
+  hub_picked: ["margo", "Jó választás. A lifttel lemész az álmokba. Cog tudja az utat."],
   hub_back1: ["margo", "Visszajöttél! Az első álom megjavítva, és még egyben vagy. A kávé az enyém."],
   hub_back2: ["margo", "Álomporért fejleszthetsz a munkapadnál. Mára ennyi munka volt: a következő műszakban jönnek az új álmodók!"],
   hub_nojob: ["margo", "Várj csak, újonc: előbb válassz munkát a táblán. A liftnek tudnia kell, hová menjen."],
-  hub_radio: ["margo", "Itt Margó. Még mindig itt vagyok, még mindig a harmadik kávénál. Tábla, pad vagy lift: te döntesz."],
+  hub_radio: ["margo", "Itt Margo. Még mindig itt vagyok, még mindig a harmadik kávénál. Tábla, pad vagy lift: te döntesz."],
   hub_bench: ["margo", "A munkapad. Hozz álomport, és a szerszámaid dorombolni fognak."],
   park_in3: ["margo", "Az egyik a tóban van a keleti hídon túl, a másik a kutyafuttatón a nyugati hídon át, a harmadik a kis szigeten, fel a csontlépcsőn."],
   park_bunny: ["margo", "Porcicák: a Porszívó kis kártevői. Egy lövés elég mindegyikre, vagy szívd be az egész falkát a Kócszívóval."],
@@ -31,13 +32,13 @@ export const LINES_HU = {
   park_clog: ["margo", "Ha! Eldugult! Lődd a porzsákot a hátán!"],
   park_phase: ["margo", "Most már dühös. Ugord át a kábelt!"],
   park_faint: ["margo", "Csak nyugodtan, újonc. Visszahúztalak a legutóbbi horgonyhoz."],
-  park_win: ["margo", "Álom megjavítva! Morzsa úgy horkol, mint egy kis motor. Gyere vissza fel."],
+  park_win: ["margo", "Álom megjavítva! Biscuit úgy horkol, mint egy kis motor. Gyere vissza fel."],
 };
 export const MEMORIES_HU = {
-  hedgehog: ["A sípolós sün", "Dóri az első napon vette Morzsának. A sípolása elveszett, a szaga megmaradt."],
+  hedgehog: ["A sípolós sün", "Dora az első napon vette Biscuitnak. A sípolása elveszett, a szaga megmaradt."],
   leash: ["A piros póráz", "Az ajtó mellett lóg, és minden este hatkor lekerül. Ma este senki sem vette le."],
-  photo: ["Egy fénykép", "Dóri és Morzsa a tónál. Dóri egy hétre elutazott. Egy hét nagyon-nagyon hosszú."],
-  slipper: ["Fél papucs", "Bizonyíték. Dóri nem örült neki. Morzsa rendkívül büszke volt."],
+  photo: ["Egy fénykép", "Dora és Biscuit a tónál. Dora egy hétre elutazott. Egy hét nagyon-nagyon hosszú."],
+  slipper: ["Fél papucs", "Bizonyíték. Dora nem örült neki. Biscuit rendkívül büszke volt."],
   cord: ["Egy kábel a szekrényben", "A szekrényben lakik, és üvöltve jön elő. A kutyának soha senki nem magyarázza el."],
 };
-export const OUTRO_HU = "Morzsa most a tóról álmodik. Dóri vasárnap hazajön.";
+export const OUTRO_HU = "Biscuit most a tóról álmodik. Dora vasárnap hazajön.";

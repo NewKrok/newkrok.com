@@ -2,7 +2,7 @@ import { stabilizer, fuzzVacuum } from "./tools.js";
 import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./characters.js";
 import { anchor } from "./dream.js";
 import { vacuumBoss } from "./boss.js";
-import { jobBoard, workbench, desk, lift, dreamTank, pipe, almos, crate, shelf, rug, hangLamp, dock } from "./factory.js";
+import { jobBoard, workbench, desk, lift, dreamTank, pipe, almos, crate, shelf, rug, hangLamp, dock, lectern } from "./factory.js";
 import { memoryBubble } from "./dream.js";
 import { tree, bush, rock, bench, lamp, bone, tennisBall, hydrant, doghouse, fence, flowers, grass, hurdle, tyre, pole, tunnel, sign, lilypad, reeds, gazebo, dock as jetty, cable, cloud } from "./park.js";
 
@@ -107,5 +107,6 @@ export const MODELS = {
   rug: { build: rug, frame: 4 },
   hangLamp: { build: hangLamp, frame: 2 },
   dock: { build: dock, frame: 1.8 },
+  lectern: { build: lectern, frame: 1.8 },
 };
 export { spin };

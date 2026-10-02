@@ -2,7 +2,7 @@ import * as T from "three";
 import { SHAPE, rng, vary, mix } from "../modelkit.js";
 import { C } from "../palette.js";
 
-// ── Morzsa's park ────────────────────────────────────────────────────────
+// ── Biscuit's park ────────────────────────────────────────────────────────
 // A dog's idea of a park: soft hills, fat trees, a bench to sniff and
 // everything that matters (bones, balls, hydrants) far too big.
 // Origin on the ground, at the prop's centre.
@@ -135,7 +135,7 @@ export function hydrant(b, { s = 1 } = {}) {
   });
 }
 
-// Morzsa's own doghouse. The door faces −z.
+// Biscuit's own doghouse. The door faces −z.
 export function doghouse(b) {
   const WALL = [0xc98a4c, 0xe2ae6e], ROOF = [0x9c2f24, 0xd24a36];
   // Plank walls.

@@ -159,7 +159,7 @@ function groundAlong(run, x0, z0, x1, z1, y) {
 // Is it paying attention to you? Wave glitches always are; loose ones only
 // once you come close, and they give up if you get well away. Around the
 // spot where you arrive the dream is calm: loose glitches leave you be
-// there (time to listen to Margó and look round).
+// there (time to listen to Margo and look round).
 function aware(run, f, dist) {
   if (f.group) return true;
   if (f.provoked > 0) { notice(run, f); return true; }

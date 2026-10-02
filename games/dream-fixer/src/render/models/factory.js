@@ -24,7 +24,7 @@ export function jobBoard(b) {
     b.add(SHAPE.box(0.2, 0.02, 0.005), { p: [x - 0.04, y + 0.02, -0.072], c: 0xaaaaaa, facet: 0 });
     b.add(SHAPE.ball(0.025, 6, 4), { p: [x, y + 0.15, -0.08], c: [C.red, C.teal, C.brass, C.dreamPink, 0x4a7ad8][i], mat: i === 0 ? "glow" : "solid", glow: 1.2 });
   });
-  // The first card is Morzsa's: a paw print on it.
+  // The first card is Biscuit's: a paw print on it.
   b.add(SHAPE.ball(0.05, 8, 6), { p: [-0.62, 1.55, -0.075], s: [1, 1, 0.2], c: 0x6a4a3a });
   for (let i = 0; i < 4; i++) b.add(SHAPE.ball(0.02, 6, 4), { p: [-0.68 + i * 0.04, 1.62 + Math.abs(i - 1.5) * -0.01, -0.075], s: [1, 1, 0.3], c: 0x6a4a3a });
   // Header sign.
@@ -57,7 +57,7 @@ export function workbench(b) {
   b.add(SHAPE.ball(0.05, 8, 6), { p: [1.05, 1.47, 0.16], c: C.dreamGold, mat: "glow", glow: 2 });
 }
 
-// Margó's desk: the radio, a lamp, papers and a growing stack of mugs.
+// Margo's desk: the radio, a lamp, papers and a growing stack of mugs.
 export function desk(b, { mugs = 3 } = {}) {
   b.add(SHAPE.box(1.8, 0.08, 0.9, 0.03), { p: [0, 0.78, 0], grad: [C.woodD, C.wood] });
   b.both((s) => b.add(SHAPE.box(0.5, 0.74, 0.8, 0.03), { p: [s * 0.62, 0.37, 0], c: C.woodD }));
@@ -189,10 +189,33 @@ export function hangLamp(b, { cord = 1.2 } = {}) {
   b.add(SHAPE.ball(0.09, 10, 7), { p: [0, -cord - 0.22, 0], c: C.dreamGold, mat: "glow", glow: 2.4 });
 }
 
-// Csavar's charging dock: a little brass cup on a post.
+// Cog's charging dock: a little brass cup on a post.
 export function dock(b) {
   b.add(SHAPE.cyl(0.3, 0.35, 0.1, 12, 0.02), { p: [0, 0.05, 0], c: C.iron, mat: "metal" });
   b.add(SHAPE.cyl(0.05, 0.05, 1.1, 8), { p: [0, 0.6, 0], c: C.brass, mat: "metal" });
   b.add(SHAPE.lathe([[0.05, 0], [0.25, 0.06], [0.3, 0.18], [0.27, 0.18]], 12), { p: [0, 1.15, 0], c: C.brass, mat: "metal" });
   b.add(SHAPE.torus(0.26, 0.015, 4, 16), { p: [0, 1.34, 0], r: [RX, 0, 0], c: C.dream, mat: "glow", glow: 1.6 });
+}
+
+// The journal: a fat logbook lying open on a lectern, a glowing bookmark
+// hanging out of it. Facing −z (you read it from the front).
+export function lectern(b) {
+  b.add(SHAPE.cyl(0.32, 0.36, 0.06, 10, 0.02), { p: [0, 0.03, 0], c: C.woodD });
+  b.add(SHAPE.box(0.12, 1.0, 0.12, 0.02), { p: [0, 0.55, 0], c: C.wood });
+  b.add(SHAPE.box(0.08, 0.06, 0.4, 0.02), { p: [0, 0.07, 0], c: C.woodD });
+  b.at([0, 1.08, 0], [-0.35, 0, 0], 1, () => {
+    b.add(SHAPE.box(0.72, 0.05, 0.5, 0.02), { c: C.wood });
+    b.add(SHAPE.box(0.7, 0.03, 0.05, 0.01), { p: [0, 0.04, -0.24], c: C.brass, mat: "metal" });
+    // Cover and two thick blocks of pages, a little bowed.
+    b.add(SHAPE.box(0.66, 0.025, 0.46, 0.01), { p: [0, 0.04, 0], c: 0x6a2a1a });
+    b.both((s) => b.add(SHAPE.box(0.3, 0.05, 0.42, 0.015), { p: [s * 0.16, 0.075, 0], r: [0, 0, -s * 0.06], c: C.paper }));
+    for (let i = 0; i < 4; i++) b.add(SHAPE.box(0.22, 0.004, 0.012), { p: [-0.16, 0.103, -0.12 + i * 0.07], c: 0x9a8a70 });
+    for (let i = 0; i < 4; i++) b.add(SHAPE.box(0.22, 0.004, 0.012), { p: [0.16, 0.103, -0.12 + i * 0.07], c: 0x9a8a70 });
+    // The bookmark ribbon, glowing gold, hanging over the front edge.
+    b.add(SHAPE.box(0.035, 0.006, 0.3), { p: [0.02, 0.11, -0.08], c: C.dreamGold, mat: "glow", glow: 1 });
+    b.add(SHAPE.box(0.035, 0.18, 0.006), { p: [0.02, 0.02, -0.24], c: C.dreamGold, mat: "glow", glow: 1 });
+  });
+  // A brass corner lamp on the lectern, so you notice it.
+  b.add(SHAPE.ball(0.05, 8, 6), { p: [0.32, 1.32, 0.12], c: C.dreamGold, mat: "glow", glow: 1.2 });
+  b.add(SHAPE.cyl(0.008, 0.008, 0.22, 4), { p: [0.32, 1.2, 0.12], c: C.brass, mat: "metal" });
 }

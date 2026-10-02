@@ -206,3 +206,16 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; border-radius: 
 /* ── Gamepad: a clear focus ring while the pad drives the menus ── */
 body.pad-nav .menus button:focus, body.pad-nav .menus input:focus { outline: 3px solid var(--brass); outline-offset: 3px; }
 @keyframes pulse { 50% { opacity: 0.45; } }
+
+/* ── The journal ── */
+.journal { display: flex; flex-direction: column; }
+.journal .jbody { overflow-y: auto; max-height: 62vh; padding-right: 6px; }
+.journal .jch h3 { margin-top: 6px; }
+.journal .jch h4 { margin: 12px 0 4px; color: var(--brass); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; }
+.journal .jl { margin: 0 0 7px; line-height: 1.5; color: var(--ink-dim); }
+.journal .jl b { color: var(--brass); margin-right: 4px; }
+.journal .jl.csavar b { color: var(--mint); }
+.journal .jmem { margin: 0; padding-left: 18px; color: var(--ink-dim); line-height: 1.5; }
+.journal .jmem li { margin-bottom: 4px; }
+.journal .jmem b { color: var(--pink); }
+.journal .jmem .missing { opacity: 0.45; }

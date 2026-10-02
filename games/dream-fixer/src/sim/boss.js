@@ -1,6 +1,6 @@
 import { Body } from "./player.js";
 
-// ── The Vacuum Cleaner (Morzsa's nightmare) ──────────────────────────────
+// ── The Vacuum Cleaner (Biscuit's nightmare) ──────────────────────────────
 // Comes up out of the lawn once all three anchors hold.
 //
 //  roam    rolls after you, keeping a few metres off
