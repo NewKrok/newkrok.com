@@ -219,3 +219,6 @@ body.pad-nav .menus button:focus, body.pad-nav .menus input:focus { outline: 3px
 .journal .jmem li { margin-bottom: 4px; }
 .journal .jmem b { color: var(--pink); }
 .journal .jmem .missing { opacity: 0.45; }
+.journal .jnotes { margin: 0; padding-left: 18px; color: var(--ink-dim); line-height: 1.5; }
+.journal .jnotes li { margin-bottom: 6px; }
+.journal .jnotes b { color: var(--mint); }

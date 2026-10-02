@@ -49,6 +49,7 @@ export const EN = {
   useJournal: "Journal",
   journal: "Journal",
   j_factory: "The Dream Factory",
+  j_notes: "Notes",
   j_empty: "Empty for now. What you hear on the radio is kept here.",
   margo: "Margo",
   useLift: "Lift down to the dreams",

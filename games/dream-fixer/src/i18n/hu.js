@@ -49,6 +49,7 @@ export const HU = {
   useJournal: "Napló",
   journal: "Napló",
   j_factory: "Az Álomgyár",
+  j_notes: "Jegyzetek",
   j_empty: "Még üres. Amit a rádión hallasz, ide kerül.",
   margo: "Margo",
   useLift: "Lift le az álmokhoz",

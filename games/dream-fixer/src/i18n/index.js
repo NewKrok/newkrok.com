@@ -1,7 +1,7 @@
 import { EN } from "./en.js";
 import { HU } from "./hu.js";
-import { LINES_EN, MEMORIES_EN, OUTRO_EN } from "./lines-en.js";
-import { LINES_HU, MEMORIES_HU, OUTRO_HU } from "./lines-hu.js";
+import { LINES_EN, MEMORIES_EN, OUTRO_EN, NOTES_EN } from "./lines-en.js";
+import { LINES_HU, MEMORIES_HU, OUTRO_HU, NOTES_HU } from "./lines-hu.js";
 
 // ── Localisation ─────────────────────────────────────────────────────────
 // Page text carries data-i18n keys; code goes through t().
@@ -32,11 +32,13 @@ export function t(key, vars) {
   return s;
 }
 
-const STORY = { en: { lines: LINES_EN, memories: MEMORIES_EN, outro: OUTRO_EN }, hu: { lines: LINES_HU, memories: MEMORIES_HU, outro: OUTRO_HU } };
+const STORY = { en: { lines: LINES_EN, memories: MEMORIES_EN, outro: OUTRO_EN, notes: NOTES_EN }, hu: { lines: LINES_HU, memories: MEMORIES_HU, outro: OUTRO_HU, notes: NOTES_HU } };
 // [speaker, text] of a story line.
 export const line = (id) => STORY[lang].lines[id] ?? LINES_EN[id] ?? ["margo", id];
 export const memoryText = (id) => STORY[lang].memories[id] ?? MEMORIES_EN[id] ?? [id, ""];
 export const outroText = () => STORY[lang].outro ?? OUTRO_EN;
+// [title, text] of the journal note a line unlocks, or null.
+export const noteText = (id) => STORY[lang].notes[id] ?? NOTES_EN[id] ?? null;
 
 export function applyDom(root = document) {
   for (const el of root.querySelectorAll("[data-i18n]")) el.textContent = t(el.dataset.i18n);

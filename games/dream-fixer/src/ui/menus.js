@@ -1,4 +1,4 @@
-import { t, LANGS, getLang, memoryText, outroText, line } from "../i18n/index.js";
+import { t, LANGS, getLang, memoryText, outroText, line, noteText } from "../i18n/index.js";
 import { UPGRADES } from "../data/upgrades.js";
 
 // ── Menus and panels ─────────────────────────────────────────────────────
@@ -131,7 +131,9 @@ export class Menus {
         const [ti, tx] = memoryText(m);
         return `<li><b>${esc(ti)}</b> ${esc(tx)}</li>`;
       }).join("");
-      return `<section class="jch"><h3>${esc(title)}</h3>${talk}${mems.length ? `<h4>${esc(t("memories"))} ${mems.filter((m) => progress.memories.includes(m)).length}/${mems.length}</h4><ul class="jmem">${found}</ul>` : ""}</section>`;
+      // Notes: the how-tos the radio leaves out, unlocked by its lines.
+      const notes = lines.map((id) => noteText(id)).filter(Boolean).map(([ti, tx]) => `<li><b>${esc(ti)}</b> ${esc(tx)}</li>`).join("");
+      return `<section class="jch"><h3>${esc(title)}</h3>${talk}${notes ? `<h4>${esc(t("j_notes"))}</h4><ul class="jnotes">${notes}</ul>` : ""}${mems.length ? `<h4>${esc(t("memories"))} ${mems.filter((m) => progress.memories.includes(m)).length}/${mems.length}</h4><ul class="jmem">${found}</ul>` : ""}</section>`;
     }).join("");
     const el = this.show("journal", `<div class="panel wide journal"><h2>${esc(t("journal"))}</h2><div class="jbody">${sections || `<p class="intro">${esc(t("j_empty"))}</p>`}</div>
       <div class="actions"><button class="btn" data-a="close">${esc(t("close"))}</button></div></div>`, { close: onClose }, "dim");

@@ -23,35 +23,35 @@ const SETTINGS = { stability: 0.5, similarity_boost: 0.8 };
 // If a line's text changes and no longer matches, it is read plainly (and
 // the script says so) until the tags here are updated.
 const ACTED = {
-  hub_intro1: "[cheerfully] Evening, rookie! Welcome to the Dream Factory. [warmly] I'm Margo, your dispatcher on the night shift.",
-  hub_intro2: "[gently] First night's a gentle one. A dog called Biscuit is having a bad dream. [brightly] Check the job board, over by the window.",
-  hub_journal: "[reassuring] Missed something on the radio? Don't worry, I write it all in the journal. It's by the shelf, and you can leaf through it in the pause menu on a job, too.",
-  hub_picked: "[pleased] Good pick. Take the lift down to the dreams. [playfully] Cog knows the way.",
-  hub_back1: "[excited] Welcome back! First dream fixed and you're still in one piece. [laughs] Coffee's on me.",
-  hub_back2: "[warmly] Dream dust buys upgrades at the workbench. [yawns] That's all the jobs tonight: more dreamers next shift!",
-  hub_nojob: "[amused] Hold on, rookie: pick a job at the board first. The lift needs to know where to go.",
-  hub_radio: "[tired] This is Margo. Still here, still on my third coffee. [sighs] Board, bench or lift: your call.",
-  hub_bench: "[proudly] The workbench. Bring me dream dust and I'll make your tools purr.",
+  hub_intro1: "[cheerfully] Evening, rookie! [warmly] I'm Margo, your night-shift dispatcher at the Dream Factory.",
+  hub_intro2: "[gently] A dog called Biscuit is having a bad dream. [brightly] The job board's by the window.",
+  hub_journal: "[reassuring] Missed something? It's all in the journal, by the shelf.",
+  hub_picked: "[pleased] Good pick. Take the lift down. [playfully] Cog knows the way.",
+  hub_back1: "[excited] Welcome back, and in one piece! [laughs] Coffee's on me.",
+  hub_back2: "[warmly] Spend your dream dust at the workbench. [yawns] That's all for tonight!",
+  hub_nojob: "[amused] Pick a job at the board first, rookie.",
+  hub_radio: "[tired] Margo here. [sighs] Third coffee. Board, bench or lift?",
+  hub_bench: "[proudly] The workbench. Bring me dust and I'll make your tools purr.",
   park_in1: "[softly] You're in. [sniffs] Smells like cut grass and… [amused] tennis balls.",
-  park_in2: "[concerned] Look at it: a grey, bruised sky, pink glitch shards in the air, cables everywhere. Three dream anchors should hold this dream together, and all three are broken. [focused] Look for the pink wisps and the dark patches on the ground.",
-  park_in3: "[thoughtfully] One is in the pond past the east bridge, one on the dog run over the west bridge, and one on the little island up the bone steps.",
-  park_foe: "[alarmed] Squirrels! [quickly] In a dog's dream the glitches come out as the thing it chases every day, and these ones chase back. Tangled up, see the pink yarn? Smooth them out with the Stabilizer!",
-  park_nut: "[shouting] Duck! [urgently] The squirrels throw nuts. One that rears back with a nut over its head is about to throw: step aside, or shoot the nut out of the air.",
-  park_bunny: "[amused] Dust bunnies: the Vacuum Cleaner's little pests. One zap each, or suck the whole pack up with the Fuzz Vacuum.",
-  park_tub: "[confused] Is that… a bathtub? [laughs] A dog's second-worst nightmare. [urgently] It lobs soap bubbles: watch the ring on the ground and step out of it!",
-  park_buzzer: "[alert] A Buzzer! It spits slow orbs. You can shoot them out of the air.",
-  park_knot: "[serious] That's a Knot: it keeps tangling out new fuzzes. The Vacuum's stream unravels it.",
-  park_tune: "[urgently] Tuning shakes glitches loose. Stay inside the ring and hold your ground!",
-  park_fix1: "[delighted] One down, and look, the sky's clearing! [excited] I'm sending you the Fuzz Vacuum: hold it on glitches and the stream wears them down; the little ones it sucks right in, then right click fires them back out.",
+  park_in2: "[concerned] Three anchors hold this dream together, and all three are broken.",
+  park_in3: "[thoughtfully] One's past the east bridge, one over the west bridge, one up the bone steps.",
+  park_foe: "[alarmed] Squirrels! [wryly] All day Biscuit chases them. [urgently] Tonight they chase us!",
+  park_nut: "[shouting] Duck! Nuts!",
+  park_bunny: "[amused] Dust bunnies. One zap each.",
+  park_tub: "[baffled] Is that… a bathtub?",
+  park_buzzer: "[alert] A Buzzer! Watch its orbs.",
+  park_knot: "[serious] A Knot. [alarmed] It keeps spinning out squirrels!",
+  park_tune: "[urgently] Stay in the ring while it tunes!",
+  park_fix1: "[delighted] One down, the sky's clearing! [excited] I'm sending you the Fuzz Vacuum.",
   park_fix2: "[cheering] Two! One more to go.",
-  park_all: "[triumphant] All three hold! [hesitant] Hm, the readings are still jumpy… [gasps] wait. Something big is coming up in the middle of the lawn!",
-  park_memory: "[curious] Ooh, a memory. [warmly] Collect those: they tell us what the dream is really about.",
-  park_boss: "[deadpan] A VACUUM CLEANER. [sighs] Of course. Every dog's worst nightmare.",
-  park_suck: "[shouting] Don't let it gulp you! Run, or catch a fuzz and fire it right into the nozzle!",
-  park_clog: "[laughs] Ha! Clogged! [excited] Go for the dust bag on its back!",
-  park_phase: "[alarmed] Now it's furious. [shouting] Jump over that cord!",
-  park_faint: "[gently] Easy there, rookie. I pulled you back to the last anchor.",
-  park_win: "[overjoyed] Dream fixed! [laughs] Biscuit's snoring like a little engine. [warmly] Come on back up.",
+  park_all: "[triumphant] All three hold! [gasps] Wait… something big is coming up!",
+  park_memory: "[curious] Ooh, a memory!",
+  park_boss: "[deadpan] A VACUUM CLEANER. [sighs] Of course.",
+  park_suck: "[shouting] Don't let it gulp you!",
+  park_clog: "[laughs] Clogged! [excited] Hit the dust bag!",
+  park_phase: "[alarmed] Now it's furious. [shouting] Jump the cord!",
+  park_faint: "[gently] Easy, rookie. I pulled you back.",
+  park_win: "[overjoyed] Dream fixed! [laughs] Biscuit's snoring like a little engine.",
 };
 const plain = (s) => s.replace(/\[[^\]]*\]\s*/g, "").replace(/\s+/g, " ").trim();
 const FORMAT = "mp3_44100_64";
@@ -77,6 +77,10 @@ for (const [id, [who, text]] of Object.entries(LINES_EN)) {
   spoken ??= text;
   const h = hash(spoken), file = path.join(outDir, `${id}.mp3`);
   if (!force && manifest[id]?.hash === h && fs.existsSync(file)) continue;
+  // Out of date: drop the old take first, so a run that stops half way
+  // (out of credits) never leaves a long old take under a new short text.
+  delete manifest[id];
+  fs.rmSync(file, { force: true });
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE.id}?output_format=${FORMAT}`, {
     method: "POST",
     headers: { "xi-api-key": key, "content-type": "application/json", accept: "audio/mpeg" },
