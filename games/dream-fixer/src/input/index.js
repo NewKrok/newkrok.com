@@ -107,6 +107,9 @@ export class Input {
     if (P(BTN.Y) || P(BTN.RB) || P(BTN.RIGHT)) this.edges.add("toolNext");
     if (P(BTN.LB) || P(BTN.LEFT)) this.edges.add("toolPrev");
     if (P(BTN.START)) this.edges.add("pause");
+    // Click the stick to run; it keeps running until the stick is let go.
+    if (P(BTN.L3)) this.padRun = true;
+    if (Math.hypot(p.axes[0], p.axes[1]) < 0.25) this.padRun = false;
   }
 
   key(name) { for (const c of KEYS[name]) if (this.down.has(c)) return true; return false; }
@@ -137,6 +140,7 @@ export class Input {
       fire: this.mouse.fire || t.held.fire || (p?.value(BTN.RT) ?? 0) > 0.35,
       alt: this.mouse.alt || t.held.alt || (p?.value(BTN.LT) ?? 0) > 0.35,
       use: this.key("use") || t.held.use || !!p?.down(BTN.X),
+      sprint: this.key("sprint") || (!!p && this.padRun),
     };
   }
 

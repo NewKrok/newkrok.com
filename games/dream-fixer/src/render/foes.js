@@ -248,8 +248,8 @@ function animBunny(f, N, t, grow) {
   const ph = (f.age * 11 + f.phase) % Math.PI;
   const hop = b.grounded && sp > 0.5 ? Math.sin(ph) * 0.12 : 0;
   let sy = 1, sxz = 1;
-  if (f.state === "windup") { sy = 0.7; sxz = 1.2; }
-  else if (f.state === "lunge") { sy = 1.2; sxz = 0.85; }
+  if (f.state === "windup" || f.state === "crouch") { sy = 0.7; sxz = 1.2; }
+  else if (f.state === "lunge") { sy = f.leap ? 1.35 : 1.2; sxz = f.leap ? 0.78 : 0.85; }
   N.body.position.y = 0.22 + hop;
   N.body.scale.set(sxz * grow, sy * grow, sxz * grow);
   N.ears.rotation.x = -hop * 3 + Math.sin(t * 5 + f.phase) * 0.1 + (f.state === "lunge" ? 0.6 : 0);

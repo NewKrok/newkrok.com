@@ -5,6 +5,7 @@ import { World } from "./world.js";
 import { Foe, stepFoes, damageFoe } from "./foes.js";
 import { Anchor, stepAnchors, startTuning } from "./anchors.js";
 import { Boss } from "./boss.js";
+import { Nav } from "./nav.js";
 import { buildLevel } from "../levels/kit.js";
 import { rng } from "../rng.js";
 import { toolDef, maxHpFor, magnetFor } from "../data/upgrades.js";
@@ -21,7 +22,7 @@ export const DIFFICULTY = {
   hard: { dmg: 1.5, regen: 0.7 },
 };
 
-export const MAX_HP = 100;
+export const MAX_HP = 75;
 
 export class Run {
   constructor(levelDef, o = {}) {
@@ -47,6 +48,7 @@ export class Run {
     this.hp = this.maxHp; this.hurtT = 9; this.invuln = 0;
     this.faints = 0;
     this.foes = []; this.foeSeq = 0;
+    this.nav = this.kit.foes.length || levelDef.boss ? new Nav(this.world) : null;
     this.spits = [];
     this.dustMotes = []; this.dust = 0;
     this.stats = { popped: 0, shots: 0, hits: 0 };
@@ -148,7 +150,9 @@ export class Run {
   step(intent, dt = DT) {
     this.time += dt;
     const b = this.body;
-    b.step(this.world, intent, dt);
+    // Running: forward only, half as fast again.
+    this.sprinting = !!intent.sprint && (intent.forward || 0) > 0.3 && !this.opts.noTools;
+    b.step(this.world, intent, dt, this.sprinting ? 1.45 : 1);
     if (b.jumped) this.events.push({ type: "jump" });
     if (b.landSpeed > 4) this.events.push({ type: "land", speed: b.landSpeed });
     // Water: a ring at every few steps through it, a splash on jumping in.
@@ -169,7 +173,7 @@ export class Run {
     // Wakefulness comes back on its own after a quiet moment.
     this.hurtT += dt;
     this.invuln = Math.max(0, this.invuln - dt);
-    if (this.hurtT > 2.5 && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + 28 * this.diff.regen * dt);
+    if (this.hurtT > 2.5 && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + 21 * this.diff.regen * dt);
 
     // Tool switching takes a moment (the view model swaps them).
     if (intent.toolTo !== undefined && intent.toolTo !== this.tool) this.switchTool(intent.toolTo);
@@ -236,6 +240,7 @@ export class Run {
         this.events.push({ type: "memory", id: m.id, x: m.x, y: m.y + 1.2, z: m.z });
       }
     }
+    this.nav?.update(b, dt);
     stepFoes(this, dt);
     this.stepSpits(dt);
     this.stepDust(dt);

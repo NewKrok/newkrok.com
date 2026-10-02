@@ -21,6 +21,7 @@ export class Sfx {
         case "spitPop": A.play(e.splash ? "splash" : e.kind === "nut" ? "nutHit" : "orbPop", 0, e.x, e.z); break;
         case "nutWindup": A.play("chitter", 0, e.x, e.z); break;
         case "nut": A.play("nut", 0, e.x, e.z); break;
+        case "leap": A.play("leap", 0, e.x, e.z); break;
         case "wade": A.play(e.big ? "splash" : "wade", 0, e.x, e.z); break;
         case "tubWindup": A.play("tubWindup", 0, e.x, e.z); break;
         case "windup": A.play(e.kind === "bunny" ? "squeak" : "windup", 0, e.x, e.z); break;

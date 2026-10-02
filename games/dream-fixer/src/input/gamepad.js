@@ -1,14 +1,14 @@
 // ── Gamepad ──────────────────────────────────────────────────────────────
 // Polled once a frame through the Gamepad API (taken over from Hitch &
 // Park, with its fixes for odd pads). In the game:
-//   left stick   move              right stick  look
+//   left stick   move (click: run) right stick  look
 //   RT           fire              LT           charge / the tool's second use
 //   A            jump              X            use (tune an anchor …)
 //   Y / RB / →   next tool         LB / ←       previous tool
 //   Start        pause
 // In menus the left stick / d-pad moves the focus, A presses, B goes back.
 
-export const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, BACK: 8, START: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
+export const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, BACK: 8, START: 9, L3: 10, R3: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 
 const DEAD = 0.2;
 const NINTENDO = /switch|pro controller|nintendo|joy-con|057e/i;

@@ -26,5 +26,5 @@ export function toolDef(id, owned = {}) {
   return d;
 }
 
-export const maxHpFor = (owned = {}) => 100 + (owned.wake_coffee ? 25 : 0);
+export const maxHpFor = (owned = {}) => 75 + (owned.wake_coffee ? 20 : 0);
 export const magnetFor = (owned = {}) => (owned.wake_magnet ? 9 : 4.5);

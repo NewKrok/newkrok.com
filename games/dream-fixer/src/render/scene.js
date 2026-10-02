@@ -105,7 +105,7 @@ export class GameView {
     this.composer.setSize(w, h);
     this.camera.aspect = w / h;
     // Keep a sensible horizontal view on tall phone screens.
-    this.camera.fov = w / h < 1.3 ? 80 : 72;
+    this.baseFov = this.camera.fov = w / h < 1.3 ? 80 : 72;
     this.camera.updateProjectionMatrix();
     this.vm.resize(w / h);
   }
@@ -246,6 +246,10 @@ export class GameView {
     this.shake = damp(this.shake, 0, 7, dt);
     const sh = this.shake * this.shake * 0.05;
     this.camera.rotation.set(b.pitch + Math.sin(t * 61) * sh, b.yaw + Math.sin(t * 47) * sh, this.roll + Math.sin(t * 53) * sh);
+    // Running widens the view a touch.
+    this.runK = damp(this.runK || 0, run.sprinting && b.speed2D > 7 ? 1 : 0, 6, dt);
+    const fov = this.baseFov + this.runK * 6;
+    if (Math.abs(fov - this.camera.fov) > 0.01) { this.camera.fov = fov; this.camera.updateProjectionMatrix(); }
     this.camera.updateMatrixWorld();
 
     this.sun.follow(x, y, z);
