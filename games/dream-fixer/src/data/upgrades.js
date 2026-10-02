@@ -26,6 +26,11 @@ export const UPGRADES = [
   { id: "vac_throat", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [50, 110], stat: (l) => pct(1 + 0.3 * l) },
   { id: "vac_tank", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [80, 160], stat: (l) => String(TOOLS.vacuum.tankSize + l) },
   { id: "vac_bang", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [45, 90, 150], stat: (l) => `${num(TOOLS.vacuum.launch.splash * (1 + 0.2 * l))} m` },
+  // ── The Foam Cannon (once you have it) ──
+  { id: "foam_nozzle", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [45, 90, 150], stat: (l) => pct(1 + 0.25 * l) },
+  { id: "foam_mix", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [50, 100, 160], stat: (l) => `${num(TOOLS.foam.hold + 0.7 * l)} s` },
+  { id: "foam_set", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [40, 85, 140], stat: (l) => `${TOOLS.foam.step.life + 5 * l} s` },
+  { id: "foam_tank", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [80, 160], stat: (l) => String(TOOLS.foam.step.max + l) },
   // ── You ──
   { id: "wake_coffee", tab: "me", model: "mugCoffee", costs: [45, 90, 150], stat: (l) => String(maxHpFor({ wake_coffee: l })) },
   { id: "wake_pad", tab: "me", model: "vest", costs: [55, 110, 180], stat: (l) => pct(1 - 0.1 * l) },
@@ -77,6 +82,12 @@ export function toolDef(id, owned = {}) {
     d.cone *= 1 + 0.12 * w; d.stream *= 1 + 0.3 * w;
     d.tankSize += k;
     d.launch.damage *= 1 + 0.2 * b; d.launch.splash *= 1 + 0.2 * b;
+  } else if (id === "foam") {
+    const n = L("foam_nozzle"), m = L("foam_mix"), s = L("foam_set"), k = L("foam_tank");
+    d.soak *= 1 + 0.25 * n; d.heat *= 1 - 0.1 * n;
+    d.hold += 0.7 * m;
+    d.step.life += 5 * s;
+    d.step.max += k;
   }
   return d;
 }

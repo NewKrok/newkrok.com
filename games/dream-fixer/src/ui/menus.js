@@ -202,7 +202,7 @@ export class Menus {
       meta = t("bench_level", { n: l, of: max });
       const now = cur.stat(l), next = cost === null ? null : cur.stat(l + 1);
       stat = `<div class="stat"><span>${esc(t(`st_${cur.id}`))}</span><b>${esc(now)}${next === null ? "" : ` <em>→ ${esc(next)}</em>`}</b></div>`;
-      buy = locked ? `<span class="tag soft">${esc(t("bench_locked"))}</span>`
+      buy = locked ? `<span class="tag soft">${esc(t(`bench_locked_${cur.needs}`))}</span>`
         : cost === null ? `<span class="tag">${esc(t("bench_max"))}</span>`
         : `<button class="btn ${progress.dust >= cost ? "" : "disabled"}" data-a="buy" data-id="${cur.id}">${esc(t(l ? "bench_upgrade" : "bench_buy"))} · ${cost} ✦</button>`;
     }

@@ -42,6 +42,7 @@ export const TOOLS = {
     interval: 0.075, heat: 0.04, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
     speed: 17, up: 2.2, gravity: 13, life: 1.4, r: 0.2, spread: 0.05,
     soak: 0.2,            // foam one glob leaves on a glitch (1 = stuck)
+    hold: 2.6,            // seconds a glitch full of foam stays stuck (a blob: half as long again)
     blob: { speed: 15, up: 2.5, gravity: 16, heat: 0.36, interval: 0.55, r: 0.45 },
     // What a blob sets into: radius, height of a step, depth of a ledge,
     // how long it lasts (and blinks before it goes), how many at once.

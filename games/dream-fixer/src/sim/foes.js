@@ -142,7 +142,8 @@ function setState(f, s) { f.state = s; f.t = 0; }
 // ── Foam ──
 // f.foam builds up as the Foam Cannon hits it and dries off by itself; it
 // slows the glitch down by up to SLOW. Full up, it is stuck fast for HOLD
-// seconds (and takes more from every tool), then comes out still soggy.
+// seconds (the Foam Cannon says how long; it takes more from every tool
+// meanwhile), then comes out still soggy.
 export const FOAM = { slow: 0.75, dry: 0.22, hold: 2.6, after: 0.6, hurt: 1.5 };
 
 function foamed(run, f, dt) {

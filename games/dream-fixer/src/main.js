@@ -313,6 +313,9 @@ async function startGame() {
       },
       place(x, z, yaw = 0, pitch = 0) { const b = run.body; b.place(x, run.kit.floorAt(x, z), z, yaw); b.pitch = pitch; b.px = b.x; b.py = b.y; b.pz = b.z; },
       spawn(kind, x, z) { return run.spawn(kind, x, z); },
+      // Hand yourself a tool (its bench upgrades open up) or some dust to spend.
+      tool(id) { if (!progress.tools.includes(id)) { progress.tools.push(id); save(); } },
+      dust(n = 500) { progress.dust += n; if (run.def.hub) run.dust = progress.dust; save(); },
       // Jump to the boss fight: all anchors fixed, both tools.
       toBoss() { for (const a of run.anchors) { a.state = "fixed"; a.progress = 1; } if (run.def.unlockTool) run.unlockTool(run.def.unlockTool.id); run.foes.forEach((f) => { f.alive = false; }); },
     };

@@ -1,4 +1,4 @@
-import { foamFoe, FOAM } from "./foes.js";
+import { foamFoe } from "./foes.js";
 
 // ── The Foam Cannon's foam, once it has left the nozzle ──────────────────
 // Globs fly in an arc and soak whatever glitch they hit (or pop an orb).
@@ -19,13 +19,13 @@ export class Foam {
 
   spray(run, tool) {
     const d = tool.def;
-    this.throw(run, d.speed, d.up, d.gravity, d.r, d.life, d.spread, { soak: d.soak });
+    this.throw(run, d.speed, d.up, d.gravity, d.r, d.life, d.spread, { soak: d.soak, hold: d.hold });
     run.events.push({ type: "foamSpray" });
   }
 
   blob(run, tool) {
     const B = tool.def.blob;
-    this.throw(run, B.speed, B.up, B.gravity, B.r, 4, 0, { big: true, step: tool.def.step });
+    this.throw(run, B.speed, B.up, B.gravity, B.r, 4, 0, { big: true, step: tool.def.step, hold: tool.def.hold * 1.5 });
     run.events.push({ type: "foamBlob" });
   }
 
@@ -81,10 +81,10 @@ export class Foam {
       const R = f.def.hitR + g.r;
       if ((f.px - g.x) ** 2 + (f.cy - g.y) ** 2 + (f.pz - g.z) ** 2 > R * R) continue;
       // A blob wraps it up whole, and for longer.
-      if (g.big) foamFoe(run, f, 1, FOAM.hold * 1.5);
+      if (g.big) foamFoe(run, f, 1, g.hold);
       else {
-        foamFoe(run, f, g.soak);
-        for (const o of run.foes) if (o !== f && o.alive && Math.hypot(o.px - g.x, o.pz - g.z) < o.def.hitR + SPLASH + g.r) foamFoe(run, o, g.soak * 0.5);
+        foamFoe(run, f, g.soak, g.hold);
+        for (const o of run.foes) if (o !== f && o.alive && Math.hypot(o.px - g.x, o.pz - g.z) < o.def.hitR + SPLASH + g.r) foamFoe(run, o, g.soak * 0.5, g.hold);
       }
       run.stats.hits++;
       this.splat(run, g, g.x, g.y, g.z, f.id);
