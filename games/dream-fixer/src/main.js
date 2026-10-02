@@ -148,6 +148,7 @@ async function startGame() {
   app.addEventListener("pointerdown", () => audio.unlock());
 
   // ── Things used in the Factory ──
+  let lastRadio = null;
   function interact(id) {
     if (id === "board") openMenu(() => menus.board(progress, {
       onTake: (level) => { progress.picked = level; save(); dialog.say("hub_picked"); resume(); },
@@ -169,7 +170,12 @@ async function startGame() {
       });
       openMenu(open);
     } else if (id === "journal") openMenu(() => menus.journal(progress, { onClose: resume }));
-    else if (id === "radio") dialog.say(dialog.last && dialog.last !== "hub_radio" ? dialog.last : "hub_radio", true);
+    else if (id === "radio") {
+      // Margo picks up with one of her lines, never the same one twice running.
+      const pool = ["hub_radio", ...Array.from({ length: 7 }, (_, i) => `hub_radio_${i + 2}`)].filter((x) => x !== lastRadio);
+      lastRadio = pool[Math.floor(Math.random() * pool.length)];
+      if (!dialog.busy) dialog.say(lastRadio, true);
+    }
     else if (id === "lift") {
       if (!progress.picked) { dialog.say("hub_nojob", true); return; }
       const lvl = progress.picked;

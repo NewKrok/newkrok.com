@@ -11,6 +11,13 @@ export const LINES_EN = {
   hub_back2: ["margo", "Spend your dream dust at the workbench. That's all for tonight!"],
   hub_nojob: ["margo", "Pick a job at the board first, rookie."],
   hub_radio: ["margo", "Margo here. Third coffee. Board, bench or lift?"],
+  hub_radio_2: ["margo", "This radio's older than me. Don't tell it I said that."],
+  hub_radio_3: ["margo", "Cog keeps asking if dreams have Wi-Fi."],
+  hub_radio_4: ["margo", "Quiet night so far. Don't jinx it."],
+  hub_radio_5: ["margo", "Did you know dogs dream in smells? Me neither."],
+  hub_radio_6: ["margo", "If the board's empty, blame the sandman's union."],
+  hub_radio_7: ["margo", "Testing, testing… yes, you can hear me. Back to work!"],
+  hub_radio_8: ["margo", "Rule one of the night shift: never trust a happy vacuum cleaner."],
   hub_bench: ["margo", "The workbench. Bring me dust and I'll make your tools purr."],
   // Biscuit's park.
   park_bunny: ["margo", "Dust bunnies. One zap each."],
