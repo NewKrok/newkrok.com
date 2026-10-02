@@ -29,6 +29,16 @@ export const park = {
   clouds: { count: 34, rMin: 18, rMax: 90, yMin: -20, yMax: 40 },
   shards: 90,
 
+  // The waves an anchor shakes loose depend on how far along you are, not
+  // on which anchor it is: the first one tuned is gentle (bunnies and a
+  // couple of squirrels), the second brings the bathtub and buzzers, the
+  // last one everything, knot included. [progress, [kind, n], …]
+  tiers: [
+    [[0, ["bunny", 3]], [0.35, ["fuzz", 2]], [0.65, ["bunny", 4], ["fuzz", 1]]],
+    [[0, ["fuzz", 2], ["bunny", 3]], [0.3, ["tub", 1]], [0.55, ["buzzer", 1], ["fuzz", 2]], [0.8, ["bunny", 4], ["buzzer", 1]]],
+    [[0, ["buzzer", 2], ["fuzz", 2]], [0.3, ["knot", 1]], [0.55, ["tub", 1], ["bunny", 4]], [0.8, ["fuzz", 3], ["buzzer", 1]]],
+  ],
+
   // Routes for the headless bot: waypoints to each anchor ([x, z, jump]).
   botRoutes: {
     pond: [[6, 12], [20, 12], [34, 12], [41, 12], [43.5, 12.5]],
@@ -137,13 +147,15 @@ export const park = {
     k.memory("cord", 51.5, 23.5);
 
     // Glitches already loose in the dream, minding their own business
-    // until you come near.
+    // until you come near. Met a kind at a time: only dust bunnies on the
+    // big lawn, squirrels waiting over either bridge, a bathtub deeper in
+    // the dog run and the pond garden, buzzers on the little island.
     for (const [kind, x, z] of [
-      ["fuzz", -1.5, 1], ["fuzz", 1.8, -1.5], ["bunny", -14, 8], ["bunny", -13, 9.2], ["bunny", -15, 9.5],
-      ["buzzer", -12, -8], ["buzzer", 9, -12], ["fuzz", -29, 6], ["fuzz", -31, 5],
-      ["tub", -42, 12], ["bunny", -53, 14], ["bunny", -54, 13],
-      ["tub", 38, 24], ["fuzz", 48, 3], ["fuzz", 50, 4.5], ["buzzer", 44, 20], ["bunny", 36, 8], ["bunny", 37, 7],
-      ["fuzz", 14, -26], ["fuzz", 19, -30],
+      ["bunny", -1.5, 1], ["bunny", 1.8, -1.5], ["bunny", 2.6, 0.4], ["bunny", -14, 8], ["bunny", -13, 9.2], ["bunny", -15, 9.5],
+      ["bunny", -12, -8],
+      ["fuzz", -36, 6], ["fuzz", -37.5, 5], ["tub", -46, 13], ["bunny", -53, 14], ["bunny", -54, 13],
+      ["fuzz", 37, 8], ["fuzz", 37.5, 6.5], ["bunny", 49, 4], ["bunny", 50, 5], ["tub", 46, 24],
+      ["buzzer", 13, -27], ["buzzer", 20, -30], ["fuzz", 18, -25],
     ]) k.foe(kind, x, z);
 
     k.start(0, 18, 0);

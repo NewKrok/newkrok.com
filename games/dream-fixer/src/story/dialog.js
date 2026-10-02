@@ -41,7 +41,8 @@ export class Dialog {
 
   update(dt) {
     // (A new line only starts while the game runs, not behind a menu.)
-    if (!this.cur && this.queue.length && dt > 0 && this.voice?.ready !== false) {
+    this.gapT = Math.max(0, (this.gapT || 0) - dt);
+    if (!this.cur && this.queue.length && dt > 0 && this.voice?.ready !== false && this.gapT <= 0) {
       const id = this.queue.shift();
       const [who, text] = line(id);
       this.cur = { who, text, t: 0, shown: 0, dur: 2.2 + text.length * 0.05, rate: 55 };
@@ -75,6 +76,7 @@ export class Dialog {
     if (n !== c.shown) { this.textEl.textContent = c.text.slice(0, n); c.shown = n; }
     if (c.t > c.dur) {
       this.cur = null;
+      this.gapT = 0.8;            // a breath before the next line
       if (c.voiced) this.voice.stop();
       if (!this.queue.length) this.el.classList.remove("on");
     }

@@ -48,6 +48,9 @@ export function stepAnchors(run, dt) {
 
 export function startTuning(run, a) {
   if (a.state !== "broken") return false;
+  // Waves by how far along you are (the level's tiers), if it has them.
+  const tiers = run.def.tiers;
+  if (tiers) a.waves = tiers[Math.min(run.fixedCount, tiers.length - 1)].map((w) => ({ at: w[0], foes: w.slice(1), done: false }));
   a.state = "tuning";
   a.t = 0;
   run.events.push({ type: "tuneStart", anchor: a.id });

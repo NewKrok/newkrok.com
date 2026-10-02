@@ -135,6 +135,15 @@ export function stepFoes(run, dt) {
 
 function setState(f, s) { f.state = s; f.t = 0; }
 
+// The last guard at the brink: a walker that stepped off a drop on its own
+// (crowded, sliding along the edge) is put back where it stood.
+function keepOn(run, b, wasGrounded) {
+  if (!wasGrounded || b.grounded || b.vy > 0) return;
+  if (floorBelow(run.world, b.x, b.z, b.y) >= b.y - DROP) return;
+  b.x = b.px; b.z = b.pz; b.y = b.py;
+  b.vx = 0; b.vz = 0; b.vy = 0; b.grounded = true;
+}
+
 // Crowding pushes a walker aside, but never over the edge of a drop (its
 // far side has to stay over ground).
 function shove(run, b, dx, dz) {
@@ -264,8 +273,9 @@ function fuzz(run, f, dt, px, pz) {
         intent.forward = dist < 2.6 ? -0.6 : 0;
         intent.strafe = Math.sin(f.phase) > 0 ? 0.7 : -0.7;
       } else intent.forward = dist > 1.2 ? 1 : 0;
-      // Stuck against a ledge: hop.
-      if (b.grounded && dist > 2 && b.speed2D < 0.8 && f.t > 0.3 && !waiting) { intent.jumpPressed = true; f.t = 0; }
+      // Stuck against a ledge: hop (where there is no nav grid to plan
+      // hops with; a blind hop near a brink sails off it).
+      if (!run.nav && b.grounded && dist > 2 && b.speed2D < 0.8 && f.t > 0.3 && !waiting) { intent.jumpPressed = true; f.t = 0; }
       if (dist < M.reach && Math.abs(dy) < 1.2 && !waiting) { setState(f, "windup"); run.attackers[f.kind]++; run.events.push({ type: "windup", kind: f.kind, x: b.x, z: b.z }); break; }
       // A fuzz a little way off (or one that cannot reach you) may stop and
       // lob a nut instead (not the nightmare's own: the boss is busy enough).
@@ -377,7 +387,7 @@ function fuzz(run, f, dt, px, pz) {
     const vx = b.vx, vz = b.vz;
     b.step(run.world, intent, dt, 0);
     b.vx = vx; b.vz = vz;
-  } else b.step(run.world, intent, dt, speedMul);
+  } else { const was = b.grounded; b.step(run.world, intent, dt, speedMul); keepOn(run, b, was); }
   if (b.fell) { f.alive = false; f.hp = 0; f.lost = true; }
 }
 
@@ -432,7 +442,9 @@ function tub(run, f, dt, px, pz) {
   }
   b.yaw = f.yaw;
   if (brink(run, b, intent)) { intent.forward = 0; intent.strafe = 0; }
+  const was = b.grounded;
   b.step(run.world, intent, dt, f.state === "idle" || f.state === "volley" ? 1 : 0);
+  keepOn(run, b, was);
   if (b.fell) { f.alive = false; f.hp = 0; f.lost = true; }
 }
 

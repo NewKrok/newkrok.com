@@ -1,12 +1,17 @@
 // ── Story beats ──────────────────────────────────────────────────────────
 // Watches a Run (its events and state) and queues the radio lines at the
 // right moments. One director per level; a line is said once per visit.
+// Lines are spread out: the intro comes in pieces as you start to move,
+// and a glitch is introduced when you first meet it, only after a quiet
+// spell (S.quiet: seconds since the radio last fell silent). Warnings and
+// story events still come at once.
 
 const near = (run, kind, d) => run.foes.some((f) => f.alive && f.kind === kind && Math.hypot(f.px - run.body.x, f.pz - run.body.z) < d);
+const from = (run, x, z) => Math.hypot(run.body.x - x, run.body.z - z);
 
 const DIRECTORS = {
   park: {
-    start(D) { D.say("park_in1"); D.say("park_in2"); D.say("park_in3"); },
+    start(D) { D.say("park_in1"); },
     events(D, run, e) {
       if (e.type === "tuneStart") D.say("park_tune");
       if (e.type === "anchorFixed") {
@@ -25,11 +30,19 @@ const DIRECTORS = {
       if (e.type === "bossPop") D.say("park_win");
     },
     frame(D, run, dt, S) {
-      if (near(run, "fuzz", 14)) D.say("park_foe");
-      if (near(run, "buzzer", 16)) D.say("park_buzzer");
-      if (near(run, "bunny", 12)) D.say("park_bunny");
-      if (near(run, "tub", 18)) D.say("park_tub");
-      if (run.nearAnchor) D.say("park_anchor");
+      const q = (s) => S.quiet > s, sp = run.kit.spawn;
+      // The intro, a piece at a time: what is wrong here once you take a
+      // look round, where the anchors are once you set off.
+      if (!D.said.has("park_in2") && q(3) && (from(run, sp.x, sp.z) > 5 || S.time > 10)) D.say("park_in2");
+      if (D.said.has("park_in2") && !D.said.has("park_in3") && q(5) && (from(run, sp.x, sp.z) > 11 || run.stats.popped > 0 || S.time > 40)) D.say("park_in3");
+      // Each glitch the first time you meet it (one at a time).
+      if (q(2.5)) {
+        if (near(run, "bunny", 12)) D.say("park_bunny");
+        else if (near(run, "fuzz", 14)) D.say("park_foe");
+        else if (near(run, "tub", 18)) D.say("park_tub");
+        else if (near(run, "buzzer", 16)) D.say("park_buzzer");
+      }
+      if (run.nearAnchor && q(1)) D.say("park_anchor");
       const tu = run.tuning;
       S.outT = tu && !tu.inside ? (S.outT || 0) + dt : 0;
       if (S.outT > 1.5 && (S.ringT || 0) <= 0) { D.say("park_ring", true); S.ringT = 14; }
@@ -38,11 +51,17 @@ const DIRECTORS = {
   },
   factory: {
     start(D, run, P) {
-      if (!P.done.includes("park")) { D.say("hub_intro1"); D.say("hub_intro2"); D.say("hub_intro3"); D.say("hub_journal"); }
-      else if (P.justBack) { D.say("hub_back1"); D.say("hub_back2"); D.say("hub_journal"); }
+      if (!P.done.includes("park")) { D.say("hub_intro1"); D.say("hub_intro2"); }
+      else if (P.justBack) D.say("hub_back1");
     },
     events() {},
-    frame() {},
+    frame(D, run, dt, S) {
+      const q = (s) => S.quiet > s;
+      if (D.said.has("hub_intro2") && q(4)) D.say("hub_intro3");
+      if (D.said.has("hub_back1") && q(3)) D.say("hub_back2");
+      // The journal when you wander over to it (or a while later).
+      if ((from(run, -8.7, -4.2) < 3.5 || (S.time > 40 && (D.said.has("hub_intro3") || D.said.has("hub_back2")))) && q(2)) D.say("hub_journal");
+    },
   },
 };
 
@@ -55,5 +74,10 @@ export class Director {
     this.d?.start(this.dialog, run, progress);
   }
   events(run, events) { if (this.d) for (const e of events) this.d.events(this.dialog, run, e); }
-  frame(run, dt) { this.d?.frame(this.dialog, run, dt, this.state); }
+  frame(run, dt) {
+    const S = this.state;
+    S.time = (S.time || 0) + dt;
+    S.quiet = this.dialog.busy ? 0 : (S.quiet || 0) + dt;
+    this.d?.frame(this.dialog, run, dt, S);
+  }
 }
