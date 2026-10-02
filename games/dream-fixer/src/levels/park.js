@@ -139,12 +139,16 @@ export const park = {
       spawns: [[12, -24], [21, -24.5], [20.5, -32], [12.5, -31.5]],
     });
 
-    // Biscuit's memories, tucked away.
+    // Biscuit's memories, tucked away off the paths and well away from
+    // the anchors: behind the doghouse, round the far side of the agility
+    // tunnel, in the shade under the floating bone steps, between the rock
+    // and the tree in the lawn's corner, behind a tree at the back of the
+    // pond garden.
     k.memory("hedgehog", -16.5, -15.2);
-    k.memory("leash", 8.6, -13.2);
-    k.memory("photo", 20.3, -25.4);
-    k.memory("slipper", -56, 16);
-    k.memory("cord", 51.5, 23.5);
+    k.memory("leash", -52, 9.6);
+    k.memory("photo", 12, -17, 0);
+    k.memory("slipper", 16.4, 18.1);
+    k.memory("cord", 55.5, 27.1);
 
     // Glitches already loose in the dream, minding their own business
     // until you come near. Met a kind at a time: only dust bunnies on the
