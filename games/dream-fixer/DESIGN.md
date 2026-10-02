@@ -108,9 +108,20 @@ töltéskorlát van, ami magától visszaáll.
 | **Csengő** | Hanghullám, ami eltaszít | Kisebb hibák elaltatása | 3. fejezet |
 | **Villáskulcs** | Közelharc és tárgyak megütése | — | Mindig nálad van |
 
-A szerszámok a Gyár **munkapadján** fejleszthetők álomporért. Minden
-szerszámhoz 3 fejlesztés tartozik, például hűtés, gyorsabb töltés vagy
-nagyobb habplatform.
+A Gyár **munkapadján** álomporért lehet vásárolni, négy fülön, mindenről
+forgatható 3D előnézettel és „most → következő” értékkel:
+
+- **Szerszámok:** szerszámonként 3–4 fejlesztés, mindegyik 2–3 szinttel
+  (hűtés, sebzés, tűzgyorsaság, töltés; a Kócszívónál hatótáv, sugár,
+  tartály, robbanás).
+- **Szerelő:** éberség, párnázott mellény (kevesebb sebzés), futás,
+  sebesség, pormágnes, porszita (több por), nagyobb zseb (több kellék).
+- **Cog:** gyűjtőkar (elrepül a messzi porért és hozza), ápoló modul (csendes
+  percekben lassan gyógyít), szikrázó antenna (megcsípi a támadó hibákat),
+  kincskereső (jelez, ha emlék van a közelben).
+- **Kellékek** (egy álomra, darabra, a zseb méretéig): párnabomba (G),
+  dupla eszpresszó (C, gyorsabb vagy és nem fogy a levegő), bögre kakaó
+  (V, azonnali éberség).
 
 ### Hibák (az ellenfelek)
 

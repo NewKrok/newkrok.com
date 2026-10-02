@@ -1,4 +1,6 @@
 import { t } from "./i18n/index.js";
+import { ITEMS, ITEM } from "./data/upgrades.js";
+import { ITEM_ICONS } from "./ui/icons.js";
 
 // ── HUD ──────────────────────────────────────────────────────────────────
 // Kept small: a crosshair whose ring shows the tool's heat (and fills
@@ -28,6 +30,7 @@ export class Hud {
       <div class="clickhint"></div>
       <div class="tankdots"></div>
       <div class="bossbar"><div class="lbl"></div><div class="bar"><i class="lag"></i><i class="fill"></i></div></div>
+      <div class="kit"></div>
       <div class="dust"><svg viewBox="0 0 24 24"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></svg><b>0</b><span class="plus"></span></div>`;
     root.appendChild(el);
     this.heat = el.querySelector(".heat");
@@ -67,6 +70,7 @@ export class Hud {
     this.hint = el.querySelector(".clickhint");
     this.tankEl = el.querySelector(".tankdots");
     this.hint.textContent = t("clickToAim");
+    this.kitEl = el.querySelector(".kit");
   }
 
   show(on) { this.el.classList.toggle("hidden", !on); }
@@ -88,6 +92,8 @@ export class Hud {
     if (e.type === "coreOpen") this.bannerTimer = setTimeout(() => this.banner(t("coreOpen")), 2600);
     if (e.type === "bossPhase") this.banner(t("bossPhase"));
     if (e.type === "bossClog") this.banner(t("bossClog"), true);
+    if (e.type === "itemUse") this.kitFlash = e.id;
+    if (e.type === "itemNo") this.banner(t("kit_awake"));
     if (e.type === "toolUnlocked" && e.tool === "vacuum") this.bannerTimer = setTimeout(() => this.banner(t("toolVacuum"), true), 2600);
   }
 
@@ -142,6 +148,16 @@ export class Hud {
       this.tasksEl.innerHTML = objs.map((o) => `<li class="${o.done ? "done" : ""} ${o.optional ? "opt" : ""} ${prev[o.id] !== undefined && prev[o.id] !== `${o.n}:${o.done}` ? "flash" : ""}"><i></i><span>${t(`obj_${o.id}`)}</span>${o.of ? `<b>${o.n}/${o.of}</b>` : ""}</li>`).join("");
       this.last.objs = Object.fromEntries(objs.map((o) => [o.id, `${o.n}:${o.done}`]));
       this.last.obj = key2;
+    }
+    // Kit you carry: one slot each, with the key that uses it (the touch
+    // screen has its own buttons); the espresso's slot drains while it works.
+    const boost = Math.ceil(run.boostT * 10) / 10 / ITEM.espresso.time;
+    const kitKey = ITEMS.map((it) => run.items[it.id] || 0).join(",") + `|${boost}|${this.touch}|${this.pad}`;
+    if (kitKey !== this.last.kit) {
+      this.kitEl.innerHTML = this.touch ? "" : ITEMS.filter((it) => run.items[it.id] > 0 || (it.id === "espresso" && boost > 0)).map((it) =>
+        `<div class="slot ${it.id} ${this.kitFlash === it.id ? "used" : ""}">${it.id === "espresso" && boost > 0 ? `<s style="transform:scaleY(${boost.toFixed(3)})"></s>` : ""}${ITEM_ICONS[it.id]}<b>${run.items[it.id] || 0}</b><kbd>${this.pad ? it.pad : it.key}</kbd></div>`).join("");
+      this.kitFlash = null;
+      this.last.kit = kitKey;
     }
     const vac = run.activeTool.id === "vacuum" ? run.activeTool : null;
     const tank = vac && vac.tank.length >= vac.def.tankSize;

@@ -46,7 +46,12 @@ export class Sfx {
         case "catch": A.play("catch"); break;
         case "launch": A.play("launch"); break;
         case "blast": A.play("blast"); break;
-        case "ballPop": A.play("ballPop", 0, e.x, e.z); break;
+        case "ballPop": A.play(e.kind === "pillow" ? "pillowPop" : "ballPop", 0, e.x, e.z); break;
+        case "itemUse": A.play(e.id === "pillow" ? "throw" : "sip"); break;
+        case "itemNo": A.play("locked"); break;
+        case "cogZap": A.play("cogZap", 0, e.to[0], e.to[2]); break;
+        case "cogPing": A.play("ping"); break;
+        case "cogGrab": A.play("dust", 6); break;
         case "tuneStart": A.play("tuneStart"); break;
         case "wave": A.play("wave"); break;
         case "anchorFixed": A.play("anchorFixed"); break;

@@ -4,6 +4,7 @@ import { anchor } from "./dream.js";
 import { vacuumBoss } from "./boss.js";
 import { jobBoard, workbench, desk, lift, dreamTank, pipe, almos, crate, shelf, rug, hangLamp, dock, lectern } from "./factory.js";
 import { memoryBubble } from "./dream.js";
+import { mugCoffee, mugCocoa, espresso, pillowBomb, vest, balloon, slipper, magnet, sieve, pouch } from "./kit.js";
 import { tree, bush, rock, bench, lamp, bone, tennisBall, hydrant, doghouse, fence, flowers, grass, hurdle, tyre, pole, tunnel, sign, lilypad, reeds, gazebo, dock as jetty, cable, cloud } from "./park.js";
 
 // ── Model registry ───────────────────────────────────────────────────────
@@ -108,5 +109,15 @@ export const MODELS = {
   hangLamp: { build: hangLamp, frame: 2 },
   dock: { build: dock, frame: 1.8 },
   lectern: { build: lectern, frame: 1.8 },
+  mugCoffee: { build: mugCoffee, frame: 0.4 },
+  mugCocoa: { build: mugCocoa, frame: 0.4 },
+  espresso: { build: espresso, frame: 0.3 },
+  pillowBomb: { build: pillowBomb, frame: 0.6 },
+  vest: { build: vest, frame: 0.8 },
+  balloon: { build: balloon, frame: 0.7 },
+  slipper: { build: slipper, frame: 0.45 },
+  magnet: { build: magnet, frame: 0.4 },
+  sieve: { build: sieve, frame: 0.6 },
+  pouch: { build: pouch, frame: 0.45 },
 };
 export { spin };

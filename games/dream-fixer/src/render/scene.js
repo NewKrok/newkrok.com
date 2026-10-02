@@ -195,6 +195,22 @@ export class GameView {
           const k = 6 + Math.random() * 6, j = () => (Math.random() - 0.5) * 3;
           this.fx.spark(m[0], m[1], m[2], d[0] * k + j(), d[1] * k + j(), d[2] * k + j(), 0.35, 0.05, 0xffffff, 0);
         }
+      } else if (e.type === "ballPop" && e.kind === "pillow") {
+        // Feathers everywhere, drifting down slowly.
+        this.fx.puff(e.x, e.y, e.z, 1.8);
+        this.fx.ring([e.x, e.y, e.z], [0, 1, 0], 0xd8c8ff, 4.2, 0.45);
+        for (let i = 0; i < 60; i++) {
+          const a = Math.random() * Math.PI * 2, u = Math.random() * 2 - 1, s = Math.sqrt(1 - u * u), v = 2 + Math.random() * 5;
+          this.fx.spark(e.x, e.y, e.z, Math.cos(a) * s * v, u * v + 2.5, Math.sin(a) * s * v, 1.2 + Math.random() * 1.2, 0.05 + Math.random() * 0.06, i % 4 ? 0xffffff : 0xd8c8ff, 1.2);
+        }
+        this.shake = Math.min(1, this.shake + 0.3);
+      } else if (e.type === "cogZap") {
+        this.fx.bolt(e.from, e.to, C.dream, 0.018, 90);
+        this.fx.burst(e.to, [0, 1, 0], C.dream, 8, 3, 0.04);
+      } else if (e.type === "cogGrab") {
+        this.fx.burst([e.x, e.y, e.z], [0, 1, 0], C.dreamGold, 10, 2.5, 0.04);
+      } else if (e.type === "itemUse" && e.id === "espresso") {
+        this.ringBurst(run, 0xc8864a, 16);
       } else if (e.type === "ballPop") {
         this.fx.puff(e.x, e.y, e.z, 1.1);
         this.fx.ring([e.x, e.y, e.z], [0, 1, 0], C.dreamGold, 2.4, 0.35);
@@ -288,6 +304,11 @@ export class GameView {
     this.water.update(run, dt, t);
     this.memories.update(dt, t, this.fx);
     this.companion.update(run, dt, t, this.talking);
+    // Cog healing you: little pink motes drifting from him to you.
+    if (run.cog?.healing && Math.random() < dt * 5) {
+      const p = this.companion.pos, life = 0.7;
+      this.fx.spark(p.x, p.y - 0.2, p.z, (b.x - p.x) / life, (b.y + 1.1 - p.y) / life, (b.z - p.z) / life, life, 0.035, 0xff7aa0, 0);
+    }
 
     const tool = run.activeTool;
     this.vm.update(dt, {

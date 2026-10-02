@@ -5,6 +5,7 @@
 //   RT           fire              LT           charge / the tool's second use
 //   A            jump              X            use (tune an anchor …)
 //   Y / RB / →   next tool         LB / ←       previous tool
+//   B            pillow bomb       ↑ / ↓        espresso / cocoa
 //   Start        pause
 // In menus the left stick / d-pad moves the focus, A presses, B goes back.
 

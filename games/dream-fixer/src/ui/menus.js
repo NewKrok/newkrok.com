@@ -1,5 +1,6 @@
 import { t, LANGS, getLang, memoryText, outroText, line, noteText } from "../i18n/index.js";
-import { UPGRADES } from "../data/upgrades.js";
+import { UPGRADES, ITEMS, TABS, level, maxLevel, nextCost, pocketFor, isLocked } from "../data/upgrades.js";
+import { ITEM_ICONS } from "./icons.js";
 
 // ── Menus and panels ─────────────────────────────────────────────────────
 // Plain DOM over the 3D view: the title screen, settings, how to play,
@@ -30,11 +31,12 @@ export class Menus {
     this.open = null;
   }
 
-  close() { this.el.innerHTML = ""; this.open = null; }
+  close() { this.el.innerHTML = ""; this.open = null; this.preview?.unmount(); }
   get isOpen() { return !!this.open; }
 
   // Build a screen: html with data-a="action" buttons; actions maps them.
   show(name, html, actions, cls = "") {
+    if (name !== "bench") this.preview?.unmount();
     this.open = name;
     this.el.innerHTML = `<section class="screen ${cls}" data-screen="${name}">${html}</section>`;
     for (const b of this.el.querySelectorAll("[data-a]")) {
@@ -156,19 +158,79 @@ export class Menus {
       { take: (b) => onTake(b.dataset.level), close: onClose }, "dim");
   }
 
+  // The workbench: a page per tab, the goods on the left, the one picked
+  // on the right with its preview turning, what the next level changes
+  // and the buy button. Redrawn after every pick and purchase.
   bench(progress, { onBuy, onClose }) {
-    const rows = UPGRADES.map((u) => {
-      const [name, desc] = t(`u_${u.id}`);
-      const owned = !!progress.upgrades[u.id];
-      const toolLocked = u.tool === "vacuum" && !progress.done.includes("park") && !progress.vacuum;
-      const can = !owned && progress.dust >= u.cost && !toolLocked;
-      return `<div class="upg ${owned ? "owned" : ""}"><div class="ico ${u.tool ?? "wake"}"></div><div class="info"><b>${esc(name)}</b><p>${esc(desc)}</p></div>
-        ${owned ? `<span class="tag">${esc(t("bench_owned"))}</span>` : `<button class="btn small ${can ? "" : "disabled"}" data-a="buy" data-id="${u.id}">${esc(t("bench_buy"))} · ${u.cost} ✦</button>`}</div>`;
+    const st = this.benchState ??= { tab: "tools", sel: null };
+    const own = progress.upgrades, items = progress.items ?? {}, pocket = pocketFor(own);
+    const entries = st.tab === "kit" ? ITEMS.map((it) => ({ ...it, item: true })) : UPGRADES.filter((u) => u.tab === st.tab);
+    const cur = entries.find((e) => e.id === st.sel) ?? entries[0];
+    st.sel = cur.id;
+    // Keep the pad's focus where it was across the redraw.
+    const f = document.activeElement?.dataset ?? {};
+    const focusKey = f.a ? `${f.a}:${f.id ?? f.tab ?? ""}` : null;
+
+    const tabs = TABS.map((id) => `<button class="${id === st.tab ? "on" : ""}" data-a="tab" data-tab="${id}">${esc(t(`tab_${id}`))}</button>`).join("");
+    let group = null;
+    const tiles = entries.map((e) => {
+      const head = e.group && e.group !== group ? `<h4>${esc(t(`g_${e.group}`))}</h4>` : "";
+      group = e.group;
+      const [name] = t(e.item ? `i_${e.id}` : `u_${e.id}`);
+      let right, cls = "";
+      if (e.item) {
+        const n = items[e.id] || 0;
+        right = `<span class="cnt">${n}/${pocket}</span><span class="pr">${e.cost} ✦</span>`;
+        if (n >= pocket) cls = "full";
+      } else {
+        const l = level(own, e.id), max = maxLevel(e), cost = nextCost(e, own);
+        const pips = Array.from({ length: max }, (_, i) => `<i class="${i < l ? "on" : ""}"></i>`).join("");
+        right = `<span class="pips">${pips}</span><span class="pr">${cost === null ? esc(t("bench_max")) : `${cost} ✦`}</span>`;
+        if (cost === null) cls = "maxed";
+        if (isLocked(e, progress)) cls = "locked";
+      }
+      const ico = e.item ? `<i class="ico kit">${ITEM_ICONS[e.id]}</i>` : `<i class="ico ${e.group ?? e.tab}"></i>`;
+      return `${head}<button class="tile ${cls} ${e.id === cur.id ? "sel" : ""}" data-a="pick" data-id="${e.id}">${ico}<span class="nm">${esc(name)}</span>${right}</button>`;
     }).join("");
-    this.show("bench", `<div class="panel wide bench"><h2>${esc(t("bench_title"))}</h2><p class="intro">${esc(t("bench_intro"))}</p>
-      <div class="purse">✦ <b>${progress.dust}</b></div><div class="upgs">${rows}</div>
+
+    const [name, desc] = t(cur.item ? `i_${cur.id}` : `u_${cur.id}`);
+    let meta, stat, buy;
+    if (cur.item) {
+      const n = items[cur.id] || 0;
+      meta = t("bench_have", { n, of: pocket });
+      stat = `<div class="stat"><span>${esc(t("bench_use"))}</span><b><kbd>${cur.key}</kbd> · <kbd>${cur.pad}</kbd></b></div>`;
+      buy = n >= pocket ? `<span class="tag soft">${esc(t("bench_full"))}</span>`
+        : `<button class="btn ${progress.dust >= cur.cost ? "" : "disabled"}" data-a="buy" data-id="${cur.id}">${esc(t("bench_buy"))} · ${cur.cost} ✦</button>`;
+    } else {
+      const l = level(own, cur.id), max = maxLevel(cur), cost = nextCost(cur, own), locked = isLocked(cur, progress);
+      meta = t("bench_level", { n: l, of: max });
+      const now = cur.stat(l), next = cost === null ? null : cur.stat(l + 1);
+      stat = `<div class="stat"><span>${esc(t(`st_${cur.id}`))}</span><b>${esc(now)}${next === null ? "" : ` <em>→ ${esc(next)}</em>`}</b></div>`;
+      buy = locked ? `<span class="tag soft">${esc(t("bench_locked"))}</span>`
+        : cost === null ? `<span class="tag">${esc(t("bench_max"))}</span>`
+        : `<button class="btn ${progress.dust >= cost ? "" : "disabled"}" data-a="buy" data-id="${cur.id}">${esc(t(l ? "bench_upgrade" : "bench_buy"))} · ${cost} ✦</button>`;
+    }
+    const el = this.show("bench", `<div class="panel wide bench">
+      <div class="bhead"><h2>${esc(t("bench_title"))}</h2><div class="purse">✦ <b>${progress.dust}</b></div></div>
+      <p class="intro">${esc(t("bench_intro"))}</p>
+      <div class="seg tabs">${tabs}</div>
+      <div class="bgrid"><div class="tiles">${tiles}</div>
+        <div class="detail"><div class="pv"></div><b class="dn">${esc(name)}</b><div class="dl">${esc(meta)}</div><p>${esc(desc)}</p>${stat}<div class="dbuy">${buy}</div></div></div>
       <div class="actions"><button class="btn ghost" data-a="close">${esc(t("close"))}</button></div></div>`,
-    { buy: (b) => onBuy(b.dataset.id), close: onClose }, "dim");
+    {
+      pick: (b) => { st.sel = b.dataset.id; this.bench(progress, { onBuy, onClose }); },
+      tab: (b) => { st.tab = b.dataset.tab; st.sel = null; this.bench(progress, { onBuy, onClose }); },
+      buy: (b) => onBuy(b.dataset.id),
+      close: onClose,
+    }, "dim");
+    if (this.preview) {
+      this.preview.mount(el.querySelector(".pv"));
+      this.preview.show(cur.model, cur.glow);
+    }
+    if (focusKey) {
+      const [a, id] = focusKey.split(":");
+      (el.querySelector(`[data-a="${a}"][data-id="${id}"], [data-a="${a}"][data-tab="${id}"]`) ?? el.querySelector(`[data-a="pick"][data-id="${cur.id}"]`))?.focus({ preventScroll: true });
+    }
   }
 
   result(run, { onFactory, onAgain }) {

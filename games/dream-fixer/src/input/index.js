@@ -12,7 +12,10 @@ const KEYS = {
   left: ["KeyA", "ArrowLeft"], right: ["KeyD", "ArrowRight"],
   jump: ["Space"], use: ["KeyE", "KeyF"], sprint: ["ShiftLeft", "ShiftRight"],
 };
-const ONE_SHOT = { Digit1: "tool1", Digit2: "tool2", Digit3: "tool3", Digit4: "tool4", KeyQ: "toolPrev", Escape: "pause", KeyP: "pause", KeyR: "toolNext" };
+const ONE_SHOT = {
+  Digit1: "tool1", Digit2: "tool2", Digit3: "tool3", Digit4: "tool4", KeyQ: "toolPrev", Escape: "pause", KeyP: "pause", KeyR: "toolNext",
+  KeyG: "item_pillow", KeyC: "item_espresso", KeyV: "item_cocoa",
+};
 
 export class Input {
   constructor(el, settings) {
@@ -107,6 +110,9 @@ export class Input {
     if (P(BTN.Y) || P(BTN.RB) || P(BTN.RIGHT)) this.edges.add("toolNext");
     if (P(BTN.LB) || P(BTN.LEFT)) this.edges.add("toolPrev");
     if (P(BTN.START)) this.edges.add("pause");
+    if (P(BTN.B)) this.edges.add("item_pillow");
+    if (P(BTN.UP)) this.edges.add("item_espresso");
+    if (P(BTN.DOWN)) this.edges.add("item_cocoa");
     // Click the stick to run; it keeps running until the stick is let go.
     if (P(BTN.L3)) this.padRun = true;
     if (Math.hypot(p.axes[0], p.axes[1]) < 0.25) this.padRun = false;

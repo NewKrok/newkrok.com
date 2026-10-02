@@ -13,7 +13,7 @@ import { lerp } from "../config.js";
 
 const SKINS = { fuzz: kocPark, buzzer: buzzerPark, knot: knotPark, bunny: bunnyPark, tub: tubPark };
 const FLASH = new T.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
-const POP_COLORS = { bunny: [0xc4c0cc, 0x7a7684, C.dream, 0xffffff], tub: [0xffffff, 0x8fd0f0, C.dream, 0xffd23a], fuzz: [0xe8a060, 0xc8743a, C.dream, 0xffffff], buzzer: [0xf2c14e, 0x5a3620, C.dream, 0xffffff], knot: [0xe8a060, C.dreamPink, C.dream, 0xffffff] };
+const POP_COLORS = { bunny: [0xc4c0cc, 0x7a7684, C.dream, 0xffffff], tub: [0xffffff, 0x8fd0f0, C.dream, 0xffd23a], fuzz: [0xe8a060, 0xc8743a, C.dream, 0xffffff], buzzer: [0xf2c14e, 0x5a3620, C.dream, 0xffffff], knot: [0xe8a060, C.dreamPink, C.dream, 0xffffff], pillow: [0xffffff, 0xf4eaff, 0xd8c8ff, C.dreamPink] };
 
 export class FoeView {
   constructor(scene, fx) {
@@ -228,9 +228,10 @@ export class FoeView {
     for (const g of run.balls) {
       _p.set(g.x, g.y, g.z);
       _q.setFromEuler(this._e.set(t * 12 + g.id, t * 7, 0));
-      _s.setScalar(1);
+      // A pillow bomb: a fat, squashed white one, tumbling.
+      if (g.kind === "pillow") _s.set(1.5, 0.75, 1.15); else _s.setScalar(1);
       this.yarn.setMatrixAt(i, _m.compose(_p, _q, _s));
-      this.yarn.setColorAt(i, _c.set(g.kind === "buzzer" ? 0xf2c14e : 0xd88a48));
+      this.yarn.setColorAt(i, _c.set(g.kind === "pillow" ? 0xf6f0ff : g.kind === "buzzer" ? 0xf2c14e : 0xd88a48));
       if (Math.random() < 0.6) this.fx.spark(g.x, g.y, g.z, 0, 0.3, 0, 0.3, 0.04, C.dreamGold, 0);
       i++;
     }

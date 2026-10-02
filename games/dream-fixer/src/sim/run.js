@@ -8,7 +8,8 @@ import { Boss } from "./boss.js";
 import { Nav } from "./nav.js";
 import { buildLevel } from "../levels/kit.js";
 import { rng } from "../rng.js";
-import { toolDef, maxHpFor, magnetFor } from "../data/upgrades.js";
+import { toolDef, maxHpFor, magnetFor, perksFor, ITEM } from "../data/upgrades.js";
+import { Cog } from "./cog.js";
 
 // ── One visit to a dream ─────────────────────────────────────────────────
 // Everything that happens in a level, with no rendering: the body, the
@@ -32,7 +33,8 @@ const FALL_DMG = 12;
 export const MAX_HP = 50;
 // Breath for running: seconds of running on a full one, seconds to fill it
 // again (after a short rest), and how much back before you can run again.
-const STAMINA = { run: 1, refill: 2.5, delay: 0.6, again: 0.35 };
+// (The bench's lungs stretch the first two.)
+const STAMINA = { delay: 0.6, again: 0.35 };
 
 export class Run {
   constructor(levelDef, o = {}) {
@@ -43,6 +45,7 @@ export class Run {
     this.opts = { difficulty: "normal", aimAssist: 0, autoFire: false, upgrades: {}, tools: ["stabilizer"], noTools: false, ...o };
     this.maxHp = maxHpFor(this.opts.upgrades);
     this.magnet = magnetFor(this.opts.upgrades);
+    this.perks = perksFor(this.opts.upgrades);
     this.body = new Body();
     const s = this.kit.spawn;
     this.checkpoint = { ...s };
@@ -57,6 +60,9 @@ export class Run {
     this.events = [];
     this.hp = this.maxHp; this.hurtT = 9; this.invuln = 0;
     this.stamina = 1; this.winded = false; this.restT = 0; this.sprinting = false;
+    // Kit from the bench, in your pockets (none in the Factory).
+    this.items = levelDef.hub ? {} : { ...(o.items ?? {}) };
+    this.boostT = 0;              // an espresso still working
     this.faints = 0;
     this.foes = []; this.foeSeq = 0;
     this.nav = this.kit.foes.length || levelDef.boss ? new Nav(this.world) : null;
@@ -73,6 +79,7 @@ export class Run {
     this.found = [];
     this.boss = null; this.coreT = -1; this.wonT = -1; this.won = false;
     for (const f of this.kit.foes) this.spawn(f.kind, f.x, f.z);
+    this.cog = levelDef.hub ? null : new Cog(this);
     this.events.length = 0;
     this._shots = [];
     this._hit = {};
@@ -141,6 +148,7 @@ export class Run {
   stepHeals(dt) {
     const b = this.body, cx = b.x, cy = b.y + 0.9, cz = b.z;
     for (const h of this.heals) {
+      if (h.carry) { h.t = Math.min(h.t, 1); continue; }   // Cog has it
       h.t += dt;
       const dx = cx - h.x, dy = cy - h.y, dz = cz - h.z, d = Math.hypot(dx, dy, dz);
       h.pull = h.t > 0.5 && d < HEAL.magnet && this.hp < this.maxHp;
@@ -178,6 +186,8 @@ export class Run {
   }
 
   dropDust(x, y, z, n) {
+    // The bench's sieve: now and then half as much again.
+    if (this.perks.sieve && this.rnd() < this.perks.sieve) n += Math.ceil(n / 2);
     for (let i = 0; i < n; i++) {
       const a = this.rnd() * Math.PI * 2, v = 1.5 + this.rnd() * 2;
       this.dustMotes.push({ x, y, z, vx: Math.cos(a) * v, vy: 3 + this.rnd() * 2.5, vz: Math.sin(a) * v, t: 0, floor: this.kit.floorAt(x, z, y + 0.5), id: ++this.foeSeq });
@@ -194,7 +204,7 @@ export class Run {
 
   hurt(amount, fromX, fromZ) {
     if (this.invuln > 0 || this.hp <= 0) return;
-    const dmg = amount * this.diff.dmg;
+    const dmg = amount * this.diff.dmg * this.perks.hurt;
     this.hp -= dmg;
     this.hurtT = 0;
     this.invuln = 0.35;
@@ -226,18 +236,22 @@ export class Run {
     const b = this.body;
     // Running: forward only, half as fast again, while the breath lasts.
     // Run out and you are winded: no running until you have got some back.
+    // An espresso: quicker on your feet, and running costs no breath.
+    const S = this.perks.stamina;
+    this.boostT = Math.max(0, this.boostT - dt);
     const wantRun = !!intent.sprint && (intent.forward || 0) > 0.3 && !this.opts.noTools;
     this.sprinting = wantRun && !this.winded && (b.grounded || this.sprinting);
-    if (this.sprinting) {
-      this.stamina = Math.max(0, this.stamina - dt / STAMINA.run);
+    if (this.sprinting && this.boostT > 0) this.restT = 0;
+    else if (this.sprinting) {
+      this.stamina = Math.max(0, this.stamina - dt / S.run);
       this.restT = 0;
       if (this.stamina <= 0) { this.winded = true; this.sprinting = false; this.events.push({ type: "winded" }); }
     } else {
       this.restT += dt;
-      if (this.restT > STAMINA.delay) this.stamina = Math.min(1, this.stamina + dt / STAMINA.refill);
+      if (this.restT > STAMINA.delay) this.stamina = Math.min(1, this.stamina + dt / S.refill);
       if (this.winded && this.stamina >= STAMINA.again) this.winded = false;
     }
-    b.step(this.world, intent, dt, this.sprinting ? 1.45 : 1);
+    b.step(this.world, intent, dt, (this.sprinting ? 1.45 : 1) * this.perks.speed * (this.boostT > 0 ? ITEM.espresso.speed : 1));
     if (b.jumped) this.events.push({ type: "jump" });
     if (b.landSpeed > 4) this.events.push({ type: "land", speed: b.landSpeed });
     // Water: a ring at every few steps through it, a splash on jumping in.
@@ -277,6 +291,7 @@ export class Run {
       else this.fire(tool, shot);
     }
     this.stepBalls(dt);
+    if (intent.item) this.useItem(intent.item);
 
     stepAnchors(this, dt);
     if (this.pendingUnlock && !this.tuning) { this.unlockTool(this.pendingUnlock); this.pendingUnlock = null; }
@@ -327,12 +342,34 @@ export class Run {
       }
     }
     this.nav?.update(b, dt);
+    this.cog?.step(this, dt);
     stepFoes(this, dt);
     this.stepSpits(dt);
     this.stepDust(dt);
     this.stepHeals(dt);
     this.stepShocks(dt);
     this.foes = this.foes.filter((f) => f.alive || f.age < 0.1);
+  }
+
+  // Kit from your pockets. Cocoa is kept when you are wide awake anyway.
+  useItem(id) {
+    if (this.opts.noTools || !(this.items[id] > 0) || this.hp <= 0) return;
+    if (id === "cocoa" && this.hp >= this.maxHp) { this.events.push({ type: "itemNo", id }); return; }
+    this.items[id]--;
+    const b = this.body;
+    if (id === "pillow") {
+      // A pillow bomb: lobbed, bursts on whatever it meets in a cloud of feathers.
+      const P = ITEM.pillow, [dx, dy, dz] = this.aimDir();
+      this.balls.push({ x: b.x + dx * 0.7, y: b.eyeY + dy * 0.7 - 0.15, z: b.z + dz * 0.7, vx: dx * P.speed + b.vx * 0.5, vy: dy * P.speed + P.up, vz: dz * P.speed + b.vz * 0.5, kind: "pillow", life: 3, id: ++this.foeSeq, dmg: P.damage, splash: P.splash, sleep: P.sleep });
+    } else if (id === "espresso") {
+      this.boostT = ITEM.espresso.time;
+      this.stamina = 1; this.winded = false;
+    } else if (id === "cocoa") {
+      const before = this.hp;
+      this.hp = Math.min(this.maxHp, this.hp + ITEM.cocoa.heal);
+      this.events.push({ type: "heal", x: b.x, y: b.y + 1, z: b.z, amount: this.hp - before });
+    }
+    this.events.push({ type: "itemUse", id, left: this.items[id] });
   }
 
   // The glitch (or orb) the view points at within `cone` radians, if it is in sight.
@@ -534,6 +571,8 @@ export class Run {
         if (d < g.splash) {
           const k = 1 - d / g.splash * 0.5;
           damageFoe(this, f, g.dmg * k, (f.px - g.x) / (d || 1), (f.pz - g.z) / (d || 1), true);
+          // A pillow leaves the ones it did not pop dozing for a moment.
+          if (g.sleep && f.alive && f.def.knock > 0) { f.state = "stun"; f.t = -g.sleep; }
         }
       }
       this.boss?.splash?.(this, g);
@@ -576,6 +615,7 @@ export class Run {
   stepDust(dt) {
     const b = this.body, cx = b.x, cy = b.y + 0.9, cz = b.z;
     for (const m of this.dustMotes) {
+      if (m.carry) { m.t = Math.min(m.t, 1); continue; }   // Cog has it
       m.t += dt;
       const dx = cx - m.x, dy = cy - m.y, dz = cz - m.z, d = Math.hypot(dx, dy, dz);
       m.pull = m.t > 0.45 && d < this.magnet;

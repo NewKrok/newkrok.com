@@ -23,19 +23,24 @@ export class Companion {
   }
 
   update(run, dt, t, talking) {
-    const b = run.body, N = this.o.userData.nodes;
+    const b = run.body, N = this.o.userData.nodes, cog = run.cog;
     const sn = Math.sin(b.yaw), cs = Math.cos(b.yaw);
-    // Ahead-left of you, at shoulder height.
-    const tx = b.x - sn * 1.6 - cs * 1.1, tz = b.z - cs * 1.6 + sn * 1.1;
-    const ty = b.y + 1.9 + Math.sin(t * 1.3) * 0.12;
+    // Ahead-left of you, at shoulder height; in a dream the sim flies him
+    // (off to fetch dust, too) and he just bobs about where it says.
+    let tx = b.x - sn * 1.6 - cs * 1.1, tz = b.z - cs * 1.6 + sn * 1.1, ty = b.y + 1.9;
+    if (cog) { tx = cog.x; ty = cog.y; tz = cog.z; }
+    ty += Math.sin(t * 1.3) * 0.12;
+    const k = cog?.busy ? 12 : 3;
     if (!this.placed) { this.pos.set(tx, ty, tz); this.placed = true; }
-    this.pos.x = damp(this.pos.x, tx, 3, dt); this.pos.y = damp(this.pos.y, ty, 3, dt); this.pos.z = damp(this.pos.z, tz, 3, dt);
+    this.pos.x = damp(this.pos.x, tx, k, dt); this.pos.y = damp(this.pos.y, ty, k, dt); this.pos.z = damp(this.pos.z, tz, k, dt);
     this.o.position.copy(this.pos);
-    // Look at what matters, else at you.
+    // Look at what matters, else at you: the dust he is after, a glitch
+    // near you, a memory he has scouted, the next anchor.
     let fx = b.x, fz = b.z;
     const foe = run.foes.find((f) => f.alive && Math.hypot(f.px - b.x, f.pz - b.z) < 12);
     const anchor = run.anchors.find((a) => a.state !== "fixed");
-    if (foe) { fx = foe.px; fz = foe.pz; } else if (anchor) { fx = anchor.x; fz = anchor.z; }
+    if (cog?.task === "go") { fx = cog.target.x; fz = cog.target.z; }
+    else if (foe) { fx = foe.px; fz = foe.pz; } else if (cog?.scout && Math.sin(t * 0.9) > -0.2) { fx = cog.scout.x; fz = cog.scout.z; } else if (anchor) { fx = anchor.x; fz = anchor.z; }
     const want = Math.atan2(-(fx - this.pos.x), -(fz - this.pos.z));
     let d = want - this.o.rotation.y;
     d = Math.atan2(Math.sin(d), Math.cos(d));
@@ -45,7 +50,11 @@ export class Companion {
     N.armL.rotation.z = 0.4 + Math.sin(t * 3) * 0.15 + (talking ? Math.sin(t * 14) * 0.3 : 0);
     N.armR.rotation.z = -0.4 - Math.sin(t * 3 + 1) * 0.15;
     N.eye.rotation.y = Math.sin(t * 0.9) * 0.15;
-    this.light.intensity = talking ? 1.6 + Math.sin(t * 20) * 0.6 : 0.9;
+    // His light says what he is up to: pink while he wakes you up, gold
+    // blinking when a memory is near.
+    const healing = cog?.healing, scouting = cog?.scout && !foe;
+    this.light.color.setHex(healing ? 0xff7aa0 : scouting ? 0xffd27a : 0x7ff5e0);
+    this.light.intensity = talking ? 1.6 + Math.sin(t * 20) * 0.6 : healing ? 1.3 + Math.sin(t * 4) * 0.5 : scouting ? (Math.sin(t * 6) > 0.3 ? 1.8 : 0.6) : 0.9;
   }
 }
 

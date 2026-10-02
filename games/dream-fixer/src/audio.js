@@ -188,6 +188,11 @@ export class Audio {
       case "catch": S(0.25, { type: "triangle", freq: 300, freqEnd: 900, gain: 0.08 }); N(0.2, { freq: 2000, freqEnd: 500, q: 2, gain: 0.08 }); at(0.2, (tt) => this.#tone(d, tt, 0.1, { freq: 180, freqEnd: 90, gain: 0.12 })); break;
       case "launch": S(0.18, { freq: 160, freqEnd: 60, gain: 0.2 }); N(0.2, { type: "lowpass", freq: 2000, freqEnd: 400, gain: 0.12 }); break;
       case "blast": N(0.35, { type: "bandpass", freq: 700, freqEnd: 2400, q: 0.7, gain: 0.14 }); break;
+      case "throw": N(0.28, { type: "bandpass", freq: 500, freqEnd: 1700, q: 0.9, gain: 0.12 }); break;
+      case "pillowPop": N(0.6, { type: "lowpass", freq: 1800, freqEnd: 250, gain: 0.22, verb: 0.3 }); S(0.3, { freq: 180, freqEnd: 70, gain: 0.18 }); [0.08, 0.16, 0.26].forEach((dt) => at(dt, (tt) => this.#noise(d, tt, 0.25, { type: "bandpass", freq: 2400 + Math.random() * 1200, q: 2, gain: 0.04 }))); break;
+      case "sip": N(0.35, { type: "bandpass", freq: 450, freqEnd: 1300, q: 3, gain: 0.08, attack: 0.05 }); [79, 84].forEach((n, i) => at(0.32 + i * 0.07, (tt) => this.#bell(d, tt, hz(n), 0.05))); break;
+      case "cogZap": S(0.07, { type: "square", freq: 2400, freqEnd: 900, gain: 0.022 }); N(0.05, { type: "highpass", freq: 6000, gain: 0.025 }); break;
+      case "ping": [91, 96].forEach((n, i) => at(i * 0.09, (tt) => this.#bell(d, tt, hz(n), 0.045, 0.6, 0.4))); break;
       case "ballPop": S(0.25, { freq: 120, freqEnd: 50, gain: 0.25, verb: 0.2 }); N(0.3, { type: "lowpass", freq: 1500, freqEnd: 200, gain: 0.15 }); break;
       case "newTool": [67, 72, 76, 79, 84].forEach((n, i) => at(i * 0.07, (tt) => this.#bell(d, tt, hz(n), 0.07, 1.2, 0.5))); break;
       // Anchors.

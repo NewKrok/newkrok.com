@@ -13,7 +13,7 @@ import { Voice } from "./voice.js";
 import { Director } from "./story/director.js";
 import { Menus } from "./ui/menus.js";
 import { PadNav } from "./ui/padnav.js";
-import { UPGRADES } from "./data/upgrades.js";
+import { UPGRADES, ITEMS, level, nextCost, pocketFor, isLocked } from "./data/upgrades.js";
 import { track } from "./analytics.js";
 
 // ── Boot ─────────────────────────────────────────────────────────────────
@@ -27,6 +27,7 @@ const LEVELS = { park, factory };
 
 async function startGame() {
   const { GameView } = await import("./render/scene.js");
+  const { BenchPreview } = await import("./render/preview.js");
   const settings = loadSettings();
   const progress = loadProgress();
   setLang(detectLang(settings.lang));
@@ -44,6 +45,7 @@ async function startGame() {
   // Every line heard goes into the journal, to read again later.
   dialog.onLine = (id) => { if (!progress.log.includes(id)) { progress.log.push(id); save(); } };
   const menus = new Menus(app, audio);
+  menus.preview = new BenchPreview();
   const padNav = new PadNav(app, audio);
 
   const save = () => saveProgress(progress);
@@ -52,6 +54,7 @@ async function startGame() {
     aimAssist: settings.aimAssist ? (input.isTouch ? 0.045 : input.usingPad ? 0.035 : 0.015) : 0,
     autoFire: settings.autoFire && input.isTouch,
     upgrades: progress.upgrades,
+    items: progress.items,
     memoriesFound: progress.memories,
     noTools: !!def.hub,
     tools: progress.vacuum && !def.hub ? ["stabilizer", "vacuum"] : ["stabilizer"],
@@ -157,13 +160,23 @@ async function startGame() {
     else if (id === "bench") {
       dialog.say("hub_bench");
       const open = () => menus.bench(progress, {
-        onBuy: (uid) => {
-          const u = UPGRADES.find((x) => x.id === uid);
-          if (!u || progress.upgrades[uid] || progress.dust < u.cost) return;
-          progress.dust -= u.cost; progress.upgrades[uid] = true; save();
+        onBuy: (id) => {
+          // An upgrade goes up a level; kit goes into your pockets, while they hold it.
+          const u = UPGRADES.find((x) => x.id === id), it = ITEMS.find((x) => x.id === id);
+          const cost = u ? nextCost(u, progress.upgrades) : it?.cost;
+          if (cost == null || progress.dust < cost) return;
+          if (u) {
+            if (isLocked(u, progress)) return;
+            progress.upgrades[id] = level(progress.upgrades, id) + 1;
+          } else {
+            const n = progress.items[id] || 0;
+            if (n >= pocketFor(progress.upgrades)) return;
+            progress.items[id] = n + 1;
+          }
+          progress.dust -= cost; save();
           run.dust = progress.dust;
           audio.play("buy");
-          track("upgrade", { id: uid });
+          track(u ? "upgrade" : "kit_buy", { id, level: u ? progress.upgrades[id] : undefined });
           open();
         },
         onClose: resume,
@@ -191,6 +204,10 @@ async function startGame() {
         menus.memory(e.id);
         if (!progress.memories.includes(e.id)) { progress.memories.push(e.id); save(); }
       } else if (e.type === "toolUnlocked" && e.tool === "vacuum") { progress.vacuum = true; save(); }
+      else if (e.type === "itemUse") {
+        progress.items[e.id] = Math.max(0, (progress.items[e.id] || 0) - 1); save();
+        track("kit_use", { id: e.id, dream: run.def.id });
+      }
       else if (e.type === "dreamFixed") {
         const id = run.def.id;
         bankDust();
@@ -238,6 +255,7 @@ async function startGame() {
       hud.touch = input.isTouch;
       hud.pad = input.usingPad;
       hud.unlocked(!input.isTouch && !input.locked && !input.usingPad);
+      input.touch.items(run.items);
       if (edges.has("pause")) { if (input.isTouch || !input.locked) openMenu(showPause); else input.unlock(); }
       look = input.look();
       run.body.look(look[0], look[1]);
@@ -248,6 +266,7 @@ async function startGame() {
         intent.jumpPressed = first && edges.has("jump");
         intent.usePressed = first && edges.has("use");
         if (first) {
+          intent.item = ["pillow", "espresso", "cocoa"].find((id) => edges.has(`item_${id}`));
           const n = run.tools.length;
           if (edges.has("tool1")) intent.toolTo = 0;
           else if (edges.has("tool2") && n > 1) intent.toolTo = 1;
@@ -259,7 +278,7 @@ async function startGame() {
         acc -= DT;
       }
       // Presses between two steps must not be lost.
-      if (first) for (const k of ["jump", "use", "tool1", "tool2", "toolNext", "toolPrev"]) if (edges.has(k)) input.edges.add(k);
+      if (first) for (const k of ["jump", "use", "tool1", "tool2", "toolNext", "toolPrev", "item_pillow", "item_espresso", "item_cocoa"]) if (edges.has(k)) input.edges.add(k);
       onEvents(run.events);
       view.consume(run.events);
       run.events.length = 0;

@@ -1,3 +1,5 @@
+import { ITEM_ICONS } from "../ui/icons.js";
+
 // ── Touch controls ───────────────────────────────────────────────────────
 // Left side: a floating stick (it appears where the thumb lands). Right
 // side: drag to look, with buttons for fire, the tool's second action,
@@ -12,6 +14,10 @@ const BUTTONS = [
   ["use", "", "small"],
   ["tool", "", "small"],
   ["pause", "", "corner"],
+  // Kit: only shown while you carry some (with how many on the button).
+  ["item_pillow", "", "item"],
+  ["item_espresso", "", "item"],
+  ["item_cocoa", "", "item"],
 ];
 const ICONS = {
   fire: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>',
@@ -19,6 +25,7 @@ const ICONS = {
   jump: '<svg viewBox="0 0 24 24"><path d="M12 4l7 8h-4v7H9v-7H5z"/></svg>',
   use: '<svg viewBox="0 0 24 24"><path d="M14.5 3.5a4.5 4.5 0 0 0-4.2 6.1L3.5 16.4 7.6 20.5l6.8-6.8a4.5 4.5 0 0 0 6.1-4.2l-2.6 2.6-3.1-.5-.5-3.1z"/></svg>',
   tool: '<svg viewBox="0 0 24 24"><path d="M7 7h10l-3-3M17 17H7l3 3" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  item_pillow: ITEM_ICONS.pillow, item_espresso: ITEM_ICONS.espresso, item_cocoa: ITEM_ICONS.cocoa,
   pause: '<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
 };
 
@@ -34,7 +41,7 @@ export class Touch {
 
     const ui = this.ui = document.createElement("div");
     ui.className = "touch-ui hidden";
-    ui.innerHTML = `<div class="stick"><i></i></div>` + BUTTONS.map(([id, , cls]) => `<button class="tbtn ${cls}" data-t="${id}" aria-label="${id}">${ICONS[id]}</button>`).join("");
+    ui.innerHTML = `<div class="stick"><i></i></div>` + BUTTONS.map(([id, , cls]) => `<button class="tbtn ${cls}" data-t="${id}" aria-label="${id}">${ICONS[id]}${cls === "item" ? "<b></b>" : ""}</button>`).join("");
     el.appendChild(ui);
     this.stick = ui.querySelector(".stick");
     this.knob = this.stick.querySelector("i");
@@ -47,6 +54,18 @@ export class Touch {
   }
 
   show(on) { this.ui.classList.toggle("hidden", !on || !this.active); }
+
+  // The kit buttons: shown with their counts while you carry any.
+  items(counts) {
+    const key = JSON.stringify(counts);
+    if (key === this.lastItems) return;
+    this.lastItems = key;
+    for (const b of this.ui.querySelectorAll(".tbtn.item")) {
+      const n = counts[b.dataset.t.slice(5)] || 0;
+      b.classList.toggle("none", !n);
+      b.querySelector("b").textContent = n;
+    }
+  }
 
   down(e) {
     if (e.pointerType !== "touch") return;
