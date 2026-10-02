@@ -28,10 +28,13 @@ export class FoeView {
     this.orbs.instanceColor = new T.InstancedBufferAttribute(new Float32Array(64 * 3), 3);
     this.orbs.frustumCulled = false; this.orbs.count = 0;
     this.motes = new T.InstancedMesh(new T.OctahedronGeometry(0.13, 0), new T.MeshBasicMaterial({ toneMapped: false }), 256);
-    // A soft glow round each fleck, so it reads from afar.
-    this.halos = new T.InstancedMesh(new T.IcosahedronGeometry(0.21, 1), new T.MeshBasicMaterial({ toneMapped: false, transparent: true, depthWrite: false, blending: T.AdditiveBlending }), 256);
-    this.halos.instanceColor = new T.InstancedBufferAttribute(new Float32Array(256 * 3), 3);
-    this.halos.frustumCulled = false; this.halos.count = 0;
+    // A soft glow round each fleck (points with a radial fade), so it reads
+    // from afar.
+    const hg = new T.BufferGeometry();
+    hg.setAttribute("position", new T.BufferAttribute(new Float32Array(256 * 3), 3));
+    hg.setAttribute("color", new T.BufferAttribute(new Float32Array(256 * 3), 3));
+    this.halos = new T.Points(hg, new T.PointsMaterial({ map: glowTexture(), size: 0.5, sizeAttenuation: true, vertexColors: true, transparent: true, depthWrite: false, blending: T.AdditiveBlending, toneMapped: false }));
+    this.halos.frustumCulled = false;
     scene.add(this.halos);
     this.motes.instanceColor = new T.InstancedBufferAttribute(new Float32Array(256 * 3), 3);
     this.motes.frustumCulled = false; this.motes.count = 0;
@@ -59,8 +62,8 @@ export class FoeView {
     heart.bezierCurveTo(-0.2, 0.17, -0.07, 0.2, 0, 0.11);
     heart.bezierCurveTo(0.07, 0.2, 0.2, 0.17, 0.2, 0.07);
     heart.bezierCurveTo(0.2, -0.02, 0.05, -0.1, 0, -0.16);
-    const hg = new T.ExtrudeGeometry(heart, { depth: 0.07, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.025, bevelSegments: 2, curveSegments: 8 }).translate(0, 0, -0.035);
-    this.hearts = new T.InstancedMesh(hg, new T.MeshBasicMaterial({ toneMapped: false }), 24);
+    const heartGeo = new T.ExtrudeGeometry(heart, { depth: 0.06, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.03, bevelSegments: 4, curveSegments: 10 }).translate(0, 0, -0.03);
+    this.hearts = new T.InstancedMesh(heartGeo, new T.MeshBasicMaterial({ toneMapped: false }), 24);
     this.hearts.instanceColor = new T.InstancedBufferAttribute(new Float32Array(24 * 3), 3);
     this.hearts.frustumCulled = false; this.hearts.count = 0;
     scene.add(this.hearts);
@@ -238,34 +241,38 @@ export class FoeView {
     // Drawn to you, they swell, flare and leave a glittering trail; right
     // in front of the eye they shrink away (never a huge fleck on the lens).
     const B = run.body, ex = B.x, ey = B.eyeY, ez = B.z;
-    const nearEye = (x, y, z) => Math.max(0, Math.min(1, (Math.hypot(x - ex, y - ey, z - ez) - 0.45) / 1.1));
+    const eyeDist = (x, y, z) => Math.hypot(x - ex, y - ey, z - ez);
+    const nearEye = (x, y, z) => Math.max(0, Math.min(1, (eyeDist(x, y, z) - 0.8) / 2.2));
     for (const m of run.dustMotes) {
       if (i >= 256) break;
       m.glow = Math.min(1, (m.glow || 0) + (m.pull ? dt * 5 : -dt * 3));
       const k = nearEye(m.x, m.y, m.z);
       _p.set(m.x, m.y + Math.sin(t * 3 + m.id) * 0.08, m.z);
       _q.setFromEuler(this._e.set(t * (2 + m.glow * 4) + m.id, t * (3 + m.glow * 3) + m.id, 0));
-      _s.setScalar(Math.max(0.001, (1 + m.glow * 0.5) * k));
+      _s.setScalar(Math.max(0.001, (1 + m.glow * 0.15) * k));
       this.motes.setMatrixAt(i, _m.compose(_p, _q, _s));
-      this.motes.setColorAt(i, _c.set(m.id % 3 ? C.dreamGold : C.dream).multiplyScalar(2.6 + m.glow * 1.4 + Math.sin(t * 8 + m.id) * 0.5));
-      _q.identity(); _s.setScalar(Math.max(0.001, (1 + Math.sin(t * 4 + m.id) * 0.15) * k));
-      this.halos.setMatrixAt(i, _m.compose(_p, _q, _s));
-      this.halos.setColorAt(i, _c.set(m.id % 3 ? C.dreamGold : C.dream).multiplyScalar(0.16 + m.glow * 0.12));
+      this.motes.setColorAt(i, _c.set(m.id % 3 ? C.dreamGold : C.dream).multiplyScalar(2.4 + m.glow * 0.5 + Math.sin(t * 8 + m.id) * 0.4));
+      this.halos.geometry.attributes.position.setXYZ(i, _p.x, _p.y, _p.z);
+      // The halo is for spotting them from afar: gone up close and in flight.
+      const far = Math.max(0, Math.min(1, (eyeDist(m.x, m.y, m.z) - 2.5) / 3)) * (1 - m.glow);
+      _c.set(m.id % 3 ? C.dreamGold : C.dream).multiplyScalar((0.5 + Math.sin(t * 4 + m.id) * 0.15) * far);
+      this.halos.geometry.attributes.color.setXYZ(i, _c.r, _c.g, _c.b);
       // Now and then a twinkle.
       if (!m.pull && k > 0.6 && Math.random() < 0.04) this.fx.spark(m.x + (Math.random() - 0.5) * 0.2, m.y + 0.1, m.z + (Math.random() - 0.5) * 0.2, 0, 0.8, 0, 0.4, 0.05, 0xffffff, 0);
       if (m.pull && k > 0.6 && Math.random() < 0.8) this.fx.spark(m.x, m.y, m.z, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6, 0.3, 0.035 + Math.random() * 0.03, Math.random() < 0.5 ? C.dreamGold : 0xffffff, 0);
       i++;
     }
     this.motes.count = i;
-    this.halos.count = i;
-    this.halos.instanceMatrix.needsUpdate = true; if (this.halos.instanceColor) this.halos.instanceColor.needsUpdate = true;
-    // Hearts: bob, spin, pulse; blink out at the end of their time.
+    this.halos.geometry.setDrawRange(0, i);
+    this.halos.geometry.attributes.position.needsUpdate = true; this.halos.geometry.attributes.color.needsUpdate = true;
+    // Hearts: bob, pulse and face you with a little rock (a flat heart
+    // turning edge-on looks like a stick); blink out at the end.
     let nh = 0;
     for (const h of run.heals) {
       if (nh >= 24) break;
       const blink = h.t > 25 && Math.sin(h.t * 18) < 0;
       _p.set(h.x, h.y + Math.sin(t * 2.5 + h.id) * 0.08, h.z);
-      _q.setFromEuler(this._e.set(0, t * 2.2 + h.id, 0));
+      _q.setFromEuler(this._e.set(0, Math.atan2(ex - h.x, ez - h.z) + Math.sin(t * 2.2 + h.id) * 0.45, Math.sin(t * 1.7 + h.id) * 0.15));
       _s.setScalar(blink ? 0.001 : Math.max(0.001, 0.7 * (1.1 + Math.sin(t * 6 + h.id) * 0.08) * Math.min(1, h.t * 4) * nearEye(h.x, h.y, h.z)));
       this.hearts.setMatrixAt(nh, _m.compose(_p, _q, _s));
       this.hearts.setColorAt(nh, _c.set(0xff5c8a).multiplyScalar(1.5 + (h.pull ? 0.8 : 0)));
@@ -276,6 +283,16 @@ export class FoeView {
     this.hearts.instanceMatrix.needsUpdate = true; if (this.hearts.instanceColor) this.hearts.instanceColor.needsUpdate = true;
     this.motes.instanceMatrix.needsUpdate = true; this.motes.instanceColor.needsUpdate = true;
   }
+}
+
+// A round glow fading out to nothing (for the dust's halo).
+function glowTexture() {
+  const c = document.createElement("canvas");
+  c.width = c.height = 64;
+  const g = c.getContext("2d"), grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, "rgba(255,255,255,1)"); grad.addColorStop(0.25, "rgba(255,255,255,0.45)"); grad.addColorStop(0.6, "rgba(255,255,255,0.08)"); grad.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
+  return new T.CanvasTexture(c);
 }
 
 // A fat yellow "!" with a dark outline, drawn once.
