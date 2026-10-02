@@ -25,7 +25,7 @@ export const DIFFICULTY = {
 
 // Wakefulness does not come back by itself: popped glitches now and then
 // leave a dream drop behind (chance per kind; better when you are low).
-const HEAL = { amount: 15, life: 30, magnet: 5, chance: { fuzz: 0.45, bunny: 0.25, buzzer: 0.5, tub: 1, knot: 1 } };
+const HEAL = { amount: 10, life: 30, magnet: 5, chance: { fuzz: 0.45, bunny: 0.25, buzzer: 0.5, tub: 1, knot: 1 } };
 // Falling off the dream costs a bit too.
 const FALL_DMG = 12;
 
@@ -589,7 +589,7 @@ export class Run {
         m.vx *= 1 - 1.5 * dt; m.vz *= 1 - 1.5 * dt;
       }
       m.x += m.vx * dt; m.y += m.vy * dt; m.z += m.vz * dt;
-      const floor = m.floor + 0.18;
+      const floor = m.floor + 0.45;          // they hover a little off the ground
       if (m.y < floor) { m.y = floor; m.vy = Math.abs(m.vy) * 0.35; }
       if (d < 0.7 && m.t > 0.45) { m.got = true; this.dust++; this.events.push({ type: "dust", x: m.x, y: m.y, z: m.z }); }
       if (m.t > 30) m.got = true;

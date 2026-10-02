@@ -27,7 +27,12 @@ export class FoeView {
     this.orbs = new T.InstancedMesh(orbGeo, new T.MeshBasicMaterial({ toneMapped: false }), 64);
     this.orbs.instanceColor = new T.InstancedBufferAttribute(new Float32Array(64 * 3), 3);
     this.orbs.frustumCulled = false; this.orbs.count = 0;
-    this.motes = new T.InstancedMesh(new T.OctahedronGeometry(0.09, 0), new T.MeshBasicMaterial({ toneMapped: false }), 256);
+    this.motes = new T.InstancedMesh(new T.OctahedronGeometry(0.13, 0), new T.MeshBasicMaterial({ toneMapped: false }), 256);
+    // A soft glow round each fleck, so it reads from afar.
+    this.halos = new T.InstancedMesh(new T.IcosahedronGeometry(0.21, 1), new T.MeshBasicMaterial({ toneMapped: false, transparent: true, depthWrite: false, blending: T.AdditiveBlending }), 256);
+    this.halos.instanceColor = new T.InstancedBufferAttribute(new Float32Array(256 * 3), 3);
+    this.halos.frustumCulled = false; this.halos.count = 0;
+    scene.add(this.halos);
     this.motes.instanceColor = new T.InstancedBufferAttribute(new Float32Array(256 * 3), 3);
     this.motes.frustumCulled = false; this.motes.count = 0;
     // What the vacuum shoots: a caught glitch rolled into a tight ball.
@@ -238,15 +243,22 @@ export class FoeView {
       if (i >= 256) break;
       m.glow = Math.min(1, (m.glow || 0) + (m.pull ? dt * 5 : -dt * 3));
       const k = nearEye(m.x, m.y, m.z);
-      _p.set(m.x, m.y + Math.sin(t * 3 + m.id) * 0.04, m.z);
+      _p.set(m.x, m.y + Math.sin(t * 3 + m.id) * 0.08, m.z);
       _q.setFromEuler(this._e.set(t * (2 + m.glow * 4) + m.id, t * (3 + m.glow * 3) + m.id, 0));
       _s.setScalar(Math.max(0.001, (1 + m.glow * 0.5) * k));
       this.motes.setMatrixAt(i, _m.compose(_p, _q, _s));
-      this.motes.setColorAt(i, _c.set(m.id % 3 ? C.dreamGold : C.dream).multiplyScalar(1.8 + m.glow * 1.6 + Math.sin(t * 8 + m.id) * 0.4));
+      this.motes.setColorAt(i, _c.set(m.id % 3 ? C.dreamGold : C.dream).multiplyScalar(2.6 + m.glow * 1.4 + Math.sin(t * 8 + m.id) * 0.5));
+      _q.identity(); _s.setScalar(Math.max(0.001, (1 + Math.sin(t * 4 + m.id) * 0.15) * k));
+      this.halos.setMatrixAt(i, _m.compose(_p, _q, _s));
+      this.halos.setColorAt(i, _c.set(m.id % 3 ? C.dreamGold : C.dream).multiplyScalar(0.16 + m.glow * 0.12));
+      // Now and then a twinkle.
+      if (!m.pull && k > 0.6 && Math.random() < 0.04) this.fx.spark(m.x + (Math.random() - 0.5) * 0.2, m.y + 0.1, m.z + (Math.random() - 0.5) * 0.2, 0, 0.8, 0, 0.4, 0.05, 0xffffff, 0);
       if (m.pull && k > 0.6 && Math.random() < 0.8) this.fx.spark(m.x, m.y, m.z, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6, 0.3, 0.035 + Math.random() * 0.03, Math.random() < 0.5 ? C.dreamGold : 0xffffff, 0);
       i++;
     }
     this.motes.count = i;
+    this.halos.count = i;
+    this.halos.instanceMatrix.needsUpdate = true; if (this.halos.instanceColor) this.halos.instanceColor.needsUpdate = true;
     // Hearts: bob, spin, pulse; blink out at the end of their time.
     let nh = 0;
     for (const h of run.heals) {
@@ -254,7 +266,7 @@ export class FoeView {
       const blink = h.t > 25 && Math.sin(h.t * 18) < 0;
       _p.set(h.x, h.y + Math.sin(t * 2.5 + h.id) * 0.08, h.z);
       _q.setFromEuler(this._e.set(0, t * 2.2 + h.id, 0));
-      _s.setScalar(blink ? 0.001 : Math.max(0.001, (1.1 + Math.sin(t * 6 + h.id) * 0.08) * Math.min(1, h.t * 4) * nearEye(h.x, h.y, h.z)));
+      _s.setScalar(blink ? 0.001 : Math.max(0.001, 0.7 * (1.1 + Math.sin(t * 6 + h.id) * 0.08) * Math.min(1, h.t * 4) * nearEye(h.x, h.y, h.z)));
       this.hearts.setMatrixAt(nh, _m.compose(_p, _q, _s));
       this.hearts.setColorAt(nh, _c.set(0xff5c8a).multiplyScalar(1.5 + (h.pull ? 0.8 : 0)));
       if (nearEye(h.x, h.y, h.z) > 0.6 && Math.random() < (h.pull ? 0.7 : 0.12)) this.fx.spark(h.x + (Math.random() - 0.5) * 0.3, h.y + (Math.random() - 0.5) * 0.3, h.z + (Math.random() - 0.5) * 0.3, 0, 0.6, 0, 0.45, 0.04, 0xffb0c8, 0);
