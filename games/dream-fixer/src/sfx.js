@@ -23,6 +23,9 @@ export class Sfx {
         case "nut": A.play("nut", 0, e.x, e.z); break;
         case "leap": A.play("leap", 0, e.x, e.z); break;
         case "notice": A.play("notice", 0, e.x, e.z); break;
+        case "knotWindup": A.play("tubWindup", 0, e.x, e.z); break;
+        case "slam": A.play("ballPop", 0, e.x, e.z); break;
+        case "heal": A.play("heal"); break;
         case "winded": A.play("winded"); break;
         case "wade": A.play(e.big ? "splash" : "wade", 0, e.x, e.z); break;
         case "tubWindup": A.play("tubWindup", 0, e.x, e.z); break;

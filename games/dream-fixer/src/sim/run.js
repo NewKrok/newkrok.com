@@ -2,7 +2,7 @@ import { DT } from "../config.js";
 import { Body } from "./player.js";
 import { ToolState } from "./tools.js";
 import { World } from "./world.js";
-import { Foe, stepFoes, damageFoe } from "./foes.js";
+import { Foe, stepFoes, damageFoe, startle } from "./foes.js";
 import { Anchor, stepAnchors, startTuning } from "./anchors.js";
 import { Boss } from "./boss.js";
 import { Nav } from "./nav.js";
@@ -16,16 +16,23 @@ import { toolDef, maxHpFor, magnetFor } from "../data/upgrades.js";
 // the boss. The renderer and the sound read `events` after every step and
 // clear them.
 
+// dmg: what a bonk costs you; heals: how often glitches drop a heal.
 export const DIFFICULTY = {
-  easy: { dmg: 0.5, regen: 1.5 },
-  normal: { dmg: 1, regen: 1 },
-  hard: { dmg: 1.5, regen: 0.7 },
+  easy: { dmg: 0.5, heals: 1.5 },
+  normal: { dmg: 1, heals: 1 },
+  hard: { dmg: 1.5, heals: 0.7 },
 };
+
+// Wakefulness does not come back by itself: popped glitches now and then
+// leave a dream drop behind (chance per kind; better when you are low).
+const HEAL = { amount: 15, life: 30, magnet: 5, chance: { fuzz: 0.45, bunny: 0.25, buzzer: 0.5, tub: 1, knot: 1 } };
+// Falling off the dream costs a bit too.
+const FALL_DMG = 12;
 
 export const MAX_HP = 50;
 // Breath for running: seconds of running on a full one, seconds to fill it
 // again (after a short rest), and how much back before you can run again.
-const STAMINA = { run: 4, refill: 5, delay: 0.6, again: 0.35 };
+const STAMINA = { run: 1, refill: 2.5, delay: 0.6, again: 0.35 };
 
 export class Run {
   constructor(levelDef, o = {}) {
@@ -55,6 +62,8 @@ export class Run {
     this.nav = this.kit.foes.length || levelDef.boss ? new Nav(this.world) : null;
     this.spits = [];
     this.dustMotes = []; this.dust = 0;
+    this.heals = [];
+    this.shocks = [];
     this.stats = { popped: 0, shots: 0, hits: 0 };
     this.anchors = this.kit.anchors.map((a) => new Anchor(a));
     this.nearAnchor = null;
@@ -72,6 +81,14 @@ export class Run {
   get activeTool() { return this.tools[this.tool]; }
   get tuning() { return this.anchors.find((a) => a.state === "tuning") ?? null; }
   get fixedCount() { return this.anchors.filter((a) => a.state === "fixed").length; }
+  // What the dream asks of you, for the task panel: [{ id, n, of, done, optional }].
+  get objectives() {
+    const out = [];
+    if (this.anchors.length) out.push({ id: "anchors", n: this.fixedCount, of: this.anchors.length, done: this.fixedCount === this.anchors.length });
+    if (this.def.boss && (this.boss || this.coreT > 0)) out.push({ id: "boss", done: !!this.boss && !this.boss.alive });
+    if (this.memories.length) out.push({ id: "memories", n: this.memories.filter((m) => m.got).length, of: this.memories.length, optional: true });
+    return out;
+  }
   get diff() { return DIFFICULTY[this.opts.difficulty] ?? DIFFICULTY.normal; }
   topAt(c, x, z) { return World.topAt(c, x, z); }
 
@@ -109,6 +126,57 @@ export class Run {
 
   spit(s) { s.life = 4; s.id = ++this.foeSeq; this.spits.push(s); this.events.push({ type: "spit", id: s.id, x: s.x, z: s.z }); }
 
+  // A glitch popped: maybe it leaves a dream drop that wakes you up a bit.
+  dropHeal(f) {
+    const p = (HEAL.chance[f.kind] ?? 0) * this.diff.heals * (this.hp < this.maxHp * 0.35 ? 1.6 : 1);
+    const n = f.kind === "knot" ? 2 : 1;
+    for (let i = 0; i < n; i++) {
+      if (this.rnd() >= p) continue;
+      const a = this.rnd() * Math.PI * 2;
+      this.heals.push({ x: f.px, y: f.cy + 0.3, z: f.pz, vx: Math.cos(a) * 1.5, vy: 4.5, vz: Math.sin(a) * 1.5, t: 0, floor: this.kit.floorAt(f.px, f.pz, f.cy + 0.5), id: ++this.foeSeq });
+    }
+  }
+
+  // Dream drops: hop out, settle, and float to you when you need them.
+  stepHeals(dt) {
+    const b = this.body, cx = b.x, cy = b.y + 0.9, cz = b.z;
+    for (const h of this.heals) {
+      h.t += dt;
+      const dx = cx - h.x, dy = cy - h.y, dz = cz - h.z, d = Math.hypot(dx, dy, dz);
+      h.pull = h.t > 0.5 && d < HEAL.magnet && this.hp < this.maxHp;
+      if (h.pull) {
+        const k = (10 / Math.max(d, 0.3)) * dt;
+        h.vx += dx * k; h.vy += dy * k; h.vz += dz * k;
+        h.vx *= 1 - 3 * dt; h.vy *= 1 - 3 * dt; h.vz *= 1 - 3 * dt;
+      } else {
+        h.vy -= 12 * dt;
+        h.vx *= 1 - 2 * dt; h.vz *= 1 - 2 * dt;
+      }
+      h.x += h.vx * dt; h.y += h.vy * dt; h.z += h.vz * dt;
+      if (h.y < h.floor + 0.4) { h.y = h.floor + 0.4; h.vy = Math.abs(h.vy) * 0.3; }
+      if (d < 0.8 && h.pull) {
+        h.got = true;
+        const before = this.hp;
+        this.hp = Math.min(this.maxHp, this.hp + HEAL.amount);
+        this.events.push({ type: "heal", x: h.x, y: h.y, z: h.z, amount: this.hp - before });
+      }
+      if (h.t > HEAL.life) h.got = true;
+    }
+    this.heals = this.heals.filter((h) => !h.got);
+  }
+
+  // A knot's slam: a ring that runs out along the ground; jump over it.
+  shock(x, y, z, o = {}) { this.shocks.push({ x, y, z, r: 0, t: 0, hit: false, max: o.max ?? 6.5, speed: o.speed ?? 11, dmg: o.dmg ?? 8 }); }
+  stepShocks(dt) {
+    const b = this.body;
+    for (const s of this.shocks) {
+      s.t += dt; s.r = s.t * s.speed;
+      const d = Math.hypot(b.x - s.x, b.z - s.z);
+      if (!s.hit && Math.abs(d - s.r) < 0.6 && b.y - s.y < 0.45) { s.hit = true; this.hurt(s.dmg, s.x, s.z); }
+    }
+    this.shocks = this.shocks.filter((s) => s.r < s.max);
+  }
+
   dropDust(x, y, z, n) {
     for (let i = 0; i < n; i++) {
       const a = this.rnd() * Math.PI * 2, v = 1.5 + this.rnd() * 2;
@@ -142,6 +210,7 @@ export class Run {
     b.place(c.x, c.y, c.z, c.yaw);
     this.hp = this.maxHp;
     this.invuln = 1.5;
+    this.shocks.length = 0;
     this.stamina = 1; this.winded = false;
     this.spits.length = 0;
     // Glitches right at the checkpoint step back a little.
@@ -180,16 +249,17 @@ export class Run {
     }
     this.wet = wet;
     if (b.fell) {
-      // Falling out of a dream just puts you back: no harm done.
+      // Falling out of a dream puts you back at the last anchor, a little
+      // less awake.
       const c = this.checkpoint;
       b.place(c.x, c.y, c.z, b.yaw);
       this.events.push({ type: "respawn" });
+      this.invuln = 0;
+      this.hurt(FALL_DMG, c.x, c.z);
     }
 
-    // Wakefulness comes back on its own after a quiet moment.
     this.hurtT += dt;
     this.invuln = Math.max(0, this.invuln - dt);
-    if (this.hurtT > 4 && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + 5 * this.diff.regen * dt);
 
     // Tool switching takes a moment (the view model swaps them).
     if (intent.toolTo !== undefined && intent.toolTo !== this.tool) this.switchTool(intent.toolTo);
@@ -260,6 +330,8 @@ export class Run {
     stepFoes(this, dt);
     this.stepSpits(dt);
     this.stepDust(dt);
+    this.stepHeals(dt);
+    this.stepShocks(dt);
     this.foes = this.foes.filter((f) => f.alive || f.age < 0.1);
   }
 
@@ -288,7 +360,7 @@ export class Run {
 
   fire(tool, shot) {
     const d = tool.def, b = this.body;
-    let [dx, dy, dz] = this.aimDir(shot.big ? 0 : d.spread);
+    let [dx, dy, dz] = this.aimDir(shot.big ? 0 : d.spread * (1 + tool.heat * 1.5));
     const ox = b.x, oy = b.eyeY, oz = b.z;
     this.stats.shots++;
     // Aim assist bends the bolt onto a glitch just off the crosshair.
@@ -330,6 +402,15 @@ export class Run {
       if (damageFoe(this, foe, shot.damage, dx, dz, shot.big)) this.stats.popped++;
     }
     if (spit) { spit.life = 0; this.events.push({ type: "spitPop", x: spit.x, y: spit.y, z: spit.z }); n = [-dx, -dy, -dz]; }
+    // A bolt whizzing past (or smacking in) close to a glitch gets its
+    // attention, even if it missed.
+    const near = shot.big ? 4 : 2.6;
+    for (const f of this.foes) {
+      if (!f.alive || f.aware || f.group || f === foe) continue;
+      const ex = f.px - ox, ey = f.cy - oy, ez = f.pz - oz;
+      const u = Math.max(0, Math.min(t, ex * dx + ey * dy + ez * dz));
+      if (Math.hypot(ex - dx * u, ey - dy * u, ez - dz * u) < near) startle(this, f);
+    }
     this.events.push({
       type: "shot", tool: tool.id, big: shot.big,
       o: [ox, oy, oz], d: [dx, dy, dz], t, hit: !!(wall || foe || spit || bossPart) && t < d.range, boss: bossPart,
@@ -384,6 +465,7 @@ export class Run {
         this.stats.popped++;
         this.events.push({ type: "catch", kind: f.kind, id: f.id, x: f.px, y: f.cy, z: f.pz, n: tool.tank.length });
         this.dropDust(f.px, f.cy, f.pz, f.def.dust);
+        this.dropHeal(f);
         if (tool.tank.length >= d.tankSize) break;
       }
     }
@@ -496,7 +578,8 @@ export class Run {
     for (const m of this.dustMotes) {
       m.t += dt;
       const dx = cx - m.x, dy = cy - m.y, dz = cz - m.z, d = Math.hypot(dx, dy, dz);
-      if (m.t > 0.45 && d < this.magnet) {
+      m.pull = m.t > 0.45 && d < this.magnet;
+      if (m.pull) {
         // Drawn to you, faster the closer it gets.
         const k = (14 / Math.max(d, 0.3)) * dt;
         m.vx += dx * k; m.vy += dy * k; m.vz += dz * k;

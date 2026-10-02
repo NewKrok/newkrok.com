@@ -21,14 +21,14 @@ export class Hud {
       <div class="hot" data-i18n="overheated"></div>
       <div class="vignette"></div>
       <div class="wake"><span class="lbl" data-i18n="wakefulness"></span><div class="bar"><i class="lag"></i><i class="fill"></i></div><div class="stamina"><i></i></div></div>
-      <div class="objective"><span class="lbl"></span> <b></b></div>
+      <div class="tasks"><div class="ttl"></div><ul></ul></div>
       <div class="prompt"></div>
       <div class="tune"><div class="lbl"></div><div class="bar"><i></i></div><div class="warn"></div></div>
       <div class="banner"></div>
       <div class="clickhint"></div>
       <div class="tankdots"></div>
       <div class="bossbar"><div class="lbl"></div><div class="bar"><i class="lag"></i><i class="fill"></i></div></div>
-      <div class="dust"><svg viewBox="0 0 24 24"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></svg><b>0</b></div>`;
+      <div class="dust"><svg viewBox="0 0 24 24"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></svg><b>0</b><span class="plus"></span></div>`;
     root.appendChild(el);
     this.heat = el.querySelector(".heat");
     this.charge = el.querySelector(".charge");
@@ -46,8 +46,10 @@ export class Hud {
     el.querySelector(".wake .lbl").textContent = t("wakefulness");
     this.last = { heat: -1, charge: -1, over: null, hp: -1, dust: -1 };
     this.lagHp = 1; this.hurt = 0;
-    this.obj = el.querySelector(".objective b");
-    el.querySelector(".objective .lbl").textContent = t("objective");
+    this.tasksEl = el.querySelector(".tasks ul");
+    el.querySelector(".tasks .ttl").textContent = t("tasks");
+    this.plusEl = el.querySelector(".dust .plus");
+    this.plusN = 0; this.plusT = 0;
     this.prompt = el.querySelector(".prompt");
     this.tune = el.querySelector(".tune");
     this.tuneFill = el.querySelector(".tune .bar i");
@@ -78,6 +80,9 @@ export class Hud {
 
   onEvent(e) {
     if (e.type === "hurt") this.hurt = Math.min(1, this.hurt + 0.6);
+    if (e.type === "heal") { this.wake.classList.remove("heal"); void this.wake.offsetWidth; this.wake.classList.add("heal"); }
+    if (e.type === "dust") this.plusN++;
+    if (e.type === "memory") this.plusN += 5;
     if (e.type === "faint") { this.hurt = 1; this.banner(t("fainted")); }
     if (e.type === "anchorFixed") this.banner(e.left ? t("anchorFixed") : t("allFixed"), true);
     if (e.type === "coreOpen") this.bannerTimer = setTimeout(() => this.banner(t("coreOpen")), 2600);
@@ -113,14 +118,31 @@ export class Hud {
     }
     this.hurt = Math.max(0, this.hurt - dt * 1.8);
     this.vig.style.opacity = (this.hurt * 0.9 + (hp < 0.35 ? 0.25 + Math.sin(performance.now() / 180) * 0.1 : 0)).toFixed(3);
+    // "+N" by the purse while dust keeps coming in.
+    if (this.plusN) {
+      this.plusT = 1.2; this.plusSum = (this.plusSum || 0) + this.plusN; this.plusN = 0;
+      this.plusEl.textContent = `+${this.plusSum}`;
+      this.plusEl.classList.remove("pop"); void this.plusEl.offsetWidth; this.plusEl.classList.add("pop", "on");
+    } else if (this.plusT > 0) {
+      this.plusT -= dt;
+      if (this.plusT <= 0) { this.plusEl.classList.remove("on"); this.plusSum = 0; }
+    }
     if (run.dust !== this.last.dust) {
       this.dustEl.textContent = run.dust;
       if (this.last.dust >= 0) { this.dustBox.classList.remove("tick"); void this.dustBox.offsetWidth; this.dustBox.classList.add("tick"); }
       this.last.dust = run.dust;
     }
     // Objective, prompt and the tuning bar.
-    const fixed = run.anchors.length ? `${run.fixedCount}/${run.anchors.length}` : "";
-    if (fixed !== this.last.obj) { this.obj.textContent = fixed; this.last.obj = fixed; }
+    // The task panel: one row per objective, ticked off when done; a row
+    // flashes when it moves on.
+    const objs = run.objectives;
+    const key2 = objs.map((o) => `${o.id}:${o.n ?? ""}:${o.done}`).join("|");
+    if (key2 !== this.last.obj) {
+      const prev = this.last.objs ?? {};
+      this.tasksEl.innerHTML = objs.map((o) => `<li class="${o.done ? "done" : ""} ${o.optional ? "opt" : ""} ${prev[o.id] !== undefined && prev[o.id] !== `${o.n}:${o.done}` ? "flash" : ""}"><i></i><span>${t(`obj_${o.id}`)}</span>${o.of ? `<b>${o.n}/${o.of}</b>` : ""}</li>`).join("");
+      this.last.objs = Object.fromEntries(objs.map((o) => [o.id, `${o.n}:${o.done}`]));
+      this.last.obj = key2;
+    }
     const vac = run.activeTool.id === "vacuum" ? run.activeTool : null;
     const tank = vac && vac.tank.length >= vac.def.tankSize;
     const tn = vac ? vac.tank.length : -1;

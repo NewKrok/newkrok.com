@@ -8,7 +8,9 @@ import { World } from "./world.js";
 //  fuzz    (Kóc)     hops at you, winds up, bonks; from a few metres off
 //                    it may lob a nut at you instead.
 //  buzzer  (Zizegő)  circles overhead and spits slow, shootable orbs.
-//  knot    (Csomó)   sits still and keeps tangling out new fuzzes.
+//  knot    (Csomó)   sits still and keeps tangling out new fuzzes; lobs
+//                    fans of yarn at you, and slams the ground (a ring
+//                    you jump over) when you come close.
 //  bunny   (Porcica) a dust bunny: tiny, quick, comes in packs, nips; now
 //                    and then it crouches and leaps at you from afar.
 //  tub     (Fürdőkád) waddles about at a distance and lobs soap bubbles
@@ -25,6 +27,9 @@ const MELEE = {
 };
 // The fuzz's nut: thrown from between min and max metres, a few at a time.
 const THROW = { min: 4.5, max: 16, windup: 0.6, cd: 3.2, cdRand: 2.6, throwers: 2, speed: 12, dmg: 4 };
+// The knot: how close you come before it slams (and the ring's reach), its
+// fan of yarn, and the rests in between.
+const KNOT = { slamNear: 5, slamWind: 0.75, slamR: 6.5, slamDmg: 8, slamCd: 3.2, fan: 3, yarnDmg: 5, shotCd: 2.6 };
 // The bathtub's shower: bubbles per volley, seconds between them, how far
 // round you they scatter, and the rest between volleys.
 const TUB = { volley: 5, gap: 0.14, scatter: 3.2, cd: 2.4, cdRand: 1.4 };
@@ -482,16 +487,51 @@ function buzzer(run, f, dt, px, pcy, pz) {
 }
 
 function knot(run, f, dt, px, pz) {
-  const dist = Math.hypot(px - f.x, pz - f.z);
+  const P = run.body, dist = Math.hypot(px - f.x, pz - f.z);
   f.cd -= dt;
+  f.shotCd = (f.shotCd ?? 1.2) - dt;
+  f.slamCd = (f.slamCd ?? 1) - dt;
+  if (f.state === "slam") {
+    // Swells up, then slams: a ring runs out along the ground.
+    f.pulse = Math.min(1, f.t / KNOT.slamWind) * 1.4;
+    if (f.t > KNOT.slamWind) {
+      run.shock(f.x, f.y, f.z, { max: KNOT.slamR, dmg: KNOT.slamDmg });
+      run.events.push({ type: "slam", x: f.x, z: f.z });
+      f.slamCd = KNOT.slamCd; setState(f, "idle");
+    }
+    return;
+  }
   f.pulse = Math.max(0, (f.pulse || 0) - dt * 2);
-  if (f.cd > 0 || dist > 26) return;
+  if (dist > 26) return;
+  if (dist < KNOT.slamNear && f.slamCd <= 0 && Math.abs(P.y - f.y) < 1.5) { setState(f, "slam"); run.events.push({ type: "knotWindup", x: f.x, z: f.z }); return; }
+  // A fan of yarn lobbed at you.
+  if (f.shotCd <= 0 && dist > 4 && dist < 22 && run.canSee(f.x, f.y + 1.2, f.z)) {
+    f.shotCd = KNOT.shotCd + run.rnd() * 1.2;
+    f.pulse = 0.6;
+    const sx = f.x, sy = f.y + 1.6, sz = f.z, g = 9, T = Math.min(1.6, Math.max(0.6, dist / 11));
+    const base = Math.atan2(P.z - sz, P.x - sx);
+    for (let i = 0; i < KNOT.fan; i++) {
+      const a = base + (i - (KNOT.fan - 1) / 2) * 0.28, l = dist + (run.rnd() - 0.5) * 1.5;
+      const tx = sx + Math.cos(a) * l, tz = sz + Math.sin(a) * l, ty = P.y + 0.6;
+      run.spit({ x: sx, y: sy, z: sz, vx: (tx - sx) / T, vy: (ty - sy + 0.5 * g * T * T) / T, vz: (tz - sz) / T, g, dmg: KNOT.yarnDmg, kind: "yarn", owner: f.id });
+    }
+  }
+  if (f.cd > 0) return;
   const kids = run.foes.filter((o) => o.alive && o.parent === f.id).length;
   if (kids >= 3) { f.cd = 1; return; }
-  f.cd = 4.2 + run.rnd() * 1.2;
+  f.cd = 3.2 + run.rnd() * 1.2;
   f.pulse = 1;
   const a = run.rnd() * TAU;
   run.spawn("fuzz", f.x + Math.cos(a) * 1.4, f.z + Math.sin(a) * 1.4, { parent: f.id, group: f.group });
+}
+
+// Something whizzed past a loose glitch: it looks round, and so do its
+// neighbours.
+export function startle(run, f) {
+  if (!f.alive || f.group) return;
+  notice(run, f);
+  f.provoked = Math.max(f.provoked || 0, ALERT.provoked);
+  alert(run, f, ALERT.notice, ALERT.provoked * 0.6);
 }
 
 // Hit a glitch; returns true if that finished it.
@@ -516,6 +556,7 @@ export function damageFoe(run, f, dmg, dx, dz, big) {
     f.alive = false;
     run.events.push({ type: "pop", kind: f.kind, id: f.id, x: f.px, y: f.cy, z: f.pz, big: f.kind === "knot" });
     run.dropDust(f.px, f.cy, f.pz, f.def.dust);
+    run.dropHeal(f);
     return true;
   }
   run.events.push({ type: "foeHit", id: f.id, kind: f.kind });

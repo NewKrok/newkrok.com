@@ -164,6 +164,7 @@ export class Audio {
       case "tubWindup": S(0.7, { type: "sine", freq: 180, freqEnd: 420, gain: 0.08 }); N(0.6, { freq: 900, freqEnd: 2000, q: 1, gain: 0.05, attack: 0.2 }); break;
       case "splash": N(0.4, { type: "lowpass", freq: 3000, freqEnd: 400, gain: 0.18 }); S(0.2, { freq: 700, freqEnd: 1600, gain: 0.05 }); [0.05, 0.12, 0.2].forEach((dt) => at(dt, (tt) => this.#tone(d, tt, 0.08, { freq: 1400 + Math.random() * 800, freqEnd: 2600, gain: 0.03 }))); break;
       case "wade": N(0.2, { type: "lowpass", freq: 2200, freqEnd: 500, gain: 0.08 }); at(0.04, (tt) => this.#tone(d, tt, 0.06, { freq: 900 + Math.random() * 500, freqEnd: 1700, gain: 0.025 })); break;
+      case "heal": [76, 83, 88].forEach((n, i) => at(i * 0.05, (tt) => this.#bell(d, tt, hz(n), 0.06, 0.8, 0.3))); S(0.3, { type: "sine", freq: 500, freqEnd: 900, gain: 0.05 }); break;
       case "notice": S(0.09, { type: "square", freq: 880, gain: 0.03 }); at(0.08, (tt) => this.#tone(d, tt, 0.14, { type: "square", freq: 1320, gain: 0.035 })); break;
       case "winded": N(0.5, { type: "bandpass", freq: 900, freqEnd: 500, q: 1.2, gain: 0.06, attack: 0.05 }); at(0.55, (tt) => this.#noise(d, tt, 0.45, { type: "bandpass", freq: 800, freqEnd: 450, q: 1.2, gain: 0.05, attack: 0.05 })); break;
       case "leap": S(0.22, { type: "triangle", freq: 700, freqEnd: 2000, gain: 0.05 }); N(0.12, { freq: 1800, freqEnd: 3200, q: 2, gain: 0.03 }); break;

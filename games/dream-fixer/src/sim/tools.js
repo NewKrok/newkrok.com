@@ -10,11 +10,11 @@ export const TOOLS = {
     cool: 0.6,            // per second, after coolDelay without shooting
     coolDelay: 0.28,
     unlock: 0.35,
-    damage: 1,
+    damage: 0.5,
     range: 90,
-    spread: 0.004,        // radians, a hint so it doesn't feel robotic
+    spread: 0.02,         // radians; grows as the tool runs hot (upgrades may tighten it)
     // Held second action: charge a bigger bolt, released to fire.
-    charge: { time: 0.75, heat: 0.32, damage: 5, min: 0.3 },
+    charge: { time: 0.75, heat: 0.32, damage: 2.5, min: 0.3 },
   },
   // Held: suck in dust, orbs and small glitches (a caught one sits in the
   // tank). Second action: shoot what is in the tank, or, when it is
@@ -25,10 +25,10 @@ export const TOOLS = {
     range: 8, cone: 0.42, // radians, half angle
     pull: 14,             // m/s² towards the nozzle
     catchAt: 1.6,
-    stream: 1.6,          // damage per second to everything in the stream
+    stream: 1.2,          // damage per second to everything in the stream
     worn: 0.5,            // a glitch is caught only once worn down to this share of its hp
     tankSize: 3,          // small glitches it can hold
-    launch: { speed: 24, damage: 11, splash: 2.6, heat: 0.12 },
+    launch: { speed: 24, damage: 5.5, splash: 2.6, heat: 0.12 },
     blast: { range: 5.5, cone: 0.7, push: 9, damage: 1, heat: 0.28, interval: 0.5 },
   },
 };

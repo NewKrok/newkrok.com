@@ -15,7 +15,7 @@ import { Body } from "./player.js";
 // Shots anywhere hurt it; its glowing dust bag on the back takes more.
 
 export const BOSS = {
-  hp: 160, r: 1.25, h: 2.4,
+  hp: 110, r: 1.25, h: 2.4,
   speed: [2.6, 3.4],
   gulp: 16, sweep: 12, orbDmg: 8,
   bagMul: 2.5, clogMul: 3,

@@ -34,7 +34,7 @@ export class FoeView {
     this.yarn = new T.InstancedMesh(new T.IcosahedronGeometry(0.28, 1), new T.MeshStandardMaterial({ roughness: 0.9, flatShading: true }), 16);
     this.yarn.instanceColor = new T.InstancedBufferAttribute(new Float32Array(16 * 3), 3);
     this.yarn.frustumCulled = false; this.yarn.count = 0; this.yarn.castShadow = true;
-    this.marks = new T.InstancedMesh(new T.RingGeometry(0.8, 1, 32), new T.MeshBasicMaterial({ toneMapped: false, transparent: true, depthWrite: false, side: T.DoubleSide }), 16);
+    this.marks = new T.InstancedMesh(new T.RingGeometry(0.8, 1, 32), new T.MeshBasicMaterial({ toneMapped: false, transparent: true, depthWrite: false, side: T.DoubleSide }), 28);
     this.marks.instanceColor = new T.InstancedBufferAttribute(new Float32Array(16 * 3), 3);
     this.marks.frustumCulled = false; this.marks.count = 0;
     // Nuts the squirrels throw: a brown kernel under a darker cap, spinning.
@@ -47,6 +47,18 @@ export class FoeView {
       for (let i = 0; i < NUTS; i++) m.setColorAt(i, new T.Color(m === this.nuts ? 0xc9883e : 0x5e3a1e));
       m.frustumCulled = false; m.count = 0; m.castShadow = true;
     }
+    // Dream drops (a heal): a glowing pink heart, spinning.
+    const heart = new T.Shape();
+    heart.moveTo(0, -0.16);
+    heart.bezierCurveTo(-0.05, -0.1, -0.2, -0.02, -0.2, 0.07);
+    heart.bezierCurveTo(-0.2, 0.17, -0.07, 0.2, 0, 0.11);
+    heart.bezierCurveTo(0.07, 0.2, 0.2, 0.17, 0.2, 0.07);
+    heart.bezierCurveTo(0.2, -0.02, 0.05, -0.1, 0, -0.16);
+    const hg = new T.ExtrudeGeometry(heart, { depth: 0.07, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.025, bevelSegments: 2, curveSegments: 8 }).translate(0, 0, -0.035);
+    this.hearts = new T.InstancedMesh(hg, new T.MeshBasicMaterial({ toneMapped: false }), 24);
+    this.hearts.instanceColor = new T.InstancedBufferAttribute(new Float32Array(24 * 3), 3);
+    this.hearts.frustumCulled = false; this.hearts.count = 0;
+    scene.add(this.hearts);
     // The "!" over a glitch that has just spotted you.
     this.bangTex = bangTexture();
     this.bangs = [];
@@ -178,7 +190,7 @@ export class FoeView {
       const w = (1 + Math.sin(t * (bubble ? 9 : 30) + s.id) * (bubble ? 0.08 : 0.15)) * (bubble ? 2.2 : 1);
       _p.set(s.x, s.y, s.z); _q.identity(); _s.setScalar(w);
       this.orbs.setMatrixAt(i, _m.compose(_p, _q, _s));
-      this.orbs.setColorAt(i, _c.set(bubble ? 0x9fe0ff : C.dreamPink).multiplyScalar(bubble ? 1.3 : 2.2));
+      this.orbs.setColorAt(i, _c.set(bubble ? 0x9fe0ff : s.kind === "yarn" ? 0xf0a050 : C.dreamPink).multiplyScalar(bubble ? 1.3 : s.kind === "yarn" ? 1.4 : 2.2));
       if (Math.random() < 0.5) this.fx.spark(s.x, s.y, s.z, (Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5), 0.3, 0.05, bubble ? 0xffffff : C.dreamPink, 0);
       // Where a bubble will land: a ring on the ground, tightening.
       if (bubble && r < 16) {
@@ -192,6 +204,14 @@ export class FoeView {
     }
     this.nuts.count = this.caps.count = n;
     for (const m of [this.nuts, this.caps]) m.instanceMatrix.needsUpdate = true;
+    // A knot's slam: a pink ring racing out along the ground.
+    for (const s of run.shocks) {
+      if (r >= 28) break;
+      _p.set(s.x, s.y + 0.08, s.z); _q.setFromAxisAngle(this._x, -Math.PI / 2); _s.setScalar(Math.max(0.1, s.r));
+      this.marks.setMatrixAt(r, _m.compose(_p, _q, _s));
+      this.marks.setColorAt(r, _c.set(C.dreamPink).multiplyScalar(2.2 * (1 - s.r / s.max) + 0.3));
+      r++;
+    }
     this.marks.count = r;
     this.marks.instanceMatrix.needsUpdate = true; if (this.marks.instanceColor) this.marks.instanceColor.needsUpdate = true;
     this.orbs.count = i;
@@ -210,16 +230,34 @@ export class FoeView {
     this.yarn.instanceMatrix.needsUpdate = true; this.yarn.instanceColor.needsUpdate = true;
     // Dream dust: gold flecks spinning.
     i = 0;
+    // Drawn to you, they swell, flare and leave a glittering trail.
     for (const m of run.dustMotes) {
       if (i >= 256) break;
+      m.glow = Math.min(1, (m.glow || 0) + (m.pull ? dt * 5 : -dt * 3));
       _p.set(m.x, m.y + Math.sin(t * 3 + m.id) * 0.04, m.z);
-      _q.setFromEuler(this._e.set(t * 2 + m.id, t * 3 + m.id, 0));
-      _s.setScalar(1);
+      _q.setFromEuler(this._e.set(t * (2 + m.glow * 10) + m.id, t * (3 + m.glow * 8) + m.id, 0));
+      _s.setScalar(1 + m.glow * 0.7);
       this.motes.setMatrixAt(i, _m.compose(_p, _q, _s));
-      this.motes.setColorAt(i, _c.set(m.id % 3 ? C.dreamGold : C.dream).multiplyScalar(1.8 + Math.sin(t * 8 + m.id) * 0.4));
+      this.motes.setColorAt(i, _c.set(m.id % 3 ? C.dreamGold : C.dream).multiplyScalar(1.8 + m.glow * 1.6 + Math.sin(t * 8 + m.id) * 0.4));
+      if (m.pull && Math.random() < 0.8) this.fx.spark(m.x, m.y, m.z, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6, 0.3, 0.035 + Math.random() * 0.03, Math.random() < 0.5 ? C.dreamGold : 0xffffff, 0);
       i++;
     }
     this.motes.count = i;
+    // Hearts: bob, spin, pulse; blink out at the end of their time.
+    let nh = 0;
+    for (const h of run.heals) {
+      if (nh >= 24) break;
+      const blink = h.t > 25 && Math.sin(h.t * 18) < 0;
+      _p.set(h.x, h.y + Math.sin(t * 2.5 + h.id) * 0.08, h.z);
+      _q.setFromEuler(this._e.set(0, t * 2.2 + h.id, 0));
+      _s.setScalar(blink ? 0.001 : (1.1 + Math.sin(t * 6 + h.id) * 0.08) * Math.min(1, h.t * 4));
+      this.hearts.setMatrixAt(nh, _m.compose(_p, _q, _s));
+      this.hearts.setColorAt(nh, _c.set(0xff5c8a).multiplyScalar(1.5 + (h.pull ? 0.8 : 0)));
+      if (Math.random() < (h.pull ? 0.7 : 0.12)) this.fx.spark(h.x + (Math.random() - 0.5) * 0.3, h.y + (Math.random() - 0.5) * 0.3, h.z + (Math.random() - 0.5) * 0.3, 0, 0.6, 0, 0.45, 0.04, 0xffb0c8, 0);
+      nh++;
+    }
+    this.hearts.count = nh;
+    this.hearts.instanceMatrix.needsUpdate = true; if (this.hearts.instanceColor) this.hearts.instanceColor.needsUpdate = true;
     this.motes.instanceMatrix.needsUpdate = true; this.motes.instanceColor.needsUpdate = true;
   }
 }

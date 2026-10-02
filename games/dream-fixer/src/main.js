@@ -45,7 +45,7 @@ async function startGame() {
   const save = () => saveProgress(progress);
   const runOpts = (def) => ({
     difficulty: settings.difficulty,
-    aimAssist: settings.aimAssist ? (input.isTouch ? 0.07 : input.usingPad ? 0.06 : 0.03) : 0,
+    aimAssist: settings.aimAssist ? (input.isTouch ? 0.045 : input.usingPad ? 0.035 : 0.015) : 0,
     autoFire: settings.autoFire && input.isTouch,
     upgrades: progress.upgrades,
     memoriesFound: progress.memories,

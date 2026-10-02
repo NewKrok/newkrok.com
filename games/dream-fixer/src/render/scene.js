@@ -165,7 +165,15 @@ export class GameView {
       } else if (e.type === "hurt") {
         this.shake = Math.min(1, this.shake + 0.5);
       } else if (e.type === "dust") {
-        this.fx.spark(e.x, e.y, e.z, 0, 1.5, 0, 0.3, 0.12, C.dreamGold, 0);
+        // Caught: a little gold burst and a flash.
+        this.fx.spark(e.x, e.y, e.z, 0, 1.5, 0, 0.3, 0.16, C.dreamGold, 0);
+        for (let k = 0; k < 7; k++) { const a = Math.random() * Math.PI * 2, u = Math.random() * 2 - 1; this.fx.spark(e.x, e.y, e.z, Math.cos(a) * 2.2, u * 2 + 1, Math.sin(a) * 2.2, 0.35, 0.04, k % 2 ? C.dreamGold : 0xffffff, 3); }
+        this.muzzleFlash = Math.max(this.muzzleFlash || 0, 0.25);
+      } else if (e.type === "heal") {
+        for (let k = 0; k < 16; k++) { const a = Math.random() * Math.PI * 2; this.fx.spark(e.x, e.y, e.z, Math.cos(a) * 2.5, 1 + Math.random() * 2.5, Math.sin(a) * 2.5, 0.5, 0.06, k % 2 ? 0xff7aa0 : 0xffffff, 3); }
+      } else if (e.type === "slam") {
+        this.shake = Math.min(1, this.shake + (Math.hypot(e.x - run.body.x, e.z - run.body.z) < 9 ? 0.45 : 0.15));
+        this.fx.puff(e.x, run.kit.floorAt(e.x, e.z) + 0.3, e.z, 1.4);
       } else if (e.type.startsWith("boss")) {
         this.bossView.onEvent(e, run);
         if (e.type === "bossRise" || e.type === "bossPop") this.shake = Math.min(1, this.shake + 0.7);
