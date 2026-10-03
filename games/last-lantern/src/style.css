@@ -229,6 +229,24 @@ kbd { display: inline-block; min-width: 1.7em; padding: 0 6px; border: 1px solid
 .hero.locked { cursor: not-allowed; }
 .hero.locked .port img { filter: brightness(0) drop-shadow(0 0 1px rgba(212, 162, 76, 0.6)); }
 .hero.locked .nm, .hero.locked .ln { opacity: 0.5; }
+/* Step one has the page to itself: taller portraits, every line shown. */
+#menu-hero .scroll-body { justify-content: center; }
+#menu-hero .hero .port { height: 230px; }
+#menu-hero .hero .port img { height: 256px; }
+#menu-hero .hero .ln { font-size: 15.5px; }
+.run-foot.end { justify-content: flex-end; }
+/* The way on stays in reach when the cards run long (phones). */
+@media (max-width: 760px) {
+  #menu-hero .run-foot, #menu-run .run-foot { position: sticky; bottom: 0; z-index: 2; margin-bottom: 0; padding: 12px 0 14px; flex-wrap: nowrap; gap: 10px; background: linear-gradient(180deg, transparent, rgba(4, 2, 4, 0.94) 28%); }
+  #menu-run .blood-toggle small { display: none; }
+  #menu-run .run-foot .btn.big { padding: 14px 22px; font-size: 15px; }
+}
+/* Step two: the chosen lantern-bearer, a way back to step one. */
+.hero-chip { display: flex; align-items: center; gap: 10px; padding: 4px 14px 4px 4px; cursor: pointer; font-family: var(--body); color: var(--ink); text-align: left; background: rgba(0, 0, 0, 0.45); border: 1px solid var(--gold-lo); }
+.hero-chip img { width: 40px; height: 40px; object-fit: cover; object-position: 50% 20%; border-radius: 50%; border: 1px solid var(--gold); background: radial-gradient(circle at 50% 70%, rgba(255, 150, 60, 0.35), #0a0608); }
+.hero-chip b { display: block; font: 700 14px var(--serif); color: var(--gold-hi); }
+.hero-chip small { display: block; font-size: 13px; color: var(--ink-faint); font-style: italic; }
+.hero-chip:hover, .hero-chip:focus-visible { border-color: var(--gold); outline: none; }
 .hero .lock-note { margin: 10px 12px 0; color: var(--gold); font: 500 12px var(--serif); letter-spacing: 0.04em; display: flex; gap: 6px; align-items: center; justify-content: center; }
 
 .stage-list { width: min(1120px, 100%); display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; flex-shrink: 0; }
@@ -433,7 +451,9 @@ select#lang-select { font: 600 16px var(--body); background: #120c0e; color: var
   .bar-head h2 { font-size: 17px; }
   .settings { padding: 6px 16px 18px; }
   .hero .port { height: 130px; } .hero .port img { height: 150px; }
-  .hero .ln { display: none; } .hero .ln.keep { display: flex; }
+  .hero .ln { margin: 6px 8px 0; font-size: 14px !important; }
+  #menu-hero .hero .port { height: 150px; } #menu-hero .hero .port img { height: 170px; }
+  .hero-chip small { display: none; } .hero-chip { padding-right: 10px; }
   .story-card { padding: 26px 20px 18px; }
 }
 @media (hover: none) { .actions kbd, .menu-buttons kbd, .lv-actions kbd, .lcard .key, .run-foot kbd { display: none; } }

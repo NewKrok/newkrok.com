@@ -231,6 +231,7 @@ EN.monsterLore = {
 
 // The Pedlar, the satchel, deeds, the Vigil and the gamepad.
 Object.assign(EN, {
+  next: "Next", changeHero: "Change lantern-bearer",
   pedlar: "The Pedlar", pedlarIntro: "A hooded pedlar sells what the road needs. Every ware is used up once you use it; the rest stays in your satchel for the next run.",
   buyItem: "Buy · {n}", satchelFull: "Satchel full", inSatchel: "In your satchel: {n} / {max}", boughtItem: "{x} bought",
   h_items: "The Pedlar's wares", p_items: "Buy tonics, wards and bombs from <b>the Pedlar</b> between runs. In a run they wait in your <b>satchel</b> over the health orb: press <b>1–7</b>, tap one, or pick one with the pad's <b>LB / RB</b> and use it with <b>X</b>.",

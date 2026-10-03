@@ -231,6 +231,7 @@ FR.monsterLore = {
 
 // Le colporteur, la besace, les hauts faits, la Veillée et la manette.
 Object.assign(FR, {
+  next: "Suivant", changeHero: "Changer de porte-lanterne",
   pedlar: "Le Colporteur", pedlarIntro: "Un colporteur encapuchonné vend ce que la route exige. Chaque marchandise s'épuise dès qu'on l'utilise ; le reste attend dans votre besace pour la partie suivante.",
   buyItem: "Acheter · {n}", satchelFull: "Besace pleine", inSatchel: "Dans votre besace : {n} / {max}", boughtItem: "{x} acheté",
   h_items: "Les marchandises du colporteur", p_items: "Entre deux parties, achetez toniques, sceaux et bombes au <b>Colporteur</b>. En partie, ils attendent dans votre <b>besace</b> au-dessus de l'orbe de vie : touches <b>1–7</b>, un appui dessus, ou choisissez avec <b>LB / RB</b> à la manette et utilisez avec <b>X</b>.",

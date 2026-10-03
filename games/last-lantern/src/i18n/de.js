@@ -231,6 +231,7 @@ DE.monsterLore = {
 
 // Der Hausierer, der Ranzen, Taten, die Wacht und das Gamepad.
 Object.assign(DE, {
+  next: "Weiter", changeHero: "Laternenträger wechseln",
   pedlar: "Der Hausierer", pedlarIntro: "Ein vermummter Hausierer verkauft, was der Weg verlangt. Jede Ware ist verbraucht, sobald du sie benutzt; der Rest bleibt in deinem Ranzen für den nächsten Lauf.",
   buyItem: "Kaufen · {n}", satchelFull: "Ranzen voll", inSatchel: "Im Ranzen: {n} / {max}", boughtItem: "{x} gekauft",
   h_items: "Die Waren des Hausierers", p_items: "Zwischen den Läufen kaufst du beim <b>Hausierer</b> Tränke, Schutzzeichen und Bomben. Im Lauf warten sie in deinem <b>Ranzen</b> über der Lebenskugel: drücke <b>1–7</b>, tippe sie an oder wähle mit <b>LB / RB</b> am Pad und benutze sie mit <b>X</b>.",

@@ -80,8 +80,8 @@
         </div>
       </section>
 
-      <!-- Run setup: hero and beacon -->
-      <section id="menu-run" class="screen scroll">
+      <!-- Run setup, step one: the lantern-bearer -->
+      <section id="menu-hero" class="screen scroll">
         <header class="bar-head">
           <button class="btn ghost" data-action="back" data-i18n="back"></button>
           <h2 data-i18n="chooseHero"></h2>
@@ -89,7 +89,20 @@
         </header>
         <div class="scroll-body">
         <div id="heroes" class="hero-grid"></div>
-        <h2 class="sub-h" data-i18n="chooseStage"></h2>
+        <div class="run-foot end">
+          <button class="btn primary big" data-action="toStages"><span data-i18n="next"></span> <kbd>Enter</kbd></button>
+        </div>
+        </div>
+      </section>
+
+      <!-- Run setup, step two: the beacon -->
+      <section id="menu-run" class="screen scroll">
+        <header class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="chooseStage"></h2>
+          <button class="hero-chip" data-action="toHeroes"></button>
+        </header>
+        <div class="scroll-body">
         <div id="stages" class="stage-list"></div>
         <div class="run-foot">
           <label class="blood-toggle"><input type="checkbox" id="blood" /> <span class="moon"></span> <span><b data-i18n="bloodMoon"></b><small data-bind="bloodDesc"></small></span></label>

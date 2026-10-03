@@ -231,6 +231,7 @@ ZH.monsterLore = {
 
 // 货郎、行囊、功绩、守夜与手柄。
 Object.assign(ZH, {
+  next: "下一步", changeHero: "更换提灯人",
   pedlar: "货郎", pedlarIntro: "一位戴兜帽的货郎贩卖路上所需之物。每件货物用过即消耗；剩下的会留在你的行囊里，带到下一局。",
   buyItem: "购买 · {n}", satchelFull: "行囊已满", inSatchel: "行囊中：{n} / {max}", boughtItem: "已购买：{x}",
   h_items: "货郎的货物", p_items: "在两局之间向<b>货郎</b>购买药剂、护符与炸弹。局内它们放在生命球上方的<b>行囊</b>里：按 <b>1–7</b>、点击，或用手柄 <b>LB / RB</b> 选择、<b>X</b> 使用。",

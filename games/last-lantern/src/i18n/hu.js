@@ -218,6 +218,7 @@ HU.monsterLore = {
 
 // A vándorárus, a tarisznya, az érdemek, a Virrasztás és a kontroller.
 Object.assign(HU, {
+  next: "Tovább", changeHero: "Lámpáshordozó cseréje",
   pedlar: "A vándorárus", pedlarIntro: "Egy csuklyás vándorárus azt árulja, amire az úton szükség van. Minden portéka elfogy, amikor használod; ami megmarad, a tarisznyádban vár a következő menetre.",
   buyItem: "Megveszem · {n}", satchelFull: "Tele a tarisznya", inSatchel: "A tarisznyádban: {n} / {max}", boughtItem: "Megvetted: {x}",
   h_items: "A vándorárus portékái", p_items: "Két menet között gyógyitalt, védőigét és bombát vehetsz <b>a vándorárustól</b>. Menet közben a <b>tarisznyádban</b> várnak az életgömb fölött: nyomd meg az <b>1–7</b> gombot, koppints rájuk, vagy válassz a kontroller <b>LB / RB</b> gombjával, és használd az <b>X</b>-szel.",

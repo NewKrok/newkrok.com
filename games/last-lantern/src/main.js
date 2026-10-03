@@ -54,7 +54,7 @@ function showScreen(id, { push = false } = {}) {
   $$(".screen:not(#loading)").forEach((s) => s.classList.toggle("active", s.id === id));
   for (const b of $$(`#${id} .scroll-body`)) b.scrollTop = 0;
   updateIngame();
-  const first = id && $(`#${id} .btn.primary, #${id} .lcard, #${id} .btn`);
+  const first = id && ($(`#${id} .btn.primary`) || $(`#${id} .lcard`) || $(`#${id} .btn`));
   if (first && matchMedia("(hover: hover)").matches) first.focus({ preventScroll: true });
 }
 function hideScreens() {
@@ -77,6 +77,7 @@ const onScreen = (id) => !!$(`#${id}.active`);
 function refresh(id) {
   if (id === "menu-main") renderMain();
   if (id === "menu-run") renderRunSetup();
+  if (id === "menu-hero") renderHeroSetup();
   if (id === "pause") renderPause();
   if (id === "result") { /* static */ }
 }
@@ -132,7 +133,7 @@ function openStory(lines, then) {
 }
 
 // ── Run setup ────────────────────────────────────────────────────────────
-function renderRunSetup() {
+function renderHeroSetup() {
   bind("embers", progress.embers);
   const hroot = $("#heroes");
   const ports = heroPortraits();
@@ -148,6 +149,13 @@ function renderRunSetup() {
       <div class="ln"><img src="${iconURL("vitality", 32)}" alt=""><span>${h.hp} · ${esc(tx.trait)}</span></div>
       ${lockNote}</button>`;
   }).join("");
+}
+function renderRunSetup() {
+  // The chosen lantern-bearer, a button back to step one.
+  const h = HEROES.find((x) => x.id === settings.hero) || HEROES[0], htx = heroText(h.id), port = heroPortraits()[h.id];
+  const chip = $(".hero-chip");
+  chip.innerHTML = `${port ? `<img src="${port}" alt="">` : ""}<span><b>${esc(htx.name)}</b><small>${esc(t("changeHero"))}</small></span>`;
+  chip.setAttribute("aria-label", t("changeHero"));
   const sroot = $("#stages");
   sroot.innerHTML = STAGES.map((s, i) => {
     const tx = stageText(s.id), open = stageUnlocked(progress, i), b = progress.best[i];
@@ -167,11 +175,28 @@ function renderRunSetup() {
 }
 const stageLabel = (s) => (s.rush ? t("vigilTag") : t("stageN", { n: s.index + 1 }));
 const lockText = (i) => (STAGES[i].rush ? t("unlockVigil") : t("unlockStage", { n: i }));
-function openRunSetup() {
+// Two steps: the lantern-bearer, then the beacon. Both remember the last
+// pick, so a returning player starts with two presses of Enter.
+function validateSetup() {
   if (!heroUnlocked(progress, HEROES.find((h) => h.id === settings.hero) || HEROES[0])) settings.hero = "wren";
   if (!stageUnlocked(progress, settings.stage)) settings.stage = 0;
+}
+function openHeroSetup() {
+  validateSetup();
+  renderHeroSetup();
+  showScreen("menu-hero", { push: onScreen("menu-main") });
+}
+function openStageSetup() {
+  validateSetup();
   renderRunSetup();
-  showScreen("menu-run", { push: onScreen("menu-main") });
+  showScreen("menu-run", { push: true });
+}
+// Back to step two from the stage intro: Back still leads through step one.
+function openRunSetup() {
+  validateSetup();
+  renderRunSetup();
+  showScreen("menu-run");
+  stack = ["menu-main", "menu-hero"];
 }
 
 // ── Intro and start ──────────────────────────────────────────────────────
@@ -654,7 +679,10 @@ window.addEventListener("keydown", (e) => {
     const slot = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3, Digit5: 4, Digit6: 5, Digit7: 6, Numpad1: 0, Numpad2: 1, Numpad3: 2, Numpad4: 3, Numpad5: 4, Numpad6: 5, Numpad7: 6 }[code];
     if (slot !== undefined) useSlot(slot);
   } else if (G.phase === "intro" && onScreen("intro") && (code === "Enter" || code === "Space")) startRun();
-  else if (G.phase === "menu" && onScreen("menu-run") && code === "Enter") openIntro();
+  // Enter moves on; preventDefault keeps the browser from also pressing
+  // whatever the new screen focused.
+  else if (G.phase === "menu" && onScreen("menu-run") && code === "Enter") { e.preventDefault(); openIntro(); }
+  else if (G.phase === "menu" && onScreen("menu-hero") && code === "Enter") { e.preventDefault(); openStageSetup(); }
   else if (G.phase === "result" && onScreen("result") && code === "Enter") again();
 });
 window.addEventListener("keyup", (e) => { keys[e.code] = false; });
@@ -703,7 +731,7 @@ app.addEventListener("click", (e) => {
     const h = HEROES.find((x) => x.id === hero.dataset.hero);
     if (!heroUnlocked(progress, h)) { audio.play("locked"); toast(t("unlockStage", { n: h.unlock.stage + 1 })); return; }
     audio.play("click");
-    settings.hero = h.id; saveSettings(settings); renderRunSetup(); titleRun();
+    settings.hero = h.id; saveSettings(settings); renderHeroSetup(); titleRun();
     return;
   }
   const st = e.target.closest(".stage");
@@ -727,7 +755,9 @@ app.addEventListener("click", (e) => {
   const a = btn.dataset.action;
   if (a !== "back" && a !== "active") audio.play("click");
   switch (a) {
-    case "play": if (!progress.storyRead) openStory(storyText().prologue, openRunSetup); else openRunSetup(); break;
+    case "play": if (!progress.storyRead) openStory(storyText().prologue, openHeroSetup); else openHeroSetup(); break;
+    case "toStages": openStageSetup(); break;
+    case "toHeroes": back(); break;
     case "storyNext": storyNext(); break;
     case "safetyOk": case "safetyCalm":
       settings.safetySeen = true;
@@ -878,6 +908,7 @@ function pollPad() {
     if (onScreen("story")) { storyNext(); return; }
     if (G.phase === "intro" && onScreen("intro")) { startRun(); return; }
     if (G.phase === "menu" && onScreen("menu-run")) { openIntro(); return; }
+    if (G.phase === "menu" && onScreen("menu-hero")) { openStageSetup(); return; }
     if (G.phase === "result" && onScreen("result")) { again(); return; }
     if (onScreen("chest")) { closeChest(); return; }
   }
