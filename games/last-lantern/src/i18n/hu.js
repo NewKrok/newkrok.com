@@ -215,3 +215,63 @@ HU.monsterLore = {
   moonknight: "A Király saját őrsége holdfényes acélban. Az ő rohamuk a leggyorsabb mind közül.",
   king: "Nála van az ellopott nap. Hívja a seregét, előveszi a kaszáit, és a végén magát az eget is elsötétíti.",
 };
+
+// A vándorárus, a tarisznya, az érdemek, a Virrasztás és a kontroller.
+Object.assign(HU, {
+  next: "Tovább", changeHero: "Lámpáshordozó cseréje",
+  pedlar: "A vándorárus", pedlarIntro: "Egy csuklyás vándorárus azt árulja, amire az úton szükség van. Minden portéka elfogy, amikor használod; ami megmarad, a tarisznyádban vár a következő menetre.",
+  buyItem: "Megveszem · {n}", satchelFull: "Tele a tarisznya", inSatchel: "A tarisznyádban: {n} / {max}", boughtItem: "Megvetted: {x}",
+  h_items: "A vándorárus portékái", p_items: "Két menet között gyógyitalt, védőigét és bombát vehetsz <b>a vándorárustól</b>. Menet közben a <b>tarisznyádban</b> várnak az életgömb fölött: nyomd meg az <b>1–7</b> gombot, koppints rájuk, vagy válassz a kontroller <b>LB / RB</b> gombjával, és használd az <b>X</b>-szel.",
+  k_item: "Tárgy használata a tarisznyából",
+  deeds: "Érdemek", deedCount: "{n} / {of}", r_deed: "Érdem: {x}", deedToast: "Érdem: {x} (+{n} parázs)", deedsToast: "{n} érdemet szereztél (+{e} parázs)",
+  vigilTag: "A Virrasztás", unlockVigil: "Gyújtsd meg mind az öt jelzőtüzet", vigilFact: "{n} őrző, egymás után — semmi más",
+  bestVigil: "Legjobb: {n} / {of} őrző · {t}", r_keepers: "Legyőzött őrzők",
+  b_vigil: "AZ ŐRZŐK VISSZATÉRNEK", b_vigilNext: "{n} / {of} ŐRZŐ ELBUKOTT — MOCORDUL A KÖVETKEZŐ",
+  b_item_tonic_s: "EGY KORTY GYÓGYITAL", b_item_tonic_m: "GYÓGYITAL", b_item_tonic_l: "NAGY GYÓGYITAL", b_item_ward: "VÉDŐIGE", b_item_draught: "FÜRGE, MINT A NYÚL", b_item_firebomb: "TŰZBOMBA", b_item_lodestone: "MÁGNESKŐ",
+  h_pad: "Kontroller", pad_active: "Képesség használata", pad_item: "Tárgy kiválasztása · használata", pad_zoom: "Nagyítás (menükben: görgetés)", pad_cards: "Szintlépés: újrasorsolás · száműzés · kihagyás", pad_menu: "Szünet · vissza",
+  set_pad: "Kontroller", pad_mapping: "Kiosztás", pad_buttons: "Gombok", pad_axes: "Tengelyek", pad_none: "Nem található kontroller. Nyomj meg rajta egy gombot, hogy felébredjen.",
+  padOn: "Kontroller csatlakoztatva", padOff: "Kontroller leválasztva",
+});
+
+HU.items = {
+  tonic_s: ["Kis gyógyital", "Visszaadja az életerőd negyedét."],
+  tonic_m: ["Gyógyital", "Visszaadja az életerőd felét."],
+  tonic_l: ["Nagy gyógyital", "Visszaadja a teljes életerődet."],
+  ward: ["Szent Parázs védőigéje", "Öt másodpercig minden csapás lepattan rólad."],
+  draught: ["Nyúlfürgeség-főzet", "+40% mozgási sebesség nyolc másodpercig."],
+  firebomb: ["Tűzbomba", "Robbanás körülötted, amely hátravágja és lángra lobbantja a tömeget."],
+  lodestone: ["Mágneskő-szilánk", "Minden lélekkövet és parazsat magadhoz húz a pályáról."],
+};
+
+HU.deedText = {
+  firstLight: ["Első fény", "Gyújts meg egy jelzőtüzet."],
+  allBeacons: ["Hajnalhozó", "Gyújtsd meg mind az öt jelzőtüzet."],
+  vigil: ["A hosszú virrasztás", "Győzd le mind az öt őrzőt az Őrzők Virrasztásában."],
+  bloodMoon: ["Vér a holdon", "Gyújts meg egy jelzőtüzet Vérhold alatt."],
+  bloodAll: ["Bíbor hajnal", "Gyújtsd meg mind az öt jelzőtüzet Vérhold alatt."],
+  win_wren: ["A lámpagyújtogató útja", "Gyújts meg egy jelzőtüzet Wrennel."],
+  win_mira: ["Az őrszem útja", "Gyújts meg egy jelzőtüzet Mirával."],
+  win_oskar: ["A harangozó útja", "Gyújts meg egy jelzőtüzet Oskar testvérrel."],
+  win_sable: ["A sírásó útja", "Gyújts meg egy jelzőtüzet Sable-lel."],
+  kills1000: ["Ezer halott", "Győzz le 1000 szörnyet egy menetben."],
+  kills2500: ["Árhullámtörő", "Győzz le 2500 szörnyet egy menetben."],
+  slayer: ["Gyilkos", "Győzz le összesen 10 000 szörnyet."],
+  legend: ["Emberhollow legendája", "Győzz le összesen 50 000 szörnyet."],
+  level40: ["Lángra kapva", "Érd el a 40. szintet egy menetben."],
+  evolve: ["Újrakovácsolva", "Fejlessz ki egy fegyvert."],
+  evolve3: ["A hajnal fegyvertára", "Legyen nálad egy menetben három kifejlesztett fegyver."],
+  relics2: ["A zarándok terhe", "Legyen nálad egy menetben két ereklye."],
+  swiftKeeper: ["Gyors ítélet", "Győzz le egy őrzőt az érkezése után 30 másodpercen belül."],
+  unbowed: ["Meghajolatlan", "Gyújts meg egy jelzőtüzet úgy, hogy 100-nál kevesebb sebzést kapsz."],
+  hearthMax: ["Gondos tűzrakó", "Fejleszd maximumra a Tűzhely egyik fejlesztését."],
+  mastery: ["A mesterség mestere", "Tanuld meg egy mesterség mindhárom lépcsőjét."],
+  pedlar: ["A vándorárus barátja", "Használj el 10 portékát a vándorárustól."],
+  runs25: ["A lámpás sosem alszik", "Indulj útnak 25-ször."],
+  relicHunter: ["Ereklyevadász", "Találj 8 különböző ereklyét."],
+  allRelics: ["Az ereklyék őrzője", "Találd meg az összes ereklyét."],
+  bestiary: ["Az egész éjszaka", "Találkozz a bestiárium összes szörnyével."],
+};
+
+HU.stages.vigil = ["Az Őrzők Virrasztása", "A holdkatedrális, vérfényben",
+  "A nap visszatért, de a holtak a saját idejüket tartják. A holdkatedrálisban az öt őrző újra felkelt a Király hátrahagyott árnyékából, hogy még egyszer kioltsák a fényt. Ma éjjel nincs horda. Csak ők, egymás után.",
+  "Az utolsó őrző is elbukik, és a katedrálisra olyan csend száll, amilyen még sosem volt. Az oltáron az árnyék elvékonyodik, majd kialszik. Valahol lent, Emberhollow-ban, reggelre harangoznak."];

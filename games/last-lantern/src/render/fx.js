@@ -87,7 +87,9 @@ export class Fx {
     this.aura = new T.Mesh(GEO.ring, add({ color: 0xe0c070, opacity: 0.5, side: T.DoubleSide }));
     this.auraFill = new T.Mesh(GEO.disc, add({ color: 0xe0c070, opacity: 0.06 }));
     this.dome = new T.Mesh(new T.SphereGeometry(1, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2), add({ color: 0xffe9a8, opacity: 0.18, side: T.DoubleSide }));
-    for (const m of [this.aura, this.auraFill, this.dome]) { m.visible = false; scene.add(m); }
+    // The Pedlar's ward: a pale blue bubble.
+    this.ward = new T.Mesh(new T.SphereGeometry(1, 20, 12), add({ color: 0x9fd8ff, opacity: 0.16, side: T.DoubleSide }));
+    for (const m of [this.aura, this.auraFill, this.dome, this.ward]) { m.visible = false; scene.add(m); }
     // A soft gold ring under the hero, so they never get lost in the crowd.
     this.heroRing = new T.Mesh(GEO.thinRing, add({ color: 0xffc861, opacity: 0.55 }));
     scene.add(this.heroRing);
@@ -393,6 +395,14 @@ export class Fx {
       const s = 46 + Math.sin(time * 8) * 2;
       this.dome.scale.set(s, s, s);
       this.dome.material.opacity = 0.14 + Math.min(1, h.sanct / 30) * 0.1;
+    }
+    this.ward.visible = h.ward > 0 && h.dig <= 0;
+    if (this.ward.visible) {
+      this.ward.position.set(p.x, -p.y, 16);
+      const s = 30 + Math.sin(time * 6) * 1.5;
+      this.ward.scale.set(s, s, s);
+      // Flickers out over its last second.
+      this.ward.material.opacity = h.ward < 60 && Math.floor(time * 12) % 2 ? 0.05 : 0.16;
     }
     this.flashLight.position.set(p.x, -p.y, 120);
     this.flashLight.intensity = R.flash * (this.calm ? 15000 : 140000);

@@ -228,3 +228,63 @@ EN.monsterLore = {
   moonknight: "The King's own guard in moonlit steel. Their charges are the fastest of all.",
   king: "He holds the stolen sun. He summons his host, draws his scythes, and in the end darkens the sky itself.",
 };
+
+// The Pedlar, the satchel, deeds, the Vigil and the gamepad.
+Object.assign(EN, {
+  next: "Next", changeHero: "Change lantern-bearer",
+  pedlar: "The Pedlar", pedlarIntro: "A hooded pedlar sells what the road needs. Every ware is used up once you use it; the rest stays in your satchel for the next run.",
+  buyItem: "Buy · {n}", satchelFull: "Satchel full", inSatchel: "In your satchel: {n} / {max}", boughtItem: "{x} bought",
+  h_items: "The Pedlar's wares", p_items: "Buy tonics, wards and bombs from <b>the Pedlar</b> between runs. In a run they wait in your <b>satchel</b> over the health orb: press <b>1–7</b>, tap one, or pick one with the pad's <b>LB / RB</b> and use it with <b>X</b>.",
+  k_item: "Use an item from your satchel",
+  deeds: "Deeds", deedCount: "{n} / {of}", r_deed: "Deed: {x}", deedToast: "Deed: {x} (+{n} embers)", deedsToast: "{n} deeds done (+{e} embers)",
+  vigilTag: "The Vigil", unlockVigil: "Light all five beacons to unlock", vigilFact: "{n} keepers, one after another — nothing else",
+  bestVigil: "Best: {n} / {of} keepers · {t}", r_keepers: "Keepers slain",
+  b_vigil: "THE KEEPERS RETURN", b_vigilNext: "{n} OF {of} KEEPERS FALLEN — THE NEXT ONE STIRS",
+  b_item_tonic_s: "A SIP OF TONIC", b_item_tonic_m: "TONIC", b_item_tonic_l: "GREAT TONIC", b_item_ward: "WARDED", b_item_draught: "SWIFT AS A HARE", b_item_firebomb: "FIREBOMB", b_item_lodestone: "LODESTONE",
+  h_pad: "Gamepad", pad_active: "Use your ability", pad_item: "Pick an item · use it", pad_zoom: "Zoom (menus: scroll)", pad_cards: "Level-up: reroll · banish · skip", pad_menu: "Pause · back",
+  set_pad: "Controller", pad_mapping: "Mapping", pad_buttons: "Buttons", pad_axes: "Axes", pad_none: "No controller found. Press a button on it to wake it.",
+  padOn: "Controller connected", padOff: "Controller disconnected",
+});
+
+EN.items = {
+  tonic_s: ["Small Tonic", "Restores a quarter of your health."],
+  tonic_m: ["Tonic", "Restores half of your health."],
+  tonic_l: ["Great Tonic", "Restores all of your health."],
+  ward: ["Ward of St. Ember", "Five seconds in which every blow turns aside."],
+  draught: ["Hare's Draught", "+40% move speed for eight seconds."],
+  firebomb: ["Firebomb", "A blast around you that throws the crowd back and sets it alight."],
+  lodestone: ["Lodestone Shard", "Pulls every soul gem and ember on the field to you."],
+};
+
+EN.deedText = {
+  firstLight: ["First Light", "Light a beacon."],
+  allBeacons: ["Dawnbringer", "Light all five beacons."],
+  vigil: ["The Long Vigil", "Outlast all five keepers in the Keepers' Vigil."],
+  bloodMoon: ["Blood on the Moon", "Light a beacon under the Blood Moon."],
+  bloodAll: ["Crimson Dawn", "Light all five beacons under the Blood Moon."],
+  win_wren: ["The Lamplighter's Way", "Light a beacon as Wren."],
+  win_mira: ["The Warden's Way", "Light a beacon as Mira."],
+  win_oskar: ["The Bellringer's Way", "Light a beacon as Brother Oskar."],
+  win_sable: ["The Gravedigger's Way", "Light a beacon as Sable."],
+  kills1000: ["A Thousand Dead", "Slay 1,000 monsters in one run."],
+  kills2500: ["Tide Breaker", "Slay 2,500 monsters in one run."],
+  slayer: ["Slayer", "Slay 10,000 monsters in total."],
+  legend: ["Legend of Emberhollow", "Slay 50,000 monsters in total."],
+  level40: ["Kindled", "Reach level 40 in one run."],
+  evolve: ["Reforged", "Evolve a weapon."],
+  evolve3: ["Arsenal of Dawn", "Carry three evolved weapons in one run."],
+  relics2: ["Pilgrim's Burden", "Carry two relics in one run."],
+  swiftKeeper: ["Swift Judgement", "Slay a keeper within 30 seconds of its coming."],
+  unbowed: ["Unbowed", "Light a beacon taking less than 100 damage."],
+  hearthMax: ["Well Tended", "Raise one of the Hearth's upgrades to its highest."],
+  mastery: ["Master of the Craft", "Learn all three steps of a mastery."],
+  pedlar: ["The Pedlar's Friend", "Use 10 of the Pedlar's wares."],
+  runs25: ["The Lantern Never Sleeps", "Set out 25 times."],
+  relicHunter: ["Relic Hunter", "Find 8 different relics."],
+  allRelics: ["Keeper of Relics", "Find every relic."],
+  bestiary: ["The Whole Night", "Meet every monster in the bestiary."],
+};
+
+EN.stages.vigil = ["The Keepers' Vigil", "The moon cathedral, by blood-light",
+  "The sun is back, but the dead keep their own hours. In the moon cathedral the five keepers have risen again, out of the shadow the King left behind, to put it out once more. There is no horde tonight. Only them, one after another.",
+  "The last keeper falls, and the cathedral is quiet in a way it has never been. The shadow on the altar thins and goes out. Somewhere below, in Emberhollow, a bell starts ringing for morning."];

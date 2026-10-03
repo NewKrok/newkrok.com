@@ -40,6 +40,13 @@ export class Hud {
     return { x: px + (PW - 62) * s - 50 * s, y: py + 58 * s - 50 * s, size: 100 * s };
   }
 
+  // The panel's left edge and the top of its stonework, in CSS px (the
+  // satchel's buttons sit on it).
+  panelRect() {
+    const s = this.scale, px = this.W / 2 - (PW * s) / 2, py = this.H - PH * s - 6;
+    return { x: Math.max(8, px), y: py - 22 * s, s };
+  }
+
   draw(R, { project, joy, settings, time, mode }) {
     const c = this.c, W = this.W, H = this.H;
     c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
@@ -152,7 +159,7 @@ export class Hud {
       if (b.def.ai === "king") for (const m of [0.66, 0.33]) { c.fillStyle = "rgba(255,230,190,0.6)"; c.fillRect(-bw / 2 + 6 + (bw - 12) * m, 12, 1.5, 14); }
       c.font = `700 15px ${DECO}`; c.textAlign = "center"; c.textBaseline = "top";
       c.lineWidth = 4; c.strokeStyle = "rgba(0,0,0,0.8)";
-      const name = monsterName(b.id);
+      const name = monsterName(b.id) + (R.stage.rush ? ` · ${R.rushIdx} / ${R.stage.rush.length}` : "");
       c.strokeText(name, 0, 34); c.fillStyle = "#f0d8a8"; c.fillText(name, 0, 34);
     } else {
       // Plaque with the clock.
@@ -163,7 +170,15 @@ export class Hud {
       c.shadowColor = "rgba(255,170,60,0.6)"; c.shadowBlur = 8;
       c.fillText(fmtSec(sec), 0, ph / 2 + 1);
       c.shadowBlur = 0;
-      if (!R.bossSpawned) {
+      if (R.stage.rush) {
+        // The Vigil: which keeper is next, as five skulls.
+        const n = R.stage.rush.length, done = R.rushIdx - (R.boss?.alive ? 1 : 0);
+        for (let i = 0; i < n; i++) {
+          c.globalAlpha = i < done ? 0.3 : 1;
+          drawIcon(c, "skull", (i - (n - 1) / 2) * 22, ph + 12, i === done ? 16 + Math.sin(time * 6) * 2 : 13);
+        }
+        c.globalAlpha = 1;
+      } else if (!R.bossSpawned) {
         // A chain of links fills as the keeper nears; a skull waits at the end.
         const k = clamp(sec / bossAt, 0, 1), n = 16, lw = 11;
         const x0 = -(n * lw) / 2;

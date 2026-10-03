@@ -228,3 +228,63 @@ FR.monsterLore = {
   moonknight: "La garde personnelle du Roi, en acier baigné de lune. Leurs charges sont les plus rapides de toutes.",
   king: "Il détient le soleil volé. Il convoque son ost, dégaine ses faux et, pour finir, obscurcit le ciel lui-même.",
 };
+
+// Le colporteur, la besace, les hauts faits, la Veillée et la manette.
+Object.assign(FR, {
+  next: "Suivant", changeHero: "Changer de porte-lanterne",
+  pedlar: "Le Colporteur", pedlarIntro: "Un colporteur encapuchonné vend ce que la route exige. Chaque marchandise s'épuise dès qu'on l'utilise ; le reste attend dans votre besace pour la partie suivante.",
+  buyItem: "Acheter · {n}", satchelFull: "Besace pleine", inSatchel: "Dans votre besace : {n} / {max}", boughtItem: "{x} acheté",
+  h_items: "Les marchandises du colporteur", p_items: "Entre deux parties, achetez toniques, sceaux et bombes au <b>Colporteur</b>. En partie, ils attendent dans votre <b>besace</b> au-dessus de l'orbe de vie : touches <b>1–7</b>, un appui dessus, ou choisissez avec <b>LB / RB</b> à la manette et utilisez avec <b>X</b>.",
+  k_item: "Utiliser un objet de la besace",
+  deeds: "Hauts faits", deedCount: "{n} / {of}", r_deed: "Haut fait : {x}", deedToast: "Haut fait : {x} (+{n} braises)", deedsToast: "{n} hauts faits accomplis (+{e} braises)",
+  vigilTag: "La Veillée", unlockVigil: "Allumez les cinq fanaux pour débloquer", vigilFact: "{n} gardiens, l'un après l'autre — rien d'autre",
+  bestVigil: "Record : {n} / {of} gardiens · {t}", r_keepers: "Gardiens terrassés",
+  b_vigil: "LES GARDIENS REVIENNENT", b_vigilNext: "{n} GARDIENS SUR {of} TOMBÉS — LE SUIVANT S'ÉVEILLE",
+  b_item_tonic_s: "UNE GORGÉE DE TONIQUE", b_item_tonic_m: "TONIQUE", b_item_tonic_l: "GRAND TONIQUE", b_item_ward: "PROTÉGÉ", b_item_draught: "VIF COMME UN LIÈVRE", b_item_firebomb: "BOMBE INCENDIAIRE", b_item_lodestone: "PIERRE D'AIMANT",
+  h_pad: "Manette", pad_active: "Utiliser votre capacité", pad_item: "Choisir un objet · l'utiliser", pad_zoom: "Zoom (menus : défiler)", pad_cards: "Niveau : relancer · bannir · passer", pad_menu: "Pause · retour",
+  set_pad: "Manette", pad_mapping: "Disposition", pad_buttons: "Boutons", pad_axes: "Axes", pad_none: "Aucune manette trouvée. Appuyez sur un bouton pour la réveiller.",
+  padOn: "Manette connectée", padOff: "Manette déconnectée",
+});
+
+FR.items = {
+  tonic_s: ["Petit tonique", "Rend un quart de votre santé."],
+  tonic_m: ["Tonique", "Rend la moitié de votre santé."],
+  tonic_l: ["Grand tonique", "Rend toute votre santé."],
+  ward: ["Sceau de saint Ember", "Cinq secondes pendant lesquelles chaque coup est détourné."],
+  draught: ["Philtre du lièvre", "+40 % de vitesse pendant huit secondes."],
+  firebomb: ["Bombe incendiaire", "Une explosion autour de vous qui repousse la foule et l'embrase."],
+  lodestone: ["Éclat de pierre d'aimant", "Attire à vous chaque gemme d'âme et chaque braise du terrain."],
+};
+
+FR.deedText = {
+  firstLight: ["Première lueur", "Allumez un fanal."],
+  allBeacons: ["Porteur d'aube", "Allumez les cinq fanaux."],
+  vigil: ["La longue veillée", "Venez à bout des cinq gardiens de la Veillée des Gardiens."],
+  bloodMoon: ["Du sang sur la lune", "Allumez un fanal sous la Lune de Sang."],
+  bloodAll: ["Aube pourpre", "Allumez les cinq fanaux sous la Lune de Sang."],
+  win_wren: ["La voie de l'allumeuse", "Allumez un fanal avec Wren."],
+  win_mira: ["La voie de la gardienne", "Allumez un fanal avec Mira."],
+  win_oskar: ["La voie du sonneur", "Allumez un fanal avec frère Oskar."],
+  win_sable: ["La voie du fossoyeur", "Allumez un fanal avec Sable."],
+  kills1000: ["Mille morts", "Tuez 1 000 monstres en une partie."],
+  kills2500: ["Brise-marée", "Tuez 2 500 monstres en une partie."],
+  slayer: ["Tueur", "Tuez 10 000 monstres au total."],
+  legend: ["Légende d'Emberhollow", "Tuez 50 000 monstres au total."],
+  level40: ["Embrasé", "Atteignez le niveau 40 en une partie."],
+  evolve: ["Reforgé", "Faites évoluer une arme."],
+  evolve3: ["Arsenal de l'aube", "Portez trois armes évoluées en une partie."],
+  relics2: ["Le fardeau du pèlerin", "Portez deux reliques en une partie."],
+  swiftKeeper: ["Jugement prompt", "Terrassez un gardien dans les 30 secondes suivant son arrivée."],
+  unbowed: ["Insoumis", "Allumez un fanal en subissant moins de 100 dégâts."],
+  hearthMax: ["Bien entretenu", "Portez une amélioration de l'Âtre à son plus haut niveau."],
+  mastery: ["Maître du métier", "Apprenez les trois étapes d'une maîtrise."],
+  pedlar: ["L'ami du colporteur", "Utilisez 10 marchandises du colporteur."],
+  runs25: ["La lanterne ne dort jamais", "Partez 25 fois."],
+  relicHunter: ["Chasseur de reliques", "Trouvez 8 reliques différentes."],
+  allRelics: ["Gardien des reliques", "Trouvez toutes les reliques."],
+  bestiary: ["La nuit entière", "Rencontrez chaque monstre du bestiaire."],
+};
+
+FR.stages.vigil = ["La Veillée des Gardiens", "La cathédrale de la lune, à la lueur du sang",
+  "Le soleil est revenu, mais les morts gardent leurs propres heures. Dans la cathédrale de la lune, les cinq gardiens se sont relevés de l'ombre laissée par le Roi, pour éteindre la lumière une fois encore. Pas de horde ce soir. Seulement eux, l'un après l'autre.",
+  "Le dernier gardien tombe, et la cathédrale connaît un silence qu'elle n'avait jamais connu. L'ombre sur l'autel s'amincit puis s'éteint. Quelque part en contrebas, à Emberhollow, une cloche se met à sonner le matin."];

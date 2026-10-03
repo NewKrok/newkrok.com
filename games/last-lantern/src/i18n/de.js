@@ -228,3 +228,63 @@ DE.monsterLore = {
   moonknight: "Die eigene Garde des Königs in mondbeschienenem Stahl. Ihr Ansturm ist der schnellste von allen.",
   king: "Er hält die gestohlene Sonne. Er ruft sein Heer, zieht seine Sensen und verdunkelt am Ende den Himmel selbst.",
 };
+
+// Der Hausierer, der Ranzen, Taten, die Wacht und das Gamepad.
+Object.assign(DE, {
+  next: "Weiter", changeHero: "Laternenträger wechseln",
+  pedlar: "Der Hausierer", pedlarIntro: "Ein vermummter Hausierer verkauft, was der Weg verlangt. Jede Ware ist verbraucht, sobald du sie benutzt; der Rest bleibt in deinem Ranzen für den nächsten Lauf.",
+  buyItem: "Kaufen · {n}", satchelFull: "Ranzen voll", inSatchel: "Im Ranzen: {n} / {max}", boughtItem: "{x} gekauft",
+  h_items: "Die Waren des Hausierers", p_items: "Zwischen den Läufen kaufst du beim <b>Hausierer</b> Tränke, Schutzzeichen und Bomben. Im Lauf warten sie in deinem <b>Ranzen</b> über der Lebenskugel: drücke <b>1–7</b>, tippe sie an oder wähle mit <b>LB / RB</b> am Pad und benutze sie mit <b>X</b>.",
+  k_item: "Gegenstand aus dem Ranzen benutzen",
+  deeds: "Taten", deedCount: "{n} / {of}", r_deed: "Tat: {x}", deedToast: "Tat: {x} (+{n} Glut)", deedsToast: "{n} Taten vollbracht (+{e} Glut)",
+  vigilTag: "Die Wacht", unlockVigil: "Entzünde alle fünf Leuchtfeuer zum Freischalten", vigilFact: "{n} Hüter, einer nach dem anderen — sonst nichts",
+  bestVigil: "Bestwert: {n} / {of} Hüter · {t}", r_keepers: "Erschlagene Hüter",
+  b_vigil: "DIE HÜTER KEHREN ZURÜCK", b_vigilNext: "{n} VON {of} HÜTERN GEFALLEN — DER NÄCHSTE REGT SICH",
+  b_item_tonic_s: "EIN SCHLUCK TRANK", b_item_tonic_m: "HEILTRANK", b_item_tonic_l: "GROSSER HEILTRANK", b_item_ward: "BESCHÜTZT", b_item_draught: "FLINK WIE EIN HASE", b_item_firebomb: "FEUERBOMBE", b_item_lodestone: "MAGNETSTEIN",
+  h_pad: "Gamepad", pad_active: "Fähigkeit einsetzen", pad_item: "Gegenstand wählen · benutzen", pad_zoom: "Zoom (Menüs: blättern)", pad_cards: "Stufenaufstieg: neu würfeln · verbannen · überspringen", pad_menu: "Pause · zurück",
+  set_pad: "Controller", pad_mapping: "Belegung", pad_buttons: "Tasten", pad_axes: "Achsen", pad_none: "Kein Controller gefunden. Drück eine Taste, um ihn zu wecken.",
+  padOn: "Controller verbunden", padOff: "Controller getrennt",
+});
+
+DE.items = {
+  tonic_s: ["Kleiner Heiltrank", "Stellt ein Viertel deiner Gesundheit wieder her."],
+  tonic_m: ["Heiltrank", "Stellt die Hälfte deiner Gesundheit wieder her."],
+  tonic_l: ["Großer Heiltrank", "Stellt deine ganze Gesundheit wieder her."],
+  ward: ["Schutzzeichen des hl. Ember", "Fünf Sekunden, in denen jeder Schlag abprallt."],
+  draught: ["Hasentrunk", "+40 % Bewegungstempo für acht Sekunden."],
+  firebomb: ["Feuerbombe", "Eine Explosion um dich, die die Menge zurückwirft und in Brand setzt."],
+  lodestone: ["Magnetsteinsplitter", "Zieht jeden Seelenstein und alle Glut auf dem Feld zu dir."],
+};
+
+DE.deedText = {
+  firstLight: ["Erstes Licht", "Entzünde ein Leuchtfeuer."],
+  allBeacons: ["Morgenbringer", "Entzünde alle fünf Leuchtfeuer."],
+  vigil: ["Die lange Wacht", "Überstehe alle fünf Hüter in der Wacht der Hüter."],
+  bloodMoon: ["Blut am Mond", "Entzünde ein Leuchtfeuer unter dem Blutmond."],
+  bloodAll: ["Purpurner Morgen", "Entzünde alle fünf Leuchtfeuer unter dem Blutmond."],
+  win_wren: ["Der Weg der Lampenanzünderin", "Entzünde ein Leuchtfeuer mit Wren."],
+  win_mira: ["Der Weg der Wächterin", "Entzünde ein Leuchtfeuer mit Mira."],
+  win_oskar: ["Der Weg des Glöckners", "Entzünde ein Leuchtfeuer mit Bruder Oskar."],
+  win_sable: ["Der Weg des Totengräbers", "Entzünde ein Leuchtfeuer mit Sable."],
+  kills1000: ["Tausend Tote", "Erschlage 1.000 Monster in einem Lauf."],
+  kills2500: ["Flutbrecher", "Erschlage 2.500 Monster in einem Lauf."],
+  slayer: ["Schlächter", "Erschlage insgesamt 10.000 Monster."],
+  legend: ["Legende von Emberhollow", "Erschlage insgesamt 50.000 Monster."],
+  level40: ["Entfacht", "Erreiche Stufe 40 in einem Lauf."],
+  evolve: ["Neu geschmiedet", "Entwickle eine Waffe."],
+  evolve3: ["Arsenal der Dämmerung", "Trage drei entwickelte Waffen in einem Lauf."],
+  relics2: ["Last des Pilgers", "Trage zwei Reliquien in einem Lauf."],
+  swiftKeeper: ["Schnelles Urteil", "Erschlage einen Hüter binnen 30 Sekunden nach seiner Ankunft."],
+  unbowed: ["Ungebeugt", "Entzünde ein Leuchtfeuer mit weniger als 100 erlittenem Schaden."],
+  hearthMax: ["Gut gehütet", "Bringe eine Verbesserung am Herd auf die höchste Stufe."],
+  mastery: ["Meister des Handwerks", "Lerne alle drei Stufen einer Meisterschaft."],
+  pedlar: ["Freund des Hausierers", "Benutze 10 Waren des Hausierers."],
+  runs25: ["Die Laterne schläft nie", "Brich 25-mal auf."],
+  relicHunter: ["Reliquienjäger", "Finde 8 verschiedene Reliquien."],
+  allRelics: ["Hüter der Reliquien", "Finde jede Reliquie."],
+  bestiary: ["Die ganze Nacht", "Begegne jedem Monster im Bestiarium."],
+};
+
+DE.stages.vigil = ["Die Wacht der Hüter", "Die Mondkathedrale, im Blutlicht",
+  "Die Sonne ist zurück, doch die Toten halten ihre eigenen Stunden. In der Mondkathedrale haben sich die fünf Hüter erneut erhoben, aus dem Schatten, den der König hinterließ, um das Licht noch einmal zu löschen. Heute Nacht gibt es keine Horde. Nur sie, einer nach dem anderen.",
+  "Der letzte Hüter fällt, und über der Kathedrale liegt eine Stille wie nie zuvor. Der Schatten auf dem Altar wird dünn und erlischt. Irgendwo unten in Emberhollow beginnt eine Glocke den Morgen einzuläuten."];

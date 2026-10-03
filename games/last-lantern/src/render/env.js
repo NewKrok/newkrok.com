@@ -26,7 +26,7 @@ const PLUG = { churchyard: CHURCHYARD };
 
 export function buildEnv(scene, R, quality) {
   const look = R.stage.look;
-  const L = LOOKS[look];
+  const L = R.stage.mood || LOOKS[look];
   const world = R.world;
   const { W, H } = world;
   const hi = quality === "high";

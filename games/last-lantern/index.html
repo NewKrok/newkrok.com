@@ -23,6 +23,7 @@
           <svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
         </button>
         <button class="active-btn" data-action="active" aria-label="Ability"><img alt="" /><span class="cd"></span><kbd data-i18n="hud_space"></kbd></button>
+        <div class="satchel"></div>
       </div>
 
       <!-- Main menu -->
@@ -44,7 +45,11 @@
           <div class="menu-buttons">
             <button class="btn primary" data-action="play" data-i18n="play"></button>
             <button class="btn" data-action="hearth" data-i18n="hearth"></button>
-            <button class="btn" data-action="journal" data-i18n="journal"></button>
+            <button class="btn" data-action="shop" data-i18n="pedlar"></button>
+            <div class="row2">
+              <button class="btn" data-action="journal" data-i18n="journal"></button>
+              <button class="btn" data-action="deeds" data-i18n="deeds"></button>
+            </div>
             <div class="row2">
               <button class="btn" data-action="howto" data-i18n="howto"></button>
               <button class="btn" data-action="settings" data-i18n="settings"></button>
@@ -75,8 +80,8 @@
         </div>
       </section>
 
-      <!-- Run setup: hero and beacon -->
-      <section id="menu-run" class="screen scroll">
+      <!-- Run setup, step one: the lantern-bearer -->
+      <section id="menu-hero" class="screen scroll">
         <header class="bar-head">
           <button class="btn ghost" data-action="back" data-i18n="back"></button>
           <h2 data-i18n="chooseHero"></h2>
@@ -84,7 +89,20 @@
         </header>
         <div class="scroll-body">
         <div id="heroes" class="hero-grid"></div>
-        <h2 class="sub-h" data-i18n="chooseStage"></h2>
+        <div class="run-foot end">
+          <button class="btn primary big" data-action="toStages"><span data-i18n="next"></span> <kbd>Enter</kbd></button>
+        </div>
+        </div>
+      </section>
+
+      <!-- Run setup, step two: the beacon -->
+      <section id="menu-run" class="screen scroll">
+        <header class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="chooseStage"></h2>
+          <button class="hero-chip" data-action="toHeroes"></button>
+        </header>
+        <div class="scroll-body">
         <div id="stages" class="stage-list"></div>
         <div class="run-foot">
           <label class="blood-toggle"><input type="checkbox" id="blood" /> <span class="moon"></span> <span><b data-i18n="bloodMoon"></b><small data-bind="bloodDesc"></small></span></label>
@@ -172,6 +190,31 @@
         </div>
       </section>
 
+      <!-- The Pedlar -->
+      <section id="menu-shop" class="screen scroll">
+        <header class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="pedlar"></h2>
+          <div class="ember-total"><img class="ico" data-icon="ember" alt="" /> <b data-bind="embers">0</b></div>
+        </header>
+        <div class="scroll-body">
+        <p class="intro-line" data-i18n="pedlarIntro"></p>
+        <div id="shop" class="hearth-grid"></div>
+        </div>
+      </section>
+
+      <!-- Deeds -->
+      <section id="menu-deeds" class="screen scroll">
+        <header class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="deeds"></h2>
+          <div class="deed-count" data-bind="deedCount"></div>
+        </header>
+        <div class="scroll-body">
+        <div id="deeds" class="deed-grid"></div>
+        </div>
+      </section>
+
       <!-- Journal -->
       <section id="menu-journal" class="screen scroll">
         <header class="bar-head">
@@ -206,9 +249,20 @@
             <tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> · <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd></td><td data-i18n="k_move"></td></tr>
             <tr><td><kbd>Space</kbd></td><td data-i18n="k_active"></td></tr>
             <tr><td><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd></td><td data-i18n="k_pick"></td></tr>
+            <tr><td><kbd>1</kbd> … <kbd>7</kbd></td><td data-i18n="k_item"></td></tr>
             <tr><td><kbd>Esc</kbd> · <kbd>P</kbd></td><td data-i18n="k_pause"></td></tr>
           </table>
+          <h3 data-i18n="h_pad"></h3>
+          <table class="keys">
+            <tr><td><kbd>LS</kbd> · <kbd>✚</kbd></td><td data-i18n="k_move"></td></tr>
+            <tr><td><kbd>A</kbd></td><td data-i18n="pad_active"></td></tr>
+            <tr><td><kbd>LB</kbd> <kbd>RB</kbd> · <kbd>X</kbd></td><td data-i18n="pad_item"></td></tr>
+            <tr><td><kbd>RS</kbd></td><td data-i18n="pad_zoom"></td></tr>
+            <tr><td><kbd>Y</kbd> · <kbd>X</kbd> · <kbd>Back</kbd></td><td data-i18n="pad_cards"></td></tr>
+            <tr><td><kbd>Start</kbd> · <kbd>B</kbd></td><td data-i18n="pad_menu"></td></tr>
+          </table>
           <h3 data-i18n="h_touch"></h3><p data-i18n-html="p_touch"></p>
+          <h3 data-i18n="h_items"></h3><p data-i18n-html="p_items"></p>
           <h3 data-i18n="h_tips"></h3>
           <ul><li data-i18n-html="tip1"></li><li data-i18n-html="tip2"></li><li data-i18n-html="tip3"></li><li data-i18n-html="tip4"></li><li data-i18n-html="tip5"></li></ul>
         </div>
@@ -237,6 +291,8 @@
           <label class="row"><span data-i18n="set_numbers"></span><input type="checkbox" data-setting="numbers" /></label>
           <label class="row"><span data-i18n="set_shake"></span><input type="checkbox" data-setting="shake" /></label>
           <label class="row"><span data-i18n="set_calm"></span><input type="checkbox" data-setting="calm" /></label>
+          <h3 data-i18n="set_pad"></h3>
+          <div class="row wide pad-row"><small class="pad-info" data-bind="padInfo"></small></div>
           <h3 data-i18n="set_progress"></h3>
           <div class="row"><span data-i18n="set_progressRow"></span><button class="btn small danger" data-action="reset" data-i18n="set_reset"></button></div>
         </div>
