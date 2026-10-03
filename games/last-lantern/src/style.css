@@ -138,6 +138,26 @@ kbd { display: inline-block; min-width: 1.7em; padding: 0 6px; border: 1px solid
 /* The ability button sits invisibly over the lantern orb the HUD draws. */
 .active-btn { position: absolute; border-radius: 50%; border: 0; background: transparent; cursor: pointer; padding: 0; }
 .active-btn > * { display: none; }
+/* The satchel: the Pedlar's wares carried into the run, over the health orb. */
+.satchel { position: absolute; display: flex; gap: 6px; --sz: 48px; }
+.item-btn { position: relative; width: var(--sz); height: var(--sz); padding: 0; cursor: pointer; border: 1px solid var(--gold-lo); background: radial-gradient(circle at 50% 35%, #2a2024, #0c0809); box-shadow: 0 0 0 2px #0a0608, 0 2px 10px rgba(0, 0, 0, 0.6); transition: transform 0.1s, opacity 0.2s; }
+.item-btn img { width: 74%; height: 74%; margin-top: 2px; }
+.item-btn b { position: absolute; right: 2px; bottom: 0; font: 700 13px var(--serif); color: var(--gold-hi); text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+.item-btn kbd { position: absolute; left: -3px; top: -7px; font-size: 9px; padding: 0 3px; }
+.item-btn:active { transform: scale(0.94); }
+.item-btn.cd { opacity: 0.55; }
+.item-btn.empty { opacity: 0.25; }
+.item-btn.sel { border-color: var(--gold-hi); box-shadow: 0 0 0 2px #0a0608, 0 0 0 4px var(--gold), 0 0 16px rgba(255, 180, 80, 0.6); }
+@media (hover: none) { .item-btn kbd { display: none; } }
+
+/* Pad navigation: the focus shows until a key or the mouse is used. */
+.pad-nav :focus { outline: 2px solid var(--gold-hi) !important; outline-offset: 3px; }
+.pad-nav .btn:focus { filter: brightness(1.35); }
+.pad-nav .lcard:focus { transform: translateY(-6px); box-shadow: 0 0 0 4px #0a0608, 0 0 0 6px var(--c), 0 0 40px color-mix(in srgb, var(--c) 45%, transparent); outline: none !important; }
+.pad-nav .seg button:focus { outline: none !important; box-shadow: inset 0 0 0 2px var(--gold-hi); }
+.pad-nav .settings .row:focus-within { background: rgba(255, 209, 102, 0.08); box-shadow: inset 3px 0 0 var(--gold); }
+.pad-row { flex-direction: column; align-items: flex-start !important; }
+.pad-info { white-space: pre-wrap; font: 500 12px/1.5 ui-monospace, Menlo, monospace; color: var(--ink-dim); word-break: break-all; }
 
 /* ── Cards / generic panels ──────────────────────────────────────────── */
 .card::before { inset: 3px !important; }
@@ -225,6 +245,13 @@ kbd { display: inline-block; min-width: 1.7em; padding: 0 6px; border: 1px solid
 .stage.locked { cursor: not-allowed; }
 .stage.locked .art { filter: grayscale(1) brightness(0.35); }
 .stage.locked .nm, .stage.locked .pl { opacity: 0.45; }
+/* The Vigil: a wide card under the five beacons. */
+.stage.rush { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(160px, 34%) 1fr; text-align: left; padding: 0; border-color: #8a2a2a; }
+.stage.rush .art { height: 100%; min-height: 96px; border-bottom: 0; border-right: 1px solid #8a2a2a; }
+.stage.rush .meta { padding: 12px 16px; align-self: center; }
+.stage.rush .nm { font-size: 18px; color: #ffb0a0; margin-top: 0; padding: 0; }
+.stage.rush .pl, .stage.rush .bst { padding: 0; }
+.stage.rush.on { box-shadow: 0 0 0 3px #0a0608, 0 0 0 5px #e0503a, 0 0 28px rgba(255, 60, 40, 0.4); }
 
 .run-foot { width: min(1120px, 100%); display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 22px 0 26px; flex-wrap: wrap; flex-shrink: 0; }
 .blood-toggle { display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 10px 16px; border: 1px solid rgba(179, 38, 42, 0.6); background: linear-gradient(180deg, rgba(60, 8, 12, 0.6), rgba(20, 2, 4, 0.7)); }
@@ -310,6 +337,9 @@ kbd { display: inline-block; min-width: 1.7em; padding: 0 6px; border: 1px solid
 .weapons-table img { width: 24px; height: 24px; }
 .unlocks { margin: 14px 0 6px; display: flex; flex-direction: column; gap: 6px; }
 .unlocks div { color: #b8f0a0; font: 700 14px var(--serif); letter-spacing: 0.06em; animation: rise 0.5s ease-out backwards; }
+.unlocks .deed { color: var(--gold-hi); display: flex; align-items: center; justify-content: center; gap: 8px; }
+.unlocks .deed img { width: 22px; height: 22px; }
+.unlocks .deed span { color: #ffc27a; }
 
 /* ── Hearth ──────────────────────────────────────────────────────────── */
 .hearth-grid { width: min(1040px, 100%); display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; padding-bottom: 26px; flex-shrink: 0; }
@@ -329,6 +359,27 @@ kbd { display: inline-block; min-width: 1.7em; padding: 0 6px; border: 1px solid
 .hup .steps li.on { color: var(--ink); }
 .hup .steps li.on::marker { color: var(--gold); }
 .hup.locked { opacity: 0.55; }
+.hup.ware { background: radial-gradient(ellipse at 20% 0%, color-mix(in srgb, var(--c) 18%, transparent), transparent 60%), linear-gradient(180deg, #1e1418, #0c0809); }
+.hup .have { font: 500 12px var(--serif); letter-spacing: 0.06em; color: var(--ink-dim); flex: 1; }
+
+/* ── Deeds ───────────────────────────────────────────────────────────── */
+.deed-count { font: 700 13px var(--serif); color: var(--gold); letter-spacing: 0.06em; }
+.deed-grid { width: min(1040px, 100%); display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; padding-bottom: 26px; flex-shrink: 0; }
+.deed-card { display: flex; gap: 12px; align-items: center; padding: 12px 14px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(122, 86, 38, 0.5); }
+.deed-card > img { width: 44px; height: 44px; padding: 5px; border-radius: 50%; border: 1px solid var(--gold-lo); background: #0a0608; flex-shrink: 0; opacity: 0.5; }
+.deed-card .tx { flex: 1; min-width: 0; }
+.deed-card .nm { font: 700 15px var(--serif); color: var(--ink-dim); }
+.deed-card .ds { color: var(--ink-faint); font-size: 14.5px; line-height: 1.3; }
+.deed-card .rw { font: 700 13px var(--serif); color: var(--ink-faint); display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.deed-card .rw .ico { width: 16px; height: 16px; }
+.deed-card.on { border-color: var(--gold); background: radial-gradient(ellipse at 10% 50%, rgba(255, 170, 60, 0.14), transparent 60%), rgba(0, 0, 0, 0.35); }
+.deed-card.on > img { opacity: 1; border-color: var(--gold); box-shadow: 0 0 14px rgba(255, 170, 60, 0.45); }
+.deed-card.on .nm { color: var(--gold-hi); }
+.deed-card.on .ds { color: var(--ink-dim); }
+.deed-card.on .rw { color: #ffc27a; }
+.deed-card .prog { position: relative; height: 14px; margin-top: 6px; background: rgba(255, 255, 255, 0.06); }
+.deed-card .prog i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #7a4a1a, #d4933a); }
+.deed-card .prog span { position: relative; display: block; text-align: center; font: 500 10px/14px var(--serif); color: var(--ink); }
 
 /* ── Journal ─────────────────────────────────────────────────────────── */
 .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-shrink: 0; }

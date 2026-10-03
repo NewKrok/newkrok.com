@@ -141,6 +141,9 @@ export class Audio {
       case "ember": S(0.12, { type: "triangle", freq: 1560, gain: 0.05 }); S(0.12, { freq: 2340, gain: 0.02 }); break;
       case "heal": [0, 4, 7, 12].forEach((n, i) => at(i * 0.05, (tt) => this.#tone(d, tt, 0.3, { type: "sine", freq: hz(72 + n), gain: 0.07 }))); break;
       case "magnet": S(0.6, { type: "sine", freq: 300, freqEnd: 1200, gain: 0.08, verb: 0.3 }); break;
+      case "ward": [76, 83, 88].forEach((n, i) => at(i * 0.05, (tt) => this.#tone(d, tt, 0.9, { type: "sine", freq: hz(n), gain: 0.05, verb: 0.7 }))); N(0.6, { type: "highpass", freq: 5000, gain: 0.04, verb: 0.5 }); break;
+      case "draught": N(0.35, { freq: 500, freqEnd: 2600, q: 1.5, gain: 0.1 }); S(0.3, { type: "triangle", freq: 440, freqEnd: 1100, gain: 0.06 }); break;
+      case "achieve": [67, 72, 76, 79, 84].forEach((n, i) => at(i * 0.09, (tt) => this.#tone(d, tt, 1.2, { type: "triangle", freq: hz(n), gain: 0.08, verb: 0.7 }))); break;
       case "freeze": N(1.2, { type: "highpass", freq: 6000, gain: 0.08, verb: 0.5 }); S(1.2, { freq: 1760, freqEnd: 880, gain: 0.05, verb: 0.5 }); break;
       case "chestGet": S(0.2, { type: "triangle", freq: 660, freqEnd: 990, gain: 0.1 }); break;
       case "chest": [60, 64, 67, 72, 76, 79, 84].forEach((n, i) => at(i * 0.07, (tt) => this.#tone(d, tt, 0.5, { type: "triangle", freq: hz(n + (k ? 2 : 0)), gain: 0.08, verb: 0.5 }))); break;

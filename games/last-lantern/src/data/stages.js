@@ -95,7 +95,32 @@ export const STAGES = [
   },
 ];
 
+// The Keepers' Vigil: opens once all five beacons burn. No horde, only the
+// keepers, one after another, each as strong as in its own stage (hp, dmg);
+// what they summon is all the soul gems there are. You set out with `boost`
+// levels to spend, and a short breath (`gap` seconds) between keepers.
+STAGES.push({
+  id: "vigil",
+  world: [2400, 2400],
+  bossAt: 6,
+  rush: [["colossus", 1.4, 1.3], ["bogmother", 1.9, 1.55], ["stag", 2.25, 1.49], ["wormhead", 3.1, 1.95], ["king", 3.8, 2.15]],
+  gap: 8,
+  boost: 24,
+  clearBonus: 500,
+  hpMul: 1.4, dmgMul: 1.3, rate: 1,
+  mix: [],
+  events: [],
+  horde: ["hollow", "gravebound", "specter", "drowned", "iceskel"],
+  hordeLead: "king",
+  look: "cathedral",
+  // The cathedral by blood-light.
+  mood: { fog: 0x180808, fogD: 0.0005, amb: 0x4a2430, ambI: 2.0, hemiSky: 0xa05a6a, hemiGnd: 0x1e1014, moon: 0xffb8a8, moonI: 1.5, outer: 0x221014, bloom: 0.8 },
+});
+
 STAGES.forEach((s, i) => { s.index = i; });
+
+// The five beacons of the story; the Vigil comes after them.
+export const BEACONS = 5;
 
 // Blood Moon: the same stage, much angrier, for more embers.
 export const BLOOD = { hp: 1.6, dmg: 1.25, rate: 1.35, embers: 1.75 };

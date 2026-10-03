@@ -233,6 +233,12 @@ export function nearestMonsters(R, n, maxD, fromX = heroX(R), fromY = heroY(R)) 
 export function hurtHero(R, dmg, sx, sy, src) {
   const h = R.hero;
   if (R.phase !== "play" || h.iframes > 0 || h.hp <= 0 || h.dig > 0 || h.sanct > 0) return;
+  // The Pedlar's ward turns every blow aside.
+  if (h.ward > 0) {
+    h.iframes = 12;
+    floater(R, heroX(R), heroY(R) - 22, "✧", "#9fd8ff", 1.1);
+    return;
+  }
   if (R.relics.includes("ghostlamp") && R.rng() < 0.15) {
     h.iframes = 18;
     floater(R, heroX(R), heroY(R) - 22, "✧", "#b8e0ff", 1.2);
