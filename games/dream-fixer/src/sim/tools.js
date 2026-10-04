@@ -205,7 +205,8 @@ export class ToolState {
   }
 
   // The umbrella reports { gust } while the button is held (one every
-  // `interval`); held open (`open`) it costs nothing by itself. Run hot,
+  // `interval`), only while it is shut; held open (`open`) it costs
+  // nothing by itself. Run hot,
   // it still opens (a glide must not fail you), it only stops gusting and
   // blocking until it has cooled.
   stepUmbrella(intent, dt, out) {
@@ -215,7 +216,8 @@ export class ToolState {
     if (this.sinceShot > d.coolDelay) this.heat = Math.max(0, this.heat - d.cool * dt);
     if (this.overheated && this.heat <= d.unlock) this.overheated = false;
     this.open = !!intent.alt;
-    if (!this.overheated && intent.fire && this.cd <= 0) {
+    // Open over your head it is a shield and a glide, not a fan.
+    if (!this.open && !this.overheated && intent.fire && this.cd <= 0) {
       out.push({ gust: true });
       this.cd = d.interval;
       this.addHeat(d.heat);

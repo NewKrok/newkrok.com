@@ -210,7 +210,8 @@ A **nyitott ernyő** (jobb
 gomb nyomva) a fejed fölé kerül: elöl és felül pajzs (a lövedékek
 megállnak rajta, és kicsit melegítik; elölről a bökésnek csak harmada
 jön át; a földön futó gyűrűk és az esés nem), a földön lassabban jársz,
-a levegőben siklasz (lassan esel, jobban kormányzol). Túlmelegedve is
+a levegőben siklasz (lassan esel, jobban kormányzol). Nyitva nem lehet
+vele széllökést adni. Túlmelegedve is
 kinyílik (a siklás sosem hagy cserben), csak nem fúj és nem véd. Az
 álomban vannak dolgok, amik felelnek rá: a **feláramlás**
 (`kit.updraft`, egy kőkút rácsán felszálló levelek) a nyitott ernyőt a
