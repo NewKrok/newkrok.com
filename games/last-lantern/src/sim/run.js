@@ -12,7 +12,7 @@ import { HEROES, ACTIVES, WEAPON_IDS, PASSIVE_IDS, WEAPON_META, RELIC_IDS, MAX_R
 import { ITEMS, ITEM_CD } from "../data/items.js";
 import { buildWorld } from "./world.js";
 import {
-  F, heroX, heroY, spawnMonster, killMonster, damageMonster, hurtHero, killSpit, gemTier,
+  F, heroX, heroY, spawnMonster, killMonster, damageMonster, hurtHero, killSpit, gemTier, spawnSpit,
   burst, floater, particle, explode, pushProps, nearestMonsters, burnMonster,
 } from "./core.js";
 import { tickMonsters, spawnPoint, spawnBoss, contactDamage, slam } from "./monsters.js";
@@ -557,16 +557,66 @@ function weightedPick(R, list) {
 // stage's strength.
 function tickRush(R) {
   const st = R.stage;
-  if (R.boss?.alive || R.rushIdx >= st.rush.length || R.clock < R.rushNext) return;
+  if (R.boss?.alive) { tickKeeper(R, R.boss); return; }
+  if (R.rushIdx >= st.rush.length || R.clock < R.rushNext) return;
   const [id, hp, dmg] = st.rush[R.rushIdx++];
   R.hpMul = hp * (R.blood ? BLOOD.hp : 1);
   R.dmgMul = dmg * (R.blood ? BLOOD.dmg : 1);
+  R.rushHome = STAGES.find((s) => s.boss === id);
+  R.rushCalls = 0;
+  R.wrathT = 0;
   R.bossSpawned = true;
   R.bossSpawnedAt = R.clock;
-  spawnBoss(R, id);
+  const k = spawnBoss(R, id);
+  if (k) { k.hp *= st.keeperHp; k.maxHp *= st.keeperHp; }
   R.banner("boss_" + id, "#f85149", 200);
   R.sfx.push(["bossArrive"]);
   R.shake(10, 0.6);
+}
+
+// While a keeper of the Vigil stands: its stage's night around it, its
+// elite guard at 2/3 and 1/3 health, and its wrath below half.
+function tickKeeper(R, k) {
+  const st = R.stage, home = R.rushHome;
+  if (!home) return;
+  const f = k.hp / k.maxHp;
+  // The horde: the home stage's late mix at a share of the boss-fight pace.
+  if (R.freeze <= 0) {
+    let rate = (0.8 + (home.bossAt / 60) * 1.35) * home.rate * (R.blood ? BLOOD.rate : 1) * 1.4 * 0.55 * st.hordeRate;
+    let alive = 0;
+    const count = {};
+    for (const m of R.monsters) if (m.alive && !m.def.prop && !m.def.part) { alive++; count[m.id] = (count[m.id] || 0) + 1; }
+    if (alive >= MAX_MON) rate = 0;
+    R.spawnAcc += rate * DT;
+    const w = home.mix.filter(([id]) => !(MON[id].cap && (count[id] || 0) >= MON[id].cap)).map(([id, , , w1]) => [id, w1]);
+    while (R.spawnAcc >= 1 && w.length) {
+      R.spawnAcc -= 1;
+      const s = spawnPoint(R);
+      spawnMonster(R, weightedPick(R, w), s.x, s.y);
+    }
+  }
+  // The guard.
+  const want = f < 0.33 ? 2 : f < 0.66 ? 1 : 0;
+  if (want > R.rushCalls) {
+    R.rushCalls = want;
+    const elite = home.events.find((e) => e[1] === "elite")[2];
+    for (let i = 0; i < want; i++) {
+      const s = spawnPoint(R, 480, 560);
+      const m = spawnMonster(R, elite, s.x, s.y);
+      if (m) burst(R, s.x, s.y, 30, m.def.c, 3);
+    }
+    R.banner("ev_elite_" + elite, "#ff9a5a", 150);
+    R.sfx.push(["elite"]);
+    R.shake(6, 0.3);
+  }
+  // The keeper's wrath: rings of spit, quicker when nearly down.
+  if (f < 0.5 && k.hidden <= 0 && --R.wrathT <= 0) {
+    if (R.rushWrathFor !== k) { R.rushWrathFor = k; R.banner("b_wrath", "#ff6b4a", 150); }
+    R.wrathT = Math.round((f < 0.25 ? 4 : 5.5) * FPS);
+    const p = k.body.position, n = f < 0.25 ? 22 : 16, off = R.rng() * Math.PI * 2;
+    for (let i = 0; i < n; i++) spawnSpit(R, p.x, p.y, off + (i / n) * Math.PI * 2, { dmg: 11, speed: 190, color: k.def.c2, r: 7, life: 240, big: true });
+    R.sfx.push(["orbs"]);
+  }
 }
 
 function tickSpawns(R) {

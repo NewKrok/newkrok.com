@@ -65,7 +65,7 @@ export function spawnMonster(R, id, x, y, opts = {}) {
     // monsters share one object shape and hot loops stay optimised.
     lastSrc: "", healedAt: -1e9, haste: 0, censerCd: 0, combo: 0, scA: 0, spiral: 0, zones: 0,
     thrownDmg: 0, thrownSrc: "", reap: false, idleA: 0, idleR: 0, z: -1,
-    segs: null, parent: null, segR: 0, index: 0, joint: null, segHits: null,
+    segs: null, parent: null, segR: 0, index: 0, joint: null, segHits: null, along: 0, trail: null,
     faceVis: 0, faceInit: false, colState: -1, slotCheck: -1,
   };
   R.monsters.push(m);

@@ -231,6 +231,7 @@ ZH.monsterLore = {
 
 // 货郎、行囊、功绩、守夜与手柄。
 Object.assign(ZH, {
+  b_wrath: "守护者之怒",
   confirmNo: "取消", confirmGiveUp: "放弃",
   next: "下一步", changeHero: "更换提灯人",
   pedlar: "货郎", pedlarIntro: "一位戴兜帽的货郎贩卖路上所需之物。每件货物用过即消耗；剩下的会留在你的行囊里，带到下一局。",

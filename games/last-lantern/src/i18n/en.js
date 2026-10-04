@@ -231,6 +231,7 @@ EN.monsterLore = {
 
 // The Pedlar, the satchel, deeds, the Vigil and the gamepad.
 Object.assign(EN, {
+  b_wrath: "THE KEEPER'S WRATH",
   confirmNo: "Cancel", confirmGiveUp: "Give up",
   next: "Next", changeHero: "Change lantern-bearer",
   pedlar: "The Pedlar", pedlarIntro: "A hooded pedlar sells what the road needs. Every ware is used up once you use it; the rest stays in your satchel for the next run.",

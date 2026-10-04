@@ -231,6 +231,7 @@ DE.monsterLore = {
 
 // Der Hausierer, der Ranzen, Taten, die Wacht und das Gamepad.
 Object.assign(DE, {
+  b_wrath: "DER ZORN DES HÜTERS",
   confirmNo: "Abbrechen", confirmGiveUp: "Aufgeben",
   next: "Weiter", changeHero: "Laternenträger wechseln",
   pedlar: "Der Hausierer", pedlarIntro: "Ein vermummter Hausierer verkauft, was der Weg verlangt. Jede Ware ist verbraucht, sobald du sie benutzt; der Rest bleibt in deinem Ranzen für den nächsten Lauf.",

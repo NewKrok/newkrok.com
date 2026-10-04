@@ -231,6 +231,7 @@ FR.monsterLore = {
 
 // Le colporteur, la besace, les hauts faits, la Veillée et la manette.
 Object.assign(FR, {
+  b_wrath: "LA COLÈRE DU GARDIEN",
   confirmNo: "Annuler", confirmGiveUp: "Abandonner",
   next: "Suivant", changeHero: "Changer de porte-lanterne",
   pedlar: "Le Colporteur", pedlarIntro: "Un colporteur encapuchonné vend ce que la route exige. Chaque marchandise s'épuise dès qu'on l'utilise ; le reste attend dans votre besace pour la partie suivante.",

@@ -231,6 +231,7 @@ ES.monsterLore = {
 
 // El buhonero, el morral, las hazañas, la Vigilia y el mando.
 Object.assign(ES, {
+  b_wrath: "LA IRA DEL GUARDIÁN",
   confirmNo: "Cancelar", confirmGiveUp: "Rendirse",
   next: "Siguiente", changeHero: "Cambiar de portador",
   pedlar: "El buhonero", pedlarIntro: "Un buhonero encapuchado vende lo que el camino pide. Cada mercancía se gasta al usarla; lo que sobra se queda en tu morral para la próxima partida.",

@@ -95,16 +95,20 @@ export const STAGES = [
   },
 ];
 
-// The Keepers' Vigil: opens once all five beacons burn. No horde, only the
-// keepers, one after another, each as strong as in its own stage (hp, dmg);
-// what they summon is all the soul gems there are. You set out with `boost`
-// levels to spend, and a short breath (`gap` seconds) between keepers.
+// The Keepers' Vigil: opens once all five beacons burn. The keepers, one
+// after another, each with its own stage's strength (hp, dmg) and twice its
+// health (keeperHp); its stage's night comes with it at `hordeRate` of the
+// boss-fight pace, its elite guard answers at 2/3 and 1/3 health, and below
+// half it looses the keeper's wrath (rings of spit). You set out with
+// `boost` levels to spend, and a short breath (`gap` seconds) between them.
 STAGES.push({
   id: "vigil",
   world: [2400, 2400],
   bossAt: 6,
   rush: [["colossus", 1.4, 1.3], ["bogmother", 1.9, 1.55], ["stag", 2.25, 1.49], ["wormhead", 3.1, 1.95], ["king", 3.8, 2.15]],
   gap: 8,
+  keeperHp: 2,
+  hordeRate: 0.6,
   boost: 24,
   clearBonus: 500,
   hpMul: 1.4, dmgMul: 1.3, rate: 1,
