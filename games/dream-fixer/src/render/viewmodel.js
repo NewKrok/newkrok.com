@@ -1,6 +1,6 @@
 import * as T from "three";
 import { make, MAT } from "./modelkit.js";
-import { stabilizer, STABILIZER_MUZZLE, fuzzVacuum, VACUUM_MUZZLE, foamCannon, FOAM_MUZZLE, lullabyBell, BELL_MUZZLE } from "./models/tools.js";
+import { stabilizer, STABILIZER_MUZZLE, fuzzVacuum, VACUUM_MUZZLE, foamCannon, FOAM_MUZZLE, lullabyBell, BELL_MUZZLE, gustUmbrella, UMBRELLA_MUZZLE } from "./models/tools.js";
 import { damp } from "../config.js";
 
 // ── The tool in your hand ────────────────────────────────────────────────
@@ -16,6 +16,7 @@ const TOOLS = {
   vacuum: { build: fuzzVacuum, muzzle: VACUUM_MUZZLE, cool: new T.Color(0xffd27a), at: [0.015, -0.035, -0.08] },
   foam: { build: foamCannon, muzzle: FOAM_MUZZLE, cool: new T.Color(0x9fe0ff), at: [0.005, -0.02, -0.03] },
   bell: { build: lullabyBell, muzzle: BELL_MUZZLE, cool: new T.Color(0xc8b0ff), at: [0.01, -0.02, -0.02] },
+  umbrella: { build: gustUmbrella, muzzle: UMBRELLA_MUZZLE, cool: new T.Color(0xa8f0c0), at: [0.01, -0.01, 0.03], s: 0.85 },
 };
 
 export class ViewModel {
@@ -36,6 +37,7 @@ export class ViewModel {
       const o = make(def.build, {}, { shadows: false });
       o.rotation.set(0.07, 0.035, 0.03);
       if (def.at) o.position.set(...def.at);
+      if (def.s) o.scale.setScalar(def.s);
       o.visible = false;
       this.pivot.add(o);
       // The glowing parts get their own material so their colour can follow the heat.
@@ -101,6 +103,10 @@ export class ViewModel {
     this.strike = damp(this.strike || 0, 0, 9, dt);
     this.swing = damp(this.swing || 0, 0, 2.5, dt);
     this.flapKick = damp(this.flapKick, 0, 8, dt);
+    // Umbrella: held open it goes up over your head; a gust snaps it open and shut.
+    this.open = damp(this.open || 0, s.tool === "umbrella" && s.open && !swapping ? 1 : 0, 11, dt);
+    if (s.gusted) { this.snap = 1; this.kick = Math.min(1.6, this.kick + 0.5); this.flash = 1; }
+    this.snap = Math.max(0, (this.snap || 0) - dt / 0.28);
 
     const bx = Math.sin(this.bobT) * 0.012 * this.bobAmt, by = -Math.abs(Math.cos(this.bobT)) * 0.012 * this.bobAmt;
     const shake = (this.charge > 0.05 ? Math.sin(s.t * 90) * 0.0016 * this.charge : 0) + (s.sucking ? Math.sin(s.t * 70) * 0.0012 : 0);
@@ -114,6 +120,11 @@ export class ViewModel {
       this.sway.x * 0.8,
       -this.sway.x * 0.5 + bx * 2,
     );
+    const up = this.current === "umbrella" ? this.open : 0;
+    if (up) {
+      this.pivot.position.x += up * 0.03; this.pivot.position.y += up * 0.1; this.pivot.position.z += up * 0.04;
+      this.pivot.rotation.x += up * 1.05; this.pivot.rotation.z -= up * 0.35;
+    }
     const tool = this.tools[this.current];
     const N = tool.o.userData.nodes;
     // Stabilizer: gauge needle and valve follow the heat.
@@ -136,6 +147,12 @@ export class ViewModel {
     if (N.clapper) N.clapper.rotation.x = Math.sin(s.t * 14) * 0.35 * this.swing;
     if (N.crank) N.crank.rotation.x += dt * this.charge * 14;
     if (N.hum) N.hum.scale.setScalar(1 + this.charge * 0.8 + this.flash * 0.3);
+    if (N.canopy) {
+      const k = 0.1 + 0.68 * Math.max(this.open, this.snap > 0 ? Math.sin(Math.PI * (1 - this.snap)) * 0.9 : 0);
+      N.canopy.scale.set(k, k, 1 + (1 - k) * 0.55);
+      N.canopy.rotation.z += dt * this.open * (s.gliding ? 2.5 : 0.3);
+    }
+    if (N.glow) N.glow.scale.setScalar(1 + this.flash * 0.6);
     // Glow colour: cool → orange → red with the heat, brighter on each shot.
     const c = tool.glowMat.color;
     if (s.heat < 0.6) c.copy(tool.cool).lerp(WARM, s.heat / 0.6); else c.copy(WARM).lerp(HOT, (s.heat - 0.6) / 0.4);

@@ -15,6 +15,7 @@ import { DreamSky } from "./dreamsky.js";
 import { WaterView } from "./water.js";
 import { FoamView } from "./foam.js";
 import { BellView } from "./bell.js";
+import { UmbrellaView } from "./umbrella.js";
 import { C } from "./palette.js";
 import { damp, lerp } from "../config.js";
 
@@ -41,6 +42,7 @@ export class GameView {
     this.bossView = new BossView(this.scene, this.fx);
     this.foamView = new FoamView(this.scene, this.fx);
     this.bellView = new BellView(this.scene, this.fx);
+    this.umbrellaView = new UmbrellaView(this.scene, this.fx);
     this.companion = new Companion(this.scene);
     this.talking = false;
     this.shake = 0;
@@ -125,6 +127,7 @@ export class GameView {
       this.foamView.clear();
     }
     this.bellView.load(run);
+    this.umbrellaView.load(run);
     const def = run.def, kit = run.kit;
     this.foes.setSkins(def.skins);
     const g = this.level = new T.Group();
@@ -164,6 +167,10 @@ export class GameView {
       } else if (["bellBat", "foeSleep", "foeWake", "jellyWobble", "jellySquish", "boing", "souffleFall"].includes(e.type)) {
         this.bellView.onEvent(e, run);
         if (e.type === "souffleFall" && Math.hypot(e.x - run.body.x, e.z - run.body.z) < 10) this.shake = Math.min(1, this.shake + 0.2);
+      } else if (["gust", "gustHop", "foeToss", "foeLand", "foeSlap", "umbrellaBlock", "spitBlown", "pinwheel"].includes(e.type)) {
+        this.umbrellaView.onEvent(e, run, this.muzzleWorld());
+        if (e.type === "gust") { this.gusted = true; this.muzzleFlash = Math.max(this.muzzleFlash || 0, 0.6); }
+        if (e.type === "umbrellaBlock") this.shake = Math.min(1, this.shake + 0.1);
       } else if (e.type === "shot") {
         const end = [e.o[0] + e.d[0] * e.t, e.o[1] + e.d[1] * e.t, e.o[2] + e.d[2] * e.t];
         const from = this.muzzleWorld();
@@ -342,8 +349,9 @@ export class GameView {
       shot: !!this.shotThisFrame, big: this.shotThisFrame || 0, hidden: run.opts.noTools,
       sucking: tool.sucking, tank: tool.tank, launched: this.launched, blasted: this.blasted,
       sprayed: this.sprayed, blobbed: this.blobbed, rang: this.rang, lulled: this.lulled,
+      open: tool.open, gusted: this.gusted, gliding: tool.open && !b.grounded,
     });
-    this.shotThisFrame = 0; this.launched = false; this.blasted = false; this.sprayed = false; this.blobbed = false; this.rang = false; this.lulled = false;
+    this.shotThisFrame = 0; this.launched = false; this.blasted = false; this.sprayed = false; this.blobbed = false; this.rang = false; this.lulled = false; this.gusted = false;
     // The vacuum's stream: flecks rushing into the nozzle.
     if (tool.sucking) this.suckStream(run, dt);
     this.muzzleFlash = damp(this.muzzleFlash || 0, 0, 20, dt);
@@ -355,6 +363,7 @@ export class GameView {
     this.bossView.update(run, alpha, dt, t);
     this.foamView.update(run, alpha, dt, t, m);
     this.bellView.update(run, dt, t);
+    this.umbrellaView.update(run, dt, t);
     this.fx.update(dt);
     this.adapt(dt);
     this.composer.render(dt);

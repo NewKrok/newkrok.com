@@ -50,8 +50,9 @@ Margó egyre idegesebb, mert „ennyi hibás álom nem szokott lenni”.
    főellenség a Piros Toll.
 3. **Rosie, a szakács, a büféje nyitása előtti éjszaka:** óriásivá nőtt
    konyha, elszabadult ételek, a főellenség a Kuktafazék.
-4. **Béla bácsi:** zuhanós álom lebegő kertszigeteken, a régi vasútállomás
-   emlékével. A főellenség a Nagy Ébresztőóra. Ez a legérzelmesebb fejezet.
+4. **Joe nagypapa (Grandpa Joe):** zuhanós álom lebegő kertszigeteken, a
+   régi vasútállomás emlékével. A főellenség a Nagy Ébresztőóra. Ez a
+   legérzelmesebb fejezet. Itt jön a **Szélernyő**, Joe régi esernyője.
 5. **Zsófi, az űrhajós:** honvágy, egy súlytalan űrállomás, benne a
    gyerekkori szobája darabjaival.
 6. **Finálé, Álmos álma:** kiderül, hogy a hibák onnan szivárognak, hogy a
@@ -183,6 +184,7 @@ töltéskorlát van, ami magától visszaáll.
 | **Kócszívó** | A sugara mindent koptat, amit ér; a kis hibákat (legfeljebb hármat) és az álomport beszívja | A beszívott hibát szétpukkanó fonalgombócként lövi vissza, üres tartállyal légfúvás | 1. fejezet |
 | **Habágyú** | Lelassító hab | Megszilárduló habplatform (puzzle és mozgás) | 2. fejezet |
 | **Altatócsengő** | Csengetés: kúpban szaladó hanghullám, ami hátralöki a hibákat, és a lövedékeiket visszaüti a dobójukra | Nyomva tartva altatódalt dúdol (minél tovább, annál messzebbre ér), elengedve körbefut: a kis hibák elalszanak, a nagyok csak elálmosodnak | 3. fejezet |
+| **Szélernyő** | Széllökés kúpban: a kis gyalogos hibákat feldobja (a levegőben tehetetlenek, a sziget széléről le is eshetnek), a repülőket lecsapja a földre, a nagyokat meglöki, a lövedékeket elfújja | Nyomva tartva kinyitod: pajzs elöl és felül, a levegőben siklasz, a feláramlás felvisz | 4. fejezet |
 | **Villáskulcs** | Közelharc és tárgyak megütése | — | Mindig nálad van |
 
 **Az Altatócsengő részletei.** Az alvó hiba lefekszik, „Z”-k szállnak
@@ -196,13 +198,33 @@ amíg rezeg, trambulin (kb. 4–5 méterre dob fel); a **szuflé** egy
 csengetésre végleg összeesik, és szabad az út. A főellenség kaphat
 `rung` és `lulled` horgot.
 
+**A Szélernyő részletei.** A széllökés (kattintás, nyomva tartva
+ismétel) feldobja a kis gyalogos hibákat: lassan bucskáznak a levegőben,
+nem csinálnak semmit, minden találat másfélszeresen számít, és szédülten
+érnek földet; aki a sziget széle felé repül, leesik az álomból, és az is
+kisimítottnak számít (a pora a szélen marad). A repülőket a földre
+csapja, ott is tehetetlenek pár másodpercig. A nagyokat (kád, hátizsák,
+sodrófa) csak meglöki, a fészkeket semmire. A lövedékeket ártalmatlanul
+elfújja, a borsfelhőt is. Falon nem megy át. Ha a levegőben a lábad elé
+fújsz, egyszer ugrásonként kicsit megemel. A **nyitott ernyő** (jobb
+gomb nyomva) a fejed fölé kerül: elöl és felül pajzs (a lövedékek
+megállnak rajta, és kicsit melegítik; elölről a bökésnek csak harmada
+jön át; a földön futó gyűrűk és az esés nem), a földön lassabban jársz,
+a levegőben siklasz (lassan esel, jobban kormányzol). Túlmelegedve is
+kinyílik (a siklás sosem hagy cserben), csak nem fúj és nem véd. Az
+álomban vannak dolgok, amik felelnek rá: a **feláramlás**
+(`kit.updraft`, egy kőkút rácsán felszálló levelek) a nyitott ernyőt a
+tetejéig viszi; a **szélforgó** (`kit.pinwheel`) egy széllökéstől pár
+másodpercig pörög, és amíg pörög, fúj a hozzá kötött feláramlás. A
+főellenség kaphat `gusted` horgot.
+
 A Gyár **munkapadján** álomporért lehet vásárolni, négy fülön, mindenről
 forgatható 3D előnézettel és „most → következő” értékkel:
 
 - **Szerszámok:** szerszámonként 3–4 fejlesztés, mindegyik 2–3 szinttel
   (hűtés, sebzés, tűzgyorsaság, töltés; a Kócszívónál hatótáv, sugár,
   tartály, robbanás; az Altatócsengőnél perem, nyelv, altatódal,
-  zenedoboz).
+  zenedoboz; a Szélernyőnél kupola, küllők, rugó, viaszolt vászon).
 - **Szerelő:** éberség, párnázott mellény (kevesebb sebzés), futás,
   sebesség, pormágnes, porszita (több por), nagyobb zseb (több kellék).
 - **Cog:** gyűjtőkar (elrepül a messzi porért és hozza), ápoló modul (csendes
@@ -243,7 +265,7 @@ Morzsa parkjában a Kóc bőre egy összegabalyodott, dühös **mókus**: a kuty
 
 - **Asztali gép:** WASD és egér (Pointer Lock), szóköz az ugrás, bal/jobb
   egérgomb a fő és a másodlagos funkció, E a szerelés és a használat,
-  1–4 és a görgő a szerszámváltás.
+  1–5 és a görgő a szerszámváltás.
 - **Mobil:** bal oldalon virtuális joystick a mozgáshoz, jobb oldalon
   húzással nézel. Gombok: lövés, másodlagos, ugrás, szerelés, és
   szerszámváltó kerék. Beállítható **automatikus lövés**, amikor a célkereszt
@@ -295,7 +317,12 @@ kód többi része az adataiból dolgozik:
 ment haladást; `?level=<id>` (csak dev) ott indít. A `lab` a Habágyú
 próbapályája, a `belllab` az Altatócsengőé (altatnivaló csapat,
 dobálós hibák a visszaütéshez, zselék egy teraszhoz és egy oszlophoz,
-szuflé egy fal résében), mindkettő minden szerszámmal.
+szuflé egy fal résében), az `umbrellalab` a Szélernyőé (lebegő
+kertszigetek: kis hibák a nagy gyep szélén a ledobáshoz, északon 9
+méteres rés egy alacsonyabb szigetre, csak siklással, ott repülők és
+dobálók a pajzshoz; keleten mindig fújó feláramlás egy magas szigetre,
+délnyugaton szélforgós feláramlás egy oszlopszigetre), mind minden
+szerszámmal.
 
 **Modellminőség:** lesz egy fejlesztői modellnéző (`?model=<id>`), ami egy
 modellt forgatva mutat. A headless screenshotokon így minden modellt

@@ -4,7 +4,7 @@
 // has cooled to `unlock`.
 
 // The order tools sit in your hands (and on the number keys).
-export const TOOL_ORDER = ["stabilizer", "vacuum", "foam", "bell"];
+export const TOOL_ORDER = ["stabilizer", "vacuum", "foam", "bell", "umbrella"];
 
 export const TOOLS = {
   stabilizer: {
@@ -58,6 +58,24 @@ export const TOOLS = {
     // r0…r1: the lullaby's reach, short hum to full; sleep / drowsy: seconds.
     lull: { time: 0.9, min: 0.3, heat: 0.55, r0: 4, r1: 7.5, speed: 11, sleep: 6, drowsy: 4 },
   },
+  // Pressed: snapped open and shut, a gust in a cone ahead that tosses
+  // small walkers up in the air (helpless up there, and they come down
+  // dizzy), slaps flyers down to the ground, shoves the big ones and blows
+  // orbs away. Aimed at your feet in mid-air it lifts you a little, once
+  // per jump. Held second action: open over you, a shield in front and
+  // above (it stops orbs, takes the edge off bonks), and in the air you
+  // glide; an updraft carries an open umbrella up.
+  umbrella: {
+    interval: 0.45, heat: 0.22, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
+    range: 7, cone: 0.55, damage: 0.8, push: 7,
+    toss: 9,              // take-off speed of a tossed glitch
+    slap: 2.5,            // seconds a flyer stays down
+    hop: 8,               // the gust at your feet in mid-air: take-off speed
+    shield: { cone: 1.15, guard: 0.3, heat: 0.12 },   // half angle; share of a bonk you still feel
+    glide: { fall: 2.4, air: 1.8 },                   // fastest fall; air control ×
+    walk: 0.72,           // walking speed under an open umbrella
+    lift: 46, rise: 7,    // an updraft: push up (m/s²), fastest climb
+  },
 };
 
 export class ToolState {
@@ -73,6 +91,7 @@ export class ToolState {
     this.tank = [];           // vacuum: what it has caught (kinds)
     this.sucking = false;
     this.altHeld = false;
+    this.open = false;        // umbrella: held open
   }
 
   // Returns the shots this step wants: [{ damage, big }] (usually 0 or 1).
@@ -81,6 +100,7 @@ export class ToolState {
     if (this.id === "vacuum") return this.stepVacuum(intent, dt, out);
     if (this.id === "foam") return this.stepFoam(intent, dt, out);
     if (this.id === "bell") return this.stepBell(intent, dt, out);
+    if (this.id === "umbrella") return this.stepUmbrella(intent, dt, out);
     const d = this.def;
     this.cd -= dt;
     this.sinceShot += dt;
@@ -179,6 +199,25 @@ export class ToolState {
     }
     if (intent.fire && !this.charging && this.cd <= 0) {
       out.push({ ring: true });
+      this.cd = d.interval;
+      this.addHeat(d.heat);
+    }
+    return out;
+  }
+
+  // The umbrella reports { gust } while the button is held (one every
+  // `interval`); held open (`open`) it costs nothing by itself. Run hot,
+  // it still opens (a glide must not fail you), it only stops gusting and
+  // blocking until it has cooled.
+  stepUmbrella(intent, dt, out) {
+    const d = this.def;
+    this.cd -= dt;
+    this.sinceShot += dt;
+    if (this.sinceShot > d.coolDelay) this.heat = Math.max(0, this.heat - d.cool * dt);
+    if (this.overheated && this.heat <= d.unlock) this.overheated = false;
+    this.open = !!intent.alt;
+    if (!this.overheated && intent.fire && this.cd <= 0) {
+      out.push({ gust: true });
       this.cd = d.interval;
       this.addHeat(d.heat);
     }

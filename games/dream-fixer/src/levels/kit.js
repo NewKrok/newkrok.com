@@ -18,6 +18,8 @@ export class Kit {
     this.lights = [];
     this.waters = [];          // { x, z, w, d, y }: pond surfaces (drawn by the renderer)
     this.ringables = [];       // things the Lullaby Bell sets off (drawn by the renderer)
+    this.updrafts = [];        // columns of rising air an open umbrella rides up
+    this.pinwheels = [];       // a gust sets them spinning (and their updraft blowing)
     this.floorLimit = 50;      // indoors: below the ceiling
   }
 
@@ -105,6 +107,22 @@ export class Kit {
     const D = RINGABLE[kind], r = o.r ?? D.r, h = o.h ?? D.h;
     const c = this.world.cyl({ x, z, r, y0: y - 0.3, y1: y + h, tag: kind });
     this.ringables.push({ id: `${kind}${this.ringables.length}`, kind, x, z, ...D, ...o, y, r, h, c });
+  }
+  // A column of rising air from (x, z): an open umbrella rides it up to
+  // `top`. o: { r, y (its foot), top, pinwheel (id: blows only while that
+  // pinwheel turns) }. The renderer draws its swirl and leaves.
+  updraft(id, x, z, o = {}) {
+    const y = o.y ?? this.floorAt(x, z), r = o.r ?? 1.6;
+    // Its stone well: a low rim you step up onto (the grate inside it too).
+    this.world.cyl({ x, z, r: r + 0.25, y0: y - 0.3, y1: y + 0.4 });
+    this.updrafts.push({ id, x, z, y, r, top: o.top ?? y + 8, pinwheel: o.pinwheel ?? null });
+  }
+  // A garden pinwheel on a post; a gust sets it spinning for `time` s.
+  // o: { y, h (height of the hub), time, yaw }.
+  pinwheel(id, x, z, o = {}) {
+    const y = o.y ?? this.floorAt(x, z), h = o.h ?? 2.2;
+    this.world.cyl({ x, z, r: 0.12, y0: y, y1: y + h });
+    this.pinwheels.push({ id, x, z, y, h, time: o.time ?? 9, yaw: o.yaw ?? 0 });
   }
   mark(name, x, z, y) { this.marks[name] = { x, y: y ?? this.floorAt(x, z), z }; }
   light(x, y, z, color, intensity = 6, dist = 9) { this.lights.push({ x, y, z, color, intensity, dist }); }

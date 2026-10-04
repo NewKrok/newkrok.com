@@ -13,7 +13,7 @@ const KEYS = {
   jump: ["Space"], use: ["KeyE", "KeyF"], sprint: ["ShiftLeft", "ShiftRight"],
 };
 const ONE_SHOT = {
-  Digit1: "tool1", Digit2: "tool2", Digit3: "tool3", Digit4: "tool4", KeyQ: "toolPrev", Escape: "pause", KeyP: "pause", KeyR: "toolNext",
+  Digit1: "tool1", Digit2: "tool2", Digit3: "tool3", Digit4: "tool4", Digit5: "tool5", KeyQ: "toolPrev", Escape: "pause", KeyP: "pause", KeyR: "toolNext",
   KeyG: "item_pillow", KeyC: "item_espresso", KeyV: "item_cocoa",
 };
 

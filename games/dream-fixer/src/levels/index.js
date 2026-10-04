@@ -4,13 +4,14 @@ import { school } from "./school.js";
 import { kitchen } from "./kitchen.js";
 import { lab } from "./lab.js";
 import { belllab } from "./belllab.js";
+import { umbrellalab } from "./umbrellalab.js";
 
 // ── Every level, and the job board ───────────────────────────────────────
 // LEVELS by id (the Factory, the dreams, and dev-only test levels).
 // CLIENTS is the board in story order: a client whose dream is built has a
 // `level`; `after` is the dream that has to be fixed before they call.
 
-export const LEVELS = { factory, park, school, kitchen, lab, belllab };
+export const LEVELS = { factory, park, school, kitchen, lab, belllab, umbrellalab };
 
 export const CLIENTS = [
   { id: "park", level: "park" },

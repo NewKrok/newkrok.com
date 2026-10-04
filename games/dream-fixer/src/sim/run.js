@@ -12,6 +12,7 @@ import { toolDef, maxHpFor, magnetFor, perksFor, ITEM } from "../data/upgrades.j
 import { Cog } from "./cog.js";
 import { Foam } from "./foam.js";
 import { Bell, backHit } from "./bell.js";
+import { Umbrella } from "./umbrella.js";
 import { SNEEZE } from "./foes-kitchen.js";
 
 // ── One visit to a dream ─────────────────────────────────────────────────
@@ -63,6 +64,8 @@ export class Run {
     this.bell = new Bell();       // the Lullaby Bell's waves of sound
     // Things in the dream that answer the bell (a jelly, a soufflé).
     this.ringables = this.kit.ringables.map((g) => ({ ...g, wobbleT: 0 }));
+    // The umbrella's gusts, its glide, updrafts and pinwheels.
+    this.umbrella = new Umbrella(this.kit);
     this.time = 0;
     this.events = [];
     this.hp = this.maxHp; this.hurtT = 9; this.invuln = 0;
@@ -281,7 +284,7 @@ export class Run {
       s.t += dt; s.r = s.t * s.speed;
       const d = Math.hypot(b.x - s.x, b.z - s.z);
       // (A wall between stops it.)
-      if (!s.hit && Math.abs(d - s.r) < 0.6 && b.y - s.y < 0.45 && !this.world.raycast(s.x, s.y + 0.3, s.z, (b.x - s.x) / (d || 1), 0, (b.z - s.z) / (d || 1), Math.max(0, d - 0.4))) { s.hit = true; this.hurt(s.dmg, s.x, s.z); }
+      if (!s.hit && Math.abs(d - s.r) < 0.6 && b.y - s.y < 0.45 && !this.world.raycast(s.x, s.y + 0.3, s.z, (b.x - s.x) / (d || 1), 0, (b.z - s.z) / (d || 1), Math.max(0, d - 0.4))) { s.hit = true; this.hurt(s.dmg, s.x, s.z, false); }
     }
     this.shocks = this.shocks.filter((s) => s.r < s.max);
   }
@@ -303,8 +306,14 @@ export class Run {
     return !this.world.raycast(x, y, z, dx / l, dy / l, dz / l, l - 0.2);
   }
 
-  hurt(amount, fromX, fromZ) {
+  // guard: an open umbrella facing the bonk takes the edge off it (not a
+  // fall, not a ring along the floor).
+  hurt(amount, fromX, fromZ, guard = true) {
     if (this.invuln > 0 || this.hp <= 0) return;
+    if (guard && this.umbrella.guards(this, fromX, fromZ)) {
+      amount *= this.activeTool.def.shield.guard;
+      this.umbrella.block(this, fromX, this.body.y + 1, fromZ);
+    }
     const dmg = amount * this.diff.dmg * this.perks.hurt;
     this.hp -= dmg;
     this.hurtT = 0;
@@ -357,7 +366,10 @@ export class Run {
       if (this.restT > STAMINA.delay) this.stamina = Math.min(1, this.stamina + dt / S.refill);
       if (this.winded && this.stamina >= STAMINA.again) this.winded = false;
     }
-    b.step(this.world, intent, dt, (this.sprinting ? 1.45 : 1) * this.perks.speed * (this.boostT > 0 ? ITEM.espresso.speed : 1) * (this.slowT > 0 ? 0.5 : 1));
+    this.umbrella.carry(this, dt);
+    // (Walking under an open umbrella is slower; gliding is not.)
+    const under = this.umbrella.open(this) && b.grounded ? this.activeTool.def.walk : 1;
+    b.step(this.world, intent, dt, (this.sprinting ? 1.45 : 1) * this.perks.speed * (this.boostT > 0 ? ITEM.espresso.speed : 1) * (this.slowT > 0 ? 0.5 : 1) * under);
     this.bell.bounce(this);
     if (b.jumped) this.events.push({ type: "jump" });
     if (b.landSpeed > 4) this.events.push({ type: "land", speed: b.landSpeed });
@@ -376,7 +388,7 @@ export class Run {
       b.place(c.x, c.y, c.z, b.yaw);
       this.events.push({ type: "respawn" });
       this.invuln = 0;
-      this.hurt(FALL_DMG, c.x, c.z);
+      this.hurt(FALL_DMG, c.x, c.z, false);
     }
 
     this.hurtT += dt;
@@ -399,12 +411,14 @@ export class Run {
       else if (shot.blob) this.foam.blob(this, tool);
       else if (shot.ring) this.bell.ring(this, tool);
       else if (shot.lull !== undefined) this.bell.lull(this, tool, shot.lull);
+      else if (shot.gust) this.umbrella.gust(this, tool);
       else this.fire(tool, shot);
     }
     this.stepBalls(dt);
     this.foam.step(this, dt);
     this.bell.step(this, dt);
     this.bell.stepRingables(this, dt);
+    this.umbrella.step(this, dt);
     if (intent.item) this.useItem(intent.item);
 
     stepAnchors(this, dt);
@@ -728,6 +742,13 @@ export class Run {
       s.x += s.vx * dt; s.y += s.vy * dt; s.z += s.vz * dt;
       const landed = s.splash && s.vy < 0 && s.y <= s.ty + 0.1;
       if (hit || landed) { this.burstSpit(s); continue; }
+      // An open umbrella catches it before it reaches you.
+      if (!s.harmless && (s.x - cx) ** 2 + ((s.y - cy) / 1.6) ** 2 + (s.z - cz) ** 2 < 1.3 ** 2 && this.umbrella.covers(this, s.x, s.y, s.z)) {
+        s.life = 0; s.harmless = true;
+        this.umbrella.block(this, s.x, s.y, s.z);
+        this.events.push({ type: "spitPop", x: s.x, y: s.y, z: s.z, kind: s.kind });
+        continue;
+      }
       if (!s.harmless && (s.x - cx) ** 2 + ((s.y - cy) / 1.6) ** 2 + (s.z - cz) ** 2 < (s.splash ? 0.7 : 0.5) ** 2) {
         if (s.splash) { this.burstSpit(s); continue; }
         s.life = 0;

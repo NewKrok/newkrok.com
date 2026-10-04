@@ -44,6 +44,8 @@ export class Sfx {
         case "foamSpray": case "foamBlob": A.play(e.type); break;
         case "foamSplat": case "foamSet": case "foamGone": case "foamStuck": case "foamFree": A.play(e.type, 0, e.x, e.z); break;
         case "bellRing": A.play(e.type); break;
+        case "gust": case "gustHop": case "umbrellaBlock": A.play(e.type); break;
+        case "foeToss": case "foeLand": case "foeSlap": case "foeUp": case "spitBlown": case "pinwheel": A.play(e.type, 0, e.x, e.z); break;
         case "sneeze": case "steamBurn": A.play(e.type); break;
         case "cookerLid": A.play(e.type, e.off ? 1 : 0, e.x, e.z); break;
         case "meatWind": case "meatRoll": case "meatSplit": case "pepperShake": case "pepperWind": case "pepperBurst": case "pepperDodge": case "cloudBlown":
@@ -101,6 +103,12 @@ export class Sfx {
     A.loop("charge", tool.charging && !bell ? 0.05 + tool.charge : 0);
     A.loop("hum", tool.charging && bell ? 0.05 + tool.charge : 0);
     A.loop("suck", tool.sucking ? 0.6 + Math.min(0.4, tool.heat) : 0);
+    // The umbrella: a fwump as it opens, a flick as it shuts; the wind of a
+    // glide, louder up an updraft.
+    const open = run.umbrella.open(run);
+    if (open !== !!this.wasOpen) A.play(open ? "umbrellaOpen" : "umbrellaShut");
+    this.wasOpen = open;
+    A.loop("wind", run.umbrella.inDraft ? 0.9 : open && !b.grounded ? 0.45 : 0);
     if (tool.overheated && !this.wasHot) A.play("overheat");
     if (!tool.overheated && this.wasHot) A.play("cooled");
     this.wasHot = tool.overheated;

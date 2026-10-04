@@ -271,7 +271,7 @@ async function startGame() {
         if (first) {
           intent.item = ["pillow", "espresso", "cocoa"].find((id) => edges.has(`item_${id}`));
           const n = run.tools.length;
-          const k = [1, 2, 3, 4].find((i) => edges.has(`tool${i}`) && i <= n);
+          const k = [1, 2, 3, 4, 5].find((i) => edges.has(`tool${i}`) && i <= n);
           if (k) intent.toolTo = k - 1;
           else if (edges.has("toolNext")) intent.toolTo = (run.tool + 1) % n;
           else if (edges.has("toolPrev")) intent.toolTo = (run.tool - 1 + n) % n;
@@ -281,7 +281,7 @@ async function startGame() {
         acc -= DT;
       }
       // Presses between two steps must not be lost.
-      if (first) for (const k of ["jump", "use", "tool1", "tool2", "tool3", "tool4", "toolNext", "toolPrev", "item_pillow", "item_espresso", "item_cocoa"]) if (edges.has(k)) input.edges.add(k);
+      if (first) for (const k of ["jump", "use", "tool1", "tool2", "tool3", "tool4", "tool5", "toolNext", "toolPrev", "item_pillow", "item_espresso", "item_cocoa"]) if (edges.has(k)) input.edges.add(k);
       onEvents(run.events);
       view.consume(run.events);
       run.events.length = 0;

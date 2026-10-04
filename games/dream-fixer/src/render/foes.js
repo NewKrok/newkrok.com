@@ -182,6 +182,13 @@ export class FoeView {
       const zz = f.sleepT > 0 ? Math.min(1, (v.sleepK || 0) + dt * 4) : Math.max(0, (v.sleepK || 0) - dt * 5);
       v.sleepK = zz;
       o.rotation.z = zz * (f.def.fly ? 0.35 : 0.95);
+      // Tossed by the umbrella: tumbling end over end (settling back
+      // upright once down); slapped down, a flyer lies on its side.
+      const tu = v.tumble || 0, up = Math.round(tu / (Math.PI * 2)) * Math.PI * 2;
+      v.tumble = f.aloft ? tu + dt * 8 : up + (tu - up) * Math.max(0, 1 - dt * 10);
+      o.rotation.x = v.tumble;
+      v.downK = f.downT > 0 ? Math.min(1, (v.downK || 0) + dt * 6) : Math.max(0, (v.downK || 0) - dt * 4);
+      o.rotation.z += v.downK * 1.4;
       const ms = f.mini ? 0.62 : 1;
       o.scale.set(ms, ms * (1 + zz * Math.sin(t * 2.2 + f.id) * 0.05), ms);
       // Hit flash.

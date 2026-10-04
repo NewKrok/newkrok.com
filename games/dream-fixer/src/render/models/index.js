@@ -1,4 +1,5 @@
-import { stabilizer, fuzzVacuum, foamCannon, lullabyBell } from "./tools.js";
+import { stabilizer, fuzzVacuum, foamCannon, lullabyBell, gustUmbrella } from "./tools.js";
+import { pinwheel, windWell } from "./garden.js";
 import { jelly, souffle, meatball, pepperShaker, rollingPin, meatGrinder, pressureCooker, kitchenWindow, panRail, knob, faucet, burner, kettle, jar, cuttingBoard, breadLoaf, fridge, flourSack, tableCloth, mug, tomato, bucket, spoon, pea } from "./kitchen.js";
 import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./characters.js";
 import { anchor } from "./dream.js";
@@ -20,6 +21,9 @@ export const MODELS = {
   vacuum: { build: fuzzVacuum, frame: 0.55, anim: (o, t) => { o.userData.nodes.fan.rotation.z = t * 20; } },
   foam: { build: foamCannon, frame: 0.55, anim: (o, t) => { o.userData.nodes.pump.position.z = -0.105 + 0.06 + Math.abs(Math.sin(t * 2)) * 0.03; } },
   bell: { build: lullabyBell, frame: 0.55, anim: (o, t) => { const N = o.userData.nodes; N.hammer.rotation.x = -0.5 + Math.abs(Math.sin(t * 2)) * 0.5; N.crank.rotation.x = t * 3; N.clapper.rotation.x = Math.sin(t * 4) * 0.15; } },
+  umbrella: { build: gustUmbrella, frame: 0.8, anim: (o, t) => { const k = 0.1 + 0.9 * Math.min(1, Math.max(0, Math.sin(t * 1.2) * 1.4 + 0.4)); o.userData.nodes.canopy.scale.set(k, k, 1 + (1 - k) * 0.6); } },
+  pinwheel: { build: pinwheel, frame: 3, anim: spin("wheel", "z", 4) },
+  windWell: { build: windWell, frame: 4.5 },
   jelly: { build: jelly, frame: 3.2, anim: (o, t) => { const s = Math.sin(t * 9) * 0.08; o.userData.nodes.body.scale.set(1 - s * 0.6, 1 + s, 1 - s * 0.6); } },
   meatball: { build: meatball, frame: 2, anim: (o, t) => { const n = o.userData.nodes.body, h = Math.abs(Math.sin(t * 5)); n.position.y = 0.36 + h * 0.25; n.scale.set(1 + (1 - h) * 0.1, 1 - (1 - h) * 0.12, 1 + (1 - h) * 0.1); } },
   pepper: { build: pepperShaker, frame: 2, anim: (o, t) => { o.userData.nodes.body.rotation.z = Math.sin(t * 2) * 0.3; } },

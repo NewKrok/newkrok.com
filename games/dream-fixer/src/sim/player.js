@@ -23,6 +23,8 @@ export class Body {
     this.stepUp = 0;                           // height climbed this step (the camera smooths it)
     this.fell = false;                         // dropped out of the world this step
     this.pushX = 0; this.pushZ = 0;            // outside drift for the next step (m/s)
+    this.glide = 0;                            // an open umbrella: fastest fall (0: none)
+    this.airMul = 1;                           // …and more say in the air
     this.r = this.P.radius; this.h = this.P.height;
   }
 
@@ -45,7 +47,7 @@ export class Body {
     const sn = Math.sin(this.yaw), cs = Math.cos(this.yaw);
     const wx = (-sn * f + cs * s) * this.P.speed * speedMul, wz = (-cs * f - sn * s) * this.P.speed * speedMul;
     const moving = len > 0.05;
-    const a = (this.grounded ? (moving ? this.P.accel : this.P.friction * this.P.speed) : this.P.airAccel) * dt;
+    const a = (this.grounded ? (moving ? this.P.accel : this.P.friction * this.P.speed) : this.P.airAccel * this.airMul) * dt;
     let ddx = wx - this.vx, ddz = wz - this.vz;
     const dl = Math.hypot(ddx, ddz);
     if (dl > a) { ddx *= a / dl; ddz *= a / dl; }
@@ -64,7 +66,12 @@ export class Body {
     // ── Gravity: lighter while rising with the button held ──
     if (!this.grounded) {
       const g = this.vy > 0 && intent.jump ? this.P.gravity : this.P.fallGravity;
-      this.vy = Math.max(this.vy - g * dt, -this.P.maxFall);
+      if (this.glide > 0 && this.vy < 0) {
+        // Under an open umbrella the fall eases off to a glide (quickly,
+        // if it opens in the middle of a long drop).
+        const over = Math.max(0, -this.vy - this.glide);
+        this.vy = Math.max(this.vy - g * dt, -this.glide - over * Math.exp(-8 * dt));
+      } else this.vy = Math.max(this.vy - g * dt, -this.P.maxFall);
     }
 
     // ── Across: in small steps so a fast body cannot tunnel through thin walls ──

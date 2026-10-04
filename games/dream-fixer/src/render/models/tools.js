@@ -1,5 +1,5 @@
 import * as T from "three";
-import { SHAPE } from "../modelkit.js";
+import { SHAPE, shade } from "../modelkit.js";
 import { C } from "../palette.js";
 
 // ── Tools in the hand ────────────────────────────────────────────────────
@@ -284,3 +284,56 @@ export function lullabyBell(b, { hand = true } = {}) {
 
   if (hand) glovedHand(b);
 }
+
+// The Gust Umbrella: Grandpa Joe's old umbrella, green and cream gores on
+// steel ribs, a crook handle of polished wood (the straight part in your
+// glove, the hook curling under), a brass collar and a ferrule at the tip
+// that glows mint. Nodes: "canopy" (scaled: furled thin and long, or open
+// wide), "glow" (the collar band, swells on a gust).
+export const UMBRELLA_MUZZLE = [0, 0.02, -0.5];
+const UMB_GLOW = 0xa8f0c0, UMB_A = 0x2f6a4a, UMB_B = 0xe8dcc0;
+
+export function gustUmbrella(b, { hand = true } = {}) {
+  const CY = 0.02, zc = -0.43;             // the shaft's height; the crown, where the ribs meet
+  // ── The crook handle: the grip, and the hook under the hand ──
+  b.at([0, -0.055, 0.045], [-0.3, 0, 0], 1, () => {
+    b.add(SHAPE.cyl(0.021, 0.024, 0.15, 10, 0.006), { p: [0, -0.005, 0], grad: [C.woodD, C.woodL], facet: 0.06 });
+    b.add(SHAPE.torus(0.04, 0.019, 7, 12, Math.PI), { p: [0, -0.08, 0.04], r: [0, RX, Math.PI], grad: [C.woodD, C.wood], facet: 0.06 });
+    b.add(SHAPE.ball(0.02, 8, 6), { p: [0, -0.08, 0.08], c: C.woodD });
+  });
+  b.add(SHAPE.cyl(0.018, 0.02, 0.03, 10, 0.004), { p: [0, CY - 0.012, 0.0], r: [-0.3, 0, 0], c: C.brass, mat: "metal" });
+  // ── The shaft, collar and the band that glows ──
+  b.add(SHAPE.cyl(0.0075, 0.0075, 0.46, 8), { p: [0, CY, -0.215], r: [RX, 0, 0], c: C.steel, mat: "metal" });
+  b.add(SHAPE.cyl(0.014, 0.014, 0.03, 10, 0.003), { p: [0, CY, -0.02], r: [RX, 0, 0], c: C.brassD, mat: "metal" });
+  b.node("glow", [0, CY, -0.05], [0, 0, 0], (n) => n.add(SHAPE.cyl(0.012, 0.012, 0.02, 10), { r: [RX, 0, 0], c: UMB_GLOW, mat: "glow", glow: 1.8 }));
+  // The runner that slides up the shaft as it opens.
+  b.add(SHAPE.cyl(0.012, 0.012, 0.03, 8, 0.003), { p: [0, CY, -0.3], r: [RX, 0, 0], c: C.brassD, mat: "metal" });
+  // ── The ferrule at the tip ──
+  b.add(SHAPE.cyl(0.006, 0.009, 0.06, 8), { p: [0, CY, zc - 0.035], r: [RX, 0, 0], c: C.brass, mat: "metal" });
+  b.add(SHAPE.ball(0.011, 8, 6), { p: [0, CY, UMBRELLA_MUZZLE[2] + 0.004], c: UMB_GLOW, mat: "glow", glow: 2.2 });
+
+  // ── The canopy: from the crown back towards the hand ──
+  const R = 0.34, H = 0.17, G = 8;
+  const prof = [[0.012, 0], [0.12, 0.02], [0.2, 0.05], [0.27, 0.095], [0.315, 0.14], [0.34, 0.17]].map(([r, y]) => [r / R, y / H]);
+  const outer = prof.map(([r, y]) => new T.Vector2(r, y));
+  const inner = [...prof].reverse().map(([r, y]) => new T.Vector2(r * 0.985, y + 0.012));
+  b.node("canopy", [0, CY, zc], [0, 0, 0], (n) => {
+    // Unit gores, laid along +z by the node's frame (scaled to size below).
+    n.at([0, 0, 0], [RX, 0, 0], [R, H, R], () => {
+      for (let i = 0; i < G; i++) {
+        const a = (i / G) * Math.PI * 2, w = Math.PI * 2 / G, c = i % 2 ? UMB_B : UMB_A;
+        n.add(new T.LatheGeometry(outer, 3, a, w), { c, facet: 0.04 });
+        n.add(new T.LatheGeometry(inner, 3, a, w), { c: shade(c, 0.62), facet: 0.03 });
+      }
+    });
+    // Ribs from the crown to the rim, a cream tip on each.
+    for (let i = 0; i < G; i++) {
+      const a = (i / G) * Math.PI * 2, x = Math.cos(a) * R, y = Math.sin(a) * R;
+      n.add(SHAPE.cyl(0.0025, 0.0025, Math.hypot(R, H), 4), { p: [x / 2, y / 2, H / 2], r: dirQ(x, y, H), c: C.iron, mat: "metal" });
+      n.add(SHAPE.ball(0.007, 6, 4), { p: [x, y, H + 0.004], c: C.cream });
+    }
+    n.add(SHAPE.cyl(0.016, 0.012, 0.025, 8), { p: [0, 0, 0.004], r: [RX, 0, 0], c: C.brassD, mat: "metal" });
+  });
+  if (hand) glovedHand(b);
+}
+
