@@ -20,11 +20,11 @@ import { Body } from "./player.js";
 // end most of all). Shots anywhere hurt it.
 
 export const PEN = {
-  hp: 130, r: 0.7, h: 3.2, len: 3.1,
+  hp: 110, r: 0.7, h: 3.2, len: 3.1,
   speed: [3, 4.2],
   strike: { aim: 0.85, speed: 17, max: 1.4, ink: [6, 8], burn: 6, every: 0.7, w: 0.42 },
   grade: { n: [3, 5], spread: 0.22, speed: 10, dmg: 6 },
-  correct: { n: 3, T: 1.3, r: 1.3, dmg: 8, minions: 4 },
+  correct: { n: 3, T: 1.3, r: 1.3, dmg: 8, minions: 3 },
   scribble: { rings: 2, gap: 0.7, dmg: 9 },
   blot: { need: 1, dry: 0.12, time: 5, mul: 2.5 },
   capMul: 1.8, nibMul: 1.2,

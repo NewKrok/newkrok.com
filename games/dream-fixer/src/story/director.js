@@ -42,6 +42,7 @@ function dreamDirector(dream, o = {}) {
       if (e.type === "memory") sayIf(D, L("memory"));
       if (e.type === "faint") sayIf(D, L("faint"));
       if (e.type === "heal") sayIf(D, L("heart"));
+      if (e.type === "bossReset") sayIf(D, L("retry"), true);
       // Falling off now and then: a dig from Margo (on the 2nd, 4th, 7th…).
       if (e.type === "respawn" && !e.pulled) {
         S.falls = (S.falls || 0) + 1;
@@ -63,6 +64,8 @@ function dreamDirector(dream, o = {}) {
         if (m) sayIf(D, L(m[2]));
       }
       if (run.nearAnchor && q(1)) sayIf(D, L("anchor"));
+      // Where the nightmare waits, once the anchors hold (and you have not gone in yet).
+      if (run.coreOpen && !run.boss && D.said.has(L("all")) && q(1.5)) sayIf(D, L("core"));
       // In between: a quip when a crowd is after you, a warning when you
       // are fading, a bit of chatter after a long quiet.
       S.cool = Math.max(0, (S.cool || 0) - dt);

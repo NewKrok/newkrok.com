@@ -244,7 +244,10 @@ export class BossView {
   constructor(scene, fx) { this.scene = scene; this.fx = fx; this.views = {}; this.curtain = null; }
   view(kind) { return (this.views[kind] ??= new VIEWS[kind](this.scene, this.fx)); }
   clear() { for (const v of Object.values(this.views)) v.clear(); this.dropCurtain(); }
-  onEvent(e, run) { if (run.boss) this.view(run.boss.kind).onEvent(e, run); }
+  onEvent(e, run) {
+    if (e.type === "bossReset") { this.clear(); return; }
+    if (run.boss) this.view(run.boss.kind).onEvent(e, run);
+  }
   update(run, alpha, dt, t) {
     if (run.boss) this.view(run.boss.kind).update(run, alpha, dt, t);
     // The arena's dream curtain: up while the fight lasts.

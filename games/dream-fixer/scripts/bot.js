@@ -9,7 +9,7 @@
 //   node scripts/bot.js [seed] [difficulty] [skill] [level]
 //   skill: casual (slower, wobbly aim, reacts late) or sharp
 import { Run } from "../src/sim/run.js";
-import { LEVELS } from "../src/levels/index.js";
+import { LEVELS, CLIENTS } from "../src/levels/index.js";
 import { World } from "../src/sim/world.js";
 import { DT } from "../src/config.js";
 import { TOOLS } from "../src/sim/tools.js";
@@ -20,7 +20,9 @@ if (!def?.botRoutes) { console.log("no bot routes for that level"); process.exit
 const SKILL = { sharp: { turn: 0.12, pitch: 0.08, react: 0, wobble: 0 }, casual: { turn: 0.08, pitch: 0.05, react: 0.25, wobble: 0.03 } }[skill];
 const SMALL = new Set(["fuzz", "bunny", "buzzer", "clock", "pencil"]), BIG = new Set(["tub", "knot", "backpack", "sharpener"]);
 
-const run = new Run(def, { seed, difficulty, aimAssist: 0.03, tools: def.tools ?? ["stabilizer"] });
+// The tools a player brings: whatever the dreams before this one handed out.
+const before = CLIENTS.slice(0, Math.max(0, CLIENTS.findIndex((c) => c.level === def.id))).map((c) => LEVELS[c.level]?.unlockTool?.id).filter(Boolean);
+const run = new Run(def, { seed, difficulty, aimAssist: 0.03, tools: def.tools ?? ["stabilizer", ...before] });
 const B = run.body;
 let minHp = 1e9, hurtTotal = 0, falls = 0, lastPos = [0, 0, 0];
 const origHurt = run.hurt.bind(run);
@@ -247,9 +249,13 @@ for (const a of run.anchors) {
 // The boss.
 if (def.boss) {
   // Back from the last anchor, out onto the arena.
-  for (let k = 0; k < 4 && Math.hypot(B.x - def.boss.x, B.z - def.boss.z) > 12; k++) { backToMiddle(); walk([[def.boss.x, def.boss.z + 7]]); }
+  const intoArena = () => { for (let k = 0; k < 4 && !run.boss && !run.won; k++) { backToMiddle(); walk([[def.boss.x, def.boss.z + 7]]); } };
+  intoArena();
   const tb = run.time, f0 = run.faints;
-  for (let i = 0; i < 60 * 240 && !run.won; i++) {
+  let tries = 1;
+  for (let i = 0; i < 60 * 300 && !run.won; i++) {
+    // Fainted: the fight starts over once it walks back in.
+    if (!run.boss && run.coreT < 0) { tries++; intoArena(); }
     const S = run.boss, intent = {};
     aimAndFire(intent);
     if (S?.alive) {
@@ -266,6 +272,6 @@ if (def.boss) {
     step(intent);
     if (process.env.DEBUG && i % 600 === 0) console.log("  t", (i / 60) | 0, "boss", S ? `${S.state} ${S.hp | 0} d${Math.hypot(S.x - B.x, S.z - B.z).toFixed(1)}` : "-", "hp", run.hp | 0, run.activeTool.id, "tank", run.tools[1]?.tank.length, "tgt", tgtRef?.kind ?? (tgtRef?.boss ? "boss" : "-"), tgtRef ? Math.hypot(tgtRef.px - B.x, tgtRef.pz - B.z).toFixed(1) : "", "you", B.x.toFixed(1), B.y.toFixed(1), B.z.toFixed(1), "near", run.foes.filter((f) => f.alive && dist(f) < 12).map((f) => f.kind + (f.group ?? "") + dist(f).toFixed(0)).join(" "));
   }
-  console.log(`boss     ${run.won ? "down" : "NOT down"} after ${(run.time - tb).toFixed(1)}s  faints ${run.faints - f0}`);
+  console.log(`boss     ${run.won ? "down" : "NOT down"} after ${(run.time - tb).toFixed(1)}s  faints ${run.faints - f0}  tries ${tries}`);
 }
 console.log(`total ${(run.time - t0).toFixed(1)}s  popped ${run.stats.popped}  hits ${run.stats.hits}/${run.stats.shots}  dust ${run.dust}  min hp ${Math.round(minHp)}  hurt ${Math.round(hurtTotal)}  faints ${run.faints}  falls ${falls}  alive ${run.foes.filter((f) => f.alive).length}`);

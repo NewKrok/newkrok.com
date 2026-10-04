@@ -64,7 +64,8 @@ export class Sfx {
         case "tuneStart": A.play("tuneStart"); break;
         case "wave": A.play("wave"); break;
         case "anchorFixed": A.play("anchorFixed"); break;
-        case "coreOpen": A.play("coreOpen"); break;
+        case "coreOpen": A.play("anchorFixed"); break;
+        case "coreWake": A.play("coreOpen"); break;
         case "bossRise": A.play("bossRise", 0, e.x, e.z); break;
         case "bossGulp": A.play("gulp"); break;
         case "bossBurp": A.play("burp", 0, e.x, e.z); break;

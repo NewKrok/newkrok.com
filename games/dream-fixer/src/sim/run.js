@@ -27,7 +27,7 @@ export const DIFFICULTY = {
 
 // Wakefulness does not come back by itself: popped glitches now and then
 // leave a dream drop behind (chance per kind; better when you are low).
-const HEAL = { amount: 10, life: 30, magnet: 5, chance: { fuzz: 0.45, bunny: 0.25, buzzer: 0.5, tub: 1, knot: 1, clock: 0.5, pencil: 0.5, backpack: 1, sharpener: 1 } };
+const HEAL = { amount: 6, life: 30, magnet: 5, chance: { fuzz: 0.2, bunny: 0.1, buzzer: 0.25, tub: 0.6, knot: 0.6, clock: 0.25, pencil: 0.2, backpack: 0.6, sharpener: 0.6 } };
 // Falling off the dream costs a bit too.
 const FALL_DMG = 12;
 
@@ -96,7 +96,7 @@ export class Run {
   get objectives() {
     const out = [];
     if (this.anchors.length) out.push({ id: "anchors", n: this.fixedCount, of: this.anchors.length, done: this.fixedCount === this.anchors.length });
-    if (this.def.boss && (this.boss || this.coreT > 0)) out.push({ id: "boss", done: !!this.boss && !this.boss.alive });
+    if (this.def.boss && this.coreOpen) out.push({ id: "boss", done: !!this.boss && !this.boss.alive });
     if (this.memories.length) out.push({ id: "memories", n: this.memories.filter((m) => m.got).length, of: this.memories.length, optional: true });
     return out;
   }
@@ -143,12 +143,9 @@ export class Run {
   // A glitch popped: maybe it leaves a dream drop that wakes you up a bit.
   dropHeal(f) {
     const p = (HEAL.chance[f.kind] ?? 0) * this.diff.heals * (this.hp < this.maxHp * 0.35 ? 1.6 : 1);
-    const n = f.def.still ? 2 : 1;
-    for (let i = 0; i < n; i++) {
-      if (this.rnd() >= p) continue;
-      const a = this.rnd() * Math.PI * 2;
-      this.heals.push({ x: f.px, y: f.cy + 0.3, z: f.pz, vx: Math.cos(a) * 1.5, vy: 4.5, vz: Math.sin(a) * 1.5, t: 0, floor: this.kit.floorAt(f.px, f.pz, f.cy + 0.5), id: ++this.foeSeq });
-    }
+    if (this.rnd() >= p) return;
+    const a = this.rnd() * Math.PI * 2;
+    this.heals.push({ x: f.px, y: f.cy + 0.3, z: f.pz, vx: Math.cos(a) * 1.5, vy: 4.5, vz: Math.sin(a) * 1.5, t: 0, floor: this.kit.floorAt(f.px, f.pz, f.cy + 0.5), id: ++this.foeSeq });
   }
 
   // Dream drops: hop out, settle, and float to you when you need them.
@@ -202,6 +199,19 @@ export class Run {
     for (const p of [...this.foam.steps]) if (p.x < S.minX || p.x > S.maxX || p.z < S.minZ || p.z > S.maxZ) this.foam.melt(this, p);
     this.events.push({ type: "sealed" });
   }
+  // Are you inside the nightmare's arena (its curtain's square)?
+  inArena() {
+    const S = this.def.boss.seal ?? this.def.boss.arena, b = this.body;
+    return b.x > S.minX && b.x < S.maxX && b.z > S.minZ && b.z < S.maxZ;
+  }
+  resetBoss() {
+    for (const f of this.foes) if (f.alive && f.group === "boss") { f.alive = false; this.events.push({ type: "pop", kind: f.kind, id: f.id, x: f.px, y: f.cy, z: f.pz, calm: true }); }
+    this.boss = null; this.coreT = -1;
+    this.unseal();
+    this.shocks.length = 0; this.pulses.length = 0;
+    this.events.push({ type: "bossReset" });
+  }
+
   // Where a faint or a fall puts you back: the last anchor, or inside the
   // curtain (as near that as it gets) while it is up.
   respawnAt() {
@@ -279,7 +289,12 @@ export class Run {
   // back at the last anchor, with everything you had gathered.
   faint() {
     this.faints++;
-    const c = this.respawnAt(), b = this.body;
+    // Out cold in the nightmare's fight: back at the last anchor; it sinks
+    // back down (at the end of this step), and the fight starts over at
+    // full strength when you walk back in.
+    const lost = !!(this.boss?.alive || this.coreT > 0);
+    if (lost) this.bossLost = true;
+    const c = lost ? this.checkpoint : this.respawnAt(), b = this.body;
     b.place(c.x, c.y, c.z, c.yaw);
     this.hp = this.maxHp;
     this.invuln = 1.5;
@@ -361,17 +376,23 @@ export class Run {
 
     stepAnchors(this, dt);
     if (this.pendingUnlock && !this.tuning) { this.unlockTool(this.pendingUnlock); this.pendingUnlock = null; }
-    // All anchors hold: the dream's heart opens and its nightmare comes up.
-    if (this.coreT < 0 && !this.boss && this.def.boss && this.anchors.length && this.fixedCount === this.anchors.length) {
-      this.coreT = 4;
+    // All anchors hold: the dream's heart opens. Its nightmare comes up once
+    // you walk into the arena (the curtain closes behind you).
+    const B0 = this.def.boss;
+    if (!this.coreOpen && B0 && this.anchors.length && this.fixedCount === this.anchors.length) {
+      this.coreOpen = true;
       this.events.push({ type: "coreOpen" });
+    }
+    if (this.coreOpen && !this.boss && this.coreT < 0 && !this.won && this.inArena()) {
+      this.coreT = 2.5;
+      if (B0.seal) this.sealArena(B0.seal);
+      this.events.push({ type: "coreWake" });
     }
     if (this.coreT > 0) {
       this.coreT -= dt;
       if (this.coreT <= 0) {
         const B = this.def.boss;
         this.boss = new BOSSES[B.kind](this, B.x, B.z, B.arena);
-        if (B.seal) this.sealArena(B.seal);
         this.events.push({ type: "bossRise", kind: B.kind, x: B.x, z: B.z });
       }
     }
@@ -379,6 +400,7 @@ export class Run {
       this.boss.step(this, dt);
       if (!this.boss.alive && this.wonT < 0) { this.wonT = 3.5; this.unseal(); }
     }
+    if (this.bossLost) { this.bossLost = false; this.resetBoss(); }
     if (this.wonT > 0) {
       this.wonT -= dt;
       if (this.wonT <= 0 && !this.won) { this.won = true; this.events.push({ type: "dreamFixed" }); }
