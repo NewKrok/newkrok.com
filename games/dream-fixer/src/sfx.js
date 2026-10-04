@@ -51,7 +51,7 @@ export class Sfx {
         case "cookerRattle": case "cookerSteam": case "cookerHop": case "cookerLand": case "cookerWhistle": case "cookerBlow":
           A.play(e.type, 0, e.x, e.z); break;
         case "bellLull": A.play(e.type, e.k); break;
-        case "bellBat": case "foeSleep": case "foeWake": case "foeDrowsy": case "jellyWobble": case "boing": case "souffleFall": A.play(e.type, 0, e.x, e.z); break;
+        case "bellBat": case "foeSleep": case "foeWake": case "foeDrowsy": case "jellyWobble": case "jellySquish": case "boing": case "souffleFall": A.play(e.type, 0, e.x, e.z); break;
         case "clockSkip": A.play("clockSkip", e.back ? 1 : 0, e.x, e.z); break;
         case "slowed": A.play("slowed"); break;
         case "clockWind": case "clockRing": case "pencilCrouch": case "pencilSpin": case "dizzy":

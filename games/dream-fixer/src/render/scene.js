@@ -161,7 +161,7 @@ export class GameView {
       } else if (e.type === "bellRing" || e.type === "bellLull") {
         if (e.type === "bellRing") { this.rang = true; this.muzzleFlash = Math.max(this.muzzleFlash || 0, 0.8); }
         else { this.lulled = true; this.ringBurst(run, 0x9fc8ff, 20); }
-      } else if (["bellBat", "foeSleep", "foeWake", "jellyWobble", "boing", "souffleFall"].includes(e.type)) {
+      } else if (["bellBat", "foeSleep", "foeWake", "jellyWobble", "jellySquish", "boing", "souffleFall"].includes(e.type)) {
         this.bellView.onEvent(e, run);
         if (e.type === "souffleFall" && Math.hypot(e.x - run.body.x, e.z - run.body.z) < 10) this.shake = Math.min(1, this.shake + 0.2);
       } else if (e.type === "shot") {

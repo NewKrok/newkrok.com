@@ -132,10 +132,13 @@ export class Bell {
   // After the body has moved: a wobbling jelly under your feet throws you up.
   bounce(run) {
     const b = run.body;
+    for (const g of run.ringables) g.under = false;
     if (!b.grounded) return;
     for (const g of run.ringables) {
-      if (g.kind !== "jelly" || !(g.wobbleT > 0)) continue;
+      if (g.kind !== "jelly") continue;
       if (Math.abs(b.y - (g.y + g.h)) > 0.06 || Math.hypot(b.x - g.x, b.z - g.z) > g.r + b.r * 0.5) continue;
+      // A still jelly only squishes a little under you: it has to be rung first.
+      if (!(g.wobbleT > 0)) { if (b.landSpeed > 2) run.events.push({ type: "jellySquish", id: g.id, x: g.x, y: g.y + g.h, z: g.z }); g.under = true; return; }
       b.vy = g.boing; b.grounded = false;
       run.events.push({ type: "boing", id: g.id, x: g.x, y: g.y + g.h, z: g.z });
       return;

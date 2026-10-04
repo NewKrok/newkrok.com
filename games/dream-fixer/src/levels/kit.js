@@ -112,7 +112,7 @@ export class Kit {
 
 // What each kind of ringable is like unless the level says otherwise.
 const RINGABLE = {
-  jelly: { r: 1.1, h: 1, wobble: 4.5, boing: 13.5, color: 0xff5a6e },
+  jelly: { r: 1.1, h: 1, wobble: 6, boing: 13.5, color: 0xff5a6e },
   souffle: { r: 1.2, h: 2.6, low: 0.35, color: 0xf2c46a },
 };
 

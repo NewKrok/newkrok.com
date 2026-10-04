@@ -112,7 +112,7 @@ const DIRECTORS = {
       if (!q(1.5)) return;
       const b = run.body, bell = run.tools.some((t) => t.id === "bell"), on = (id) => run.ringables.find((g) => g.id === id);
       if (b.y < 1 && !on("door")?.flat && Math.abs(b.x + 12.5) < 3 && Math.abs(b.z + 4.8) < 3.5) D.say(bell ? "kitchen_flatten" : "kitchen_puffy");
-      else if (b.y < 1 && Math.hypot(b.x + 13, b.z + 16.4) < 4.5) D.say(bell ? "kitchen_bounce" : "kitchen_wobbly");
+      else if ((b.y < 1 && Math.hypot(b.x + 13, b.z + 16.4) < 4.5) || run.ringables.some((g) => g.under && !(g.wobbleT > 0))) D.say(bell ? "kitchen_bounce" : "kitchen_wobbly");
     },
     on: { "spawn:grinder": "grinder", meatSplit: "split", sneeze: "sneeze", dizzy: "dizzy", bossRise: "boss", cookerWhistle: "whistle", cookerLid: "lid", bossPhase: "phase", bossPop: "win" },
   }),

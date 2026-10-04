@@ -212,6 +212,7 @@ export class Audio {
       case "foeDrowsy": S(0.5, { type: "triangle", freq: 220, freqEnd: 140, gain: 0.05, attack: 0.05 }); break;
       case "foeWake": S(0.12, { type: "triangle", freq: 500, freqEnd: 1300, gain: 0.06 }); break;
       case "jellyWobble": [0, 0.08, 0.16, 0.24].forEach((dt, i) => at(dt, (tt) => this.#tone(d, tt, 0.09, { type: "sine", freq: 180 - i * 15, freqEnd: 260 - i * 20, gain: 0.08 }))); break;
+      case "jellySquish": S(0.18, { type: "sine", freq: 160, freqEnd: 110, gain: 0.08 }); break;
       case "boing": S(0.35, { type: "sine", freq: 140, freqEnd: 620, gain: 0.16 }); S(0.25, { type: "triangle", freq: 280, freqEnd: 1000, gain: 0.05 }); break;
       // Rosie's kitchen.
       case "meatWind": S(0.4, { type: "triangle", freq: 120, freqEnd: 80, gain: 0.1 }); break;

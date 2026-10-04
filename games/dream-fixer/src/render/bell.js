@@ -65,6 +65,9 @@ export class BellView {
     } else if (e.type === "bellBat") {
       fx.ring([e.x, e.y, e.z], dirTo(run, e), RING, 0.6, 0.2);
       fx.burst([e.x, e.y, e.z], [0, 1, 0], RING, 8, 3, 0.04);
+    } else if (e.type === "jellySquish") {
+      const v = this.things.get(e.id);
+      if (v) v.kick = Math.max(v.kick, 0.5);
     } else if (e.type === "jellyWobble" || e.type === "boing") {
       const v = this.things.get(e.id);
       if (v) v.kick = e.type === "boing" ? 1.6 : 1;
