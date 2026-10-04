@@ -88,6 +88,10 @@ const DIRECTORS = {
       if (e.type === "anchorFixed" && e.left === 1 && run.anchors.find((a) => a.id === "island")?.state !== "fixed") D.say("park_island");
     },
   }),
+  school: dreamDirector("school", {
+    meet: [["pencil", 12, "pencil"], ["plane", 16, "plane"], ["backpack", 16, "backpack"]],
+    on: { "spawn:sharpener": "sharpener", dizzy: "dizzy", bossRise: "boss", "bossAttack:strike": "strike", penBlot: "blot", bossPhase: "phase", bossPop: "win" },
+  }),
   factory: {
     start(D, run, P) {
       // First time in: the welcome. Back from a dream: how it went. Any
@@ -103,6 +107,8 @@ const DIRECTORS = {
       if (D.said.has("hub_back1") && q(3)) D.say("hub_back2");
       // The journal when you wander over to it (or a while later).
       // The journal: once ever, when you wander over to it (or a while later).
+      // A new client calls once the last dream is done (not straight after it: that night is over).
+      if (S.P?.done.includes("park") && !S.P.done.includes("school") && !S.P.log.includes("hub_newjob") && !D.said.has("hub_back1") && q(3)) D.say("hub_newjob");
       if (!S.P?.log.includes("hub_journal") && (from(run, -8.7, -4.2) < 3.5 || (S.time > 40 && (D.said.has("hub_intro3") || D.said.has("hub_back2")))) && q(2)) D.say("hub_journal");
     },
   },

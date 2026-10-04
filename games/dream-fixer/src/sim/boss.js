@@ -1,4 +1,5 @@
 import { Body } from "./player.js";
+import { PenBoss } from "./boss-pen.js";
 
 // ── The Vacuum Cleaner (Biscuit's nightmare) ──────────────────────────────
 // Comes up out of the lawn once all three anchors hold.
@@ -81,7 +82,7 @@ export class VacuumBoss {
       this.phase = 2;
       this.body.P.speed = BOSS.speed[1];
       this.set("roar");
-      run.events.push({ type: "bossPhase", phase: 2 });
+      run.events.push({ type: "bossPhase", phase: 2, kind: this.kind });
     }
     if (this.hp <= 0) {
       this.hp = 0;
@@ -275,5 +276,6 @@ export class VacuumBoss {
 // A boss is stepped by the Run and must offer: alive, hp, maxHp, x/y/z,
 // invulnerable, hitSpheres() → [[x, y, z, r, damage multiplier, part]],
 // damage(run, dmg, part) and step(run, dt). It may offer ballHit(run, g),
-// splash(run, g) and blasted(run, ax, az, def) for what the tools throw at it.
-export const BOSSES = { vacuum: VacuumBoss };
+// splash(run, g), blasted(run, ax, az, def) and foamed(run, amount, part)
+// for what the tools throw at it.
+export const BOSSES = { vacuum: VacuumBoss, pen: PenBoss };

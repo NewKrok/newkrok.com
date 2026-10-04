@@ -98,9 +98,9 @@ export class Foam {
       return true;
     }
     const B = run.boss;
-    if (B?.alive) for (const [x, y, z, r] of B.hitSpheres()) {
+    if (B?.alive) for (const [x, y, z, r, , part] of B.hitSpheres()) {
       if ((x - g.x) ** 2 + (y - g.y) ** 2 + (z - g.z) ** 2 > (r + g.r) ** 2) continue;
-      B.foamed?.(run, g.big ? 1 : g.soak);
+      B.foamed?.(run, g.big ? 1 : g.soak, part);
       this.splat(run, g, g.x, g.y, g.z);
       return true;
     }

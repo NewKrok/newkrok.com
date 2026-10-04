@@ -5,6 +5,7 @@ import { vacuumBoss } from "./boss.js";
 import { jobBoard, workbench, desk, lift, dreamTank, pipe, almos, crate, shelf, rug, hangLamp, dock, lectern } from "./factory.js";
 import { memoryBubble } from "./dream.js";
 import { mugCoffee, mugCocoa, espresso, pillowBomb, vest, balloon, slipper, magnet, sieve, pouch } from "./kit.js";
+import { plane, pencil, backpack, sharpener, redPen, lockers, schoolDesk, teacherDesk, chalkboard, bookshelf, readingTable, schoolBus, flagpole, hoop, wallClock, bellTower, acUnit, fountain } from "./school.js";
 import { tree, bush, rock, bench, lamp, bone, tennisBall, hydrant, doghouse, fence, flowers, grass, hurdle, tyre, pole, tunnel, sign, lilypad, reeds, gazebo, dock as jetty, cable, cloud } from "./park.js";
 
 // ── Model registry ───────────────────────────────────────────────────────
@@ -63,6 +64,25 @@ export const MODELS = {
       N.bag.scale.setScalar(1 + Math.sin(t * 3) * 0.04);
     },
   },
+  // Ethan's school.
+  plane: { build: plane, frame: 1.4, anim: (o, t) => { o.userData.nodes.body.rotation.set(Math.sin(t) * 0.2, 0, Math.sin(t * 0.7) * 0.4); } },
+  pencil: { build: pencil, frame: 3.4, anim: (o, t) => { const n = o.userData.nodes.body; n.rotation.y = t * 0.8; n.position.y = Math.abs(Math.sin(t * 4)) * 0.2; } },
+  backpack: { build: backpack, frame: 3.2, anim: (o, t) => { o.userData.nodes.lid.rotation.x = -Math.max(0, Math.sin(t * 1.5)) * 0.8; } },
+  sharpener: { build: sharpener, frame: 3.2, anim: (o, t) => { o.userData.nodes.crank.rotation.x = t * 3; } },
+  pen: { build: redPen, frame: 6, anim: (o, t) => { o.userData.nodes.pen.rotation.x = Math.sin(t * 0.8) * 0.25; } },
+  lockers: { build: lockers, frame: 4.5 },
+  schoolDesk: { build: schoolDesk, frame: 2.4 },
+  teacherDesk: { build: teacherDesk, frame: 2.8 },
+  chalkboard: { build: chalkboard, frame: 5 },
+  bookshelf: { build: bookshelf, frame: 5.5 },
+  readingTable: { build: readingTable, frame: 3.2 },
+  bus: { build: schoolBus, frame: 11 },
+  flagpole: { build: flagpole, frame: 8 },
+  hoop: { build: hoop, frame: 4.5 },
+  wallClock: { build: wallClock, frame: 1.2 },
+  bellTower: { build: bellTower, frame: 6 },
+  acUnit: { build: acUnit, frame: 2.6 },
+  fountain: { build: fountain, frame: 1.8 },
   anchor: {
     build: anchor, frame: 4.2,
     anim: (o, t) => {

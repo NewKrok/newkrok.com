@@ -13,9 +13,13 @@ import { lerp } from "../config.js";
 
 // The looks a dream gives each kind (model ids), unless its level says
 // otherwise. A skin keeps the nodes its kind's animation moves.
-const SKINS = { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub" };
+const SKINS = { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub", plane: "plane", pencil: "pencil", backpack: "backpack", sharpener: "sharpener" };
 const FLASH = new T.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
-const POP_COLORS = { bunny: [0xc4c0cc, 0x7a7684, C.dream, 0xffffff], tub: [0xffffff, 0x8fd0f0, C.dream, 0xffd23a], fuzz: [0xe8a060, 0xc8743a, C.dream, 0xffffff], buzzer: [0xf2c14e, 0x5a3620, C.dream, 0xffffff], knot: [0xe8a060, C.dreamPink, C.dream, 0xffffff], pillow: [0xffffff, 0xf4eaff, 0xd8c8ff, C.dreamPink] };
+const POP_COLORS = { bunny: [0xc4c0cc, 0x7a7684, C.dream, 0xffffff], tub: [0xffffff, 0x8fd0f0, C.dream, 0xffd23a], fuzz: [0xe8a060, 0xc8743a, C.dream, 0xffffff], buzzer: [0xf2c14e, 0x5a3620, C.dream, 0xffffff], knot: [0xe8a060, C.dreamPink, C.dream, 0xffffff], pillow: [0xffffff, 0xf4eaff, 0xd8c8ff, C.dreamPink],
+  plane: [0xffffff, 0xd8dce6, 0x8ab0e0, C.dream], pencil: [0xffd040, 0xe8c898, 0xf07890, C.dream], backpack: [0xd84a48, 0x2a3a6a, 0xffd23a, C.dream], sharpener: [0xb8c2cc, 0xe8c898, C.dreamPink, C.dream] };
+// What school glitches throw: [size x, y, z, colour] for a tumbling chunk.
+const CHUNKS = { book: [0.42, 0.1, 0.32, 0x3a7fae], shaving: [0.16, 0.03, 0.1, 0xe8c898], eraser: [0.26, 0.14, 0.16, 0xf07890], grade: [0.34, 0.42, 0.06, 0xe02a30] };
+const BOOKS = [0xd84a48, 0x3a7fae, 0x2a8a3a, 0xe0a020, 0x7a4aa0];
 
 export class FoeView {
   constructor(scene, fx) {
@@ -74,7 +78,11 @@ export class FoeView {
     this.bangTex = bangTexture();
     this.bangs = [];
     this._x = new T.Vector3(1, 0, 0);
-    scene.add(this.orbs, this.motes, this.yarn, this.marks, this.nuts, this.caps);
+    // Books, shavings, bits of eraser and red grades in flight.
+    this.chunks = new T.InstancedMesh(new T.BoxGeometry(1, 1, 1), new T.MeshStandardMaterial({ roughness: 0.7, flatShading: true }), 48);
+    this.chunks.instanceColor = new T.InstancedBufferAttribute(new Float32Array(48 * 3), 3);
+    this.chunks.frustumCulled = false; this.chunks.count = 0; this.chunks.castShadow = true;
+    scene.add(this.orbs, this.motes, this.yarn, this.marks, this.nuts, this.caps, this.chunks);
     this._m = new T.Matrix4(); this._q = new T.Quaternion(); this._p = new T.Vector3(); this._s = new T.Vector3(); this._c = new T.Color(); this._e = new T.Euler();
   }
 
@@ -151,6 +159,10 @@ export class FoeView {
       else if (f.kind === "buzzer") animBuzzer(f, N, t, grow);
       else if (f.kind === "bunny") animBunny(f, N, t, grow);
       else if (f.kind === "tub") animTub(f, N, t, grow);
+      else if (f.kind === "plane") animPlane(f, N, t, grow);
+      else if (f.kind === "pencil") animPencil(f, N, t, grow, o);
+      else if (f.kind === "backpack") animBackpack(f, N, t, grow);
+      else if (f.kind === "sharpener") animSharpener(f, N, t, grow);
       else animKnot(f, N, t, grow);
       // Hit flash.
       const flash = f.flash > 0.55;
@@ -201,7 +213,26 @@ export class FoeView {
       const k = Math.min(1, f.t / 0.6), fwd = 0.12 - k * 0.22;
       nut(f.px - Math.sin(f.yaw) * fwd, f.py + f.def.h + 0.3 + k * 0.2, f.pz - Math.cos(f.yaw) * fwd, Math.sin(t * 3) * 0.3);
     }
+    let nc = 0;
     for (const s of run.spits) {
+      const ch = CHUNKS[s.kind];
+      if (ch) {
+        if (nc < 48) {
+          _p.set(s.x, s.y, s.z); _q.setFromEuler(this._e.set(t * 9 + s.id, t * 6 + s.id, s.kind === "grade" ? 0 : t * 4)); _s.set(ch[0], ch[1], ch[2]);
+          this.chunks.setMatrixAt(nc, _m.compose(_p, _q, _s));
+          this.chunks.setColorAt(nc, _c.set(s.kind === "book" ? BOOKS[s.id % BOOKS.length] : ch[3]).multiplyScalar(s.kind === "grade" ? 1.6 : 1));
+          nc++;
+        }
+        if (s.kind === "grade" && Math.random() < 0.5) this.fx.spark(s.x, s.y, s.z, 0, 0.2, 0, 0.3, 0.05, 0xff4040, 0);
+        if (s.splash && r < 16) {
+          const k = Math.max(0, Math.min(1, s.y - s.ty) / 6);
+          _p.set(s.tx, s.ty + 0.05, s.tz); _q.setFromAxisAngle(this._x, -Math.PI / 2); _s.setScalar(s.splash * (0.8 + k * 0.6));
+          this.marks.setMatrixAt(r, _m.compose(_p, _q, _s));
+          this.marks.setColorAt(r, _c.set(0xffd23a).multiplyScalar(0.9 + Math.sin(t * 14) * 0.3));
+          r++;
+        }
+        continue;
+      }
       if (s.kind === "nut") {
         nut(s.x, s.y, s.z, t * 14 + s.id);
         if (Math.random() < 0.6) this.fx.spark(s.x, s.y, s.z, 0, 0.2, 0, 0.25, 0.04, 0xffe0a8, 0);
@@ -223,6 +254,17 @@ export class FoeView {
       }
       i++;
     }
+    this.chunks.count = nc;
+    this.chunks.instanceMatrix.needsUpdate = true; if (this.chunks.instanceColor) this.chunks.instanceColor.needsUpdate = true;
+    // Where a pencil is about to come down: a ring that tightens.
+    for (const f of run.foes) {
+      if (!f.alive || !f.mark || r >= 28) continue;
+      const k = f.state === "crouch" ? Math.min(1, f.t / 0.5) : 1;
+      _p.set(f.mark[0], f.mark[1] + 0.06, f.mark[2]); _q.setFromAxisAngle(this._x, -Math.PI / 2); _s.setScalar(f.mark[3] * (1.6 - k * 0.6));
+      this.marks.setMatrixAt(r, _m.compose(_p, _q, _s));
+      this.marks.setColorAt(r, _c.set(0xffd040).multiplyScalar(1 + Math.sin(t * 16) * 0.4));
+      r++;
+    }
     this.nuts.count = this.caps.count = n;
     for (const m of [this.nuts, this.caps]) m.instanceMatrix.needsUpdate = true;
     // A knot's slam: a pink ring racing out along the ground.
@@ -230,7 +272,7 @@ export class FoeView {
       if (r >= 28) break;
       _p.set(s.x, s.y + 0.08, s.z); _q.setFromAxisAngle(this._x, -Math.PI / 2); _s.setScalar(Math.max(0.1, s.r));
       this.marks.setMatrixAt(r, _m.compose(_p, _q, _s));
-      this.marks.setColorAt(r, _c.set(C.dreamPink).multiplyScalar(2.2 * (1 - s.r / s.max) + 0.3));
+      this.marks.setColorAt(r, _c.set(s.color ?? C.dreamPink).multiplyScalar(2.2 * (1 - s.r / s.max) + 0.3));
       r++;
     }
     this.marks.count = r;
@@ -399,4 +441,48 @@ function animTub(f, N, t, grow) {
   N.shower.scale.setScalar(1 + wind * 0.15);
   N.mouth.scale.set(1, 1 + wind * 0.8, 1);
   N.body.scale.set(grow * (1 + wind * 0.04), grow * (1 - wind * 0.05), grow);
+}
+
+// ── Ethan's school ──
+
+function animPlane(f, N, t, grow) {
+  // Nose along the flight (the sim's pitch), banking into turns, a flutter.
+  const crumpled = f.state === "crash";
+  N.body.rotation.set(-(f.pitch || 0) + (crumpled ? Math.sin(t * 30) * 0.3 : 0), 0, (f.roll || 0) + Math.sin(t * 9 + f.phase) * 0.05, "YXZ");
+  const aim = f.state === "aim" ? 1 + Math.sin(f.t * 40) * 0.06 : 1;
+  N.body.scale.set(grow * aim * (crumpled ? 0.7 : 1), grow * (crumpled ? 1.6 : 1), grow * (crumpled ? 0.8 : 1));
+}
+
+function animPencil(f, N, t, grow, o) {
+  const b = f.body;
+  // Pogo hops squash it on landing; a crouch squashes it more.
+  let sy = 1, lean = 0;
+  if (f.state === "crouch") sy = 1 - 0.25 * Math.min(1, f.t / 0.5);
+  else if (f.state === "rock") lean = -0.5 * Math.min(1, f.t / 0.35);
+  else if (f.state === "jab") lean = 1.35;
+  else if (!b.grounded) sy = 1.08;
+  else if (f.state === "recover") sy = 0.85 + Math.min(0.15, f.t * 0.4);
+  const spin = f.spin || 0;
+  f.spinA = (f.spinA || 0) + spin * spin * 0.6;
+  const wob = f.state === "dizzy" ? Math.sin(t * 9) * 0.35 : spin ? Math.sin(t * 25) * 0.06 : 0;
+  N.body.rotation.set(lean, f.spinA, wob, "XYZ");
+  N.body.scale.set(grow * (2 - sy) ** 0.5, grow * sy, grow * (2 - sy) ** 0.5);
+  void o;
+}
+
+function animBackpack(f, N, t, grow) {
+  const b = f.body, sp = b.speed2D;
+  const w = Math.sin(f.age * (f.state === "charge" ? 16 : 7) + f.phase) * Math.min(1, sp / 2);
+  N.body.rotation.set(f.state === "charge" ? 0.25 : f.state === "paw" ? -0.15 : 0, 0, w * 0.06);
+  N.body.position.y = 0.1 + Math.abs(w) * 0.05 + (f.state === "dazed" ? Math.sin(t * 20) * 0.02 : 0);
+  N.body.scale.setScalar(grow);
+  const open = f.state === "toss" ? 0.9 : f.state === "chomp" ? (f.t < 0.4 ? Math.min(1, f.t / 0.3) : 0) : f.state === "dazed" ? 0.3 : 0;
+  N.lid.rotation.x = -open;
+  N.lid.scale.setScalar(grow);
+  for (const [n, s] of [["strapL", -1], ["strapR", 1]]) N[n].rotation.set(Math.sin(f.age * 5 + s) * 0.2 + (f.state === "paw" ? -0.6 : 0), 0, s * (0.1 + Math.abs(w) * 0.3));
+}
+
+function animSharpener(f, N, t, grow) {
+  N.crank.rotation.x = f.crank || 0;
+  N.core.scale.setScalar((1 + (f.pulse || 0) * 0.7 + Math.sin(t * 4 + f.phase) * 0.08) * grow);
 }

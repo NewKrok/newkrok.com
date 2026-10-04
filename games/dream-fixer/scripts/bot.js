@@ -17,7 +17,7 @@ const seed = Number(process.argv[2] || 1), difficulty = process.argv[3] || "norm
 const def = LEVELS[process.argv[5] || "park"];
 if (!def?.botRoutes) { console.log("no bot routes for that level"); process.exit(1); }
 const SKILL = { sharp: { turn: 0.12, pitch: 0.08, react: 0, wobble: 0 }, casual: { turn: 0.08, pitch: 0.05, react: 0.25, wobble: 0.03 } }[skill];
-const SMALL = new Set(["fuzz", "bunny", "buzzer"]), BIG = new Set(["tub", "knot"]);
+const SMALL = new Set(["fuzz", "bunny", "buzzer", "plane", "pencil"]), BIG = new Set(["tub", "knot", "backpack", "sharpener"]);
 
 const run = new Run(def, { seed, difficulty, aimAssist: 0.03, tools: def.tools ?? ["stabilizer"] });
 const B = run.body;
@@ -48,7 +48,9 @@ function pickTarget() {
     // Its nozzle while it sucks and the tank holds something to clog it with.
     const vac = run.tools[toolIndex("vacuum")];
     if (S.state === "suck" && vac?.tank.length) return { px: S.nozzle[0], cy: S.nozzle[1], pz: S.nozzle[2], boss: true, nozzle: true };
-    return { px: S.bag ? S.bag[0] : S.x, cy: S.bag ? S.bag[1] : S.y + 1.4, pz: S.bag ? S.bag[2] : S.z, boss: true };
+    // Its weakest spot (the highest damage multiplier).
+    const [x, y, z] = S.hitSpheres().reduce((a, b) => (b[4] > a[4] ? b : a));
+    return { px: x, cy: y, pz: z, boss: true };
   }
   return best;
 }
@@ -133,7 +135,7 @@ function kite(intent, home = null, ring = 0) {
   let near = null, nd = 1e9;
   for (const o of run.foes) if (o.alive && (o.aware || o.group) && !o.def.still) { const d = dist(o); if (d < nd) { nd = d; near = o; } }
   const heart = run.hp < run.maxHp * 0.55 && run.heals.find((h) => Math.hypot(h.x - B.x, h.z - B.z) < 12);
-  let wx = 0, wz = 0;
+  let wx, wz;
   if (heart) { wx = heart.x - B.x; wz = heart.z - B.z; }
   else if (near && nd < 7) {
     const ax = (B.x - near.px) / nd, az = (B.z - near.pz) / nd, away = nd < 4 ? 1 : 0.4;
@@ -152,6 +154,7 @@ function step(intent) {
   run.step({ forward: 0, strafe: 0, jump: false, jumpPressed: false, usePressed: false, ...intent }, DT);
   minHp = Math.min(minHp, run.hp);
   for (const e of run.events) if (e.type === "respawn") { falls++; if (process.env.DEBUG) console.log("   fell from", lastPos.map((v) => v.toFixed(1)).join(", ")); }
+  if (process.env.DEBUG && run.body.y < -0.5 && lastPos[1] >= -0.5) console.log("   dropping at", lastPos.map((v) => v.toFixed(2)).join(", "), "v", run.body.vx.toFixed(1), run.body.vz.toFixed(1), "t", run.time.toFixed(1));
   lastPos = [run.body.x, run.body.y, run.body.z];
   run.events.length = 0;
 }
@@ -223,7 +226,7 @@ for (const a of run.anchors) {
     aimAndFire(intent);
     kite(intent, a, a.ring - 2);
     step(intent);
-    if (process.env.DEBUG && i % 300 === 0) console.log("   tune", a.id, (i / 60) | 0, "p", a.progress.toFixed(2), "in", a.inside, "hp", run.hp | 0, "tool", run.activeTool.id, "foes", run.foes.filter((f) => f.alive).map((f) => f.kind[0]).join(""));
+    if (process.env.DEBUG && i % 300 === 0) console.log("   tune", a.id, (i / 60) | 0, "p", a.progress.toFixed(2), "in", a.inside, "hp", run.hp | 0, "at", B.x.toFixed(1), B.y.toFixed(1), B.z.toFixed(1), "d", Math.hypot(a.x - B.x, a.z - B.z).toFixed(1), "tool", run.activeTool.id, "foes", run.foes.filter((f) => f.alive).map((f) => f.kind.slice(0, 2)).join(""));
   }
   clearAround(15);
   rows.push(`${a.id.padEnd(8)} walk ${tWalk.toFixed(1)}s  tune ${(run.time - tt).toFixed(1)}s  ${a.state}  hp ${Math.round(run.hp)}  faints ${run.faints - f0}  falls ${falls - fl0}  dust ${run.dust}`);
@@ -241,7 +244,9 @@ if (def.boss) {
       const dx = B.x - S.x, dz = B.z - S.z, d = Math.hypot(dx, dz) || 1;
       // Back off while it sucks, circle otherwise; hop over the cord.
       const away = S.state === "suck" ? 1 : d < 6 ? 0.6 : d > 11 ? -0.6 : 0;
-      move(intent, dx / d * away + (-dz / d) * 0.7, dz / d * away + (dx / d) * 0.7);
+      // A strike lining up on you: step sideways out of its track.
+      const side = S.state === "aim" ? 2 : 0.7;
+      move(intent, dx / d * away + (-dz / d) * side, dz / d * away + (dx / d) * side);
       if (S.ring && Math.abs(d - S.ring.r) < 1.6 && B.grounded) { intent.jumpPressed = true; intent.jump = true; }
       // Low and a heart about: get it.
       if (run.hp < run.maxHp * 0.4) kite(intent);

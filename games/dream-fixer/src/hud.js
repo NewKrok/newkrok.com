@@ -90,7 +90,8 @@ export class Hud {
     if (e.type === "faint") { this.hurt = 1; this.banner(t("fainted")); }
     if (e.type === "anchorFixed") this.banner(e.left ? t("anchorFixed") : t("allFixed"), true);
     if (e.type === "coreOpen") this.bannerTimer = setTimeout(() => this.banner(t("coreOpen")), 2600);
-    if (e.type === "bossPhase") this.banner(t("bossPhase"));
+    if (e.type === "bossPhase") this.banner(t(`bossPhase_${e.kind ?? "vacuum"}`));
+    if (e.type === "penBlot") this.banner(t("bossBlot"), true);
     if (e.type === "bossClog") this.banner(t("bossClog"), true);
     if (e.type === "itemUse") this.kitFlash = e.id;
     if (e.type === "itemNo") this.banner(t("kit_awake"));
@@ -190,7 +191,7 @@ export class Hud {
       this.bossLagHp = f > this.bossLagHp ? f : Math.max(f, this.bossLagHp - dt * 0.3);
       this.bossFill.style.transform = `scaleX(${f.toFixed(3)})`;
       this.bossLag.style.transform = `scaleX(${this.bossLagHp.toFixed(3)})`;
-      this.bossEl.classList.toggle("clog", B.state === "clogged");
+      this.bossEl.classList.toggle("clog", B.state === "clogged" || B.state === "blotted");
     }
     const tool = run.activeTool;
     const h = Math.round(tool.heat * 100) / 100, c = Math.round(tool.charge * 100) / 100;

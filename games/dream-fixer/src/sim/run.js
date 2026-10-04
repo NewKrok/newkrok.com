@@ -2,7 +2,7 @@ import { DT } from "../config.js";
 import { Body } from "./player.js";
 import { ToolState, TOOL_ORDER } from "./tools.js";
 import { World } from "./world.js";
-import { Foe, stepFoes, damageFoe, startle } from "./foes.js";
+import { Foe, FOES, stepFoes, damageFoe, startle } from "./foes.js";
 import { Anchor, stepAnchors, startTuning } from "./anchors.js";
 import { BOSSES } from "./boss.js";
 import { Nav } from "./nav.js";
@@ -27,7 +27,7 @@ export const DIFFICULTY = {
 
 // Wakefulness does not come back by itself: popped glitches now and then
 // leave a dream drop behind (chance per kind; better when you are low).
-const HEAL = { amount: 10, life: 30, magnet: 5, chance: { fuzz: 0.45, bunny: 0.25, buzzer: 0.5, tub: 1, knot: 1 } };
+const HEAL = { amount: 10, life: 30, magnet: 5, chance: { fuzz: 0.45, bunny: 0.25, buzzer: 0.5, tub: 1, knot: 1, plane: 0.4, pencil: 0.5, backpack: 1, sharpener: 1 } };
 // Falling off the dream costs a bit too.
 const FALL_DMG = 12;
 
@@ -130,18 +130,18 @@ export class Run {
 
   spawn(kind, x, z, o = {}) {
     const y = o.y ?? this.kit.floorAt(x, z, 60);
-    const f = new Foe(this, kind, x, kind === "buzzer" ? y + 3 : y, z, o);
+    const f = new Foe(this, kind, x, FOES[kind].fly ? y + 3 : y, z, o);
     this.foes.push(f);
     this.events.push({ type: "spawn", id: f.id, kind, x, y, z });
     return f;
   }
 
-  spit(s) { s.life = 4; s.id = ++this.foeSeq; this.spits.push(s); this.events.push({ type: "spit", id: s.id, x: s.x, z: s.z }); }
+  spit(s) { s.life ??= 4; s.id = ++this.foeSeq; this.spits.push(s); this.events.push({ type: "spit", id: s.id, x: s.x, z: s.z }); }
 
   // A glitch popped: maybe it leaves a dream drop that wakes you up a bit.
   dropHeal(f) {
     const p = (HEAL.chance[f.kind] ?? 0) * this.diff.heals * (this.hp < this.maxHp * 0.35 ? 1.6 : 1);
-    const n = f.kind === "knot" ? 2 : 1;
+    const n = f.def.still ? 2 : 1;
     for (let i = 0; i < n; i++) {
       if (this.rnd() >= p) continue;
       const a = this.rnd() * Math.PI * 2;
@@ -179,7 +179,7 @@ export class Run {
   }
 
   // A knot's slam: a ring that runs out along the ground; jump over it.
-  shock(x, y, z, o = {}) { this.shocks.push({ x, y, z, r: 0, t: 0, hit: false, max: o.max ?? 6.5, speed: o.speed ?? 11, dmg: o.dmg ?? 8 }); }
+  shock(x, y, z, o = {}) { this.shocks.push({ x, y, z, r: 0, t: 0, hit: false, max: o.max ?? 6.5, speed: o.speed ?? 11, dmg: o.dmg ?? 8, color: o.color }); }
   stepShocks(dt) {
     const b = this.body;
     for (const s of this.shocks) {
@@ -485,8 +485,8 @@ export class Run {
       if (!f.alive || f.state === "spawn") continue;
       const l = this.inCone(f.px, f.cy, f.pz, d.range, d.cone);
       if (!l || !this.canSee(f.px, f.cy, f.pz)) continue;
-      // The stream wears everything down (knots unravel twice as fast).
-      f.stream = (f.stream || 0) + d.stream * dt * (f.kind === "knot" ? 2 : 1);
+      // The stream wears everything down (nests come apart twice as fast).
+      f.stream = (f.stream || 0) + d.stream * dt * (f.def.still ? 2 : 1);
       if (f.stream >= 0.5) {
         const dmg = f.stream; f.stream = 0;
         if (damageFoe(this, f, dmg, 0, 0, false)) { this.stats.popped++; continue; }
@@ -549,7 +549,7 @@ export class Run {
     const d = tool.def.blast;
     const [ax, , az] = this.aimDir();
     for (const f of this.foes) {
-      if (!f.alive || f.kind === "knot") continue;
+      if (!f.alive || f.def.still) continue;
       if (!this.inCone(f.px, f.cy, f.pz, d.range, d.cone)) continue;
       damageFoe(this, f, d.damage, ax * d.push / 3.5, az * d.push / 3.5, true);
     }

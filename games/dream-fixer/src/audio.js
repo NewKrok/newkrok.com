@@ -11,12 +11,13 @@
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const hz = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
-const GAP = { foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
+const GAP = { planeAim: 0.15, planeDive: 0.1, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
 
 const SONGS = {
   menu: { root: 60, bpm: 76, scale: [0, 2, 4, 7, 9], prog: [0, -3, 5, -5], lead: "box", drums: 0 },
   factory: { root: 58, bpm: 84, scale: [0, 2, 4, 5, 7, 9], prog: [0, 5, -3, -5], lead: "box", drums: 0.3 },
   park: { root: 62, bpm: 100, scale: [0, 2, 4, 7, 9], prog: [0, 5, -3, -5], lead: "box", drums: 0.5 },
+  school: { root: 65, bpm: 112, scale: [0, 2, 4, 5, 7, 9], prog: [0, 4, 5, 3], lead: "box", drums: 0.6 },
   boss: { root: 57, bpm: 122, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, -4, -2, -5], lead: "square", drums: 1 },
   win: { root: 64, bpm: 90, scale: [0, 2, 4, 7, 9], prog: [0, 5, 7, 0], lead: "box", drums: 0 },
 };
@@ -201,6 +202,21 @@ export class Audio {
       case "foamGone": [0, 0.07, 0.15].forEach((dt) => at(dt, (tt) => this.#tone(d, tt, 0.08, { freq: 900 + Math.random() * 600, freqEnd: 1800, gain: 0.04 }))); break;
       case "foamStuck": N(0.3, { type: "bandpass", freq: 600, freqEnd: 1500, q: 2, gain: 0.08 }); S(0.2, { freq: 250, freqEnd: 400, gain: 0.05 }); break;
       case "foamFree": S(0.1, { freq: 700, freqEnd: 1400, gain: 0.05 }); break;
+      case "planeAim": N(0.25, { type: "bandpass", freq: 1600, freqEnd: 3400, q: 2, gain: 0.05 }); break;
+      case "planeDive": N(0.45, { type: "bandpass", freq: 600, freqEnd: 2200, q: 1.2, gain: 0.1 }); break;
+      case "planeCrash": [0, 0.05, 0.11, 0.16].forEach((dt) => at(dt, (tt) => this.#noise(d, tt, 0.06, { type: "bandpass", freq: 2500 + Math.random() * 1500, q: 2, gain: 0.07 }))); break;
+      case "pencilCrouch": S(0.3, { type: "triangle", freq: 700, freqEnd: 1500, gain: 0.05 }); break;
+      case "pencilSpin": S(0.55, { type: "sawtooth", freq: 260, freqEnd: 900, gain: 0.04 }); N(0.5, { type: "bandpass", freq: 900, freqEnd: 2600, q: 3, gain: 0.04, attack: 0.1 }); break;
+      case "dizzy": [0, 0.1, 0.2, 0.3].forEach((dt, i) => at(dt, (tt) => this.#tone(d, tt, 0.12, { type: "sine", freq: 900 - i * 120, freqEnd: 1100 - i * 120, gain: 0.04 }))); break;
+      case "packWindup": [0, 0.07, 0.14, 0.21, 0.28].forEach((dt) => at(dt, (tt) => this.#noise(d, tt, 0.05, { type: "highpass", freq: 3000, gain: 0.05 }))); break;
+      case "packCharge": S(0.8, { type: "sawtooth", freq: 70, freqEnd: 110, gain: 0.1 }); N(0.8, { type: "lowpass", freq: 500, gain: 0.12, attack: 0.1 }); break;
+      case "packChomp": N(0.08, { type: "highpass", freq: 2500, gain: 0.08 }); S(0.12, { type: "square", freq: 260, freqEnd: 120, gain: 0.07 }); break;
+      case "sharpGrind": N(0.6, { type: "bandpass", freq: 400, freqEnd: 900, q: 4, gain: 0.08, attack: 0.05 }); S(0.6, { type: "sawtooth", freq: 90, freqEnd: 130, gain: 0.04 }); break;
+      case "sharpPop": S(0.15, { type: "sine", freq: 300, freqEnd: 800, gain: 0.08 }); N(0.08, { freq: 1800, q: 2, gain: 0.05 }); break;
+      case "penStrike": N(0.5, { type: "bandpass", freq: 900, freqEnd: 3000, q: 1, gain: 0.14 }); S(0.4, { type: "sawtooth", freq: 200, freqEnd: 90, gain: 0.06 }); break;
+      case "penLine": N(0.3, { type: "highpass", freq: 3500, gain: 0.06 }); break;
+      case "inkBurn": N(0.25, { type: "highpass", freq: 4500, gain: 0.06 }); S(0.15, { type: "triangle", freq: 500, freqEnd: 300, gain: 0.04 }); break;
+      case "penCircle": S(0.2, { freq: 400, freqEnd: 1200, gain: 0.08 }); break;
       case "newTool": [67, 72, 76, 79, 84].forEach((n, i) => at(i * 0.07, (tt) => this.#bell(d, tt, hz(n), 0.07, 1.2, 0.5))); break;
       // Anchors.
       case "tuneStart": S(0.8, { type: "triangle", freq: 220, freqEnd: 440, gain: 0.08, verb: 0.4 }); break;

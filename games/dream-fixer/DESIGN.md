@@ -45,8 +45,9 @@ Margó egyre idegesebb, mert „ennyi hibás álom nem szokott lenni”.
 
 1. **Morzsa, a kutya:** a parkban elszabadultak a mókusok, a főellenség
    pedig a Porszívó. Ez a tutorial-fejezet.
-2. **Dani (10 éves), dolgozat előtti éjszaka:** az iskolafolyosók
-   körbeérnek, repülő füzetlapok támadnak, a főellenség az Óriás Piros Toll.
+2. **Ethan (10 éves), matekdolgozat előtti éjszaka:** az iskolafolyosók
+   körbeérnek, papírrepülők, ceruzák és egy dühös hátizsák támadnak, a
+   főellenség a Piros Toll.
 3. **Réka, a szakács:** óriásivá nőtt konyha, elszabadult ételek, a
    főellenség a Kuktafazék.
 4. **Béla bácsi:** zuhanós álom lebegő kertszigeteken, a régi vasútállomás
@@ -94,6 +95,35 @@ az ég szürke-lila, a levegőben rózsaszín hibaszilánkok lebegnek, a horgony
 körül sötét folt van a földön, és a gyepen a Porszívó kábelei kígyóznak;
 minden megjavított horgonnyal tisztul az ég. Elszórt hibák már az elején is
 vannak, a saját dolgukkal foglalkoznak, amíg közel nem mész.
+
+### Ethan iskolája (2. fejezet)
+
+Az iskola lebegő darabja, tető nélküli termekkel. A buszos előtérről
+lépsz be; a folyosó négyzetben fut körbe a tornaterem körül (ez a
+„körbeérő folyosó”), róla nyílik nyugatra az osztályterem, keletre a
+könyvtár, északra a lépcsőház a tetőre, a csengőtoronyhoz. A horgonyok
+az osztályteremben, a könyvtár olvasósarkában és a tetőn vannak, a Piros
+Toll a tornaterem padlóján át jön fel. Az első horgony után jön a
+**Habágyú**; néhány emlék (szekrénytető, könyvespolc, busztető) csak
+hablépcsővel érhető el.
+
+Itt az ellenfelek nem a park bőrcseréi: mindegyiknek több mozdulata van,
+és távolság meg kockadobás alapján választ, így nehezebb kiismerni őket.
+
+| Hiba | Viselkedés |
+| --- | --- |
+| **Papírrepülő** | Körözik, hol lassan, hol sietve. Megáll, rád szegezi az orrát, aztán vagy egyenesen rád bukik, vagy hurkot ír és felülről csap le, vagy leereszkedik és derékmagasságban oldalról húz el. Falnak repülve összegyűrődik. |
+| **Ceruza** | Pogózik. Felugrik és oda zuhan, ahol állsz (gyűrű jelzi; a landolás gyűrűjét át kell ugrani), pörgettyűként üldöz (ilyenkor lepattannak róla a lövések, utána szédül és puha), vagy hátradől és döf. |
+| **Hátizsák** | Nehéz, tartja a távolságot. Könyveket dob köréd (gyűrűk jelzik), kaparja a földet és egyenesen nekiront (falnak menve kábult és puha), közelről harap. Nem szívható be, nem lökhető. |
+| **Hegyező** | Egy helyben ül, ceruzákat köp ki. Közelről forgácsot permetez, messziről radírdarabokat dob. |
+
+**A Piros Toll:** beáll (szaggatott csík mutatja az útját), és
+keresztülszáguld rajtad, a padlón égető piros tintát hagyva; osztályzatokat
+pöccint legyezőben; piros körökkel „kijavít” pontokat körülötted, amikből
+hibák pattannak ki. A második fázisban gyorsabb, kétszer húz egymás után,
+és pörögve tintagyűrűket küld (át kell ugrani). Ha habbal eltömöd a
+hegyét, feldől („bepacázott”), és többet sebződik, legjobban a kupak felőli
+vége.
 
 ### Szerszámok (a „fegyverek”)
 

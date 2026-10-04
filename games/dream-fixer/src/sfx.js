@@ -16,7 +16,7 @@ export class Sfx {
       switch (e.type) {
         case "shot": A.play(e.big ? "bigZap" : "zap"); if (e.foe || e.boss) A.play(e.boss ? "bossHit" : "hit", e.boss === "bag" ? 1 : 0); break;
         case "pop": A.play(e.big ? "bigPop" : "pop", 0, e.x, e.z); break;
-        case "spawn": if (e.kind === "knot") A.play("knotSpawn", 0, e.x, e.z); break;
+        case "spawn": if (e.kind === "knot" || e.kind === "sharpener") A.play("knotSpawn", 0, e.x, e.z); break;
         case "spit": A.play("spit", 0, e.x, e.z); break;
         case "spitPop": A.play(e.splash ? "splash" : e.kind === "nut" ? "nutHit" : "orbPop", 0, e.x, e.z); break;
         case "nutWindup": A.play("chitter", 0, e.x, e.z); break;
@@ -43,6 +43,11 @@ export class Sfx {
           break;
         case "foamSpray": case "foamBlob": A.play(e.type); break;
         case "foamSplat": case "foamSet": case "foamGone": case "foamStuck": case "foamFree": A.play(e.type, 0, e.x, e.z); break;
+        case "planeAim": case "planeDive": case "planeCrash": case "pencilCrouch": case "pencilSpin": case "dizzy":
+        case "packWindup": case "packCharge": case "packChomp": case "sharpGrind": case "sharpPop": case "penStrike": case "penLine": case "penCircle":
+          A.play(e.type, 0, e.x, e.z); break;
+        case "inkBurn": A.play("inkBurn"); break;
+        case "penBlot": A.play("foamStuck"); A.play("clog", 0, e.x, e.z); break;
         case "toolSwitch": A.play("switch"); break;
         case "toolUnlocked": A.play("newTool"); break;
         case "catch": A.play("catch"); break;

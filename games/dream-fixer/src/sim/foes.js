@@ -1,5 +1,6 @@
 import { Body } from "./player.js";
 import { World } from "./world.js";
+import { SCHOOL } from "./foes-school.js";
 
 // ── Glitches ─────────────────────────────────────────────────────────────
 // What goes wrong in a dream. Nobody dies: a glitch that runs out of `hp`
@@ -15,6 +16,9 @@ import { World } from "./world.js";
 //                    and then it crouches and leaps at you from afar.
 //  tub     (Fürdőkád) waddles about at a distance and lobs soap bubbles
 //                    that burst where they land (a ring shows where).
+//
+// Ethan's school has its own (foes-school.js): the paper plane, the
+// pencil, the backpack and the sharpener.
 //
 // The dream skins them (a tangled squirrel in the park); the sim only
 // knows the kind. Glitches already loose in a dream mind their own
@@ -46,6 +50,10 @@ export const FOES = {
   tub: { hp: 17.5, r: 0.9, h: 1.3, speed: 2, dmg: 6, dust: 10, hitR: 0.95, hitY: 0.75, knock: 0.15 },
   buzzer: { hp: 4, r: 0.4, speed: 3.4, dmg: 7, dust: 4, hitR: 0.46, hitY: 0, fly: true, knock: 0.6, catchable: true },
   knot: { hp: 16, r: 0.95, h: 1.4, dust: 12, hitR: 1.0, hitY: 0.75, still: true, knock: 0 },
+  plane: { hp: 2, r: 0.35, speed: 5, dmg: 6, dust: 3, hitR: 0.5, hitY: 0, fly: true, knock: 0.8, catchable: true },
+  pencil: { hp: 4, r: 0.25, h: 1.3, speed: 3.6, jump: 5.5, dmg: 7, dust: 4, hitR: 0.42, hitY: 0.65, knock: 0.7, catchable: true },
+  backpack: { hp: 20, r: 0.85, h: 1.3, speed: 2.2, dmg: 9, dust: 12, hitR: 0.95, hitY: 0.7, knock: 0.1, big: true, steady: true },
+  sharpener: { hp: 16, r: 0.8, h: 1.1, dust: 12, hitR: 0.9, hitY: 0.55, still: true, knock: 0 },
 };
 
 const TAU = Math.PI * 2;
@@ -75,7 +83,7 @@ export class Foe {
     } else if (d.still) {
       this.x = x; this.y = y; this.z = z;
     } else {
-      this.body = new Body(x, y, z, { radius: d.r, height: d.h, step: 0.5, speed: d.speed, accel: 30, airAccel: 6, jump: 6.2 });
+      this.body = new Body(x, y, z, { radius: d.r, height: d.h, step: 0.5, speed: d.speed, accel: 30, airAccel: 6, jump: d.jump ?? 6.2 });
       this.body.grounded = true;
     }
   }
@@ -112,8 +120,17 @@ export function stepFoes(run, dt) {
     const fdt = foamed(run, f, dt);
     f.t += fdt;
     if (f.state === "spawn") { if (f.t > 0.5) setState(f, "idle"); else continue; }
-    if (!fdt) continue;
-    if (f.kind === "fuzz" || f.kind === "bunny") fuzz(run, f, fdt, px, pz);
+    if (!fdt) {
+      // Stuck fast in foam, a flyer drops to the ground.
+      if (f.def.fly) {
+        const floor = run.kit.floorAt(f.x, f.z, f.y + 0.5) + 0.3;
+        f.vy = (f.vy || 0) - 12 * dt; f.y += f.vy * dt;
+        if (f.y < floor) { f.y = floor; f.vy = 0; }
+      }
+      continue;
+    }
+    if (SCHOOL[f.kind]) SCHOOL[f.kind](run, f, fdt, px, pcy, pz);
+    else if (f.kind === "fuzz" || f.kind === "bunny") fuzz(run, f, fdt, px, pz);
     else if (f.kind === "tub") tub(run, f, fdt, px, pz);
     else if (f.kind === "buzzer") buzzer(run, f, fdt, px, pcy, pz);
     else if (f.kind === "knot") knot(run, f, fdt, px, pz);
@@ -138,6 +155,11 @@ export function stepFoes(run, dt) {
 }
 
 function setState(f, s) { f.state = s; f.t = 0; }
+
+// What the school's glitches (foes-school.js) share with these.
+export const AI = {
+  setState, angTo, aware, notice, wayTo, brink, keepOn, floorBelow, groundAlong, hopTo,
+};
 
 // ── Foam ──
 // f.foam builds up as the Foam Cannon hits it and dries off by itself; it
@@ -227,7 +249,7 @@ function notice(run, f) {
 // A glitch that notices you (or is hit) calls the loose ones round it in.
 function alert(run, f, r, provoked) {
   for (const o of run.foes) {
-    if (o === f || !o.alive || o.group || o.kind === "knot") continue;
+    if (o === f || !o.alive || o.group || o.def.still) continue;
     if (Math.hypot(o.px - f.px, o.pz - f.pz) > r) continue;
     notice(run, o);
     o.provoked = Math.max(o.provoked || 0, provoked);
@@ -588,7 +610,7 @@ export function damageFoe(run, f, dmg, dx, dz, big) {
   if (!f.alive || f.state === "spawn" && f.t < 0.2) return false;
   // Stuck in foam: it cannot dodge or roll with it.
   const stuck = f.stuckT > 0;
-  f.hp -= stuck ? dmg * FOAM.hurt : dmg;
+  f.hp -= (stuck ? dmg * FOAM.hurt : dmg) * (f.guard ?? 1);
   f.flash = 1;
   // Hit from afar: it comes for you, and so do the ones round it. The calm
   // of the arrival spot is over once you start a fight.
@@ -598,14 +620,15 @@ export function damageFoe(run, f, dmg, dx, dz, big) {
   if (f.body && k > 0) {
     f.body.vx += dx * 3.5 * k; f.body.vz += dz * 3.5 * k;
     if (big) { f.body.vy = 3; f.body.grounded = false; }
-    if (f.state !== "lunge") { f.state = "stun"; f.t = 0; }
+    // (A spinning pencil shrugs it off; a heavy one only flinches at a big hit.)
+    if (f.state !== "lunge" && (f.guard ?? 1) >= 1 && (!f.def.steady || big)) { f.state = "stun"; f.t = 0; }
   } else if (f.def.fly) {
     f.vx += dx * 4 * k; f.vz += dz * 4 * k;
-    if (f.state === "windup") { f.state = "stun"; f.t = 0; f.cd = 1.2; }
+    if (f.state === "windup" || f.state === "aim") { f.state = "stun"; f.t = 0; f.cd = 1.2; }
   }
   if (f.hp <= 0) {
     f.alive = false;
-    run.events.push({ type: "pop", kind: f.kind, id: f.id, x: f.px, y: f.cy, z: f.pz, big: f.kind === "knot" });
+    run.events.push({ type: "pop", kind: f.kind, id: f.id, x: f.px, y: f.cy, z: f.pz, big: !!(f.def.still || f.def.big) });
     run.dropDust(f.px, f.cy, f.pz, f.def.dust);
     run.dropHeal(f);
     return true;

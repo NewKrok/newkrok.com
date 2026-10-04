@@ -183,7 +183,7 @@ export class GameView {
       } else if (e.type === "slam") {
         this.shake = Math.min(1, this.shake + (Math.hypot(e.x - run.body.x, e.z - run.body.z) < 9 ? 0.45 : 0.15));
         this.fx.puff(e.x, run.kit.floorAt(e.x, e.z) + 0.3, e.z, 1.4);
-      } else if (e.type.startsWith("boss")) {
+      } else if (e.type.startsWith("boss") || e.type.startsWith("pen")) {
         this.bossView.onEvent(e, run);
         if (e.type === "bossRise" || e.type === "bossPop") this.shake = Math.min(1, this.shake + 0.7);
         if (e.type === "bossGulp") this.shake = 1;

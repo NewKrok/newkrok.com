@@ -63,6 +63,41 @@ export const LINES_EN = {
   hub_greet_4: ["margo", "Welcome back! Mind the pipes, I've tripped twice already."],
   hub_greet_5: ["margo", "There you are! I was about to send Cog looking for you."],
   hub_greet_6: ["margo", "Hello again! The board's waiting, and so is my fourth coffee."],
+  // Ethan's school.
+  school_in1: ["margo", "You're in. Smells like floor wax and panic."],
+  school_in2: ["margo", "Three anchors somewhere in this school. Find them before the bell!"],
+  school_pencil: ["margo", "Pencils. Sharp ones. And they bounce."],
+  school_plane: ["margo", "Paper planes! Mind your head!"],
+  school_backpack: ["margo", "That backpack weighs more than Ethan. And it's angry."],
+  school_sharpener: ["margo", "A sharpener! It's making more pencils!"],
+  school_dizzy: ["margo", "It's dizzy! Now's your chance!"],
+  school_anchor: ["csavar", "Bip-bip! (Anchor! Press E!)"],
+  school_tune: ["margo", "Stay in the ring. Like a fire drill, but louder."],
+  school_ring: ["csavar", "Bwoop? (Back in the ring!)"],
+  school_fix1: ["margo", "One down! Sending you the Foam Cannon."],
+  school_fix2: ["margo", "Two! One more and the halls stop looping."],
+  school_all: ["margo", "All three hold! Uh-oh… the gym floor's moving."],
+  school_boss: ["margo", "A RED PEN. Every kid's nightmare."],
+  school_strike: ["margo", "It's marking you wrong! Off the line!"],
+  school_blot: ["margo", "Blotted! Hit it while it's down!"],
+  school_phase: ["margo", "Now it's grading on a curve. A mean one."],
+  school_faint: ["margo", "Easy. No detention down there. I pulled you back."],
+  school_win: ["margo", "Dream fixed! Ethan's asleep, smiling at a gold star."],
+  school_memory: ["margo", "A memory! Ethan's, this time."],
+  school_heart: ["margo", "Hearts work in school too. Grab it!"],
+  school_low_1: ["margo", "You're fading! Find a heart!"],
+  school_low_2: ["margo", "Low on wakefulness, rookie. Heart. Now."],
+  school_fall_1: ["margo", "That's not the stairs."],
+  school_fall_2: ["margo", "Hallway rule one: no running off the edge."],
+  school_fall_3: ["margo", "Again? I'm writing you a hall pass for the ground."],
+  school_swarm_1: ["margo", "It's like the lunch rush!"],
+  school_swarm_2: ["margo", "The whole class is after you!"],
+  school_swarm_3: ["margo", "Run now, explain later!"],
+  school_idle_1: ["margo", "Didn't we pass that locker already?"],
+  school_idle_2: ["margo", "Fun fact: Ethan lost four pencils this week. Found one."],
+  school_idle_3: ["margo", "Cog wants to know if he can join the chess club."],
+  school_idle_4: ["margo", "Is it just me, or is that clock going backwards?"],
+  hub_newjob: ["margo", "New job on the board: a kid called Ethan. Big test tomorrow."],
 };
 
 // Biscuit's memories: [title, text].
@@ -72,8 +107,13 @@ export const MEMORIES_EN = {
   photo: ["A photo", "Dora and Biscuit at the lake. Dora is away for a week. A week is very, very long."],
   slipper: ["Half a slipper", "Evidence. Dora was not amused. Biscuit was extremely proud."],
   cord: ["A cord in the cupboard", "It lives in the cupboard and comes out roaring. Nobody ever explains it to the dog."],
+  goldstar: ["A gold star", "Ms. Rivera gave him one for his volcano. He stuck it on his lunchbox, then on his forehead."],
+  lunchnote: ["A note in the lunchbox", "In Dad's handwriting: \"You've got this, buddy. Also, eat the carrots.\""],
+  dragon: ["A dragon in the margin", "Drawn during fractions. It breathes fire on the number seven, which Ethan has never trusted."],
+  hamster: ["Peanut, the class hamster", "This weekend it's Ethan's turn to take him home. Peanut doesn't care about tests at all."],
+  luckypencil: ["The lucky pencil", "Chewed at the end, never sharpened past the dinosaur. He's saving it for tomorrow."],
 };
-export const OUTRO_EN = { park: "Biscuit dreams of the lake now. Dora comes home on Sunday." };
+export const OUTRO_EN = { park: "Biscuit dreams of the lake now. Dora comes home on Sunday.", school: "Ethan dreams of Peanut now, and of a big red A+. The test is at nine." };
 // What the radio leaves out, kept as notes in the journal (unlocked by the line).
 export const NOTES_EN = {
   park_in2: ["Anchors", "Three dream anchors hold a dream together. Look for the pink wisps and the dark patches on the ground, press E by one and stay inside its ring while it tunes: glitches come at you in waves."],
@@ -85,4 +125,10 @@ export const NOTES_EN = {
   park_knot: ["Knots", "Sit still and keep tangling out new squirrels, lob fans of yarn, and slam the ground when you come close: jump the ring. The Fuzz Vacuum's stream unravels them twice as fast."],
   park_fix1: ["The Fuzz Vacuum", "Hold it on glitches and the stream wears them down; small ones that are worn enough it sucks right in (three fit). Right click fires a catch back out as a bursting yarn ball, or puffs air when the tank is empty."],
   park_boss: ["The Vacuum Cleaner", "Don't let it gulp you: run, or fire a caught fuzz right into its nozzle to clog it. Clogged, it takes triple damage, the dust bag on its back most of all. Furious, its cord lashes round: jump it."],
+  school_plane: ["Paper planes", "They circle you, now slow, now fast. When one hangs in the air with its nose on you, it is about to come: a straight dive, a loop that comes down on you from above, or a low pass from the side. Step aside at the last moment. A plane that flies into a wall crumples for a moment."],
+  school_pencil: ["Pencils", "They pogo about. One that crouches is about to leap where you stand (a ring shows where); its landing sends out a ring to jump. A spinning one shrugs off shots: keep away until it gets dizzy, then hit it hard. One that rocks back is about to jab."],
+  school_backpack: ["The backpack", "Too heavy to vacuum or to knock about. Unzipped, it throws books (watch the rings). Scraping the ground, it is about to charge: step aside and let it run into a wall, it is dazed and soft for a moment. Up close, it bites."],
+  school_sharpener: ["Sharpeners", "Keep popping out new pencils. Up close they spray shavings, from afar they lob bits of eraser. The Fuzz Vacuum takes them apart twice as fast."],
+  school_fix1: ["The Foam Cannon", "Hold to spray foam: glitches slow down, and one full of it is stuck for a moment and takes more damage. Right click throws a blob that sets where it lands: a step on the floor, a ledge on a wall, a stair higher on another step. Steps melt after a while."],
+  school_boss: ["The Red Pen", "It lines up (a dashed track shows the way) and dashes through you, leaving red ink on the floor that burns: don't stand in it. Foam its nib to gum it up: it falls over and takes more damage, the cap end most of all."],
 };

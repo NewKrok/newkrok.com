@@ -69,6 +69,28 @@ export function memoryBubble(b, { item = "hedgehog" } = {}) {
     } else if (item === "slipper") {
       n.add(SHAPE.ball(0.14, 10, 7), { s: [0.7, 0.35, 1.3], c: 0xff8fb8 });
       n.add(SHAPE.ball(0.06, 8, 6), { p: [0, 0.05, -0.08], c: 0xffffff });
+    } else if (item === "goldstar") {
+      n.add(SHAPE.extrude(Array.from({ length: 10 }, (_, i) => { const a = i / 10 * Math.PI * 2, r = i % 2 ? 0.07 : 0.16; return [Math.sin(a) * r, Math.cos(a) * r]; }), 0.04, 0.01), { c: C.dreamGold, mat: "glow", glow: 1.3 });
+    } else if (item === "lunchnote") {
+      n.add(SHAPE.box(0.24, 0.16, 0.005), { r: [0, 0, 0.1], c: C.paper, facet: 0 });
+      for (let i = 0; i < 3; i++) n.add(SHAPE.box(0.16 - i * 0.03, 0.01, 0.006), { p: [-0.02, 0.04 - i * 0.035, -0.004], r: [0, 0, 0.1], c: 0x3a5aa0, facet: 0 });
+      n.add(SHAPE.ball(0.025, 6, 4), { p: [0.08, -0.05, -0.006], s: [1, 1, 0.3], c: C.red });
+    } else if (item === "dragon") {
+      n.add(SHAPE.box(0.26, 0.2, 0.005), { c: C.paper, facet: 0 });
+      n.add(SHAPE.ball(0.05, 8, 6), { p: [-0.03, 0, -0.006], s: [1.4, 0.8, 0.2], c: 0x2a8a3a });
+      n.add(SHAPE.cone(0.03, 0.09, 3), { p: [0.06, 0.02, -0.006], r: [0, 0, -RX], c: 0xff8a2a });
+      for (const x of [-0.06, -0.01]) n.add(SHAPE.cone(0.015, 0.04, 3), { p: [x, 0.05, -0.006], c: 0x2a8a3a });
+    } else if (item === "hamster") {
+      n.add(SHAPE.ball(0.13, 10, 8), { s: [1, 0.85, 1.15], c: 0xe8b070 });
+      n.add(SHAPE.ball(0.07, 8, 6), { p: [0, -0.02, -0.1], s: [1.1, 0.8, 0.8], c: 0xf8e8d0 });
+      n.both((s) => { n.add(SHAPE.ball(0.035, 6, 4), { p: [s * 0.07, 0.1, -0.02], c: 0xf0a8a0 }); n.add(SHAPE.ball(0.016, 6, 4), { p: [s * 0.045, 0.03, -0.15], c: C.black }); });
+    } else if (item === "luckypencil") {
+      n.at([0, 0, 0], [0, 0, 0.6], 1, () => {
+        n.add(SHAPE.cyl(0.03, 0.03, 0.28, 6), { c: 0xffd040 });
+        n.add(SHAPE.cone(0.03, 0.06, 6), { p: [0, -0.17, 0], r: [Math.PI, 0, 0], c: 0xe8c898 });
+        n.add(SHAPE.cyl(0.032, 0.032, 0.04, 8), { p: [0, 0.16, 0], c: 0xf07890 });
+        n.add(SHAPE.ball(0.035, 6, 4), { p: [0, 0.04, -0.03], s: [1, 1.2, 0.4], c: 0x2a8a3a });
+      });
     } else {
       n.add(SHAPE.box(0.12, 0.08, 0.14, 0.02), { c: C.cream });
       n.both((s) => n.add(SHAPE.box(0.02, 0.02, 0.08), { p: [s * 0.03, 0, -0.1], c: C.brass, mat: "metal" }));

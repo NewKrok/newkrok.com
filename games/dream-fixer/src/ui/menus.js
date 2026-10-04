@@ -146,7 +146,7 @@ export class Menus {
       if (!isOpen(c, progress)) return `<div class="client locked"><div class="photo q">?</div><div class="info"><b>${esc(name)}</b><p>${esc(desc)}</p><span class="tag">${esc(t("board_next"))}</span></div></div>`;
       const done = progress.done.includes(c.id), found = progress.memories.filter((m) => MEMORY_OWNER[m] === c.id).length;
       const taken = progress.picked === c.level;
-      return `<div class="client ${done ? "done" : "new"}"><div class="photo paw"></div><div class="info"><b>${esc(name)}</b><p>${esc(desc)}</p>
+      return `<div class="client ${done ? "done" : "new"}"><div class="photo ${c.id === "park" ? "paw" : c.id}"></div><div class="info"><b>${esc(name)}</b><p>${esc(desc)}</p>
         <span class="tag">${esc(done ? t("board_fixed") : t("board_new"))}</span> <span class="tag soft">${esc(t("memories"))} ${found}/${memoriesOf(c.level).length}</span></div>
         <button class="btn ${taken ? "ghost" : ""}" data-a="take" data-level="${c.level}">${esc(taken ? t("board_taken") : done ? t("board_again") : t("board_take"))}</button></div>`;
     }).join("");

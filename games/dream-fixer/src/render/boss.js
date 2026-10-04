@@ -1,6 +1,7 @@
 import * as T from "three";
 import { make } from "./modelkit.js";
 import { vacuumBoss } from "./models/boss.js";
+import { redPen } from "./models/school.js";
 import { C } from "./palette.js";
 import { lerp, damp } from "../config.js";
 
@@ -112,9 +113,132 @@ class VacuumBossView {
 
 const easeOut = (x) => 1 - (1 - x) ** 3;
 
+// ── The Red Pen on screen ──
+// Tilts from its nib as the sim says, bounces about, drags its nib on a
+// strike. Ink on the floor is a row of red strips (blinking before it
+// dries up), a strike about to run shows as a faint dashed track, and a
+// correction closing is a red ring tightening.
+const INK_MAX = 24;
+
+class PenBossView {
+  constructor(scene, fx) {
+    this.scene = scene; this.fx = fx;
+    this.o = null;
+    const strip = new T.BoxGeometry(1, 0.02, 1);
+    this.ink = new T.InstancedMesh(strip, new T.MeshBasicMaterial({ color: new T.Color(0xc0101a), toneMapped: false }), INK_MAX);
+    this.ink.instanceColor = new T.InstancedBufferAttribute(new Float32Array(INK_MAX * 3), 3);
+    this.dash = new T.InstancedMesh(strip, new T.MeshBasicMaterial({ color: new T.Color(0xff6070), transparent: true, opacity: 0.45, depthWrite: false, toneMapped: false }), 40);
+    this.rings = new T.InstancedMesh(new T.RingGeometry(0.85, 1, 40).rotateX(-Math.PI / 2), new T.MeshBasicMaterial({ color: new T.Color(0xff2a3a).multiplyScalar(1.6), side: T.DoubleSide, toneMapped: false, transparent: true, depthWrite: false }), 8);
+    for (const m of [this.ink, this.dash, this.rings]) { m.frustumCulled = false; m.count = 0; scene.add(m); }
+    this.flashing = false;
+    this._m = new T.Matrix4(); this._q = new T.Quaternion(); this._p = new T.Vector3(); this._s = new T.Vector3(); this._c = new T.Color(); this._y = new T.Vector3(0, 1, 0);
+  }
+
+  clear() {
+    if (this.o) { this.scene.remove(this.o); this.o = null; }
+    this.ink.count = this.dash.count = this.rings.count = 0;
+  }
+
+  onEvent(e, run) {
+    const fx = this.fx;
+    if (e.type === "bossRise") {
+      const y = run.kit.floorAt(e.x, e.z);
+      for (let i = 0; i < 3; i++) fx.puff(e.x + (Math.random() - 0.5) * 3, y + 0.5, e.z + (Math.random() - 0.5) * 3, 1.8);
+      fx.ring([e.x, y + 0.1, e.z], [0, 1, 0], 0xff3040, 6, 0.8);
+    } else if (e.type === "penStrike" || e.type === "penLine") {
+      fx.burst([e.x, run.kit.floorAt(e.x, e.z) + 0.1, e.z], [0, 1, 0], 0xff3040, 14, 3, 0.06);
+    } else if (e.type === "penCircle") {
+      fx.puff(e.x, e.y + 0.4, e.z, 0.9);
+      fx.burst([e.x, e.y + 0.2, e.z], [0, 1, 0], 0xff3040, 16, 3.5, 0.06);
+    } else if (e.type === "penBlot") {
+      fx.puff(e.x, e.y, e.z, 1.4);
+      fx.burst([e.x, e.y, e.z], [0, 1, 0], 0xffffff, 26, 4, 0.07);
+    } else if (e.type === "bossPop" && run.boss) {
+      for (let i = 0; i < 90; i++) {
+        const a = Math.random() * Math.PI * 2, u = Math.random() * 2 - 1, s = Math.sqrt(1 - u * u), v = 4 + Math.random() * 8;
+        fx.spark(e.x, e.y, e.z, Math.cos(a) * s * v, u * v + 3, Math.sin(a) * s * v, 0.8 + Math.random() * 0.8, 0.1 + Math.random() * 0.1, [C.dream, C.dreamPink, C.dreamGold, 0xe02a30][i % 4], 6);
+      }
+      for (let i = 0; i < 5; i++) fx.puff(e.x + (Math.random() - 0.5) * 2, e.y + (Math.random() - 0.5) * 2, e.z + (Math.random() - 0.5) * 2, 2);
+      fx.ring([e.x, e.y - 1.3, e.z], [0, 1, 0], C.dream, 16, 1.2);
+      if (this.o) this.o.visible = false;
+    }
+  }
+
+  // A flat strip on the floor from (x0, z0) to (x1, z1).
+  strip(mesh, i, x0, z0, x1, z1, y, w) {
+    const dx = x1 - x0, dz = z1 - z0, l = Math.hypot(dx, dz) || 0.01;
+    this._p.set((x0 + x1) / 2, y, (z0 + z1) / 2);
+    this._q.setFromAxisAngle(this._y, Math.atan2(dx, dz));
+    this._s.set(w, 1, l);
+    mesh.setMatrixAt(i, this._m.compose(this._p, this._q, this._s));
+  }
+
+  update(run, alpha, dt, t) {
+    const B = run.boss;
+    if (!this.o) {
+      this.o = make(redPen);
+      this.meshes = [];
+      this.o.traverse((m) => { if (m.isMesh) { this.meshes.push(m); m.userData.mat = m.material; } });
+      this.scene.add(this.o);
+    }
+    if (!B.alive) { this.o.visible = false; this.ink.count = this.dash.count = this.rings.count = 0; return; }
+    const o = this.o, N = o.userData.nodes, b = B.body;
+    const rise = B.state === "rise" ? easeOut(B.rise) : 1;
+    o.position.set(lerp(B.lx, b.x, alpha), lerp(B.ly, b.y, alpha) - (1 - rise) * 3.6 + (B.tilt > 1 ? 0.45 : 0), lerp(B.lz, b.z, alpha));
+    o.rotation.y = B.yaw;
+    // Bounces on its nib as it gets about; scribbling, it whirls.
+    const hop = B.state === "roam" ? Math.abs(Math.sin(t * 7)) * 0.12 * Math.min(1, b.speed2D) : 0;
+    N.pen.position.y = hop;
+    N.pen.rotation.set(-B.tilt, 0, B.state === "blotted" ? Math.sin(t * 3) * 0.05 : 0);
+    N.nib.scale.setScalar(1 + (B.state === "strike" ? 0.3 : 0) + B.ink * 0.5);
+    N.cap.position.y = 2.9 + (B.state === "grade" ? Math.max(0, Math.sin(B.t * 20)) * 0.15 : 0);
+    N.face.scale.set(1, B.state === "blotted" ? 0.5 : 1, 1);
+    if (B.state === "strike" && Math.random() < 0.8) this.fx.spark(b.x, b.y + 0.1, b.z, (Math.random() - 0.5) * 3, 1 + Math.random() * 2, (Math.random() - 0.5) * 3, 0.4, 0.06, 0xff3040, 6);
+    if (B.ink > 0.05 && Math.random() < dt * 8) this.fx.puff(B.nib[0], B.nib[1] + 0.3, B.nib[2], 0.3 + B.ink * 0.5);
+
+    // Ink lines; the last second they blink.
+    let i = 0;
+    for (const L of B.lines) {
+      if (i >= INK_MAX) break;
+      const left = L.life - L.t, on = left > 1.2 || Math.sin(t * 22) > 0;
+      this.strip(this.ink, i, L.x0, L.z0, L.x1, L.z1, L.y + 0.03, on ? 0.85 : 0.001);
+      this.ink.setColorAt(i, this._c.set(0xd0101a).multiplyScalar(1.2 + Math.sin(t * 5 + i) * 0.15));
+      i++;
+    }
+    this.ink.count = i;
+    this.ink.instanceMatrix.needsUpdate = true; if (this.ink.instanceColor) this.ink.instanceColor.needsUpdate = true;
+    // A strike lining up: a dashed track, marching.
+    let d = 0;
+    const G = B.guide;
+    if (G) {
+      const L = Math.hypot(G.x1 - G.x0, G.z1 - G.z0), n = Math.min(40, Math.floor(L / 1.2)), ux = (G.x1 - G.x0) / L, uz = (G.z1 - G.z0) / L, off = (t * 3) % 1.2;
+      for (let k = 0; k < n; k++) {
+        const a = 1 + k * 1.2 + off;
+        if (a > L) break;
+        this.strip(this.dash, d++, G.x0 + ux * a, G.z0 + uz * a, G.x0 + ux * (a + 0.6), G.z0 + uz * (a + 0.6), G.y + 0.04, 0.6);
+      }
+    }
+    this.dash.count = d;
+    this.dash.instanceMatrix.needsUpdate = true;
+    // Corrections: red rings tightening on their spots.
+    let r = 0;
+    for (const c of B.circles) {
+      if (r >= 8) break;
+      const k = Math.min(1, c.t / c.T);
+      this._p.set(c.x, c.y + 0.05, c.z); this._q.identity(); this._s.setScalar(1.3 * (1.8 - 0.8 * k));
+      this.rings.setMatrixAt(r++, this._m.compose(this._p, this._q, this._s));
+    }
+    this.rings.count = r;
+    this.rings.instanceMatrix.needsUpdate = true;
+    // Hit flash.
+    const flash = B.flash > 0.6;
+    if (flash !== this.flashing) { for (const m of this.meshes) m.material = flash ? FLASH : m.userData.mat; this.flashing = flash; }
+  }
+}
+
 // ── Whichever nightmare the dream has ──
 // One view per boss kind, made when that boss first shows up.
-const VIEWS = { vacuum: VacuumBossView };
+const VIEWS = { vacuum: VacuumBossView, pen: PenBossView };
 
 export class BossView {
   constructor(scene, fx) { this.scene = scene; this.fx = fx; this.views = {}; }
