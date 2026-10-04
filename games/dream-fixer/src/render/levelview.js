@@ -23,7 +23,7 @@ export function buildLevelMeshes(kit) {
   return b.buildChunks(36);
 }
 
-function block(b, d) {
+export function block(b, d) {
   const L = d.look, h = d.y1 - d.y0;
   const big = Math.min(d.w, d.d);
   const bevel = L.bevel ?? Math.min(0.18, big * 0.04, h * 0.2);

@@ -173,6 +173,53 @@ másodpercig sokkal többet sebződik, legjobban belül. Az altatódal
 megfelezi a nyomást, és egy kicsit lelassítja. A második fázisban
 gyorsabb, két sugarat fúj egyszerre, és kétszer ugrik egymás után.
 
+### Joe nagypapa kertje (4. fejezet)
+
+Joe nagypapa a régi millbrooki vasútállomás állomásfőnöke volt. Holnap
+elköltözik a házból, aminek a kertjét ötven évig May-jel, a feleségével
+együtt gondozta. Az álmában a kert szigetekre tört, és a szigetek
+lassan sodródnak szét: zuhanós álom, hajnali, rózsaszín-arany égen.
+
+- **A kert** (középen): veteményes ágyások, a szerszámoskamra, rózsák,
+  kerti ösvény. Délen, az ösvényen érkezel.
+- **Az üvegház** (nyugaton, lépőköveken át): az első horgony benne van.
+- **A gyümölcsös** (keleten, 3 méterrel lejjebb, 10 méteres rés után):
+  csak siklással érhető el. Almafák, a második horgony. Egy mindig fújó
+  feláramlás visz vissza a kert fölé.
+- **A jelzőház** (északnyugaton, magasan): a kert sarkában egy szélforgós
+  feláramlás visz fel, onnan kell átsiklani. A harmadik horgony a régi
+  jelzőház mellett van.
+- **Az állomás** (északon, sínviadukton át): peron az állomásépülettel,
+  ez a boss arénája. A peron kőlapokból áll.
+
+Az első horgony után Joe ernyője leereszkedik az égből (a **Szélernyő**):
+a gyümölcsös és a jelzőház csak azzal érhető el. Csavar szól, ha a
+résnél vagy a szélforgónál állsz.
+
+| Hiba | Viselkedés |
+| --- | --- |
+| **Kerti törpe** | Kicsi, gyalogos. Ha ránézel, kővé dermed (nem mozdul, de sebezhető); ha elfordulsz, rohan feléd, közelről lapáttal üt, messziről kavicsot dob. A hátad mögé kerülők a veszélyesek. |
+| **Locsolókanna** | Repül. Föléd áll, megbillen, és esőfelhőt locsol: aki alatta áll, ázik (sebződik), kivéve, ha nyitott ernyő van a feje fölött. Messziről vízsugarat lő (három csepp). A széllökés elfújja. |
+| **Fűnyíró** | Nehéz, tartja a távolságot. Felbőg, és rád ront, közben lassan utánad kanyarodik (az utolsó pillanatban lépj félre; falnak menve kábult és puha). Messziről fűnyesedéket szór legyezőben. |
+| **Napraforgó** | Egy helyben áll, arccal követ. Sorozatban magokat lő (az ernyő megfogja, a csengő visszaüti), közelről szirom-gyűrűt ráz le (át kell ugrani), és a lehullott magjaiból kerti törpék kelnek ki. |
+
+**A Nagy Ébresztőóra:** a peron közepéből jön fel, embernél kétszer
+magasabb, két csengővel a tetején, a hátán felhúzókulccsal.
+- **Csörgés:** megáll, a csengői rázkódnak, aztán gyűrűket küld a padlón
+  (át kell ugrani), és lassító hanghullámot (mögé lehet bújni).
+- **Mutatósöprés:** a nagymutatója körbesöpör a peron fölött (át kell
+  ugrani); a második fázisban mindkét mutató.
+- **Lejárt az idő:** a peron néhány kőlapja körülötted villogni kezd, aztán
+  leesik, és pár másodperc múlva visszaúszik. A lyukon át az álom szele
+  fúj felfelé: aki rajta maradt, nyitott ernyővel visszaszáll a peron
+  fölé, és átsiklik egy megmaradt lapra; ernyő nélkül leesik.
+- **Szundi:** két kis ébresztőórát enged ki.
+- **A kulcs:** a hátán lévő felhúzókulcsot csak a Szélernyő széllökése
+  éri el, közelről. A peron két szélén feláramlás fúj, azzal lehet
+  fölé emelkedni (ügyesebbeknek: ugrás, széllökés a lábad elé, aztán
+  még egy a kulcsra). Ha eltalálod, lejár: pár másodpercre megáll,
+  kinyílik az üveglapja, és az arca sokkal többet sebződik.
+
 ### Szerszámok (a „fegyverek”)
 
 Egyik szerszámnak sincs lőszere. A casual játék érdekében hő- vagy

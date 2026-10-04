@@ -35,7 +35,8 @@ export class Umbrella {
     if (!open) return;
     const D = tool.def;
     for (const d of this.drafts) {
-      if (d.k <= 0.02 || Math.hypot(b.x - d.x, b.z - d.z) > d.r || b.y < d.y - 0.5 || b.y > d.top) continue;
+      const out = d.hole ? Math.abs(b.x - d.x) > d.r || Math.abs(b.z - d.z) > d.r : Math.hypot(b.x - d.x, b.z - d.z) > d.r;
+      if (d.k <= 0.02 || out || b.y < d.y - 0.5 || b.y > d.top) continue;
       // Strongest low down, easing off near the top so you bob there.
       const k = d.k * Math.min(1, (d.top - b.y) / 2.5);
       b.vy = Math.min(b.vy + D.lift * k * dt, D.rise * Math.max(0.15, k));
@@ -95,8 +96,8 @@ export class Umbrella {
     if (B?.alive && !B.invulnerable) {
       for (const [x, y, z, r, mul, part] of B.hitSpheres()) {
         if (!reach(x, y, z, r)) continue;
-        B.damage(run, d.damage * reach(x, y, z, r) * mul, part);
         B.gusted?.(run, ax, az, part);
+        B.damage(run, d.damage * reach(x, y, z, r) * mul, part);
         break;
       }
     }

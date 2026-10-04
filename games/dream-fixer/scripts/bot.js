@@ -2,7 +2,9 @@
 // on the way), tunes it and fights off the waves, then the boss. It fights
 // like a player would: the Stabilizer by default, the Fuzz Vacuum on small
 // glitches up close (and their catch shot back at the big ones, or into
-// the boss's nozzle), the Lullaby Bell on the Pressure Cooker's lid,
+// the boss's nozzle), the Lullaby Bell on the Pressure Cooker's lid, the
+// Gust Umbrella on whatever is right in its face (and to glide and ride
+// updrafts where a route says so),
 // backing off and circling instead of standing in a crowd, jumping the
 // rings that run along the floor, going for a pink heart when low. Prints
 // how long each part took and how hard it was.
@@ -19,7 +21,7 @@ const seed = Number(process.argv[2] || 1), difficulty = process.argv[3] || "norm
 const def = LEVELS[process.argv[5] || "park"];
 if (!def?.botRoutes) { console.log("no bot routes for that level"); process.exit(1); }
 const SKILL = { sharp: { turn: 0.12, pitch: 0.08, react: 0, wobble: 0 }, casual: { turn: 0.08, pitch: 0.05, react: 0.25, wobble: 0.03 } }[skill];
-const SMALL = new Set(["fuzz", "bunny", "buzzer", "clock", "pencil", "meatball", "pepper"]), BIG = new Set(["tub", "knot", "backpack", "sharpener", "rollingpin", "grinder"]);
+const SMALL = new Set(["fuzz", "bunny", "buzzer", "clock", "pencil", "meatball", "pepper", "gnome", "can"]), BIG = new Set(["tub", "knot", "backpack", "sharpener", "rollingpin", "grinder", "mower", "sunflower"]);
 
 // The tools a player brings: whatever the dreams before this one handed out.
 const before = CLIENTS.slice(0, Math.max(0, CLIENTS.findIndex((c) => c.level === def.id))).map((c) => LEVELS[c.level]?.unlockTool?.id).filter(Boolean);
@@ -66,6 +68,9 @@ function toolFor(tgt) {
   // The Pressure Cooker: ring its lid off with the bell, then shoot inside.
   const S = run.boss;
   if (tgt?.boss && S?.kind === "cooker" && !S.lidOff && toolIndex("bell") >= 0 && !run.tools[toolIndex("bell")].overheated && Math.hypot(S.x - B.x, S.z - B.z) < 9) return "bell";
+  // Something right in your face (not a flyer): the umbrella's gust.
+  const umb = run.tools[toolIndex("umbrella")];
+  if (umb && !umb.overheated && tgt && !tgt.orb && !tgt.boss && !tgt.def?.fly && dist(tgt) < 3.8) return "umbrella";
   const vac = run.tools[toolIndex("vacuum")];
   if (!vac || vac.overheated || tgt?.orb) return "stabilizer";
   if (tgt?.nozzle) return "vacuum";
@@ -100,7 +105,7 @@ function aimAndFire(intent) {
   B.yaw += Math.max(-SKILL.turn, Math.min(SKILL.turn, d));
   B.pitch += Math.max(-SKILL.pitch, Math.min(SKILL.pitch, pitch - B.pitch));
   const tool = run.activeTool, on = Math.abs(d) < 0.2;
-  if (tool.id === "bell") intent.fire = on && !tool.overheated;
+  if (tool.id === "bell" || tool.id === "umbrella") intent.fire = on && !tool.overheated;
   else if (tool.id === "vacuum") {
     // Shoot the catch back at a big one (a press: alt down for a step, then
     // up), or at anything once the tank is full.
@@ -190,6 +195,10 @@ function walk(route) {
     // A foam step to climb: set where a well-aimed blob would land, on
     // whatever is there (the floor, or a step already standing).
     if (x === "foam") { foamStep(z, jump); continue; }
+    // The umbrella: a glide over a gap, a gust at a pinwheel, a ride up an updraft.
+    if (x === "glide") { if (!glide(z, jump)) return false; continue; }
+    if (x === "gust") { gustAt(z); continue; }
+    if (x === "draft") { draft(z); continue; }
     // Something the bell sets off (a soufflé, a jelly): rung, as if from here.
     if (x === "bell") { const g = run.ringables.find((o) => o.id === z); if (g) { run.bell.setOff(run, g); if (g.kind === "jelly") g.wobbleT = 30; step({}); } continue; }
     const sx = B.x, sz = B.z; let jumped = false, fights = 0;
@@ -212,6 +221,56 @@ function walk(route) {
   return true;
 }
 
+const holdUmbrella = () => {
+  const ui = toolIndex("umbrella");
+  if (ui < 0 || run.tool === ui) return ui >= 0;
+  step({ toolTo: ui });
+  for (let i = 0; i < 20; i++) step({ alt: !B.grounded });
+  return true;
+};
+
+// Run at the edge facing (x, z), jump off it with the umbrella open, glide
+// there, land. (Already in the air, off the top of an updraft: glide on.)
+function glide(x, z) {
+  if (!holdUmbrella()) return false;
+  const f0 = falls;
+  let air = !B.grounded;
+  for (let i = 0; i < 900; i++) {
+    if (falls !== f0) return false;
+    const dx = x - B.x, dz = z - B.z, d = Math.hypot(dx, dz);
+    if (air && B.grounded) return true;
+    if (!air && d < 0.6) return true;
+    B.yaw = Math.atan2(-dx, -dz); B.pitch = 0;
+    const edge = B.grounded && ground(B.x - Math.sin(B.yaw), B.z - Math.cos(B.yaw), B.y) < B.y - 1.5;
+    if (!B.grounded) air = true;
+    step({ forward: d > 0.6 ? 1 : 0, alt: air || edge, jumpPressed: edge, jump: edge || (air && B.vy > 0) });
+  }
+  return true;
+}
+
+// A gust at a pinwheel from where you stand.
+function gustAt(id) {
+  const w = run.umbrella.wheels.find((o) => o.id === id);
+  if (!w || !holdUmbrella()) return;
+  for (let i = 0; i < 90 && !(w.spinT > 0); i++) {
+    const dx = w.x - B.x, dy = w.y + w.h - B.eyeY, dz = w.z - B.z;
+    B.yaw = Math.atan2(-dx, -dz); B.pitch = Math.atan2(dy, Math.hypot(dx, dz));
+    step({ fire: true });
+  }
+}
+
+// Onto an updraft's well, then up it with the umbrella open to near its top.
+function draft(id) {
+  const d = run.umbrella.drafts.find((o) => o.id === id);
+  if (!d) return;
+  walk([[d.x, d.z]]);
+  if (!holdUmbrella()) return;
+  for (let i = 0; i < 600; i++) {
+    step({ alt: true });
+    if (B.y > d.top - 1.8 && Math.abs(B.vy) < 1.5) break;
+  }
+}
+
 function foamStep(x, z) {
   const S = run.tools.find((t) => t.id === "foam")?.def.step ?? TOOLS.foam.step;
   run.foam.set(run, S, x, ground(x, z, B.y + 1.5), z, 0, 1, 0);
@@ -223,7 +282,8 @@ function foamStep(x, z) {
 // route back the other way.
 function backToMiddle() {
   const at = run.anchors.find((o) => o.state === "fixed" && Math.hypot(o.x - B.x, o.z - B.z) < 12);
-  if (at) walk(def.botRoutes[at.id].filter((p) => typeof p[0] === "number").slice(0, -1).reverse());
+  if (at && def.botBack?.[at.id]) walk(def.botBack[at.id]);
+  else if (at) walk(def.botRoutes[at.id].filter((p) => typeof p[0] === "number").slice(0, -1).reverse());
 }
 function goTo(a, route) {
   for (let k = 0; k < 8 && Math.hypot(B.x - a.x, B.z - a.z) > 2.5; k++) { backToMiddle(); walk(route); }
@@ -246,7 +306,7 @@ for (const a of run.anchors) {
     // Drifted out of the dream and back at another anchor: walk back.
     if (Math.hypot(a.x - B.x, a.z - B.z) > a.ring + 3 && rewalks++ < 8) goTo(a, route);
     // Fallen off a ledge the anchor stands on: climb back up the end of the route.
-    else if (B.y < a.y - 2 && B.grounded && rewalks++ < 8) { const k = route.findIndex((p) => p[0] === "foam" || p[0] === "bell"); walk(route.slice(Math.max(0, k - 1))); }
+    else if (B.y < a.y - 2 && B.grounded && rewalks++ < 8) { const k = route.findIndex((p) => typeof p[0] === "string"); walk(route.slice(Math.max(0, k - 1))); }
     aimAndFire(intent);
     kite(intent, a, a.ring - 2);
     step(intent);
@@ -259,7 +319,7 @@ for (const a of run.anchors) {
 // The boss.
 if (def.boss) {
   // Back from the last anchor, out onto the arena.
-  const intoArena = () => { for (let k = 0; k < 4 && !run.boss && !run.won; k++) { backToMiddle(); walk([[def.boss.x, def.boss.z + 7]]); } };
+  const intoArena = () => { for (let k = 0; k < 4 && !run.boss && run.coreT < 0 && !run.won; k++) { backToMiddle(); walk(def.botBoss ?? [[def.boss.x, def.boss.z + 7]]); } };
   intoArena();
   const tb = run.time, f0 = run.faints;
   let tries = 1;
@@ -267,11 +327,16 @@ if (def.boss) {
     // Fainted: the fight starts over once it walks back in.
     if (!run.boss && run.coreT < 0) { tries++; intoArena(); }
     const S = run.boss, intent = {};
+    // The Big Alarm Clock's key: close by, jump, a gust at your feet for a
+    // lift, then a gust at the key.
+    if (S?.alive && S.kind === "bigclock" && S.state !== "unwound" && !S.invulnerable && keyTry(S)) continue;
     aimAndFire(intent);
     if (S?.alive) {
       const dx = B.x - S.x, dz = B.z - S.z, d = Math.hypot(dx, dz) || 1;
       // Back off while it sucks, circle otherwise; hop over the cord.
-      const away = S.state === "suck" ? 1 : d < 6 ? 0.6 : d > 11 ? -0.6 : 0;
+      let away = S.state === "suck" ? 1 : d < 6 ? 0.6 : d > 11 ? -0.6 : 0;
+      // The Big Alarm Clock: close in for a go at its key (not while its hands sweep).
+      if (S.kind === "bigclock" && toolIndex("umbrella") >= 0 && S.state !== "sweep" && S.state !== "unwound") away = d < 2.4 ? 0.6 : d > 3.4 ? -0.9 : 0;
       // A strike lining up on you: step sideways out of its track.
       const side = S.state === "aim" ? 2 : 0.7;
       move(intent, dx / d * away + (-dz / d) * side, dz / d * away + (dx / d) * side);
@@ -282,10 +347,45 @@ if (def.boss) {
       if (S.mark) { const mx = B.x - S.mark[0], mz = B.z - S.mark[2], md = Math.hypot(mx, mz) || 1; if (md < S.mark[3] + 1) move(intent, mx / md, mz / md); }
       // Low and a heart about: get it.
       if (run.hp < run.maxHp * 0.4) kite(intent);
+      // A slab about to fall under you: off it, onto one that holds. Falling
+      // already: open the umbrella and glide to one.
+      if (run.tiles.length) {
+        const on = (p) => Math.abs(B.x - p.x) < p.w / 2 && Math.abs(B.z - p.z) < p.d / 2;
+        const under = run.tiles.find(on), falling = !B.grounded && B.y < -0.4;
+        if ((under && under.state === "warn") || falling) {
+          const safe = run.tiles.filter((p) => p.state === "set" && p !== under).sort((a, c) => Math.hypot(a.x - B.x, a.z - B.z) - Math.hypot(c.x - B.x, c.z - B.z))[0];
+          if (safe) {
+            const sx = safe.x - B.x, sz = safe.z - B.z, sl = Math.hypot(sx, sz) || 1, sn = Math.sin(B.yaw), cs = Math.cos(B.yaw);
+            intent.forward = (-sn * sx - cs * sz) / sl; intent.strafe = (cs * sx - sn * sz) / sl;
+          }
+          if (falling) { intent.toolTo = toolIndex("umbrella"); intent.alt = true; intent.fire = false; }
+        }
+      }
     }
     step(intent);
     if (process.env.DEBUG && i % 600 === 0) console.log("  t", (i / 60) | 0, "boss", S ? `${S.state} ${S.hp | 0} d${Math.hypot(S.x - B.x, S.z - B.z).toFixed(1)}` : "-", "hp", run.hp | 0, run.activeTool.id, "tank", run.tools[1]?.tank.length, "tgt", tgtRef?.kind ?? (tgtRef?.boss ? "boss" : "-"), tgtRef ? Math.hypot(tgtRef.px - B.x, tgtRef.pz - B.z).toFixed(1) : "", "you", B.x.toFixed(1), B.y.toFixed(1), B.z.toFixed(1), "near", run.foes.filter((f) => f.alive && dist(f) < 12).map((f) => f.kind + (f.group ?? "") + dist(f).toFixed(0)).join(" "));
   }
   console.log(`boss     ${run.won ? "down" : "NOT down"} after ${(run.time - tb).toFixed(1)}s  faints ${run.faints - f0}  tries ${tries}`);
 }
+// One go at the Big Alarm Clock's key (true if it tried).
+function keyTry(S) {
+  const ui = toolIndex("umbrella"), d = Math.hypot(S.x - B.x, S.z - B.z);
+  if (ui < 0 || !B.grounded || d < 2.3 || d > 3.6 || run.tools[ui].overheated || Math.abs(B.y - S.y) > 0.5) return false;
+  if (run.tool !== ui) { step({ toolTo: ui }); for (let i = 0; i < 19; i++) step({}); }
+  step({ jumpPressed: true, jump: true });
+  let hopped = false;
+  for (let i = 0; i < 70 && !B.grounded; i++) {
+    const intent = { jump: true };
+    if (!hopped && B.vy < 2.5) { B.pitch = -1.3; intent.fire = true; hopped = true; }
+    else if (hopped) {
+      const [x, y, z] = S.hitSpheres()[0];
+      B.yaw = Math.atan2(-(x - B.x), -(z - B.z)); B.pitch = Math.atan2(y - B.eyeY, Math.hypot(x - B.x, z - B.z));
+      intent.fire = run.activeTool.cd <= 0;
+    }
+    step(intent);
+    if (S.state === "unwound") break;
+  }
+  return true;
+}
+
 console.log(`total ${(run.time - t0).toFixed(1)}s  popped ${run.stats.popped}  hits ${run.stats.hits}/${run.stats.shots}  dust ${run.dust}  min hp ${Math.round(minHp)}  hurt ${Math.round(hurtTotal)}  faints ${run.faints}  falls ${falls}  alive ${run.foes.filter((f) => f.alive).length}`);

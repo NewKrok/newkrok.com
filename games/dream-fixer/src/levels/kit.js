@@ -20,6 +20,7 @@ export class Kit {
     this.ringables = [];       // things the Lullaby Bell sets off (drawn by the renderer)
     this.updrafts = [];        // columns of rising air an open umbrella rides up
     this.pinwheels = [];       // a gust sets them spinning (and their updraft blowing)
+    this.tiles = [];           // paving that can fall away (drawn and moved by the renderer)
     this.floorLimit = 50;      // indoors: below the ceiling
   }
 
@@ -123,6 +124,13 @@ export class Kit {
     const y = o.y ?? this.floorAt(x, z), h = o.h ?? 2.2;
     this.world.cyl({ x, z, r: 0.12, y0: y, y1: y + h });
     this.pinwheels.push({ id, x, z, y, h, time: o.time ?? 9, yaw: o.yaw ?? 0 });
+  }
+  // A paving slab that a nightmare can drop out from under you (and that
+  // floats back). o: { y0, y1, look, fixed (never drops) }.
+  tile(id, x, z, w, d, o = {}) {
+    const y1 = o.y1 ?? 0, y0 = o.y0 ?? y1 - 1.2;
+    const c = this.world.box({ x, z, y0, y1, hx: w / 2, hz: d / 2 });
+    this.tiles.push({ id, x, z, w, d, y0, y1, look: o.look ?? {}, fixed: !!o.fixed, c });
   }
   mark(name, x, z, y) { this.marks[name] = { x, y: y ?? this.floorAt(x, z), z }; }
   light(x, y, z, color, intensity = 6, dist = 9) { this.lights.push({ x, y, z, color, intensity, dist }); }

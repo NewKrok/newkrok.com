@@ -16,6 +16,7 @@ import { WaterView } from "./water.js";
 import { FoamView } from "./foam.js";
 import { BellView } from "./bell.js";
 import { UmbrellaView } from "./umbrella.js";
+import { TileView } from "./tiles.js";
 import { C } from "./palette.js";
 import { damp, lerp } from "../config.js";
 
@@ -43,6 +44,7 @@ export class GameView {
     this.foamView = new FoamView(this.scene, this.fx);
     this.bellView = new BellView(this.scene, this.fx);
     this.umbrellaView = new UmbrellaView(this.scene, this.fx);
+    this.tileView = new TileView(this.scene, this.fx);
     this.companion = new Companion(this.scene);
     this.talking = false;
     this.shake = 0;
@@ -128,6 +130,7 @@ export class GameView {
     }
     this.bellView.load(run);
     this.umbrellaView.load(run);
+    this.tileView.load(run);
     const def = run.def, kit = run.kit;
     this.foes.setSkins(def.skins);
     const g = this.level = new T.Group();
@@ -206,7 +209,12 @@ export class GameView {
         this.fx.puff(e.x, e.y, e.z, 1.4);
       } else if (e.type === "meatSplit") {
         this.fx.burst([e.x, e.y, e.z], [0, 1, 0], 0xc8302a, 12, 3, 0.06);
-      } else if (e.type.startsWith("boss") || e.type.startsWith("pen") || e.type.startsWith("cooker")) {
+      } else if (e.type === "tileDrop" || e.type === "tileBack") {
+        this.tileView.onEvent(e);
+        if (e.type === "tileDrop" && Math.hypot(e.x - run.body.x, e.z - run.body.z) < 8) this.shake = Math.min(1, this.shake + 0.25);
+      } else if (e.type === "soaked") {
+        this.ringBurst(run, 0x6ac0f0, 10);
+      } else if (e.type.startsWith("boss") || e.type.startsWith("pen") || e.type.startsWith("cooker") || e.type.startsWith("bigclock")) {
         this.bossView.onEvent(e, run);
         if (e.type === "bossRise" || e.type === "bossPop") this.shake = Math.min(1, this.shake + 0.7);
         if (e.type === "bossGulp") this.shake = 1;
@@ -364,6 +372,7 @@ export class GameView {
     this.foamView.update(run, alpha, dt, t, m);
     this.bellView.update(run, dt, t);
     this.umbrellaView.update(run, dt, t);
+    this.tileView.update(run, dt, t);
     this.fx.update(dt);
     this.adapt(dt);
     this.composer.render(dt);

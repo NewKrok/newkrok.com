@@ -116,6 +116,18 @@ const DIRECTORS = {
     },
     on: { "spawn:grinder": "grinder", meatSplit: "split", sneeze: "sneeze", dizzy: "dizzy", bossRise: "boss", cookerWhistle: "whistle", cookerLid: "lid", bossPhase: "phase", bossPop: "win" },
   }),
+  garden: dreamDirector("garden", {
+    meet: [["gnome", 12, "gnome"], ["can", 16, "can"], ["mower", 16, "mower"], ["sunflower", 16, "sunflower"]],
+    // At the edge facing the orchard, or by the pinwheel: Cog says what is
+    // in the way, or (with the umbrella) what to do about it.
+    frame(D, run, dt, S, q) {
+      if (!q(1.5)) return;
+      const b = run.body, umb = run.tools.some((t) => t.id === "umbrella");
+      if (b.x > 16 && b.x < 20.5 && Math.abs(b.z - 6) < 9 && b.y > -0.5 && b.y < 1) D.say(umb ? "garden_glide" : "garden_gap");
+      else if (from(run, -14, -11) < 5 && b.y < 1 && !(run.umbrella.drafts.find((d) => d.id === "nw")?.k > 0.2)) D.say(umb ? "garden_pinwheel" : "garden_still");
+    },
+    on: { soaked: "soaked", dizzy: "dizzy", bossRise: "boss", bigclockTimesup: "timesup", bigclockClink: "key", bigclockUnwound: "unwound", bossPhase: "phase", bossPop: "win" },
+  }),
   factory: {
     start(D, run, P) {
       // First time in: the welcome. Back from a dream: how it went. Any
@@ -134,6 +146,7 @@ const DIRECTORS = {
       // A new client calls once the last dream is done (not straight after it: that night is over).
       if (S.P?.done.includes("park") && !S.P.done.includes("school") && !S.P.log.includes("hub_newjob") && !D.said.has("hub_back1") && q(3)) D.say("hub_newjob");
       if (S.P?.done.includes("school") && !S.P.done.includes("kitchen") && !S.P.log.includes("hub_newjob2") && !D.said.has("hub_back1") && q(3)) D.say("hub_newjob2");
+      if (S.P?.done.includes("kitchen") && !S.P.done.includes("garden") && !S.P.log.includes("hub_newjob3") && !D.said.has("hub_back1") && q(3)) D.say("hub_newjob3");
       if (!S.P?.log.includes("hub_journal") && (from(run, -8.7, -4.2) < 3.5 || (S.time > 40 && (D.said.has("hub_intro3") || D.said.has("hub_back2")))) && q(2)) D.say("hub_journal");
     },
   },

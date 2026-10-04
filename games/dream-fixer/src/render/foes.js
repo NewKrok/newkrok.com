@@ -13,14 +13,18 @@ import { lerp } from "../config.js";
 
 // The looks a dream gives each kind (model ids), unless its level says
 // otherwise. A skin keeps the nodes its kind's animation moves.
-const SKINS = { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub", clock: "clock", pencil: "pencil", backpack: "backpack", sharpener: "sharpener", meatball: "meatball", pepper: "pepper", rollingpin: "rollingpin", grinder: "grinder" };
+const SKINS = { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub", clock: "clock", pencil: "pencil", backpack: "backpack", sharpener: "sharpener", meatball: "meatball", pepper: "pepper", rollingpin: "rollingpin", grinder: "grinder", gnome: "gnome", can: "can", mower: "mower", sunflower: "sunflower" };
 const FLASH = new T.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
+// A gnome you are looking at: stone grey all over.
+const STONE = new T.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.95, flatShading: true });
 const POP_COLORS = { bunny: [0xc4c0cc, 0x7a7684, C.dream, 0xffffff], tub: [0xffffff, 0x8fd0f0, C.dream, 0xffd23a], fuzz: [0xe8a060, 0xc8743a, C.dream, 0xffffff], buzzer: [0xf2c14e, 0x5a3620, C.dream, 0xffffff], knot: [0xe8a060, C.dreamPink, C.dream, 0xffffff], pillow: [0xffffff, 0xf4eaff, 0xd8c8ff, C.dreamPink],
   clock: [0xe8423a, 0xfaf6e8, C.brass, C.dream], pencil: [0xffd040, 0xe8c898, 0xf07890, C.dream], backpack: [0xd84a48, 0x2a3a6a, 0xffd23a, C.dream], sharpener: [0xb8c2cc, 0xe8c898, C.dreamPink, C.dream],
-  meatball: [0x8a4a2a, 0xc8302a, 0x3a8a2a, C.dream], pepper: [0x2a2420, 0xd8e0e8, C.dreamPink, C.dream], rollingpin: [0xd8a870, 0xf4f0e8, C.dreamPink, C.dream], grinder: [0x4a505a, 0xc8302a, C.dreamPink, C.dream] };
+  meatball: [0x8a4a2a, 0xc8302a, 0x3a8a2a, C.dream], pepper: [0x2a2420, 0xd8e0e8, C.dreamPink, C.dream], rollingpin: [0xd8a870, 0xf4f0e8, C.dreamPink, C.dream], grinder: [0x4a505a, 0xc8302a, C.dreamPink, C.dream],
+  gnome: [0xe8423a, 0x3a6ab8, 0xf4f2ea, C.dream], can: [0x5ab06a, 0x9fe0ff, C.brass, C.dream], mower: [0xd8483a, 0x3a3e46, 0x7ab85a, C.dream], sunflower: [0xffd84a, 0x4a2e1a, 0x5aa04a, C.dream] };
 // What school glitches throw: [size x, y, z, colour] for a tumbling chunk.
 const CHUNKS = { hand: [0.06, 0.4, 0.04, 0x2a2440], book: [0.42, 0.1, 0.32, 0x3a7fae], shaving: [0.16, 0.03, 0.1, 0xe8c898], eraser: [0.26, 0.14, 0.16, 0xf07890], grade: [0.34, 0.42, 0.06, 0xe02a30],
-  peppercorn: [0.1, 0.1, 0.1, 0x2a2420], mince: [0.16, 0.07, 0.12, 0xb0503a], sauce: [0.34, 0.22, 0.34, 0xd8302a], bean: [0.26, 0.16, 0.18, 0xd06a2a] };
+  peppercorn: [0.1, 0.1, 0.1, 0x2a2420], mince: [0.16, 0.07, 0.12, 0xb0503a], sauce: [0.34, 0.22, 0.34, 0xd8302a], bean: [0.26, 0.16, 0.18, 0xd06a2a],
+  pebble: [0.16, 0.12, 0.14, 0x8a867a], drop: [0.12, 0.18, 0.12, 0x6ac0f0], clipping: [0.2, 0.03, 0.06, 0x5aa04a], seed: [0.12, 0.05, 0.08, 0x2a1a0e] };
 const BOOKS = [0xd84a48, 0x3a7fae, 0x2a8a3a, 0xe0a020, 0x7a4aa0];
 
 export class FoeView {
@@ -177,6 +181,10 @@ export class FoeView {
       else if (f.kind === "pepper") animPepper(f, N, t, grow);
       else if (f.kind === "rollingpin") animPin(f, N, t, grow, dt);
       else if (f.kind === "grinder") animGrinder(f, N, t, grow);
+      else if (f.kind === "gnome") animGnome(f, N, t, grow);
+      else if (f.kind === "can") animCan(f, N, t, grow);
+      else if (f.kind === "mower") animMower(f, N, t, grow, dt);
+      else if (f.kind === "sunflower") animSunflower(f, N, t, grow);
       else animKnot(f, N, t, grow);
       // Asleep (the Lullaby Bell): lying over, breathing slowly.
       const zz = f.sleepT > 0 ? Math.min(1, (v.sleepK || 0) + dt * 4) : Math.max(0, (v.sleepK || 0) - dt * 5);
@@ -185,9 +193,10 @@ export class FoeView {
       const ms = f.mini ? 0.62 : 1;
       o.scale.set(ms, ms * (1 + zz * Math.sin(t * 2.2 + f.id) * 0.05), ms);
       // Hit flash.
-      const flash = f.flash > 0.55;
+      // Hit flash (a gnome you look at is stone).
+      const flash = f.flash > 0.55 ? 1 : f.state === "stone" ? 2 : 0;
       if (flash !== v.flashing) {
-        for (const m of v.meshes) m.material = flash ? FLASH : m.userData.mat;
+        for (const m of v.meshes) m.material = flash === 1 ? FLASH : flash === 2 ? STONE : m.userData.mat;
         v.flashing = flash;
       }
     }
@@ -295,6 +304,21 @@ export class FoeView {
       if (Math.random() < 0.3) this.fx.spark(c.x + (Math.random() - 0.5) * c.r * 1.5, c.y + 0.3 + Math.random() * 1.5, c.z + (Math.random() - 0.5) * c.r * 1.5, 0, 0.3, 0, 0.8, 0.04, 0x3a3028, -0.2);
     }
     this.dusts.count = nd;
+    // A watering can's shower: drops falling from its rose to the ground,
+    // a ring on the ground where it is wet.
+    for (const R of run.rains) {
+      const n = Math.random() < 0.5 ? 3 : 2;
+      for (let k = 0; k < n; k++) {
+        const a = Math.random() * Math.PI * 2, rr = Math.sqrt(Math.random()) * R.r, h = Math.max(0.5, R.top - R.y - 0.2);
+        this.fx.spark(R.x + Math.cos(a) * rr, R.top - 0.2, R.z + Math.sin(a) * rr, 0, -h / 0.35, 0, 0.35, 0.03, k % 2 ? 0x9fe0ff : 0xffffff, 0);
+      }
+      if (r < 28) {
+        _p.set(R.x, R.y + 0.05, R.z); _q.setFromAxisAngle(this._x, -Math.PI / 2); _s.setScalar(R.r);
+        this.marks.setMatrixAt(r, _m.compose(_p, _q, _s));
+        this.marks.setColorAt(r, _c.set(0x6ac0f0).multiplyScalar(0.8 + Math.sin(t * 10) * 0.2));
+        r++;
+      }
+    }
     this.dusts.instanceMatrix.needsUpdate = true;
     this.pulses.instanceMatrix.needsUpdate = true; if (this.pulses.instanceColor) this.pulses.instanceColor.needsUpdate = true;
     this.chunks.count = nc;
@@ -579,3 +603,41 @@ function animGrinder(f, N, t, grow) {
   N.crank.rotation.x = f.crank || 0;
   N.core.scale.setScalar((1 + (f.pulse || 0) * 0.6 + Math.sin(t * 4 + f.phase) * 0.06) * grow);
 }
+
+// ── Grandpa Joe's garden ──
+
+function animGnome(f, N, t, grow) {
+  // Waddles side to side when it runs; frozen as it is when it is stone.
+  if (f.state === "stone") return;
+  const run = f.body.speed2D > 0.5 ? 1 : 0;
+  N.body.rotation.set(0, 0, Math.sin(t * 14 + f.phase) * 0.12 * run);
+  N.body.position.y = Math.abs(Math.sin(t * 14 + f.phase)) * 0.05 * run;
+  N.body.scale.setScalar(grow);
+  // The shovel goes up on a wind-up and comes down on the bonk.
+  const up = f.state === "wind" ? Math.min(1, f.t / 0.3) : f.state === "throw" ? Math.min(1, f.t / 0.4) * 0.6 : 0;
+  N.shovel.rotation.x = -up * 2.2 + Math.sin(t * 7 + f.phase) * 0.15 * run;
+}
+
+function animCan(f, N, t, grow) {
+  f.tiltV = (f.tiltV || 0) + ((f.tilt || 0) - (f.tiltV || 0)) * 0.12;
+  N.body.rotation.set(-f.tiltV * 1.1, 0, Math.sin(t * 2 + f.phase) * 0.1);
+  N.body.position.y = Math.sin(t * 3 + f.phase) * 0.06;
+  N.body.scale.setScalar(grow);
+}
+
+function animMower(f, N, t, grow, dt) {
+  const fast = f.state === "charge" || f.state === "rev";
+  N.blades.rotation.y += dt * (fast ? 40 : 8);
+  const shake = f.state === "rev" ? Math.sin(t * 50) * 0.03 : f.state === "dazed" ? Math.sin(t * 18) * 0.05 : 0;
+  N.body.rotation.set(f.state === "charge" ? -0.06 : 0, 0, shake);
+  N.body.scale.setScalar(grow);
+}
+
+function animSunflower(f, N, t, grow) {
+  const shake = f.state === "shake" ? Math.sin(t * 40) * 0.2 * Math.min(1, f.t * 3) : 0;
+  const kick = f.state === "volley" ? Math.sin(t * 45) * 0.06 : 0;
+  N.head.rotation.set(-0.15 + kick + Math.sin(t * 1.3 + f.phase) * 0.05, 0, shake);
+  N.head.scale.setScalar(grow);
+  N.core.scale.setScalar(1 + (f.pulse || 0) * 0.25 + Math.sin(t * 4 + f.phase) * 0.03);
+}
+

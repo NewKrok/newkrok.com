@@ -11,7 +11,7 @@
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const hz = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
-const GAP = { gust: 0.08, umbrellaBlock: 0.05, umbrellaOpen: 0.12, umbrellaShut: 0.12, pinwheel: 0.3, sneeze: 0.3, meatRoll: 0.15, pepperShake: 0.3, pepperBurst: 0.1, pinRoll: 0.2, steamBurn: 0.3, cookerRattle: 0.08, bellRing: 0.08, bellBat: 0.05, boing: 0.12, foeSleep: 0.08, foeWake: 0.1, foeDrowsy: 0.1, clockWind: 0.2, clockRing: 0.3, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
+const GAP = { gnomeStone: 0.1, gnomeGo: 0.12, rainPat: 0.08, soaked: 0.3, canSquirt: 0.08, sunSeed: 0.06, mowerRev: 0.2, tileWarn: 0.2, tileDrop: 0.15, tileBack: 0.15, bigclockClink: 0.1, gust: 0.08, umbrellaBlock: 0.05, umbrellaOpen: 0.12, umbrellaShut: 0.12, pinwheel: 0.3, sneeze: 0.3, meatRoll: 0.15, pepperShake: 0.3, pepperBurst: 0.1, pinRoll: 0.2, steamBurn: 0.3, cookerRattle: 0.08, bellRing: 0.08, bellBat: 0.05, boing: 0.12, foeSleep: 0.08, foeWake: 0.1, foeDrowsy: 0.1, clockWind: 0.2, clockRing: 0.3, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
 
 const SONGS = {
   menu: { root: 60, bpm: 76, scale: [0, 2, 4, 7, 9], prog: [0, -3, 5, -5], lead: "box", drums: 0 },
@@ -19,6 +19,7 @@ const SONGS = {
   park: { root: 62, bpm: 100, scale: [0, 2, 4, 7, 9], prog: [0, 5, -3, -5], lead: "box", drums: 0.5 },
   school: { root: 65, bpm: 112, scale: [0, 2, 4, 5, 7, 9], prog: [0, 4, 5, 3], lead: "box", drums: 0.6 },
   kitchen: { root: 60, bpm: 118, scale: [0, 2, 4, 5, 7, 9, 10], prog: [0, 5, 3, 4], lead: "box", drums: 0.65 },
+  garden: { root: 62, bpm: 96, scale: [0, 2, 4, 7, 9, 11], prog: [0, 5, -3, 4], lead: "box", drums: 0.45 },
   boss: { root: 57, bpm: 122, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, -4, -2, -5], lead: "square", drums: 1 },
   win: { root: 64, bpm: 90, scale: [0, 2, 4, 7, 9], prog: [0, 5, 7, 0], lead: "box", drums: 0 },
 };
@@ -203,6 +204,37 @@ export class Audio {
       case "foamGone": [0, 0.07, 0.15].forEach((dt) => at(dt, (tt) => this.#tone(d, tt, 0.08, { freq: 900 + Math.random() * 600, freqEnd: 1800, gain: 0.04 }))); break;
       case "foamStuck": N(0.3, { type: "bandpass", freq: 600, freqEnd: 1500, q: 2, gain: 0.08 }); S(0.2, { freq: 250, freqEnd: 400, gain: 0.05 }); break;
       case "foamFree": S(0.1, { freq: 700, freqEnd: 1400, gain: 0.05 }); break;
+      // Grandpa Joe's garden: a gnome turns to stone with a gritty click and
+      // scurries off with a squeak; a can gurgles and pours, rain pats on
+      // the umbrella; the mower putters and roars; a sunflower pips seeds.
+      case "gnomeStone": N(0.08, { type: "lowpass", freq: 900, gain: 0.08 }); S(0.06, { type: "square", freq: 180, freqEnd: 120, gain: 0.03 }); break;
+      case "gnomeGo": S(0.1, { type: "triangle", freq: 700, freqEnd: 1300, gain: 0.04 }); break;
+      case "gnomeWind": S(0.25, { type: "triangle", freq: 300, freqEnd: 600, gain: 0.05 }); break;
+      case "canWind": [0, 0.06, 0.12].forEach((dt, i) => at(dt, (tt) => this.#tone(d, tt, 0.06, { type: "sine", freq: 300 + i * 80, gain: 0.05 }))); break;
+      case "canPour": N(1.4, { type: "bandpass", freq: 2400, q: 0.6, gain: 0.1, attack: 0.15 }); break;
+      case "canSquirt": N(0.1, { type: "bandpass", freq: 3000, freqEnd: 1500, q: 1.5, gain: 0.08 }); break;
+      case "rainPat": for (let i = 0; i < 4; i++) at(Math.random() * 0.25, (tt) => this.#noise(d, tt, 0.03, { type: "bandpass", freq: 1800 + Math.random() * 1500, q: 3, gain: 0.05 })); break;
+      case "soaked": N(0.3, { type: "bandpass", freq: 1500, q: 0.8, gain: 0.12 }); S(0.15, { type: "sine", freq: 400, freqEnd: 200, gain: 0.05 }); break;
+      case "mowerRev": for (let i = 0; i < (k ? 4 : 9); i++) at(i * 0.07, (tt) => this.#tone(d, tt, 0.06, { type: "sawtooth", freq: 70 + i * 12, gain: 0.06 })); break;
+      case "mowerCharge": S(1.2, { type: "sawtooth", freq: 110, freqEnd: 180, gain: 0.07 }); N(1, { type: "bandpass", freq: 600, q: 1, gain: 0.06 }); break;
+      case "mowerClip": N(0.25, { type: "highpass", freq: 3000, gain: 0.08 }); break;
+      case "sunWind": S(0.5, { type: "sine", freq: 400, freqEnd: 700, gain: 0.04 }); break;
+      case "sunSeed": S(0.05, { type: "square", freq: 1300 + Math.random() * 200, freqEnd: 900, gain: 0.03 }); break;
+      case "sunShake": N(0.6, { type: "bandpass", freq: 3000, q: 2, gain: 0.06, attack: 0.1 }); break;
+      case "sunPetals": N(0.4, { type: "highpass", freq: 4000, gain: 0.06 }); break;
+      case "sunSprout": S(0.12, { type: "sine", freq: 300, freqEnd: 900, gain: 0.06 }); break;
+      // Slabs: a rumble while one trembles, a crack as it drops, a chime as it settles back.
+      case "tileWarn": N(1.2, { type: "lowpass", freq: 300, gain: 0.12, attack: 0.2 }); break;
+      case "tileDrop": N(0.6, { type: "lowpass", freq: 800, freqEnd: 150, gain: 0.18 }); S(0.4, { freq: 120, freqEnd: 50, gain: 0.12 }); break;
+      case "tileBack": this.#bell(d, t, hz(79), 0.04, 0.6, 0.3); break;
+      // The Big Alarm Clock.
+      case "bigclockRing": for (let i = 0; i < 18; i++) at(i * 0.07, (tt) => this.#bell(d, tt, hz(i % 2 ? 76 : 74), 0.06, 0.4, 0.4)); break;
+      case "bigclockSweep": N(0.9, { type: "bandpass", freq: 300, freqEnd: 900, q: 0.7, gain: 0.15, attack: 0.1 }); break;
+      case "bigclockHit": S(0.15, { type: "square", freq: 200, freqEnd: 90, gain: 0.08 }); break;
+      case "bigclockTimesup": for (let i = 0; i < 10; i++) at(i * 0.1, (tt) => this.#tone(d, tt, 0.03, { type: "square", freq: i % 2 ? 1500 : 1200, gain: 0.05 })); break;
+      case "bigclockClink": this.#bell(d, t, hz(98), 0.05, 0.25, 0.1); S(0.04, { type: "square", freq: 2500, gain: 0.02 }); break;
+      case "bigclockUnwound": S(1.4, { type: "sawtooth", freq: 900, freqEnd: 60, gain: 0.07 }); for (let i = 0; i < 14; i++) at(i * (0.04 + i * 0.008), (tt) => this.#tone(d, tt, 0.02, { type: "square", freq: 1800, gain: 0.03 })); break;
+      case "bigclockWound": for (let i = 0; i < 8; i++) at(i * 0.06, (tt) => this.#tone(d, tt, 0.025, { type: "square", freq: 1400 + i * 50, gain: 0.03 })); break;
       // The Gust Umbrella: a cloth snap and a rush of air; opening a soft
       // fwump; an orb patting on the canopy; a pinwheel whirrs up.
       case "gust": S(0.06, { type: "triangle", freq: 220, freqEnd: 110, gain: 0.08 }); N(0.05, { type: "bandpass", freq: 1800, q: 1.5, gain: 0.08 }); N(0.4, { type: "bandpass", freq: 700, freqEnd: 2600, q: 0.8, gain: 0.12, attack: 0.02 }); break;

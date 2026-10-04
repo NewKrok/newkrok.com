@@ -16,7 +16,7 @@ export class Sfx {
       switch (e.type) {
         case "shot": A.play(e.big ? "bigZap" : "zap"); if (e.foe || e.boss) A.play(e.boss ? "bossHit" : "hit", e.boss === "bag" ? 1 : 0); break;
         case "pop": A.play(e.big ? "bigPop" : "pop", 0, e.x, e.z); break;
-        case "spawn": if (e.kind === "knot" || e.kind === "sharpener" || e.kind === "grinder") A.play("knotSpawn", 0, e.x, e.z); break;
+        case "spawn": if (e.kind === "knot" || e.kind === "sharpener" || e.kind === "grinder" || e.kind === "sunflower") A.play("knotSpawn", 0, e.x, e.z); break;
         case "spit": A.play("spit", 0, e.x, e.z); break;
         case "spitPop": A.play(e.splash ? "splash" : e.kind === "nut" ? "nutHit" : "orbPop", 0, e.x, e.z); break;
         case "nutWindup": A.play("chitter", 0, e.x, e.z); break;
@@ -46,6 +46,12 @@ export class Sfx {
         case "bellRing": A.play(e.type); break;
         case "gust": case "gustHop": case "umbrellaBlock": A.play(e.type); break;
         case "pinwheel": A.play(e.type, 0, e.x, e.z); break;
+        case "rainPat": case "soaked": case "bigclockHit": A.play(e.type); break;
+        case "mowerRev": A.play(e.type, e.small ? 1 : 0, e.x, e.z); break;
+        case "gnomeStone": case "gnomeGo": case "gnomeWind": case "canWind": case "canPour": case "canSquirt": case "mowerCharge": case "mowerClip":
+        case "sunWind": case "sunSeed": case "sunShake": case "sunPetals": case "sunSprout": case "tileWarn": case "tileDrop": case "tileBack":
+        case "bigclockRing": case "bigclockSweep": case "bigclockTimesup": case "bigclockClink": case "bigclockUnwound": case "bigclockWound":
+          A.play(e.type, 0, e.x, e.z); break;
         case "sneeze": case "steamBurn": A.play(e.type); break;
         case "cookerLid": A.play(e.type, e.off ? 1 : 0, e.x, e.z); break;
         case "meatWind": case "meatRoll": case "meatSplit": case "pepperShake": case "pepperWind": case "pepperBurst": case "pepperDodge": case "cloudBlown":

@@ -14,6 +14,7 @@ import { Foam } from "./foam.js";
 import { Bell, backHit } from "./bell.js";
 import { Umbrella } from "./umbrella.js";
 import { SNEEZE } from "./foes-kitchen.js";
+import { CAN } from "./foes-garden.js";
 
 // ── One visit to a dream ─────────────────────────────────────────────────
 // Everything that happens in a level, with no rendering: the body, the
@@ -30,7 +31,7 @@ export const DIFFICULTY = {
 
 // Wakefulness does not come back by itself: popped glitches now and then
 // leave a dream drop behind (chance per kind; better when you are low).
-const HEAL = { amount: 6, life: 30, magnet: 5, chance: { fuzz: 0.2, bunny: 0.1, buzzer: 0.25, tub: 0.6, knot: 0.6, clock: 0.25, pencil: 0.2, backpack: 0.6, sharpener: 0.6, meatball: 0.12, pepper: 0.25, rollingpin: 0.6, grinder: 0.6 } };
+const HEAL = { amount: 6, life: 30, magnet: 5, chance: { fuzz: 0.2, bunny: 0.1, buzzer: 0.25, tub: 0.6, knot: 0.6, clock: 0.25, pencil: 0.2, backpack: 0.6, sharpener: 0.6, meatball: 0.12, pepper: 0.25, rollingpin: 0.6, grinder: 0.6, gnome: 0.15, can: 0.25, mower: 0.6, sunflower: 0.6 } };
 // Falling off the dream costs a bit too.
 const FALL_DMG = 12;
 
@@ -84,6 +85,10 @@ export class Run {
     this.slowT = 0;               // slowed down by one (seconds left)
     this.clouds = [];             // pepper clouds hanging over the floor
     this.sneezeT = 0;             // how close the next sneeze is (in a cloud)
+    this.rains = [];              // a watering can's showers
+    this.soakT = 0;               // how close the next sting is (under one)
+    // Paving that can fall away (a nightmare's trick) and float back.
+    this.tiles = this.kit.tiles.map((p) => ({ ...p, state: "set", t: 0, dy: 0 }));
     this.stats = { popped: 0, shots: 0, hits: 0 };
     this.anchors = this.kit.anchors.map((a) => new Anchor(a));
     this.nearAnchor = null;
@@ -218,7 +223,8 @@ export class Run {
     for (const f of this.foes) if (f.alive && f.group === "boss") { f.alive = false; this.events.push({ type: "pop", kind: f.kind, id: f.id, x: f.px, y: f.cy, z: f.pz, calm: true }); }
     this.boss = null; this.coreT = -1;
     this.unseal();
-    this.shocks.length = 0; this.pulses.length = 0; this.bell.waves.length = 0; this.clouds.length = 0;
+    this.shocks.length = 0; this.pulses.length = 0; this.bell.waves.length = 0; this.clouds.length = 0; this.rains.length = 0;
+    for (const p of this.tiles) if (p.state !== "set") this.setTile(p);
     this.events.push({ type: "bossReset" });
   }
 
@@ -276,6 +282,66 @@ export class Run {
     b.pitch = Math.max(-1.4, Math.min(1.4, b.pitch + (this.rnd() - 0.3) * SNEEZE.pitch));
     this.events.push({ type: "sneeze" });
     this.hurt(SNEEZE.dmg, b.x, b.z);
+  }
+
+  // A watering can's shower: stand under it and you are soaked now and
+  // then, unless an open umbrella is over your head.
+  stepRains(dt) {
+    const b = this.body;
+    let under = null;
+    for (const r of this.rains) {
+      r.t += dt;
+      if (Math.hypot(b.x - r.x, b.z - r.z) < r.r && b.y < r.top && b.y > r.y - 1) under = r;
+    }
+    this.rains = this.rains.filter((r) => r.t < r.life);
+    if (!under) { this.soakT = 0; return; }
+    if (this.umbrella.covers(this, b.x, b.y + 5, b.z)) {
+      if ((this.patT = (this.patT || 0) - dt) <= 0) { this.patT = 0.3; this.events.push({ type: "rainPat" }); }
+      this.soakT = 0;
+      return;
+    }
+    this.soakT -= dt;
+    if (this.soakT > 0) return;
+    this.soakT = CAN.pour.every;
+    this.events.push({ type: "soaked" });
+    this.hurt(CAN.pour.dmg, b.x, b.z, false);
+  }
+
+  // Paving that falls away: it blinks for `warn` seconds, drops out for
+  // `down` (whatever stood on it falls), then floats back up. While it is
+  // gone, the dream's wind blows up through the hole: an open umbrella
+  // rides it back up over the platform.
+  dropTile(p, warn, down) {
+    if (p.state !== "set" || p.fixed) return false;
+    p.state = "warn"; p.t = 0; p.warn = warn; p.down = down;
+    this.events.push({ type: "tileWarn", id: p.id, x: p.x, z: p.z });
+    return true;
+  }
+  setTile(p) {
+    if (!p.c) p.c = this.world.box({ x: p.x, z: p.z, y0: p.y0, y1: p.y1, hx: p.w / 2, hz: p.d / 2 });
+    p.state = "set"; p.t = 0; p.dy = 0;
+    const U = this.umbrella.drafts, k = U.findIndex((d) => d.id === `hole_${p.id}`);
+    if (k >= 0) U.splice(k, 1);
+    // Back in place under you: you stand on it.
+    const b = this.body;
+    if (Math.abs(b.x - p.x) < p.w / 2 && Math.abs(b.z - p.z) < p.d / 2 && b.y < p.y1 && b.y > p.y1 - 3) { b.y = p.y1; b.vy = Math.max(0, b.vy); }
+  }
+  stepTiles(dt) {
+    for (const p of this.tiles) {
+      if (p.state === "set") continue;
+      p.t += dt;
+      if (p.state === "warn" && p.t > p.warn) {
+        p.state = "down"; p.t = 0;
+        this.world.remove(p.c); p.c = null;
+        this.umbrella.drafts.push({ id: `hole_${p.id}`, x: p.x, z: p.z, y: p.y1 - 16, r: Math.min(p.w, p.d) / 2, top: p.y1 + 2.5, k: 1, hole: true });
+        this.events.push({ type: "tileDrop", id: p.id, x: p.x, z: p.z });
+      } else if (p.state === "down") {
+        // Falls away, then floats back up (solid again once it is home).
+        const back = Math.max(0, p.t - (p.down - 1.2)) / 1.2;
+        p.dy = p.t < p.down - 1.2 ? -Math.min(14, 0.5 * 20 * p.t * p.t) : -14 * (1 - back) ** 2;
+        if (p.t > p.down) { this.setTile(p); this.events.push({ type: "tileBack", id: p.id, x: p.x, z: p.z }); }
+      }
+    }
   }
 
   stepShocks(dt) {
@@ -486,6 +552,8 @@ export class Run {
     this.stepShocks(dt);
     this.stepPulses(dt);
     this.stepClouds(dt);
+    this.stepRains(dt);
+    this.stepTiles(dt);
     this.foes = this.foes.filter((f) => f.alive || f.age < 0.1);
   }
 

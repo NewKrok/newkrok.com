@@ -1,5 +1,5 @@
 import { stabilizer, fuzzVacuum, foamCannon, lullabyBell, gustUmbrella } from "./tools.js";
-import { pinwheel, windWell } from "./garden.js";
+import { pinwheel, windWell, gnome, wateringCan, wateringPot, lawnMower, sunflower, bigAlarmClock, raisedBed, shed, roseBush, greenhouse, flowerPot, appleTree, signalBox, stationHouse } from "./garden.js";
 import { jelly, souffle, meatball, pepperShaker, rollingPin, meatGrinder, pressureCooker, kitchenWindow, panRail, knob, faucet, burner, kettle, jar, cuttingBoard, breadLoaf, fridge, flourSack, tableCloth, mug, tomato, bucket, spoon, pea } from "./kitchen.js";
 import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./characters.js";
 import { anchor } from "./dream.js";
@@ -24,6 +24,20 @@ export const MODELS = {
   umbrella: { build: gustUmbrella, frame: 0.8, anim: (o, t) => { const k = 0.1 + 0.9 * Math.min(1, Math.max(0, Math.sin(t * 1.2) * 1.4 + 0.4)); o.userData.nodes.canopy.scale.set(k, k, 1 + (1 - k) * 0.6); } },
   pinwheel: { build: pinwheel, frame: 3, anim: spin("wheel", "z", 4) },
   windWell: { build: windWell, frame: 4.5 },
+  gnome: { build: gnome, frame: 1.6, anim: (o, t) => { const N = o.userData.nodes; N.body.rotation.z = Math.sin(t * 6) * 0.08; N.shovel.rotation.x = -Math.abs(Math.sin(t * 2)) * 1.2; } },
+  can: { build: wateringCan, frame: 2, anim: (o, t) => { o.userData.nodes.body.rotation.x = -Math.max(0, Math.sin(t)) * 0.9; } },
+  mower: { build: lawnMower, frame: 3.4, anim: (o, t) => { const N = o.userData.nodes; N.blades.rotation.y = t * 20; N.body.rotation.z = Math.sin(t * 30) * 0.01; } },
+  sunflower: { build: sunflower, frame: 4.5, anim: (o, t) => { const N = o.userData.nodes; N.head.rotation.y = Math.sin(t * 0.7) * 0.6; N.core.scale.setScalar(1 + Math.max(0, Math.sin(t * 3)) * 0.08); } },
+  bigclock: { build: bigAlarmClock, frame: 11, anim: (o, t) => { const N = o.userData.nodes; N.minute.rotation.z = -t * 2; N.hour.rotation.z = -t * 0.2; N.glass.rotation.y = Math.max(0, Math.sin(t * 0.6)) * 1.8; N.hammer.rotation.z = Math.sin(t * 30) * 0.4; N.key.rotation.y = t; } },
+  wateringPot: { build: wateringPot, frame: 1.4 },
+  raisedBed: { build: raisedBed, frame: 4.5 },
+  shed: { build: shed, frame: 6 },
+  roseBush: { build: roseBush, frame: 2 },
+  greenhouse: { build: greenhouse, frame: 14 },
+  flowerPot: { build: flowerPot, frame: 1.2 },
+  appleTree: { build: appleTree, frame: 6 },
+  signalBox: { build: signalBox, frame: 7 },
+  stationHouse: { build: stationHouse, frame: 22 },
   jelly: { build: jelly, frame: 3.2, anim: (o, t) => { const s = Math.sin(t * 9) * 0.08; o.userData.nodes.body.scale.set(1 - s * 0.6, 1 + s, 1 - s * 0.6); } },
   meatball: { build: meatball, frame: 2, anim: (o, t) => { const n = o.userData.nodes.body, h = Math.abs(Math.sin(t * 5)); n.position.y = 0.36 + h * 0.25; n.scale.set(1 + (1 - h) * 0.1, 1 - (1 - h) * 0.12, 1 + (1 - h) * 0.1); } },
   pepper: { build: pepperShaker, frame: 2, anim: (o, t) => { o.userData.nodes.body.rotation.z = Math.sin(t * 2) * 0.3; } },

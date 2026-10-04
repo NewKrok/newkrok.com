@@ -3,6 +3,7 @@ import { make } from "./modelkit.js";
 import { vacuumBoss } from "./models/boss.js";
 import { redPen } from "./models/school.js";
 import { pressureCooker } from "./models/kitchen.js";
+import { bigAlarmClock } from "./models/garden.js";
 import { C } from "./palette.js";
 import { lerp, damp } from "../config.js";
 
@@ -358,9 +359,103 @@ class CookerBossView {
   }
 }
 
+// ── The Big Alarm Clock on screen ──
+// Stomps about rocking from foot to foot, its hands ticking round; its
+// bells and hammer go mad when it rings; a sweep brings its minute hand
+// down to the floor as a long dark blade (both hands in phase two); its
+// key turns slowly on top, glowing; unwound, the key stops, the glass
+// swings open and the dial glows pink.
+class ClockBossView {
+  constructor(scene, fx) {
+    this.scene = scene; this.fx = fx;
+    this.o = null;
+    const blade = new T.BoxGeometry(0.5, 0.12, 1).translate(0, 0, -0.5);
+    this.blades = [0, 1].map(() => {
+      const m = new T.Mesh(blade, new T.MeshStandardMaterial({ color: 0x2a2440, roughness: 0.4, metalness: 0.6 }));
+      m.visible = false; m.castShadow = true; scene.add(m); return m;
+    });
+    this.flashing = false;
+  }
+
+  clear() {
+    if (this.o) { this.scene.remove(this.o); this.o = null; }
+    for (const j of this.blades) j.visible = false;
+  }
+
+  onEvent(e, run) {
+    const fx = this.fx;
+    if (e.type === "bossRise") {
+      const y = run.kit.floorAt(e.x, e.z);
+      for (let i = 0; i < 5; i++) fx.puff(e.x + (Math.random() - 0.5) * 5, y + 0.5, e.z + (Math.random() - 0.5) * 5, 2.2);
+      fx.ring([e.x, y + 0.1, e.z], [0, 1, 0], 0xffd23a, 8, 0.8);
+    } else if (e.type === "bigclockRing") {
+      fx.ring([e.x, run.boss.y + 4.6, e.z], [0, 1, 0], 0xffd23a, 3, 0.4);
+      fx.burst([e.x, run.boss.y + 4.8, e.z], [0, 1, 0], 0xffd23a, 20, 5, 0.06);
+    } else if (e.type === "bigclockUnwound") {
+      fx.burst([e.x, e.y, e.z], [0, 1, 0], C.dreamPink, 40, 6, 0.08);
+      fx.ring([e.x, e.y, e.z], [0, 1, 0], C.dreamPink, 3, 0.5);
+      for (let i = 0; i < 12; i++) fx.spark(e.x, e.y, e.z, (Math.random() - 0.5) * 6, 2 + Math.random() * 4, (Math.random() - 0.5) * 6, 0.9, 0.08, [C.brass, C.steel][i % 2], 9);
+    } else if (e.type === "bigclockClink") {
+      fx.burst([e.x, e.y, e.z], [0, 1, 0], 0xffffff, 8, 3, 0.04);
+    } else if (e.type === "bossPop" && run.boss) {
+      for (let i = 0; i < 100; i++) {
+        const a = Math.random() * Math.PI * 2, u = Math.random() * 2 - 1, s = Math.sqrt(1 - u * u), v = 4 + Math.random() * 9;
+        fx.spark(e.x, e.y, e.z, Math.cos(a) * s * v, u * v + 3, Math.sin(a) * s * v, 0.8 + Math.random() * 0.8, 0.1 + Math.random() * 0.1, [C.dream, C.dreamPink, C.dreamGold, 0xd8343a][i % 4], 6);
+      }
+      for (let i = 0; i < 7; i++) fx.puff(e.x + (Math.random() - 0.5) * 3, e.y + (Math.random() - 0.5) * 3, e.z + (Math.random() - 0.5) * 3, 2.4);
+      fx.ring([e.x, e.y - 2.4, e.z], [0, 1, 0], C.dream, 18, 1.2);
+      if (this.o) this.o.visible = false;
+    }
+  }
+
+  update(run, alpha, dt, t) {
+    const B = run.boss;
+    if (!this.o) {
+      this.o = make(bigAlarmClock);
+      this.meshes = [];
+      this.o.traverse((m) => { if (m.isMesh) { this.meshes.push(m); m.userData.mat = m.material; } });
+      this.scene.add(this.o);
+    }
+    if (!B.alive) { this.o.visible = false; for (const j of this.blades) j.visible = false; return; }
+    const o = this.o, N = o.userData.nodes, b = B.body, st = B.state;
+    const rise = st === "rise" ? easeOut(B.rise) : 1;
+    const x = lerp(B.lx, b.x, alpha), y = lerp(B.ly, b.y, alpha) - (1 - rise) * 7.5, z = lerp(B.lz, b.z, alpha);
+    o.position.set(x, y, z);
+    o.rotation.y = B.yaw;
+    // Rocks from foot to foot as it walks; shakes when it rings.
+    const walk = Math.min(1, b.speed2D / 1.5);
+    const shake = (B.bells > 0 ? Math.sin(t * 55) * 0.03 * B.bells : 0) + (st === "down" ? Math.sin(t * 47) * 0.06 : 0);
+    N.body.rotation.set(shake, 0, Math.sin(t * 5) * 0.06 * walk + shake);
+    N.body.position.y = Math.abs(Math.sin(t * 5)) * 0.12 * walk;
+    const run2 = st === "unwound" ? 0 : 1;
+    N.minute.rotation.z -= dt * (0.6 + (st === "timesup" ? 12 : 0)) * run2;
+    N.hour.rotation.z -= dt * (0.05 + (st === "timesup" ? 1 : 0)) * run2;
+    N.bells.rotation.z = B.bells > 0 ? Math.sin(t * 60) * 0.06 * B.bells : 0;
+    N.hammer.rotation.z = B.bells > 0 ? Math.sin(t * 70) * 0.5 * B.bells : 0;
+    N.key.rotation.y += dt * (st === "unwound" ? 0 : 0.8);
+    N.key.position.y = 7 + (st === "unwound" ? -0.25 : Math.sin(t * 2) * 0.05);
+    N.glass.rotation.y = -B.open * 1.9;
+    if (st === "unwound" && Math.random() < dt * 20) this.fx.spark(x - Math.sin(B.yaw) * 1, y + 3 + (Math.random() - 0.5) * 2, z - Math.cos(B.yaw) * 1, 0, 1.5, 0, 0.6, 0.08, C.dreamPink, -0.5);
+    // The hands sweeping the floor.
+    for (let i = 0; i < 2; i++) {
+      const j = this.blades[i], a = B.jets[i];
+      j.visible = a !== undefined;
+      if (!j.visible) continue;
+      j.position.set(x, y + 0.6, z);
+      j.rotation.set(0, a, 0);
+      j.scale.set(1, 1, 9.5);
+      if (Math.random() < 0.6) { const u = 2 + Math.random() * 7.5; this.fx.spark(x - Math.sin(a) * u, y + 0.5, z - Math.cos(a) * u, 0, 1.5, 0, 0.3, 0.05, 0xffd23a, 2); }
+    }
+    // Before a sweep: the hands spin down.
+    if (st === "sweep" && !B.jets.length) N.minute.rotation.z -= dt * 20;
+    const flash = B.flash > 0.6;
+    if (flash !== this.flashing) { for (const m of this.meshes) m.material = flash ? FLASH : m.userData.mat; this.flashing = flash; }
+  }
+}
+
 // ── Whichever nightmare the dream has ──
 // One view per boss kind, made when that boss first shows up.
-const VIEWS = { vacuum: VacuumBossView, pen: PenBossView, cooker: CookerBossView };
+const VIEWS = { vacuum: VacuumBossView, pen: PenBossView, cooker: CookerBossView, bigclock: ClockBossView };
 
 export class BossView {
   constructor(scene, fx) { this.scene = scene; this.fx = fx; this.views = {}; this.curtain = null; }
