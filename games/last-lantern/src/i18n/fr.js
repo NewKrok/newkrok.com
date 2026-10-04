@@ -239,7 +239,7 @@ Object.assign(FR, {
   h_items: "Les marchandises du colporteur", p_items: "Entre deux parties, achetez toniques, sceaux et bombes au <b>Colporteur</b>. En partie, ils attendent dans votre <b>besace</b> au-dessus de l'orbe de vie : touches <b>1–7</b>, un appui dessus, ou choisissez avec <b>LB / RB</b> à la manette et utilisez avec <b>X</b>.",
   k_item: "Utiliser un objet de la besace",
   deeds: "Hauts faits", deedCount: "{n} / {of}", r_deed: "Haut fait : {x}", deedToast: "Haut fait : {x} (+{n} braises)", deedsToast: "{n} hauts faits accomplis (+{e} braises)",
-  vigilTag: "La Veillée", unlockVigil: "Allumez les cinq fanaux pour débloquer", vigilFact: "{n} gardiens, l'un après l'autre — rien d'autre",
+  vigilTag: "La Veillée", unlockVigil: "Allumez les cinq fanaux pour débloquer", vigilFact: "{n} gardiens, l'un après l'autre, chacun avec sa propre nuit",
   bestVigil: "Record : {n} / {of} gardiens · {t}", r_keepers: "Gardiens terrassés",
   b_vigil: "LES GARDIENS REVIENNENT", b_vigilNext: "{n} GARDIENS SUR {of} TOMBÉS — LE SUIVANT S'ÉVEILLE",
   b_item_tonic_s: "UNE GORGÉE DE TONIQUE", b_item_tonic_m: "TONIQUE", b_item_tonic_l: "GRAND TONIQUE", b_item_ward: "PROTÉGÉ", b_item_draught: "VIF COMME UN LIÈVRE", b_item_firebomb: "BOMBE INCENDIAIRE", b_item_lodestone: "PIERRE D'AIMANT",
@@ -288,5 +288,5 @@ FR.deedText = {
 };
 
 FR.stages.vigil = ["La Veillée des Gardiens", "La cathédrale de la lune, à la lueur du sang",
-  "Le soleil est revenu, mais les morts gardent leurs propres heures. Dans la cathédrale de la lune, les cinq gardiens se sont relevés de l'ombre laissée par le Roi, pour éteindre la lumière une fois encore. Pas de horde ce soir. Seulement eux, l'un après l'autre.",
+  "Le soleil est revenu, mais les morts gardent leurs propres heures. Dans la cathédrale de la lune, les cinq gardiens se sont relevés de l'ombre laissée par le Roi, pour éteindre la lumière une fois encore. Ils viennent l'un après l'autre, et chacun amène sa propre nuit.",
   "Le dernier gardien tombe, et la cathédrale connaît un silence qu'elle n'avait jamais connu. L'ombre sur l'autel s'amincit puis s'éteint. Quelque part en contrebas, à Emberhollow, une cloche se met à sonner le matin."];

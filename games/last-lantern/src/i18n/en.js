@@ -239,7 +239,7 @@ Object.assign(EN, {
   h_items: "The Pedlar's wares", p_items: "Buy tonics, wards and bombs from <b>the Pedlar</b> between runs. In a run they wait in your <b>satchel</b> over the health orb: press <b>1–7</b>, tap one, or pick one with the pad's <b>LB / RB</b> and use it with <b>X</b>.",
   k_item: "Use an item from your satchel",
   deeds: "Deeds", deedCount: "{n} / {of}", r_deed: "Deed: {x}", deedToast: "Deed: {x} (+{n} embers)", deedsToast: "{n} deeds done (+{e} embers)",
-  vigilTag: "The Vigil", unlockVigil: "Light all five beacons to unlock", vigilFact: "{n} keepers, one after another — nothing else",
+  vigilTag: "The Vigil", unlockVigil: "Light all five beacons to unlock", vigilFact: "{n} keepers, one after another, each with its own night",
   bestVigil: "Best: {n} / {of} keepers · {t}", r_keepers: "Keepers slain",
   b_vigil: "THE KEEPERS RETURN", b_vigilNext: "{n} OF {of} KEEPERS FALLEN — THE NEXT ONE STIRS",
   b_item_tonic_s: "A SIP OF TONIC", b_item_tonic_m: "TONIC", b_item_tonic_l: "GREAT TONIC", b_item_ward: "WARDED", b_item_draught: "SWIFT AS A HARE", b_item_firebomb: "FIREBOMB", b_item_lodestone: "LODESTONE",
@@ -288,5 +288,5 @@ EN.deedText = {
 };
 
 EN.stages.vigil = ["The Keepers' Vigil", "The moon cathedral, by blood-light",
-  "The sun is back, but the dead keep their own hours. In the moon cathedral the five keepers have risen again, out of the shadow the King left behind, to put it out once more. There is no horde tonight. Only them, one after another.",
+  "The sun is back, but the dead keep their own hours. In the moon cathedral the five keepers have risen again, out of the shadow the King left behind, to put it out once more. They come one after another, and each brings its own night with it.",
   "The last keeper falls, and the cathedral is quiet in a way it has never been. The shadow on the altar thins and goes out. Somewhere below, in Emberhollow, a bell starts ringing for morning."];

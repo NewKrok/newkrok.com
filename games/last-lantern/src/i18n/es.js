@@ -239,7 +239,7 @@ Object.assign(ES, {
   h_items: "Las mercancías del buhonero", p_items: "Entre partidas, compra tónicos, amuletos y bombas al <b>buhonero</b>. En la partida esperan en tu <b>morral</b>, sobre el orbe de vida: pulsa <b>1–7</b>, tócalos, o elige con <b>LB / RB</b> en el mando y úsalos con <b>X</b>.",
   k_item: "Usar un objeto del morral",
   deeds: "Hazañas", deedCount: "{n} / {of}", r_deed: "Hazaña: {x}", deedToast: "Hazaña: {x} (+{n} brasas)", deedsToast: "{n} hazañas logradas (+{e} brasas)",
-  vigilTag: "La Vigilia", unlockVigil: "Enciende los cinco faros para desbloquear", vigilFact: "{n} guardianes, uno tras otro — nada más",
+  vigilTag: "La Vigilia", unlockVigil: "Enciende los cinco faros para desbloquear", vigilFact: "{n} guardianes, uno tras otro, cada uno con su propia noche",
   bestVigil: "Récord: {n} / {of} guardianes · {t}", r_keepers: "Guardianes abatidos",
   b_vigil: "LOS GUARDIANES VUELVEN", b_vigilNext: "{n} DE {of} GUARDIANES CAÍDOS — EL SIGUIENTE DESPIERTA",
   b_item_tonic_s: "UN SORBO DE TÓNICO", b_item_tonic_m: "TÓNICO", b_item_tonic_l: "GRAN TÓNICO", b_item_ward: "PROTEGIDO", b_item_draught: "VELOZ COMO UNA LIEBRE", b_item_firebomb: "BOMBA DE FUEGO", b_item_lodestone: "PIEDRA IMÁN",
@@ -288,5 +288,5 @@ ES.deedText = {
 };
 
 ES.stages.vigil = ["La Vigilia de los Guardianes", "La catedral de la luna, a la luz de la sangre",
-  "El sol ha vuelto, pero los muertos guardan sus propias horas. En la catedral de la luna, los cinco guardianes se han alzado de nuevo desde la sombra que dejó el Rey, para apagar la luz una vez más. Esta noche no hay horda. Solo ellos, uno tras otro.",
+  "El sol ha vuelto, pero los muertos guardan sus propias horas. En la catedral de la luna, los cinco guardianes se han alzado de nuevo desde la sombra que dejó el Rey, para apagar la luz una vez más. Llegan uno tras otro, y cada uno trae consigo su propia noche.",
   "Cae el último guardián, y la catedral queda en un silencio que nunca había conocido. La sombra del altar se adelgaza y se apaga. En algún lugar, allá abajo en Emberhollow, una campana empieza a tocar a mañana."];

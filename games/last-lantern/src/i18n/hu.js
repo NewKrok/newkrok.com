@@ -226,7 +226,7 @@ Object.assign(HU, {
   h_items: "A vándorárus portékái", p_items: "Két menet között gyógyitalt, védőigét és bombát vehetsz <b>a vándorárustól</b>. Menet közben a <b>tarisznyádban</b> várnak az életgömb fölött: nyomd meg az <b>1–7</b> gombot, koppints rájuk, vagy válassz a kontroller <b>LB / RB</b> gombjával, és használd az <b>X</b>-szel.",
   k_item: "Tárgy használata a tarisznyából",
   deeds: "Érdemek", deedCount: "{n} / {of}", r_deed: "Érdem: {x}", deedToast: "Érdem: {x} (+{n} parázs)", deedsToast: "{n} érdemet szereztél (+{e} parázs)",
-  vigilTag: "A Virrasztás", unlockVigil: "Gyújtsd meg mind az öt jelzőtüzet", vigilFact: "{n} őrző, egymás után — semmi más",
+  vigilTag: "A Virrasztás", unlockVigil: "Gyújtsd meg mind az öt jelzőtüzet", vigilFact: "{n} őrző egymás után, mindegyik a saját éjszakájával",
   bestVigil: "Legjobb: {n} / {of} őrző · {t}", r_keepers: "Legyőzött őrzők",
   b_vigil: "AZ ŐRZŐK VISSZATÉRNEK", b_vigilNext: "{n} / {of} ŐRZŐ ELBUKOTT — MOCORDUL A KÖVETKEZŐ",
   b_item_tonic_s: "EGY KORTY GYÓGYITAL", b_item_tonic_m: "GYÓGYITAL", b_item_tonic_l: "NAGY GYÓGYITAL", b_item_ward: "VÉDŐIGE", b_item_draught: "FÜRGE, MINT A NYÚL", b_item_firebomb: "TŰZBOMBA", b_item_lodestone: "MÁGNESKŐ",
@@ -275,5 +275,5 @@ HU.deedText = {
 };
 
 HU.stages.vigil = ["Az Őrzők Virrasztása", "A holdkatedrális, vérfényben",
-  "A nap visszatért, de a holtak a saját idejüket tartják. A holdkatedrálisban az öt őrző újra felkelt a Király hátrahagyott árnyékából, hogy még egyszer kioltsák a fényt. Ma éjjel nincs horda. Csak ők, egymás után.",
+  "A nap visszatért, de a holtak a saját idejüket tartják. A holdkatedrálisban az öt őrző újra felkelt a Király hátrahagyott árnyékából, hogy még egyszer kioltsák a fényt. Egymás után jönnek, és mindegyik magával hozza a saját éjszakáját.",
   "Az utolsó őrző is elbukik, és a katedrálisra olyan csend száll, amilyen még sosem volt. Az oltáron az árnyék elvékonyodik, majd kialszik. Valahol lent, Emberhollow-ban, reggelre harangoznak."];

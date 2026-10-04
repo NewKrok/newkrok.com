@@ -239,7 +239,7 @@ Object.assign(ZH, {
   h_items: "货郎的货物", p_items: "在两局之间向<b>货郎</b>购买药剂、护符与炸弹。局内它们放在生命球上方的<b>行囊</b>里：按 <b>1–7</b>、点击，或用手柄 <b>LB / RB</b> 选择、<b>X</b> 使用。",
   k_item: "使用行囊中的物品",
   deeds: "功绩", deedCount: "{n} / {of}", r_deed: "功绩：{x}", deedToast: "功绩：{x}（+{n} 余烬）", deedsToast: "达成 {n} 项功绩（+{e} 余烬）",
-  vigilTag: "守夜", unlockVigil: "点亮全部五座烽火以解锁", vigilFact: "{n} 位守护者接连而来——别无其他",
+  vigilTag: "守夜", unlockVigil: "点亮全部五座烽火以解锁", vigilFact: "{n} 位守护者接连而来，各自带着自己的长夜",
   bestVigil: "最佳：{n} / {of} 位守护者 · {t}", r_keepers: "击败守护者",
   b_vigil: "守护者归来", b_vigilNext: "已击败 {n} / {of} 位守护者——下一位正在苏醒",
   b_item_tonic_s: "一小口药剂", b_item_tonic_m: "药剂", b_item_tonic_l: "大瓶药剂", b_item_ward: "护符庇佑", b_item_draught: "疾如脱兔", b_item_firebomb: "火焰炸弹", b_item_lodestone: "磁石",
@@ -288,5 +288,5 @@ ZH.deedText = {
 };
 
 ZH.stages.vigil = ["守护者之夜", "血光下的月之大教堂",
-  "太阳已经归来，但亡者依旧守着自己的时辰。在月之大教堂里，五位守护者从国王留下的阴影中再度起身，想要再一次熄灭光明。今夜没有怪群。只有他们，一个接一个。",
+  "太阳已经归来，但亡者依旧守着自己的时辰。在月之大教堂里，五位守护者从国王留下的阴影中再度起身，想要再一次熄灭光明。他们一个接一个到来，每一位都带着自己的长夜。",
   "最后一位守护者倒下，大教堂陷入前所未有的寂静。祭坛上的阴影渐渐变薄，然后熄灭。在下方的烬谷，某处的钟声开始敲响清晨。"];

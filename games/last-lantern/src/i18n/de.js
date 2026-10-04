@@ -239,7 +239,7 @@ Object.assign(DE, {
   h_items: "Die Waren des Hausierers", p_items: "Zwischen den Läufen kaufst du beim <b>Hausierer</b> Tränke, Schutzzeichen und Bomben. Im Lauf warten sie in deinem <b>Ranzen</b> über der Lebenskugel: drücke <b>1–7</b>, tippe sie an oder wähle mit <b>LB / RB</b> am Pad und benutze sie mit <b>X</b>.",
   k_item: "Gegenstand aus dem Ranzen benutzen",
   deeds: "Taten", deedCount: "{n} / {of}", r_deed: "Tat: {x}", deedToast: "Tat: {x} (+{n} Glut)", deedsToast: "{n} Taten vollbracht (+{e} Glut)",
-  vigilTag: "Die Wacht", unlockVigil: "Entzünde alle fünf Leuchtfeuer zum Freischalten", vigilFact: "{n} Hüter, einer nach dem anderen — sonst nichts",
+  vigilTag: "Die Wacht", unlockVigil: "Entzünde alle fünf Leuchtfeuer zum Freischalten", vigilFact: "{n} Hüter nacheinander, jeder mit seiner eigenen Nacht",
   bestVigil: "Bestwert: {n} / {of} Hüter · {t}", r_keepers: "Erschlagene Hüter",
   b_vigil: "DIE HÜTER KEHREN ZURÜCK", b_vigilNext: "{n} VON {of} HÜTERN GEFALLEN — DER NÄCHSTE REGT SICH",
   b_item_tonic_s: "EIN SCHLUCK TRANK", b_item_tonic_m: "HEILTRANK", b_item_tonic_l: "GROSSER HEILTRANK", b_item_ward: "BESCHÜTZT", b_item_draught: "FLINK WIE EIN HASE", b_item_firebomb: "FEUERBOMBE", b_item_lodestone: "MAGNETSTEIN",
@@ -288,5 +288,5 @@ DE.deedText = {
 };
 
 DE.stages.vigil = ["Die Wacht der Hüter", "Die Mondkathedrale, im Blutlicht",
-  "Die Sonne ist zurück, doch die Toten halten ihre eigenen Stunden. In der Mondkathedrale haben sich die fünf Hüter erneut erhoben, aus dem Schatten, den der König hinterließ, um das Licht noch einmal zu löschen. Heute Nacht gibt es keine Horde. Nur sie, einer nach dem anderen.",
+  "Die Sonne ist zurück, doch die Toten halten ihre eigenen Stunden. In der Mondkathedrale haben sich die fünf Hüter erneut erhoben, aus dem Schatten, den der König hinterließ, um das Licht noch einmal zu löschen. Sie kommen einer nach dem anderen, und jeder bringt seine eigene Nacht mit.",
   "Der letzte Hüter fällt, und über der Kathedrale liegt eine Stille wie nie zuvor. Der Schatten auf dem Altar wird dünn und erlischt. Irgendwo unten in Emberhollow beginnt eine Glocke den Morgen einzuläuten."];
