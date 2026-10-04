@@ -11,7 +11,7 @@
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const hz = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
-const GAP = { gust: 0.08, umbrellaBlock: 0.05, foeToss: 0.05, foeSlap: 0.05, foeLand: 0.08, umbrellaOpen: 0.12, umbrellaShut: 0.12, pinwheel: 0.3, sneeze: 0.3, meatRoll: 0.15, pepperShake: 0.3, pepperBurst: 0.1, pinRoll: 0.2, steamBurn: 0.3, cookerRattle: 0.08, bellRing: 0.08, bellBat: 0.05, boing: 0.12, foeSleep: 0.08, foeWake: 0.1, foeDrowsy: 0.1, clockWind: 0.2, clockRing: 0.3, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
+const GAP = { gust: 0.08, umbrellaBlock: 0.05, umbrellaOpen: 0.12, umbrellaShut: 0.12, pinwheel: 0.3, sneeze: 0.3, meatRoll: 0.15, pepperShake: 0.3, pepperBurst: 0.1, pinRoll: 0.2, steamBurn: 0.3, cookerRattle: 0.08, bellRing: 0.08, bellBat: 0.05, boing: 0.12, foeSleep: 0.08, foeWake: 0.1, foeDrowsy: 0.1, clockWind: 0.2, clockRing: 0.3, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
 
 const SONGS = {
   menu: { root: 60, bpm: 76, scale: [0, 2, 4, 7, 9], prog: [0, -3, 5, -5], lead: "box", drums: 0 },
@@ -204,18 +204,12 @@ export class Audio {
       case "foamStuck": N(0.3, { type: "bandpass", freq: 600, freqEnd: 1500, q: 2, gain: 0.08 }); S(0.2, { freq: 250, freqEnd: 400, gain: 0.05 }); break;
       case "foamFree": S(0.1, { freq: 700, freqEnd: 1400, gain: 0.05 }); break;
       // The Gust Umbrella: a cloth snap and a rush of air; opening a soft
-      // fwump; an orb patting on the canopy; glitches tossed up whistle,
-      // slapped ones thud; a pinwheel whirrs up.
+      // fwump; an orb patting on the canopy; a pinwheel whirrs up.
       case "gust": S(0.06, { type: "triangle", freq: 220, freqEnd: 110, gain: 0.08 }); N(0.05, { type: "bandpass", freq: 1800, q: 1.5, gain: 0.08 }); N(0.4, { type: "bandpass", freq: 700, freqEnd: 2600, q: 0.8, gain: 0.12, attack: 0.02 }); break;
       case "gustHop": N(0.35, { type: "bandpass", freq: 400, freqEnd: 1600, q: 0.9, gain: 0.12, attack: 0.02 }); S(0.25, { type: "sine", freq: 180, freqEnd: 420, gain: 0.06 }); break;
       case "umbrellaOpen": N(0.18, { type: "lowpass", freq: 900, freqEnd: 300, gain: 0.12, attack: 0.01 }); S(0.12, { type: "triangle", freq: 140, freqEnd: 90, gain: 0.07 }); break;
       case "umbrellaShut": N(0.08, { type: "bandpass", freq: 1500, q: 1.2, gain: 0.06 }); S(0.06, { type: "triangle", freq: 260, freqEnd: 180, gain: 0.04 }); break;
       case "umbrellaBlock": N(0.07, { type: "bandpass", freq: 1100, q: 1.5, gain: 0.14 }); S(0.09, { type: "sine", freq: 300, freqEnd: 150, gain: 0.08 }); break;
-      case "foeToss": S(0.45, { type: "sine", freq: 500, freqEnd: 1500, gain: 0.05 }); N(0.3, { type: "bandpass", freq: 900, freqEnd: 2000, q: 1, gain: 0.06 }); break;
-      case "foeLand": S(0.12, { type: "sine", freq: 160, freqEnd: 70, gain: 0.1 }); [0, 0.1, 0.2].forEach((dt, i) => at(0.1 + dt, (tt) => this.#tone(d, tt, 0.06, { type: "sine", freq: 1400 - i * 150, gain: 0.025 }))); break;
-      case "foeSlap": S(0.1, { type: "triangle", freq: 300, freqEnd: 90, gain: 0.1 }); N(0.06, { type: "lowpass", freq: 1200, gain: 0.1 }); break;
-      case "foeUp": S(0.15, { type: "triangle", freq: 400, freqEnd: 900, gain: 0.04 }); break;
-      case "spitBlown": N(0.15, { type: "bandpass", freq: 1600, freqEnd: 900, q: 1.2, gain: 0.05 }); break;
       case "pinwheel": for (let i = 0; i < 10; i++) at(i * 0.05, (tt) => this.#tone(d, tt, 0.035, { type: "square", freq: 600 + i * 60, gain: 0.02 })); N(0.6, { type: "bandpass", freq: 800, freqEnd: 1600, q: 1, gain: 0.05, attack: 0.05 }); break;
       // The Lullaby Bell: a bright strike with a long ring; the lullaby a
       // falling music-box phrase; sleepers sigh, wakers squeak.

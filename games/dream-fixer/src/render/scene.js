@@ -167,7 +167,7 @@ export class GameView {
       } else if (["bellBat", "foeSleep", "foeWake", "jellyWobble", "jellySquish", "boing", "souffleFall"].includes(e.type)) {
         this.bellView.onEvent(e, run);
         if (e.type === "souffleFall" && Math.hypot(e.x - run.body.x, e.z - run.body.z) < 10) this.shake = Math.min(1, this.shake + 0.2);
-      } else if (["gust", "gustHop", "foeToss", "foeLand", "foeSlap", "umbrellaBlock", "spitBlown", "pinwheel"].includes(e.type)) {
+      } else if (["gust", "gustHop", "umbrellaBlock", "pinwheel"].includes(e.type)) {
         this.umbrellaView.onEvent(e, run, this.muzzleWorld());
         if (e.type === "gust") { this.gusted = true; this.muzzleFlash = Math.max(this.muzzleFlash || 0, 0.6); }
         if (e.type === "umbrellaBlock") this.shake = Math.min(1, this.shake + 0.1);

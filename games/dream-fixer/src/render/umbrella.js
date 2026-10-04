@@ -3,9 +3,8 @@ import { make } from "./modelkit.js";
 import { MODELS } from "./models/index.js";
 
 // ── The umbrella's wind on screen ────────────────────────────────────────
-// A gust is a fan of pale streaks racing out from the tip; a tossed
-// glitch leaves a puff where it took off, a slapped flyer a ring where it
-// hits the ground; an orb that the open umbrella stops pats into flecks.
+// A gust is a fan of pale streaks racing out from the tip, a short way;
+// an orb that the open umbrella stops pats into flecks.
 // Updrafts are a faint mint column over their stone well with leaves and
 // petals riding up it (thin and few while a pinwheel's draft is still);
 // pinwheels turn as fast as the sim says.
@@ -73,17 +72,8 @@ export class UmbrellaView {
     } else if (e.type === "gustHop") {
       fx.puff(e.x, e.y + 0.1, e.z, 1);
       fx.ring([e.x, e.y + 0.05, e.z], [0, 1, 0], WIND, 1.6, 0.3);
-    } else if (e.type === "foeToss") {
-      fx.puff(e.x, e.y + 0.2, e.z, 0.8);
-      fx.burst([e.x, e.y + 0.3, e.z], [0, 1, 0], WIND, 10, 4, 0.04);
-    } else if (e.type === "foeLand") {
-      fx.ring([e.x, e.y + 0.05, e.z], [0, 1, 0], WIND, 1.1, 0.25);
-    } else if (e.type === "foeSlap") {
-      fx.burst([e.x, e.y, e.z], [0, -1, 0], WIND, 12, 5, 0.05);
     } else if (e.type === "umbrellaBlock") {
       fx.burst([e.x, e.y, e.z], [0, 1, 0], MINT, 10, 3, 0.045);
-    } else if (e.type === "spitBlown") {
-      fx.burst([e.x, e.y, e.z], [0, 1, 0], WIND, 6, 2, 0.04);
     } else if (e.type === "pinwheel") {
       fx.burst([e.x, e.y, e.z], [0, 0, 1], LEAVES[1], 10, 3, 0.05);
     }

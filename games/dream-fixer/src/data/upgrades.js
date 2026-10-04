@@ -38,7 +38,7 @@ export const UPGRADES = [
   { id: "bell_box", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [60, 120], stat: (l) => `${num(TOOLS.bell.lull.r1 + 1.5 * l)} m` },
   // ── The Gust Umbrella (once you have it) ──
   { id: "umb_canopy", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [45, 90, 150], stat: (l) => `${num(TOOLS.umbrella.glide.fall * (1 - 0.15 * l))} m/s` },
-  { id: "umb_ribs", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [50, 100, 160], stat: (l) => `${num(TOOLS.umbrella.range + 1.2 * l)} m` },
+  { id: "umb_ribs", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [50, 100, 160], stat: (l) => pct(1 + 0.2 * l) },
   { id: "umb_spring", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [55, 110], stat: (l) => num(1 / (TOOLS.umbrella.interval * (1 - 0.15 * l))) },
   { id: "umb_cloth", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [50, 100, 160], stat: (l) => pct(TOOLS.umbrella.shield.guard - 0.07 * l) },
   // ── You ──
@@ -107,7 +107,7 @@ export function toolDef(id, owned = {}) {
   } else if (id === "umbrella") {
     const c = L("umb_canopy"), r = L("umb_ribs"), s = L("umb_spring"), w = L("umb_cloth");
     d.glide.fall *= 1 - 0.15 * c; d.glide.air *= 1 + 0.1 * c; d.shield.cone *= 1 + 0.06 * c;
-    d.range += 1.2 * r; d.push *= 1 + 0.15 * r; d.toss *= 1 + 0.08 * r;
+    d.damage *= 1 + 0.2 * r; d.range += 0.4 * r;
     d.interval *= 1 - 0.15 * s; d.heat *= 1 - 0.1 * s;
     d.shield.guard -= 0.07 * w; d.shield.heat *= 1 - 0.2 * w;
   }

@@ -1,8 +1,8 @@
 // ── The umbrella lab (dev only: ?level=umbrellalab) ──────────────────────
 // Floating garden islands to try the Gust Umbrella on, not a dream. The
 // big lawn you arrive on has a yard of small glitches by its west edge to
-// toss off. North, across a gap too wide to jump, a lower island: glide
-// over; flyers there to slap down, and throwers to hold the umbrella up
+// gust at close range. North, across a gap too wide to jump, a lower
+// island: glide over; flyers and throwers there to hold the umbrella up
 // against. East, an updraft that always blows carries you up to a high
 // island; south-west, one that only blows while its pinwheel turns, up to
 // a little pillar island. One anchor with waves of throwers to try it all
@@ -43,7 +43,7 @@ export const umbrellalab = {
       k.prop("bush", x, z, { opts: { seed: Math.round(x - z), s }, collide: { r: 0.5 * s, h: 0.85 * s } });
     for (const [x, z] of [[-2, 6], [8, 3], [-7, -2]]) k.prop("flowers", x, z, { opts: { seed: Math.round(x * 7 - z), n: 9, r: 0.9 } });
 
-    // West edge: small ones to toss off the island.
+    // West edge: a yard of small ones to gust at.
     for (const [kind, x, z] of [["fuzz", -11, -1], ["fuzz", -12, 2], ["fuzz", -10, 4], ["bunny", -12.5, -3], ["bunny", -13, 0], ["bunny", -11.5, 5.5], ["meatball", -10, -4], ["pencil", -9, 1]]) k.foe(kind, x, z);
 
     // ── North: a lower island across a 9 m gap (glide) ──

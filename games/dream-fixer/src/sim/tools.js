@@ -58,18 +58,16 @@ export const TOOLS = {
     // r0…r1: the lullaby's reach, short hum to full; sleep / drowsy: seconds.
     lull: { time: 0.9, min: 0.3, heat: 0.55, r0: 4, r1: 7.5, speed: 11, sleep: 6, drowsy: 4 },
   },
-  // Pressed: snapped open and shut, a gust in a cone ahead that tosses
-  // small walkers up in the air (helpless up there, and they come down
-  // dizzy), slaps flyers down to the ground, shoves the big ones and blows
-  // orbs away. Aimed at your feet in mid-air it lifts you a little, once
-  // per jump. Held second action: open over you, a shield in front and
+  // Pressed: snapped open and shut, a short gust in a cone ahead that
+  // stings everything in it, hard up close and fading out by `range`
+  // (no shove: it only hurts), and pops orbs. Aimed at your feet in
+  // mid-air it lifts you a little, once per jump. Held second action: open over you, a shield in front and
   // above (it stops orbs, takes the edge off bonks), and in the air you
   // glide; an updraft carries an open umbrella up.
   umbrella: {
     interval: 0.45, heat: 0.22, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
-    range: 7, cone: 0.55, damage: 0.8, push: 7,
-    toss: 9,              // take-off speed of a tossed glitch
-    slap: 2.5,            // seconds a flyer stays down
+    range: 4.5, cone: 0.5,
+    damage: 2.4, far: 0.45, // at point blank; share of it left at the edge of the range
     hop: 8,               // the gust at your feet in mid-air: take-off speed
     shield: { cone: 1.15, guard: 0.3, heat: 0.12 },   // half angle; share of a bonk you still feel
     glide: { fall: 2.4, air: 1.8 },                   // fastest fall; air control ×

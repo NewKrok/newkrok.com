@@ -1,9 +1,9 @@
-import { damageFoe, tossFoe, tossable, slapFoe } from "./foes.js";
+import { damageFoe } from "./foes.js";
 
 // ── Grandpa Joe's umbrella, the Gust Umbrella ────────────────────────────
-// A gust (snapped open and shut) runs out in a cone ahead: a small walker
-// is tossed up in the air, a flyer slapped down to the ground, a big one
-// shoved, and orbs are blown off harmless. Nothing goes through a wall.
+// A gust (snapped open and shut) runs out a short way in a cone ahead and
+// stings whatever is in it, hard up close, fading with distance; it does
+// not shove. Orbs in it pop. Nothing goes through a wall.
 // Aimed at your feet in mid-air it lifts you once per jump.
 //
 // Held open over you it is a shield in front and above: orbs stop on it,
@@ -57,7 +57,7 @@ export class Umbrella {
       run.events.push({ type: "gustHop", x: b.x, y: b.y, z: b.z });
     }
     // How much of the gust reaches (x, y, z), 0 if none: in the cone, in
-    // range, nothing in between; stronger close up.
+    // range, nothing in between; all of it close up, `far` of it at the edge.
     const reach = (x, y, z, R = 0) => {
       const ex = x - ox, ey = y - oy, ez = z - oz, l = Math.hypot(ex, ey, ez);
       if (l - R > d.range) return 0;
@@ -66,25 +66,19 @@ export class Umbrella {
         const hit = run.world.raycast(ox, oy, oz, ex / l, ey / l, ez / l, l);
         if (hit && hit.t < l - R - 0.15) return 0;
       }
-      return 1.15 - 0.5 * Math.min(1, l / d.range);
+      return 1 - (1 - d.far) * Math.max(0, Math.min(1, (l - R) / d.range));
     };
     for (const f of run.foes) {
       if (!f.alive || f.state === "spawn") continue;
       const k = reach(f.px, f.cy, f.pz, f.def.hitR);
       if (!k) continue;
-      const ex = f.px - ox, ez = f.pz - oz, l = Math.hypot(ex, ez) || 1, ux = ex / l, uz = ez / l;
-      // Small walkers go up, flyers go down, the big ones are only shoved.
-      const toss = tossable(f) && !f.aloft && !(f.stuckT > 0), shove = !toss && !f.def.fly && !f.def.still;
-      const p = shove ? d.push / 3.5 * k : 0;
-      if (damageFoe(run, f, d.damage, ux * p, uz * p, shove)) { run.stats.popped++; continue; }
-      run.stats.hits++;
-      if (f.def.fly) slapFoe(run, f, d.slap);
-      else if (toss) tossFoe(run, f, d.toss * Math.min(1, k + 0.15), ux * d.push * 0.45 * k, uz * d.push * 0.45 * k);
+      if (damageFoe(run, f, d.damage * k, 0, 0, false)) run.stats.popped++;
+      else run.stats.hits++;
     }
     for (const s of run.spits) {
       if (s.harmless || s.life <= 0 || !reach(s.x, s.y, s.z, 0.4)) continue;
-      s.vx = ax * 14; s.vy = Math.max(s.vy, 2); s.vz = az * 14; s.harmless = true;
-      run.events.push({ type: "spitBlown", x: s.x, y: s.y, z: s.z });
+      s.life = 0; s.harmless = true;
+      run.events.push({ type: "spitPop", x: s.x, y: s.y, z: s.z, kind: s.kind });
     }
     for (const c of run.clouds) if (reach(c.x, c.y + 0.8, c.z, c.r)) { c.life = Math.min(c.life, c.t + 0.3); run.events.push({ type: "cloudBlown", x: c.x, y: c.y + 0.8, z: c.z }); }
     for (const w of this.wheels) {
@@ -96,7 +90,7 @@ export class Umbrella {
     if (B?.alive && !B.invulnerable) {
       for (const [x, y, z, r, mul, part] of B.hitSpheres()) {
         if (!reach(x, y, z, r)) continue;
-        B.damage(run, d.damage * mul, part);
+        B.damage(run, d.damage * reach(x, y, z, r) * mul, part);
         B.gusted?.(run, ax, az, part);
         break;
       }

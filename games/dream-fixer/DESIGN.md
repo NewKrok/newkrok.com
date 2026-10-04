@@ -184,7 +184,7 @@ töltéskorlát van, ami magától visszaáll.
 | **Kócszívó** | A sugara mindent koptat, amit ér; a kis hibákat (legfeljebb hármat) és az álomport beszívja | A beszívott hibát szétpukkanó fonalgombócként lövi vissza, üres tartállyal légfúvás | 1. fejezet |
 | **Habágyú** | Lelassító hab | Megszilárduló habplatform (puzzle és mozgás) | 2. fejezet |
 | **Altatócsengő** | Csengetés: kúpban szaladó hanghullám, ami hátralöki a hibákat, és a lövedékeiket visszaüti a dobójukra | Nyomva tartva altatódalt dúdol (minél tovább, annál messzebbre ér), elengedve körbefut: a kis hibák elalszanak, a nagyok csak elálmosodnak | 3. fejezet |
-| **Szélernyő** | Széllökés kúpban: a kis gyalogos hibákat feldobja (a levegőben tehetetlenek, a sziget széléről le is eshetnek), a repülőket lecsapja a földre, a nagyokat meglöki, a lövedékeket elfújja | Nyomva tartva kinyitod: pajzs elöl és felül, a levegőben siklasz, a feláramlás felvisz | 4. fejezet |
+| **Szélernyő** | Rövid széllökés kúpban: közelről erősebben sebez a Stabilizátornál, távolabb gyengül, 4,5 méter után semmi; nem lök el, a lövedékeket szétpukkasztja | Nyomva tartva kinyitod: pajzs elöl és felül, a levegőben siklasz, a feláramlás felvisz | 4. fejezet |
 | **Villáskulcs** | Közelharc és tárgyak megütése | — | Mindig nálad van |
 
 **Az Altatócsengő részletei.** Az alvó hiba lefekszik, „Z”-k szállnak
@@ -199,14 +199,14 @@ csengetésre végleg összeesik, és szabad az út. A főellenség kaphat
 `rung` és `lulled` horgot.
 
 **A Szélernyő részletei.** A széllökés (kattintás, nyomva tartva
-ismétel) feldobja a kis gyalogos hibákat: lassan bucskáznak a levegőben,
-nem csinálnak semmit, minden találat másfélszeresen számít, és szédülten
-érnek földet; aki a sziget széle felé repül, leesik az álomból, és az is
-kisimítottnak számít (a pora a szélen marad). A repülőket a földre
-csapja, ott is tehetetlenek pár másodpercig. A nagyokat (kád, hátizsák,
-sodrófa) csak meglöki, a fészkeket semmire. A lövedékeket ártalmatlanul
-elfújja, a borsfelhőt is. Falon nem megy át. Ha a levegőben a lábad elé
-fújsz, egyszer ugrásonként kicsit megemel. A **nyitott ernyő** (jobb
+ismétel) rövid, kúp alakú: ami benne van, azt megcsípi, pont előtted
+teljes erővel (másfélszer annyit, mint a Stabilizátor), a 4,5 méteres
+széléig a felére gyengülve; nem lök el senkit, így a közelharc veszélye
+megmarad. A lövedékeket szétpukkasztja, a borsfelhőt elfújja, falon nem
+megy át. Ha a levegőben a lábad elé fújsz, egyszer ugrásonként kicsit
+megemel. (Az első változat feldobta a kis hibákat és lecsapta a
+repülőket, de így túl erős volt: elég volt nekisétálni a csapatnak.)
+A **nyitott ernyő** (jobb
 gomb nyomva) a fejed fölé kerül: elöl és felül pajzs (a lövedékek
 megállnak rajta, és kicsit melegítik; elölről a bökésnek csak harmada
 jön át; a földön futó gyűrűk és az esés nem), a földön lassabban jársz,

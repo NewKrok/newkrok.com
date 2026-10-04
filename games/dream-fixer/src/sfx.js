@@ -45,7 +45,7 @@ export class Sfx {
         case "foamSplat": case "foamSet": case "foamGone": case "foamStuck": case "foamFree": A.play(e.type, 0, e.x, e.z); break;
         case "bellRing": A.play(e.type); break;
         case "gust": case "gustHop": case "umbrellaBlock": A.play(e.type); break;
-        case "foeToss": case "foeLand": case "foeSlap": case "foeUp": case "spitBlown": case "pinwheel": A.play(e.type, 0, e.x, e.z); break;
+        case "pinwheel": A.play(e.type, 0, e.x, e.z); break;
         case "sneeze": case "steamBurn": A.play(e.type); break;
         case "cookerLid": A.play(e.type, e.off ? 1 : 0, e.x, e.z); break;
         case "meatWind": case "meatRoll": case "meatSplit": case "pepperShake": case "pepperWind": case "pepperBurst": case "pepperDodge": case "cloudBlown":

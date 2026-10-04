@@ -131,8 +131,6 @@ export function stepFoes(run, dt) {
     f.t += fdt;
     if (f.state === "spawn") { if (f.t > 0.5) setState(f, "idle"); else continue; }
     if (f.sleepT > 0) { doze(run, f, dt); continue; }
-    if (f.aloft) { tumble(run, f, dt); continue; }
-    if (f.downT > 0) { grounded(run, f, dt); continue; }
     if (!fdt) {
       // Stuck fast in foam, a flyer drops to the ground.
       if (f.def.fly) {
@@ -257,70 +255,6 @@ function wake(run, f) {
 }
 
 const NOTHING = { forward: 0, strafe: 0 };
-
-// ── The umbrella's gust ──
-// A small walker it catches is tossed up: up there it can do nothing but
-// tumble (slowly: it is a dream), and every hit counts HURT times; it
-// lands dizzy for a moment. Tossed off the edge of an island it is gone
-// for good, and that counts as smoothed out (its dust stays at the edge).
-// A flyer is slapped down to the ground and sits there, just as helpless.
-export const TOSS = { hurt: 1.5, float: 0.45, dizzy: 0.9, gone: 8 };
-export const tossable = (f) => !!f.body && !f.def.big && !f.def.steady && f.def.hp <= 6;
-
-export function tossFoe(run, f, vy, vx, vz) {
-  if (!f.alive || f.state === "spawn") return;
-  const b = f.body;
-  f.sleepT = 0;
-  f.aloft = true; f.tossT = 0;
-  f.tossFrom = { x: b.x, y: b.y, z: b.z };
-  setState(f, "idle");
-  f.spin = 0; f.mark = null; f.guard = 1; f.leap = false; f.hitDone = true;
-  b.vx = vx; b.vz = vz; b.vy = vy; b.grounded = false;
-  startle(run, f);
-  run.events.push({ type: "foeToss", id: f.id, kind: f.kind, x: b.x, y: b.y, z: b.z });
-}
-
-export function slapFoe(run, f, time) {
-  if (!f.alive || f.state === "spawn" || !f.def.fly) return;
-  if (!(f.downT > 0)) run.events.push({ type: "foeSlap", id: f.id, kind: f.kind, x: f.x, y: f.y, z: f.z });
-  f.downT = Math.max(f.downT || 0, time);
-  f.sleepT = 0;
-  f.slapFrom = { x: f.x, y: f.y, z: f.z };
-  f.vx = 0; f.vz = 0; f.vy = -4;
-  setState(f, "idle");
-  startle(run, f);
-}
-
-function tumble(run, f, dt) {
-  const b = f.body;
-  f.tossT += dt;
-  b.step(run.world, NOTHING, dt, 0);
-  if (!b.grounded) b.vy += b.P.fallGravity * TOSS.float * dt;
-  if (b.fell || b.y < f.tossFrom.y - TOSS.gone) { lostOverEdge(run, f, f.tossFrom); return; }
-  if (b.grounded && f.tossT > 0.15) {
-    f.aloft = false;
-    setState(f, "stun"); f.t = -TOSS.dizzy;
-    run.events.push({ type: "foeLand", id: f.id, kind: f.kind, x: b.x, y: b.y, z: b.z });
-  }
-}
-
-// A flyer slapped down: it drops and sits on the ground, then takes off again.
-function grounded(run, f, dt) {
-  f.downT -= dt;
-  const floor = floorBelow(run.world, f.x, f.z, f.y + 0.3) + 0.3;
-  f.vy = (f.vy || 0) - 14 * dt; f.y += f.vy * dt;
-  if (f.y < floor) { f.y = floor; f.vy = 0; }
-  if (f.y < f.slapFrom.y - TOSS.gone - 4) { lostOverEdge(run, f, f.slapFrom); return; }
-  if (f.downT <= 0) { setState(f, "idle"); f.cd = Math.max(f.cd, 0.5); run.events.push({ type: "foeUp", id: f.id, x: f.x, y: f.y, z: f.z }); }
-}
-
-// Gone over the edge of the dream: smoothed out, its dust left where it went.
-function lostOverEdge(run, f, from) {
-  f.alive = false; f.hp = 0; f.aloft = false; f.downT = 0;
-  run.stats.popped++;
-  run.events.push({ type: "pop", kind: f.kind, id: f.id, x: f.px, y: f.cy, z: f.pz, fell: true });
-  run.dropDust(from.x, from.y + 0.6, from.z, f.mini ? 1 : f.def.dust);
-}
 
 // The last guard at the brink: a walker that stepped off a drop on its own
 // (crowded, sliding along the edge) is put back where it stood.
@@ -742,9 +676,7 @@ export function damageFoe(run, f, dmg, dx, dz, big) {
   // Asleep: the hit wakes it, and hurts twice as much.
   const rude = f.sleepT > 0;
   if (rude) wake(run, f);
-  // Up in the air from the umbrella's gust (or slapped down): helpless.
-  const air = f.aloft || f.downT > 0 ? TOSS.hurt : 1;
-  f.hp -= (stuck ? dmg * FOAM.hurt : dmg) * (f.guard ?? 1) * (rude ? SLEEP.wake : 1) * air;
+  f.hp -= (stuck ? dmg * FOAM.hurt : dmg) * (f.guard ?? 1) * (rude ? SLEEP.wake : 1);
   f.flash = 1;
   // Hit from afar: it comes for you, and so do the ones round it. The calm
   // of the arrival spot is over once you start a fight.
@@ -755,7 +687,7 @@ export function damageFoe(run, f, dmg, dx, dz, big) {
     f.body.vx += dx * 3.5 * k; f.body.vz += dz * 3.5 * k;
     if (big) { f.body.vy = 3; f.body.grounded = false; }
     // (A spinning pencil shrugs it off; a heavy one only flinches at a big hit.)
-    if (f.state !== "lunge" && (f.guard ?? 1) >= 1 && (!f.def.steady || big) && !f.aloft) { f.state = "stun"; f.t = 0; }
+    if (f.state !== "lunge" && (f.guard ?? 1) >= 1 && (!f.def.steady || big)) { f.state = "stun"; f.t = 0; }
   } else if (f.def.fly) {
     f.vx += dx * 4 * k; f.vz += dz * 4 * k;
     if (f.state === "windup" || f.state === "wind") { f.state = "stun"; f.t = 0; f.cd = 1.2; }
