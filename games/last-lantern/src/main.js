@@ -1022,5 +1022,31 @@ function boot() {
 
 if (import.meta.env.DEV) window.__lastLantern = { G, progress, settings, startRun, openIntro, goMain, hideScreens, keys, get scene() { return scene; }, spawn: (id, x, y) => spawnMonster(G.run, id, x, y) };
 
+// Dev cheats: a panel at the bottom of Settings, and __lastLantern.cheat in
+// the console. Vite drops this block from production builds.
+if (import.meta.env.DEV) {
+  const CHEATS = {
+    embers: ["+5000 embers", () => { progress.embers += 5000; }],
+    beacons: ["Light all five beacons", () => { for (let i = 0; i < BEACONS; i++) progress.cleared[i] = true; }],
+    blood: ["…under the Blood Moon too", () => { for (let i = 0; i < BEACONS; i++) { progress.cleared[i] = true; progress.clearedBlood[i] = true; } }],
+    arsenal: ["Unlock every weapon", () => { progress.maxLevel = Math.max(progress.maxLevel, 25); progress.totalKills = Math.max(progress.totalKills, 2500); }],
+    satchel: ["Fill the satchel", () => { for (const it of ITEMS) progress.items[it.id] = ITEM_MAX; }],
+    deeds: ["Forget all deeds", () => { progress.ach = {}; }],
+  };
+  const cheat = (id) => {
+    CHEATS[id][1]();
+    saveProgress(progress);
+    toast(`DEV: ${CHEATS[id][0]}`);
+    if (id !== "deeds") grantDeeds();
+    renderMain();
+  };
+  window.__lastLantern.cheat = Object.fromEntries(Object.keys(CHEATS).map((id) => [id, () => cheat(id)]));
+  const box = document.createElement("div");
+  box.className = "dev-cheats";
+  box.innerHTML = `<h3>Dev cheats</h3>${Object.entries(CHEATS).map(([id, [label]]) => `<button class="btn small" data-cheat="${id}">${label}</button>`).join("")}`;
+  box.addEventListener("click", (e) => { const b = e.target.closest("[data-cheat]"); if (b) cheat(b.dataset.cheat); });
+  $("#menu-settings .settings").append(box);
+}
+
 boot();
 window.focus();

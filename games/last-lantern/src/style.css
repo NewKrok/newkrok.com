@@ -457,3 +457,7 @@ select#lang-select { font: 600 16px var(--body); background: #120c0e; color: var
   .story-card { padding: 26px 20px 18px; }
 }
 @media (hover: none) { .actions kbd, .menu-buttons kbd, .lv-actions kbd, .lcard .key, .run-foot kbd { display: none; } }
+
+/* Dev builds only (see the end of main.js). */
+.dev-cheats { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; padding-top: 4px; border-top: 1px dashed #ff6b6b; }
+.dev-cheats h3 { width: 100%; color: #ff8a7a; }
