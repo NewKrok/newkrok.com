@@ -183,7 +183,7 @@ töltéskorlát van, ami magától visszaáll.
 | **Stabilizátor** | Gyors, pontos „kisimító” lövés | Feltöltött lövés | 1. fejezet |
 | **Kócszívó** | A sugara mindent koptat, amit ér; a kis hibákat (legfeljebb hármat) és az álomport beszívja | A beszívott hibát szétpukkanó fonalgombócként lövi vissza, üres tartállyal légfúvás | 1. fejezet |
 | **Habágyú** | Lelassító hab | Megszilárduló habplatform (puzzle és mozgás) | 2. fejezet |
-| **Altatócsengő** | Csengetés: kúpban szaladó hanghullám, ami hátralöki a hibákat, és a lövedékeiket visszaüti a dobójukra | Nyomva tartva altatódalt dúdol (minél tovább, annál messzebbre ér), elengedve körbefut: a kis hibák elalszanak, a nagyok csak elálmosodnak | 3. fejezet |
+| **Altatócsengő** | Csengetés: kúpban szaladó hanghullám, ami hátralöki a hibákat (keveset sebez: irányító eszköz, nem fő fegyver), és a lövedékeiket visszaüti a dobójukra | Nyomva tartva altatódalt dúdol (minél tovább, annál messzebbre ér), elengedve körbefut: a kis hibák elalszanak, a nagyok csak elálmosodnak | 3. fejezet |
 | **Szélernyő** | Rövid széllökés kúpban: közelről erősebben sebez a Stabilizátornál, távolabb gyengül, 4,5 méter után semmi; a földön járókat nem löki el, csak a repülőket, a lövedékeket szétpukkasztja | Nyomva tartva kinyitod: pajzs elöl és felül, a levegőben siklasz, a feláramlás felvisz | 4. fejezet |
 | **Villáskulcs** | Közelharc és tárgyak megütése | — | Mindig nálad van |
 

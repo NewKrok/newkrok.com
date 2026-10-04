@@ -54,7 +54,7 @@ export const TOOLS = {
   // out all round you: small glitches fall asleep, big ones get drowsy.
   bell: {
     interval: 0.42, heat: 0.2, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
-    range: 9, cone: 0.5, speed: 32, damage: 1, push: 8,
+    range: 9, cone: 0.5, speed: 32, damage: 0.5, push: 8,
     // r0…r1: the lullaby's reach, short hum to full; sleep / drowsy: seconds.
     lull: { time: 0.9, min: 0.3, heat: 0.55, r0: 4, r1: 7.5, speed: 11, sleep: 6, drowsy: 4 },
   },
