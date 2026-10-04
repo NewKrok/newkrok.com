@@ -354,6 +354,23 @@ function resume() {
   hideScreens();
 }
 
+// ── Confirmation ─────────────────────────────────────────────────────────
+// A card over the current screen; Cancel (focused, Esc, the pad's B) goes
+// back to where it was asked from.
+let onConfirm = null;
+function askConfirm(title, text, yes, then) {
+  bind("confirmTitle", title);
+  bind("confirmText", text);
+  bind("confirmYes", yes);
+  onConfirm = then;
+  showScreen("confirm", { push: true });
+}
+function confirmAnswer(ok) {
+  const then = onConfirm;
+  onConfirm = null;
+  if (ok && then) then(); else back();
+}
+
 // ── Result ───────────────────────────────────────────────────────────────
 function finishRun() {
   const R = G.run;
@@ -641,7 +658,8 @@ function readInput() {
 // Escape (and the pad's B): one step back from wherever we are.
 function escapeAction() {
   const R = G.run;
-  if (G.phase === "play" && R.phase === "play" && !$(".screen.active:not(#loading)")) pause();
+  if (onScreen("confirm")) confirmAnswer(false);
+  else if (G.phase === "play" && R.phase === "play" && !$(".screen.active:not(#loading)")) pause();
   else if (G.phase === "paused" && onScreen("pause")) resume();
   else if (G.phase === "paused" && onScreen("menu-settings")) back();
   else if (G.phase === "intro") { G.phase = "menu"; openRunSetup(); }
@@ -778,7 +796,7 @@ app.addEventListener("click", (e) => {
     case "pause": pause(); break;
     case "resume": resume(); break;
     case "abandon":
-      if (confirm(t("confirmAbandon"))) { track("run_abandon", { stage: G.run.stage.index + 1, hero: G.run.heroDef.id, time_s: Math.round(G.run.clock / FPS), level: G.run.hero.level }); G.phase = "play"; G.run.phase = "dead"; G.run.phaseT = 999; G.resultAt = G.time; hideScreens(); }
+      askConfirm(t("abandon"), t("confirmAbandon"), t("confirmGiveUp"), () => { track("run_abandon", { stage: G.run.stage.index + 1, hero: G.run.heroDef.id, time_s: Math.round(G.run.clock / FPS), level: G.run.hero.level }); G.phase = "play"; G.run.phase = "dead"; G.run.phaseT = 999; G.resultAt = G.time; hideScreens(); });
       break;
     case "active": G.run?.useActive(); break;
     case "reroll": doReroll(); break;
@@ -787,7 +805,9 @@ app.addEventListener("click", (e) => {
     case "chestOk": closeChest(); break;
     case "again": again(); break;
     case "toMain": goMain(); break;
-    case "reset": if (confirm(t("confirmReset"))) { resetProgress(progress); toast(t("progressReset")); } break;
+    case "reset": askConfirm(t("set_reset"), t("confirmReset"), t("set_reset"), () => { resetProgress(progress); back(); toast(t("progressReset")); }); break;
+    case "confirmYes": confirmAnswer(true); break;
+    case "confirmNo": confirmAnswer(false); break;
     default:
   }
 });

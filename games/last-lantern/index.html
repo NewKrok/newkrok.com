@@ -160,6 +160,18 @@
         </div>
       </section>
 
+      <!-- In-game confirmation (instead of the browser's confirm) -->
+      <section id="confirm" class="screen dim">
+        <div class="panel card narrow confirm-card">
+          <h2 data-bind="confirmTitle"></h2>
+          <p class="brief" data-bind="confirmText"></p>
+          <div class="actions">
+            <button class="btn primary" data-action="confirmNo"><span data-i18n="confirmNo"></span> <kbd>Esc</kbd></button>
+            <button class="btn danger" data-action="confirmYes" data-bind="confirmYes"></button>
+          </div>
+        </div>
+      </section>
+
       <!-- Result -->
       <section id="result" class="screen dim scroll-y">
         <div class="panel card result-card">

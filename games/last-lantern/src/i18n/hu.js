@@ -218,6 +218,7 @@ HU.monsterLore = {
 
 // A vándorárus, a tarisznya, az érdemek, a Virrasztás és a kontroller.
 Object.assign(HU, {
+  confirmNo: "Mégse", confirmGiveUp: "Feladom",
   next: "Tovább", changeHero: "Lámpáshordozó cseréje",
   pedlar: "A vándorárus", pedlarIntro: "Egy csuklyás vándorárus azt árulja, amire az úton szükség van. Minden portéka elfogy, amikor használod; ami megmarad, a tarisznyádban vár a következő menetre.",
   buyItem: "Megveszem · {n}", satchelFull: "Tele a tarisznya", inSatchel: "A tarisznyádban: {n} / {max}", boughtItem: "Megvetted: {x}",
