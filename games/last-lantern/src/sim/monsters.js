@@ -1,4 +1,4 @@
-import { Vec2, DistanceJoint } from "@newkrok/nape-js";
+import { Vec2, InteractionGroup } from "@newkrok/nape-js";
 import { DT, HERO_R, RECYCLE_DIST, SPAWN_MIN, SPAWN_MAX, clamp, lerp, hyp, wrapPi } from "../config.js";
 import { MON, WORM_SEGMENTS, WORM_SEG_R } from "../data/monsters.js";
 import {
@@ -74,6 +74,7 @@ export function tickMonsters(R) {
       if (!m.alive) continue;
     }
     if (m.thrown > 0) { m.thrown--; if (m.thrown === 0) R.landThrown(m); continue; }
+    if (m.segs) followTrail(m);
     if (def.part) continue;
     if ((R.frame + i) % 6 === 0) m.slow = surfaceSlow(R, m);
     if (frozen && !def.boss) { brake(m, 0.7); continue; }
@@ -468,32 +469,75 @@ export function spawnBoss(R, id) {
   return m;
 }
 
-// The worm: a head and a chain of segments on distance joints, so the body
-// follows the head like a rope, plows through the crowd and wraps around
-// the hero.
+// The worm: a head and a chain of segments. Each segment follows the path
+// the head took (follow-the-leader, not a rope), so the body snakes through
+// the head's weave, plows through the crowd and wraps around the hero. The
+// segments are still dynamic bodies, driven by velocity, so they shove.
+const TRAIL_STEP = 4;
 function spawnWorm(R, x, y) {
   const head = spawnMonster(R, "wormhead", x, y);
   if (!head) return null;
   head.segs = [];
-  let prev = head;
+  // Head and segments ignore one another: overlapping neighbours pushed
+  // each other sideways and the body ran in two rows.
+  const group = new InteractionGroup(true);
+  head.body.group = group;
+  let prev = head, along = 0;
   const a = Math.atan2(y - heroY(R), x - heroX(R));
   for (let i = 0; i < WORM_SEGMENTS; i++) {
-    const r = WORM_SEG_R * (1 - i / WORM_SEGMENTS * 0.45);
-    const sx = x + Math.cos(a) * (i + 1) * 40, sy = y + Math.sin(a) * (i + 1) * 40;
     // Tapering toward the tail.
-    const s = spawnMonster(R, "wormseg", sx, sy, { r });
+    const r = WORM_SEG_R * (1 - i / WORM_SEGMENTS * 0.45);
+    along += ((prev === head ? head.def.r : prev.segR) + r - 6) * 0.82;
+    const s = spawnMonster(R, "wormseg", x + Math.cos(a) * along, y + Math.sin(a) * along, { r });
     if (!s) break;
     s.segR = r;
     s.parent = head;
     s.index = i;
-    const gap = (prev === head ? head.def.r : prev.segR) + r - 6;
-    const j = new DistanceJoint(prev.body, s.body, new Vec2(0, 0), new Vec2(0, 0), gap * 0.8, gap);
-    j.space = R.space;
-    s.joint = j;
+    s.along = along;
+    s.body.group = group;
     head.segs.push(s);
     prev = s;
   }
+  // The trail starts as the straight line the body is laid out on.
+  head.trail = [];
+  for (let d = 0; d <= along + 40; d += TRAIL_STEP) head.trail.push({ x: x + Math.cos(a) * d, y: y + Math.sin(a) * d });
   return head;
+}
+
+// Records the head's path and moves every segment toward its point on it.
+function followTrail(head) {
+  const tr = head.trail, p = head.body.position;
+  // Points at even spacing, so distance along the trail is index × step.
+  let d = Math.hypot(p.x - tr[0].x, p.y - tr[0].y);
+  if (d >= TRAIL_STEP) {
+    while (d >= TRAIL_STEP) {
+      const q = tr[0];
+      tr.unshift({ x: q.x + (p.x - q.x) / d * TRAIL_STEP, y: q.y + (p.y - q.y) / d * TRAIL_STEP });
+      d -= TRAIL_STEP;
+    }
+    const need = Math.ceil((head.segs.at(-1)?.along ?? 0) / TRAIL_STEP) + 4;
+    if (tr.length > need) tr.length = need;
+  }
+  // The head may be partway to the next trail point.
+  const lead = Math.hypot(p.x - tr[0].x, p.y - tr[0].y);
+  for (const s of head.segs) {
+    if (!s.alive) continue;
+    const f = Math.max(0, (s.along - lead) / TRAIL_STEP), i = Math.min(tr.length - 2, Math.floor(f)), k = Math.min(1, f - i);
+    const a = tr[i], b = tr[i + 1];
+    const tx = a.x + (b.x - a.x) * k, ty = a.y + (b.y - a.y) * k;
+    const q = s.body.position;
+    // Wedged in a dense crowd it may lag a little, never come apart.
+    const lag = Math.hypot(tx - q.x, ty - q.y);
+    if (lag > 30) q.setxy(tx + (q.x - tx) * (30 / lag), ty + (q.y - ty) * (30 / lag));
+    const dx = tx - q.x, dy = ty - q.y;
+    // Close the gap within a few frames, but not so hard that a shove from
+    // the crowd snaps it back instantly.
+    let vx = dx * 18, vy = dy * 18;
+    const sp = Math.hypot(vx, vy);
+    if (sp > 1100) { vx *= 1100 / sp; vy *= 1100 / sp; }
+    s.body.velocity.setxy(vx, vy);
+    s.face = Math.atan2(a.y - b.y, a.x - b.x);
+  }
 }
 
 // Contact damage from the monster touching the hero hardest this frame.

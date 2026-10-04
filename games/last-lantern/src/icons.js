@@ -146,6 +146,63 @@ const D = {
   reroll(c) { c.strokeStyle = "#79c0ff"; c.lineWidth = 0.16; c.beginPath(); c.arc(0, 0, 0.6, 0.3, 5.2); c.stroke(); poly(c, [[0.62, -0.15], [0.95, 0.2], [0.35, 0.3]], "#79c0ff"); },
   banish(c) { D.skull(c); line(c, [[-0.85, -0.85], [0.85, 0.85]], 0.14, "#ff6b6b"); },
   revival(c) { c.fillStyle = "#ffd166"; c.beginPath(); c.moveTo(0, -0.95); c.bezierCurveTo(0.7, -0.3, 0.6, 0.6, 0, 0.9); c.bezierCurveTo(-0.6, 0.6, -0.7, -0.3, 0, -0.95); c.fill(); c.fillStyle = "#fff3c0"; c.beginPath(); c.moveTo(0, -0.3); c.bezierCurveTo(0.3, 0, 0.25, 0.5, 0, 0.6); c.bezierCurveTo(-0.25, 0.5, -0.3, 0, 0, -0.3); c.fill(); },
+  // The Pedlar's wares.
+  tonic_s(c) { D.flask(c, 0.7, "#ff7b72"); },
+  tonic_m(c) { D.flask(c, 0.85, "#ff5a48"); },
+  tonic_l(c) { D.flask(c, 1, "#e0302a"); circ(c, 0.55, -0.6, 0.12, "#fff0c0"); circ(c, -0.55, -0.35, 0.08, "#fff0c0"); },
+  flask(c, k = 1, col = "#ff5a48") {
+    c.save(); c.translate(0, 0.12 * (1 - k)); c.scale(k, k);
+    c.fillStyle = "rgba(230,240,255,0.25)"; c.beginPath(); c.arc(0, 0.3, 0.58, 0, TAU); c.fill();
+    c.fillStyle = col; c.beginPath(); c.arc(0, 0.3, 0.5, -0.25, Math.PI + 0.25); c.closePath(); c.fill();
+    circ(c, -0.18, 0.18, 0.1, "rgba(255,255,255,0.6)");
+    poly(c, [[-0.16, -0.25], [0.16, -0.25], [0.16, -0.62], [-0.16, -0.62]], "rgba(230,240,255,0.35)");
+    poly(c, [[-0.2, -0.62], [0.2, -0.62], [0.17, -0.88], [-0.17, -0.88]], "#a0703a");
+    c.restore();
+  },
+  ward(c) {
+    c.fillStyle = "rgba(159,216,255,0.25)"; c.beginPath(); c.arc(0, 0, 0.9, 0, TAU); c.fill();
+    c.strokeStyle = "#9fd8ff"; c.lineWidth = 0.09; c.beginPath(); c.arc(0, 0, 0.88, 0, TAU); c.stroke();
+    poly(c, [[0, -0.6], [0.48, -0.38], [0.42, 0.2], [0, 0.62], [-0.42, 0.2], [-0.48, -0.38]], "#d8f0ff");
+    line(c, [[0, -0.35], [0, 0.35]], 0.1, "#5a8ab8"); line(c, [[-0.22, -0.08], [0.22, -0.08]], 0.1, "#5a8ab8");
+  },
+  draught(c) {
+    D.flask(c, 0.9, "#7ee787");
+    for (const y of [-0.3, 0.05, 0.4]) line(c, [[-0.95, y], [-0.62, y]], 0.08, "#c8ffd0");
+  },
+  firebomb(c) {
+    circ(c, 0.05, 0.2, 0.62, "#3a2a24"); circ(c, -0.15, 0.02, 0.16, "#6a5040");
+    poly(c, [[-0.12, -0.42], [0.22, -0.42], [0.22, -0.6], [-0.12, -0.6]], "#8a6a4a");
+    c.strokeStyle = "#c9a36a"; c.lineWidth = 0.06; c.beginPath(); c.moveTo(0.05, -0.6); c.quadraticCurveTo(0.2, -0.85, 0.45, -0.78); c.stroke();
+    c.fillStyle = "#ffb347"; c.beginPath(); c.moveTo(0.5, -1); c.quadraticCurveTo(0.75, -0.75, 0.5, -0.6); c.quadraticCurveTo(0.3, -0.78, 0.5, -1); c.fill();
+    circ(c, 0.5, -0.76, 0.06, "#fff0c0");
+  },
+  lodestone(c) {
+    poly(c, [[-0.55, -0.35], [-0.1, -0.75], [0.5, -0.55], [0.7, 0.05], [0.35, 0.65], [-0.35, 0.7], [-0.7, 0.2]], "#4a5068");
+    poly(c, [[-0.3, -0.3], [0.05, -0.55], [0.4, -0.35], [0.2, 0.0], [-0.2, 0.05]], "#6a7490");
+    for (const [x, y] of [[-0.85, -0.8], [0.85, 0.75], [0.9, -0.6]]) poly(c, [[x, y - 0.13], [x + 0.09, y], [x, y + 0.13], [x - 0.09, y]], "#79c0ff");
+  },
+  satchel(c) {
+    poly(c, [[-0.75, -0.2], [0.75, -0.2], [0.65, 0.8], [-0.65, 0.8]], "#7a5230");
+    c.fillStyle = "#9a6a3a"; c.beginPath(); c.moveTo(-0.75, -0.2); c.quadraticCurveTo(0, -0.5, 0.75, -0.2); c.lineTo(0.6, 0.25); c.quadraticCurveTo(0, 0.4, -0.6, 0.25); c.closePath(); c.fill();
+    c.strokeStyle = "#5a3a20"; c.lineWidth = 0.1; c.beginPath(); c.arc(0, -0.25, 0.5, Math.PI, 0); c.stroke();
+    circ(c, 0, 0.3, 0.1, "#ffd166");
+  },
+  // Deeds.
+  beacon(c) {
+    poly(c, [[-0.45, 0.9], [0.45, 0.9], [0.25, -0.1], [-0.25, -0.1]], "#6a6470");
+    poly(c, [[-0.5, -0.1], [0.5, -0.1], [0.38, -0.3], [-0.38, -0.3]], "#3a342e");
+    c.fillStyle = "#ffb347"; c.beginPath(); c.moveTo(0, -0.98); c.quadraticCurveTo(0.42, -0.55, 0.22, -0.3); c.lineTo(-0.22, -0.3); c.quadraticCurveTo(-0.42, -0.55, 0, -0.98); c.fill();
+    c.fillStyle = "#fff0c0"; c.beginPath(); c.moveTo(0, -0.7); c.quadraticCurveTo(0.18, -0.48, 0.08, -0.32); c.lineTo(-0.08, -0.32); c.quadraticCurveTo(-0.18, -0.48, 0, -0.7); c.fill();
+  },
+  crown(c) {
+    poly(c, [[-0.8, 0.45], [-0.85, -0.45], [-0.4, 0], [0, -0.7], [0.4, 0], [0.85, -0.45], [0.8, 0.45]], "#d4a24c");
+    poly(c, [[-0.8, 0.45], [0.8, 0.45], [0.75, 0.7], [-0.75, 0.7]], "#a07428");
+    circ(c, 0, -0.7, 0.12, "#c0c8ff"); circ(c, -0.85, -0.45, 0.1, "#ff7b72"); circ(c, 0.85, -0.45, 0.1, "#ff7b72"); circ(c, 0, 0.2, 0.13, "#c0c8ff");
+  },
+  bloodmoon(c) {
+    circ(c, 0, 0, 0.78, "#b3262a"); circ(c, 0.22, -0.18, 0.18, "#8a1418"); circ(c, -0.28, 0.25, 0.13, "#8a1418"); circ(c, 0.2, 0.35, 0.09, "#8a1418");
+    c.strokeStyle = "rgba(255,120,100,0.5)"; c.lineWidth = 0.06; c.beginPath(); c.arc(0, 0, 0.92, 0, TAU); c.stroke();
+  },
   gold(c) { D.ember(c); }, heal(c) { poly(c, [[-0.7, 0.1], [0.7, 0.1], [0.5, 0.6], [-0.5, 0.6]], "#c8904a"); c.fillStyle = "#e0a060"; c.beginPath(); c.ellipse(0, 0.1, 0.7, 0.35, 0, Math.PI, 0); c.fill(); },
 };
 

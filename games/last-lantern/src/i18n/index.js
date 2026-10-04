@@ -51,6 +51,8 @@ export const monsterName = (id) => pick("monsters", id) ?? id;
 export const monsterLore = (id) => pick("monsterLore", id) ?? "";
 export const relicText = (id) => { const r = pick("relics", id); return { name: r[0], desc: r[1] }; };
 export const storyText = () => P().story ?? EN.story;
+export const itemText = (id) => { const r = pick("items", id); return { name: r[0], desc: r[1] }; };
+export const achText = (id) => { const r = pick("deedText", id); return { name: r[0], desc: r[1] }; };
 
 export function applyDom(root = document) {
   for (const el of root.querySelectorAll("[data-i18n]")) el.textContent = t(el.dataset.i18n);

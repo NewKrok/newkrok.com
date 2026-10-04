@@ -228,3 +228,65 @@ ES.monsterLore = {
   moonknight: "La guardia personal del Rey, en acero bañado por la luna. Sus embestidas son las más rápidas de todas.",
   king: "Sostiene el sol robado. Convoca a su hueste, desenvaina sus guadañas y, al final, oscurece el propio cielo.",
 };
+
+// El buhonero, el morral, las hazañas, la Vigilia y el mando.
+Object.assign(ES, {
+  b_wrath: "LA IRA DEL GUARDIÁN",
+  confirmNo: "Cancelar", confirmGiveUp: "Rendirse",
+  next: "Siguiente", changeHero: "Cambiar de portador",
+  pedlar: "El buhonero", pedlarIntro: "Un buhonero encapuchado vende lo que el camino pide. Cada mercancía se gasta al usarla; lo que sobra se queda en tu morral para la próxima partida.",
+  buyItem: "Comprar · {n}", satchelFull: "Morral lleno", inSatchel: "En tu morral: {n} / {max}", boughtItem: "Has comprado: {x}",
+  h_items: "Las mercancías del buhonero", p_items: "Entre partidas, compra tónicos, amuletos y bombas al <b>buhonero</b>. En la partida esperan en tu <b>morral</b>, sobre el orbe de vida: pulsa <b>1–7</b>, tócalos, o elige con <b>LB / RB</b> en el mando y úsalos con <b>X</b>.",
+  k_item: "Usar un objeto del morral",
+  deeds: "Hazañas", deedCount: "{n} / {of}", r_deed: "Hazaña: {x}", deedToast: "Hazaña: {x} (+{n} brasas)", deedsToast: "{n} hazañas logradas (+{e} brasas)",
+  vigilTag: "La Vigilia", unlockVigil: "Enciende los cinco faros para desbloquear", vigilFact: "{n} guardianes, uno tras otro, cada uno con su propia noche",
+  bestVigil: "Récord: {n} / {of} guardianes · {t}", r_keepers: "Guardianes abatidos",
+  b_vigil: "LOS GUARDIANES VUELVEN", b_vigilNext: "{n} DE {of} GUARDIANES CAÍDOS — EL SIGUIENTE DESPIERTA",
+  b_item_tonic_s: "UN SORBO DE TÓNICO", b_item_tonic_m: "TÓNICO", b_item_tonic_l: "GRAN TÓNICO", b_item_ward: "PROTEGIDO", b_item_draught: "VELOZ COMO UNA LIEBRE", b_item_firebomb: "BOMBA DE FUEGO", b_item_lodestone: "PIEDRA IMÁN",
+  h_pad: "Mando", pad_active: "Usar tu habilidad", pad_item: "Elegir objeto · usarlo", pad_zoom: "Zoom (menús: desplazar)", pad_cards: "Subida de nivel: cambiar · desterrar · saltar", pad_menu: "Pausa · atrás",
+  set_pad: "Mando", pad_mapping: "Asignación", pad_buttons: "Botones", pad_axes: "Ejes", pad_none: "No se encuentra ningún mando. Pulsa un botón para despertarlo.",
+  padOn: "Mando conectado", padOff: "Mando desconectado",
+});
+
+ES.items = {
+  tonic_s: ["Tónico pequeño", "Recupera una cuarta parte de tu salud."],
+  tonic_m: ["Tónico", "Recupera la mitad de tu salud."],
+  tonic_l: ["Gran tónico", "Recupera toda tu salud."],
+  ward: ["Amuleto de San Ember", "Cinco segundos en los que todo golpe se desvía."],
+  draught: ["Brebaje de liebre", "+40% de velocidad durante ocho segundos."],
+  firebomb: ["Bomba de fuego", "Una explosión a tu alrededor que repele a la horda y la prende fuego."],
+  lodestone: ["Esquirla de piedra imán", "Atrae hacia ti todas las gemas de alma y brasas del campo."],
+};
+
+ES.deedText = {
+  firstLight: ["Primera luz", "Enciende un faro."],
+  allBeacons: ["Portador del alba", "Enciende los cinco faros."],
+  vigil: ["La larga vigilia", "Supera a los cinco guardianes en la Vigilia de los Guardianes."],
+  bloodMoon: ["Sangre en la luna", "Enciende un faro bajo la Luna de Sangre."],
+  bloodAll: ["Alba carmesí", "Enciende los cinco faros bajo la Luna de Sangre."],
+  win_wren: ["El camino de la farolera", "Enciende un faro con Wren."],
+  win_mira: ["El camino de la guardiana", "Enciende un faro con Mira."],
+  win_oskar: ["El camino del campanero", "Enciende un faro con el hermano Oskar."],
+  win_sable: ["El camino del sepulturero", "Enciende un faro con Sable."],
+  kills1000: ["Mil muertos", "Mata 1.000 monstruos en una partida."],
+  kills2500: ["Rompeolas", "Mata 2.500 monstruos en una partida."],
+  slayer: ["Matador", "Mata 10.000 monstruos en total."],
+  legend: ["Leyenda de Emberhollow", "Mata 50.000 monstruos en total."],
+  level40: ["Avivado", "Alcanza el nivel 40 en una partida."],
+  evolve: ["Reforjado", "Evoluciona un arma."],
+  evolve3: ["Arsenal del alba", "Lleva tres armas evolucionadas en una partida."],
+  relics2: ["La carga del peregrino", "Lleva dos reliquias en una partida."],
+  swiftKeeper: ["Juicio veloz", "Abate a un guardián en los 30 segundos siguientes a su llegada."],
+  unbowed: ["Indoblegable", "Enciende un faro recibiendo menos de 100 de daño."],
+  hearthMax: ["Bien atendido", "Lleva una mejora del Hogar a su nivel más alto."],
+  mastery: ["Maestro del oficio", "Aprende los tres pasos de una maestría."],
+  pedlar: ["Amigo del buhonero", "Usa 10 mercancías del buhonero."],
+  runs25: ["El farol nunca duerme", "Ponte en camino 25 veces."],
+  relicHunter: ["Cazarreliquias", "Encuentra 8 reliquias distintas."],
+  allRelics: ["Custodio de reliquias", "Encuentra todas las reliquias."],
+  bestiary: ["La noche entera", "Conoce a todos los monstruos del bestiario."],
+};
+
+ES.stages.vigil = ["La Vigilia de los Guardianes", "La catedral de la luna, a la luz de la sangre",
+  "El sol ha vuelto, pero los muertos guardan sus propias horas. En la catedral de la luna, los cinco guardianes se han alzado de nuevo desde la sombra que dejó el Rey, para apagar la luz una vez más. Llegan uno tras otro, y cada uno trae consigo su propia noche.",
+  "Cae el último guardián, y la catedral queda en un silencio que nunca había conocido. La sombra del altar se adelgaza y se apaga. En algún lugar, allá abajo en Emberhollow, una campana empieza a tocar a mañana."];

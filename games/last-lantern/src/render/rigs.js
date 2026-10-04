@@ -857,6 +857,6 @@ export function syncHero(H, R, time) {
   H.cape.rotation.x = -0.15 - run * 0.5 + Math.sin(time * 3) * 0.05;
   H.body.position.z = Math.abs(Math.sin(ph)) * 2 * run;
   H.body.rotation.x = -run * 0.12 - dead * 1.45;
-  H.g.visible = !(h.iframes > 0 && Math.floor(time * 20) % 2 && R.phase === "play" && h.sanct <= 0);
+  H.g.visible = !(h.iframes > 0 && Math.floor(time * 20) % 2 && R.phase === "play" && h.sanct <= 0 && h.ward <= 0);
   if (h.dig > 0) H.g.visible = false;
 }
