@@ -173,7 +173,7 @@ export class FoeView {
       else if (f.kind === "pencil") animPencil(f, N, t, grow, o);
       else if (f.kind === "backpack") animBackpack(f, N, t, grow);
       else if (f.kind === "sharpener") animSharpener(f, N, t, grow);
-      else if (f.kind === "meatball") animMeatball(f, N, t, grow);
+      else if (f.kind === "meatball") animMeatball(f, N, t, grow, dt);
       else if (f.kind === "pepper") animPepper(f, N, t, grow);
       else if (f.kind === "rollingpin") animPin(f, N, t, grow, dt);
       else if (f.kind === "grinder") animGrinder(f, N, t, grow);
@@ -537,7 +537,7 @@ function animSharpener(f, N, t, grow) {
 
 // ── Rosie's kitchen ──
 
-function animMeatball(f, N, t, grow) {
+function animMeatball(f, N, t, grow, dt) {
   const b = f.body, sp = b.speed2D;
   // Bouncing along it squashes on each landing; winding up it squats;
   // rolling, it turns over and over.
@@ -546,10 +546,13 @@ function animMeatball(f, N, t, grow) {
   else if (f.state === "dazed") { sy = 0.7 + Math.sin(t * 20) * 0.05; sxz = 1.25; }
   else if (!b.grounded) { sy = 1.12; sxz = 0.92; }
   else if (sp > 0.5) { sy = 0.9; sxz = 1.06; }
-  f.rollA = (f.rollA || 0) + (f.state === "roll" ? sp * 0.03 / 0.36 * 2 : 0);
+  // Rolling: turns over at its real speed (no strobing), round its middle.
+  if (f.state === "roll") f.rollA = (f.rollA || 0) + sp / 0.36 * dt;
+  else f.rollA = 0;
   N.body.scale.set(sxz * grow, sy * grow, sxz * grow);
   N.body.rotation.x = f.state === "roll" ? -f.rollA : Math.sin(f.age * 6 + f.phase) * 0.08;
-  N.body.position.y = f.state === "roll" ? 0 : 0;
+  // Squashed, its foot stays on the floor.
+  N.body.position.y = 0.36 * sy * grow;
 }
 
 function animPepper(f, N, t, grow) {

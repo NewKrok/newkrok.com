@@ -61,9 +61,10 @@ function eyes(n, { x = 0.09, y = 0, z = 0, r = 0.06, brow = 0x2a1a10, tilt = 0.4
 // ── Glitches ──
 
 // A meatball: a lumpy brown ball with a sprig of parsley, a scowl and a
-// smear of tomato sauce. Node "body" (pivot at its foot) squashes and rolls.
+// smear of tomato sauce. Node "body" (pivot at its middle) squashes and rolls.
 export function meatball(b) {
-  b.node("body", [0, 0, 0], [0, 0, 0], (n) => {
+  // (The pivot is its middle, so it can roll over without sinking.)
+  b.node("body", [0, 0.36, 0], [0, 0, 0], (m) => m.at([0, -0.36, 0], [0, 0, 0], 1, (n) => {
     n.add(SHAPE.blob(0.36, 7, 0.08, 2), { p: [0, 0.36, 0], grad: [0x5a2e1a, 0x9a5a34], facet: 0.12 });
     for (const [x, y, z, r] of [[0.15, 0.6, 0.1, 0.07], [-0.2, 0.5, 0.15, 0.06], [0.22, 0.3, 0.2, 0.05], [-0.1, 0.18, -0.25, 0.05]])
       n.add(SHAPE.sphere(r, 0), { p: [x, y, z], c: 0x6a3a22 });
@@ -72,7 +73,7 @@ export function meatball(b) {
     eyes(n, { x: 0.11, y: 0.42, z: -0.31, r: 0.075, brow: 0x2a1408, tilt: 0.45 });
     n.add(SHAPE.torus(0.05, 0.012, 3, 8, Math.PI), { p: [0, 0.27, -0.33], r: [0, 0, Math.PI], c: 0x2a1408 });
     n.add(SHAPE.torus(0.37, 0.012, 3, 20), { p: [0, 0.36, 0], r: [RX, 0, 0], c: C.dreamPink, mat: "glow", glow: 1.4 });
-  });
+  }));
 }
 
 // A pepper shaker, flying: a glass body full of pepper under a steel cap
