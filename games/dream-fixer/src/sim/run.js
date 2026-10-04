@@ -27,7 +27,7 @@ export const DIFFICULTY = {
 
 // Wakefulness does not come back by itself: popped glitches now and then
 // leave a dream drop behind (chance per kind; better when you are low).
-const HEAL = { amount: 10, life: 30, magnet: 5, chance: { fuzz: 0.45, bunny: 0.25, buzzer: 0.5, tub: 1, knot: 1, plane: 0.4, pencil: 0.5, backpack: 1, sharpener: 1 } };
+const HEAL = { amount: 10, life: 30, magnet: 5, chance: { fuzz: 0.45, bunny: 0.25, buzzer: 0.5, tub: 1, knot: 1, clock: 0.5, pencil: 0.5, backpack: 1, sharpener: 1 } };
 // Falling off the dream costs a bit too.
 const FALL_DMG = 12;
 
@@ -72,6 +72,8 @@ export class Run {
     this.dustMotes = []; this.dust = 0;
     this.heals = [];
     this.shocks = [];
+    this.pulses = [];             // an alarm clock's slowing rings
+    this.slowT = 0;               // slowed down by one (seconds left)
     this.stats = { popped: 0, shots: 0, hits: 0 };
     this.anchors = this.kit.anchors.map((a) => new Anchor(a));
     this.nearAnchor = null;
@@ -178,14 +180,70 @@ export class Run {
     this.heals = this.heals.filter((h) => !h.got);
   }
 
+  // The nightmare's arena closes with a dream curtain all round (too high
+  // to climb over, foam or no foam), so there is no hiding from it. If you
+  // are outside when it comes up, the dream pulls you in.
+  sealArena(S) {
+    const h = S.h ?? 25, t = 0.1, y0 = -2;
+    const w = S.maxX - S.minX, d = S.maxZ - S.minZ, cx = (S.minX + S.maxX) / 2, cz = (S.minZ + S.maxZ) / 2;
+    this.sealed = { ...S, parts: [
+      this.world.box({ x: cx, z: S.minZ, y0, y1: h, hx: w / 2, hz: t, tag: "seal" }),
+      this.world.box({ x: cx, z: S.maxZ, y0, y1: h, hx: w / 2, hz: t, tag: "seal" }),
+      this.world.box({ x: S.minX, z: cz, y0, y1: h, hx: t, hz: d / 2, tag: "seal" }),
+      this.world.box({ x: S.maxX, z: cz, y0, y1: h, hx: t, hz: d / 2, tag: "seal" }),
+    ] };
+    const b = this.body, m = 1.5;
+    if (b.x < S.minX || b.x > S.maxX || b.z < S.minZ || b.z > S.maxZ) {
+      const x = Math.max(S.minX + m, Math.min(S.maxX - m, b.x)), z = Math.max(S.minZ + m, Math.min(S.maxZ - m, b.z));
+      b.place(x, this.kit.floorAt(x, z, 20), z, b.yaw);
+      this.events.push({ type: "respawn", pulled: true });
+    }
+    // Foam steps outside the curtain melt.
+    for (const p of [...this.foam.steps]) if (p.x < S.minX || p.x > S.maxX || p.z < S.minZ || p.z > S.maxZ) this.foam.melt(this, p);
+    this.events.push({ type: "sealed" });
+  }
+  // Where a faint or a fall puts you back: the last anchor, or inside the
+  // curtain (as near that as it gets) while it is up.
+  respawnAt() {
+    const c = this.checkpoint, S = this.sealed;
+    if (!S) return c;
+    const m = 1.5, x = Math.max(S.minX + m, Math.min(S.maxX - m, c.x)), z = Math.max(S.minZ + m, Math.min(S.maxZ - m, c.z));
+    if (x === c.x && z === c.z) return c;
+    return { x, y: this.kit.floorAt(x, z, 20), z, yaw: c.yaw };
+  }
+  unseal() {
+    if (!this.sealed) return;
+    for (const c of this.sealed.parts) this.world.remove(c);
+    this.sealed = null;
+  }
+
   // A knot's slam: a ring that runs out along the ground; jump over it.
   shock(x, y, z, o = {}) { this.shocks.push({ x, y, z, r: 0, t: 0, hit: false, max: o.max ?? 6.5, speed: o.speed ?? 11, dmg: o.dmg ?? 8, color: o.color }); }
+  // An alarm clock's ring: a sphere spreading out; where it passes you
+  // (and nothing stands between) you are slowed for a while.
+  pulse(x, y, z, o) { this.pulses.push({ x, y, z, r: 0, max: o.max, speed: o.speed, slow: o.slow, hit: false }); }
+  stepPulses(dt) {
+    const b = this.body;
+    this.slowT = Math.max(0, this.slowT - dt);
+    for (const p of this.pulses) {
+      p.r += p.speed * dt;
+      const d = Math.hypot(b.x - p.x, b.eyeY - 0.5 - p.y, b.z - p.z);
+      if (!p.hit && d < p.r + 0.4 && this.canSee(p.x, p.y, p.z)) {
+        p.hit = true;
+        if (this.slowT <= 0) this.events.push({ type: "slowed" });
+        this.slowT = Math.max(this.slowT, p.slow);
+      }
+    }
+    this.pulses = this.pulses.filter((p) => p.r < p.max);
+  }
+
   stepShocks(dt) {
     const b = this.body;
     for (const s of this.shocks) {
       s.t += dt; s.r = s.t * s.speed;
       const d = Math.hypot(b.x - s.x, b.z - s.z);
-      if (!s.hit && Math.abs(d - s.r) < 0.6 && b.y - s.y < 0.45) { s.hit = true; this.hurt(s.dmg, s.x, s.z); }
+      // (A wall between stops it.)
+      if (!s.hit && Math.abs(d - s.r) < 0.6 && b.y - s.y < 0.45 && !this.world.raycast(s.x, s.y + 0.3, s.z, (b.x - s.x) / (d || 1), 0, (b.z - s.z) / (d || 1), Math.max(0, d - 0.4))) { s.hit = true; this.hurt(s.dmg, s.x, s.z); }
     }
     this.shocks = this.shocks.filter((s) => s.r < s.max);
   }
@@ -221,7 +279,7 @@ export class Run {
   // back at the last anchor, with everything you had gathered.
   faint() {
     this.faints++;
-    const c = this.checkpoint, b = this.body;
+    const c = this.respawnAt(), b = this.body;
     b.place(c.x, c.y, c.z, c.yaw);
     this.hp = this.maxHp;
     this.invuln = 1.5;
@@ -256,7 +314,7 @@ export class Run {
       if (this.restT > STAMINA.delay) this.stamina = Math.min(1, this.stamina + dt / S.refill);
       if (this.winded && this.stamina >= STAMINA.again) this.winded = false;
     }
-    b.step(this.world, intent, dt, (this.sprinting ? 1.45 : 1) * this.perks.speed * (this.boostT > 0 ? ITEM.espresso.speed : 1));
+    b.step(this.world, intent, dt, (this.sprinting ? 1.45 : 1) * this.perks.speed * (this.boostT > 0 ? ITEM.espresso.speed : 1) * (this.slowT > 0 ? 0.5 : 1));
     if (b.jumped) this.events.push({ type: "jump" });
     if (b.landSpeed > 4) this.events.push({ type: "land", speed: b.landSpeed });
     // Water: a ring at every few steps through it, a splash on jumping in.
@@ -270,7 +328,7 @@ export class Run {
     if (b.fell) {
       // Falling out of a dream puts you back at the last anchor, a little
       // less awake.
-      const c = this.checkpoint;
+      const c = this.respawnAt();
       b.place(c.x, c.y, c.z, b.yaw);
       this.events.push({ type: "respawn" });
       this.invuln = 0;
@@ -313,12 +371,13 @@ export class Run {
       if (this.coreT <= 0) {
         const B = this.def.boss;
         this.boss = new BOSSES[B.kind](this, B.x, B.z, B.arena);
+        if (B.seal) this.sealArena(B.seal);
         this.events.push({ type: "bossRise", kind: B.kind, x: B.x, z: B.z });
       }
     }
     if (this.boss) {
       this.boss.step(this, dt);
-      if (!this.boss.alive && this.wonT < 0) this.wonT = 3.5;
+      if (!this.boss.alive && this.wonT < 0) { this.wonT = 3.5; this.unseal(); }
     }
     if (this.wonT > 0) {
       this.wonT -= dt;
@@ -356,6 +415,7 @@ export class Run {
     this.stepDust(dt);
     this.stepHeals(dt);
     this.stepShocks(dt);
+    this.stepPulses(dt);
     this.foes = this.foes.filter((f) => f.alive || f.age < 0.1);
   }
 

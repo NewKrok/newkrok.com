@@ -19,6 +19,7 @@ export const EN = {
   allFixed: "All three anchors hold.",
   coreOpen: "The dream's heart is opening… something big is coming up!",
   boss_vacuum: "The Vacuum Cleaner",
+  slowed: "SLOWED",
   boss_pen: "The Red Pen",
   bossPhase_vacuum: "It's getting angry: jump over the cord!",
   bossPhase_pen: "Furious: jump its ink rings!",

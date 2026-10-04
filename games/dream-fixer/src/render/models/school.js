@@ -22,23 +22,31 @@ function eyes(n, { x = 0.09, y = 0, z = 0, r = 0.06, brow = 0x2a1a10, tilt = 0.4
 
 // ── Glitches ──
 
-// A paper plane folded from lined homework, a pink scribble on each wing
-// and a scowl at the nose. Node "body" (the sim's pitch and roll).
-export function plane(b) {
-  const PAPER = [0xd8dce6, 0xfafbff];
+// A red alarm clock, floating: a round case with two bells on top and a
+// hammer between them, a face with angry eyes over the dial, little feet
+// dangling. Nodes: "body" (bob, shake), "minute", "hour" (the hands spin
+// when it winds up), "bells" (rattle when it rings).
+export function alarmClock(b) {
+  const RED = [0xa01a22, 0xe8423a];
   b.node("body", [0, 0, 0], [0, 0, 0], (n) => {
-    n.both((s) => {
-      // Wing: a triangle from the nose back to the wide tail, folded up a little.
-      n.at([0, 0.04, 0], [0, 0, s * 0.28], 1, () => {
-        n.add(SHAPE.extrude([[0, -0.42], [s * 0.42, 0.34], [0, 0.3]], 0.02, 0.004), { r: [RX, 0, 0], grad: PAPER, facet: 0.02 });
-        // Ruled lines and a scribble on top.
-        for (let i = 0; i < 3; i++) n.add(SHAPE.box(0.006, 0.004, 0.32 - i * 0.08), { p: [s * (0.08 + i * 0.07), 0.012, 0.05 + i * 0.04], r: [0, -s * 0.5, 0], c: 0x8ab0e0, facet: 0 });
-        n.add(SHAPE.torus(0.05, 0.008, 3, 10), { p: [s * 0.2, 0.015, 0.15], r: [RX, 0, 0], c: C.dreamPink, mat: "glow", glow: 1.5 });
-      });
-      // Keel folds hanging under the middle.
-      n.add(SHAPE.extrude([[0, -0.4], [0, 0.3], [-0.09, 0.26]], 0.015, 0.003), { p: [s * 0.012, 0.03, 0], r: [RX, 0, RX], c: PAPER[0], facet: 0.02 });
+    n.add(SHAPE.cyl(0.46, 0.46, 0.3, 20, 0.06), { r: [RX, 0, 0], grad: RED, facet: 0.04 });
+    n.add(SHAPE.torus(0.44, 0.04, 5, 22), { p: [0, 0, -0.16], c: C.brass, mat: "metal" });
+    n.add(SHAPE.cyl(0.4, 0.4, 0.02, 20), { p: [0, 0, -0.16], r: [RX, 0, 0], c: 0xfaf6e8, facet: 0 });
+    for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; n.add(SHAPE.box(0.025, i % 3 ? 0.04 : 0.08, 0.01), { p: [Math.sin(a) * 0.33, Math.cos(a) * 0.33, -0.175], r: [0, 0, -a], c: INK }); }
+    eyes(n, { x: 0.13, y: 0.12, z: -0.18, r: 0.075, brow: 0x3a0a10, tilt: 0.5 });
+    n.add(SHAPE.torus(0.06, 0.012, 3, 10, Math.PI), { p: [0, -0.17, -0.18], r: [0, 0, 0], c: INK });
+    // Feet and the back key.
+    n.both((s) => n.add(SHAPE.ball(0.08, 8, 6), { p: [s * 0.26, -0.46, 0], s: [1, 0.6, 1.2], c: C.brassD, mat: "metal" }));
+    n.add(SHAPE.cyl(0.03, 0.03, 0.12, 6), { p: [0, 0, 0.2], r: [RX, 0, 0], c: C.brass, mat: "metal" });
+    n.add(SHAPE.box(0.18, 0.08, 0.02, 0.01), { p: [0, 0, 0.27], c: C.brass, mat: "metal" });
+    n.add(SHAPE.torus(0.47, 0.012, 3, 22), { p: [0, 0, 0.02], c: C.dreamPink, mat: "glow", glow: 1.5 });
+    n.node("minute", [0, 0, -0.19], [0, 0, 0], (h) => h.add(SHAPE.box(0.025, 0.3, 0.01), { p: [0, 0.13, 0], c: INK }));
+    n.node("hour", [0, 0, -0.2], [0, 0, 0], (h) => h.add(SHAPE.box(0.035, 0.2, 0.01), { p: [0, 0.08, 0], c: C.red }));
+    n.node("bells", [0, 0.42, 0], [0, 0, 0], (bl) => {
+      bl.both((s) => bl.add(SHAPE.lathe([[0, 0], [0.17, 0], [0.16, 0.05], [0.12, 0.12], [0, 0.15]], 12), { p: [s * 0.25, 0.02, 0], r: [0, 0, -s * 0.5], c: C.brass, mat: "metal" }));
+      bl.add(SHAPE.box(0.04, 0.16, 0.04), { p: [0, 0.06, 0], c: C.steel, mat: "metal" });
+      bl.add(SHAPE.ball(0.05, 8, 6), { p: [0, 0.16, 0], c: C.steel, mat: "metal" });
     });
-    eyes(n, { x: 0.05, y: 0.08, z: -0.2, r: 0.04, brow: INK, tilt: 0.5 });
   });
 }
 
@@ -207,18 +215,22 @@ export function chalkboard(b, { w = 4 } = {}) {
   b.add(SHAPE.box(w, 0.05, 0.12), { p: [0, 1.03, -0.06], c: C.wood });
 }
 
-// A tall bookshelf, books of every colour (it is long along x).
+// A tall bookshelf, open on both sides, books of every colour (long
+// along x). A frame (a middle panel, the ends, the boards), the books set
+// into it, so no face of a book lies on a face of the shelf.
 export function bookshelf(b, { w = 4, h = 3, seed = 1 } = {}) {
-  const rnd = rng(seed);
-  b.add(SHAPE.box(w, h, 0.8, 0.03), { p: [0, h / 2, 0], grad: [C.woodD, C.wood], facet: 0.03 });
-  const shelves = 5, gap = (h - 0.2) / shelves;
+  const rnd = rng(seed), D = 0.8;
+  const shelves = 5, gap = (h - 0.12) / shelves;
+  b.add(SHAPE.box(w - 0.1, h - 0.1, 0.06), { p: [0, h / 2, 0], c: C.woodD, facet: 0.02 });
+  b.both((s) => b.add(SHAPE.box(0.08, h, D, 0.02), { p: [s * (w / 2 - 0.04), h / 2, 0], grad: [C.woodD, C.wood], facet: 0.03 }));
+  for (let i = 0; i <= shelves; i++) b.add(SHAPE.box(w - 0.16, 0.05, D - 0.02, 0.01), { p: [0, 0.06 + i * gap - (i === shelves ? 0.02 : 0), 0], c: C.wood, facet: 0.03 });
   for (const side of [-1, 1]) for (let s = 0; s < shelves; s++) {
     let x = -w / 2 + 0.12;
-    const y = 0.1 + s * gap + 0.02;
+    const y = 0.085 + s * gap + 0.004;
     while (x < w / 2 - 0.2) {
-      const bw = 0.06 + rnd() * 0.08, bh = gap * (0.6 + rnd() * 0.3);
-      b.add(SHAPE.box(bw, bh, 0.3), { p: [x + bw / 2, y + bh / 2, side * 0.25], r: [0, 0, rnd() < 0.08 ? 0.25 : 0], c: vary([0xd84a48, 0x3a7fae, 0x2a8a3a, 0xe0a020, 0x7a4aa0, 0xf3e6c8][Math.floor(rnd() * 6)], rnd, 0.1), facet: 0.04 });
-      x += bw + 0.01;
+      const bw = 0.06 + rnd() * 0.08, bh = gap * (0.55 + rnd() * 0.3), bd = 0.26 + rnd() * 0.06;
+      b.add(SHAPE.box(bw, bh, bd), { p: [x + bw / 2, y + bh / 2, side * (0.04 + bd / 2 + 0.005)], r: [0, 0, rnd() < 0.08 ? 0.2 : 0], c: vary([0xd84a48, 0x3a7fae, 0x2a8a3a, 0xe0a020, 0x7a4aa0, 0xf3e6c8][Math.floor(rnd() * 6)], rnd, 0.1), facet: 0.04 });
+      x += bw + 0.012;
     }
   }
 }

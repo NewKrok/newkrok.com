@@ -30,7 +30,8 @@ const sayIf = (D, id, again) => { if (hasLine(id)) D.say(id, again); };
 //   meet   [kind, metres, beat]: a glitch introduced the first time you
 //          come that close to one (one at a time, after a quiet spell)
 //   on     { "event" or "event:kind": beat } for its own events (the boss…)
-//   events (D, run, e, S) for anything more particular.
+//   events (D, run, e, S) and frame (D, run, dt, S, q) for anything more
+//          particular.
 function dreamDirector(dream, o = {}) {
   const L = (beat) => `${dream}_${beat}`;
   return {
@@ -42,7 +43,7 @@ function dreamDirector(dream, o = {}) {
       if (e.type === "faint") sayIf(D, L("faint"));
       if (e.type === "heal") sayIf(D, L("heart"));
       // Falling off now and then: a dig from Margo (on the 2nd, 4th, 7th…).
-      if (e.type === "respawn") {
+      if (e.type === "respawn" && !e.pulled) {
         S.falls = (S.falls || 0) + 1;
         if ([2, 4, 7, 11].includes(S.falls)) sayOne(D, L("fall"));
       }
@@ -75,6 +76,7 @@ function dreamDirector(dream, o = {}) {
       S.outT = tu && !tu.inside ? (S.outT || 0) + dt : 0;
       if (S.outT > 1.5 && (S.ringT || 0) <= 0) { sayIf(D, L("ring"), true); S.ringT = 14; }
       S.ringT = (S.ringT || 0) - dt;
+      o.frame?.(D, run, dt, S, q);
     },
   };
 }
@@ -89,8 +91,15 @@ const DIRECTORS = {
     },
   }),
   school: dreamDirector("school", {
-    meet: [["pencil", 12, "pencil"], ["plane", 16, "plane"], ["backpack", 16, "backpack"]],
-    on: { "spawn:sharpener": "sharpener", dizzy: "dizzy", bossRise: "boss", "bossAttack:strike": "strike", penBlot: "blot", bossPhase: "phase", bossPop: "win" },
+    meet: [["pencil", 12, "pencil"], ["clock", 16, "clock"], ["backpack", 16, "backpack"]],
+    // Under the library gallery: Cog says it is too high, or (with the
+    // Foam Cannon) how to get up.
+    frame(D, run, dt, S, q) {
+      const b = run.body, under = b.x > 33.5 && b.x < 38 && Math.abs(b.z) < 10 && b.y < 1;
+      if (!under || !q(1.5)) return;
+      D.say(run.tools.some((t) => t.id === "foam") ? "school_climb" : "school_high");
+    },
+    on: { "spawn:sharpener": "sharpener", dizzy: "dizzy", slowed: "slowed", bossRise: "boss", "bossAttack:strike": "strike", penBlot: "blot", bossPhase: "phase", bossPop: "win" },
   }),
   factory: {
     start(D, run, P) {

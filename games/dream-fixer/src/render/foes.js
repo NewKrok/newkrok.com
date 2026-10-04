@@ -13,12 +13,12 @@ import { lerp } from "../config.js";
 
 // The looks a dream gives each kind (model ids), unless its level says
 // otherwise. A skin keeps the nodes its kind's animation moves.
-const SKINS = { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub", plane: "plane", pencil: "pencil", backpack: "backpack", sharpener: "sharpener" };
+const SKINS = { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub", clock: "clock", pencil: "pencil", backpack: "backpack", sharpener: "sharpener" };
 const FLASH = new T.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
 const POP_COLORS = { bunny: [0xc4c0cc, 0x7a7684, C.dream, 0xffffff], tub: [0xffffff, 0x8fd0f0, C.dream, 0xffd23a], fuzz: [0xe8a060, 0xc8743a, C.dream, 0xffffff], buzzer: [0xf2c14e, 0x5a3620, C.dream, 0xffffff], knot: [0xe8a060, C.dreamPink, C.dream, 0xffffff], pillow: [0xffffff, 0xf4eaff, 0xd8c8ff, C.dreamPink],
-  plane: [0xffffff, 0xd8dce6, 0x8ab0e0, C.dream], pencil: [0xffd040, 0xe8c898, 0xf07890, C.dream], backpack: [0xd84a48, 0x2a3a6a, 0xffd23a, C.dream], sharpener: [0xb8c2cc, 0xe8c898, C.dreamPink, C.dream] };
+  clock: [0xe8423a, 0xfaf6e8, C.brass, C.dream], pencil: [0xffd040, 0xe8c898, 0xf07890, C.dream], backpack: [0xd84a48, 0x2a3a6a, 0xffd23a, C.dream], sharpener: [0xb8c2cc, 0xe8c898, C.dreamPink, C.dream] };
 // What school glitches throw: [size x, y, z, colour] for a tumbling chunk.
-const CHUNKS = { book: [0.42, 0.1, 0.32, 0x3a7fae], shaving: [0.16, 0.03, 0.1, 0xe8c898], eraser: [0.26, 0.14, 0.16, 0xf07890], grade: [0.34, 0.42, 0.06, 0xe02a30] };
+const CHUNKS = { hand: [0.06, 0.4, 0.04, 0x2a2440], book: [0.42, 0.1, 0.32, 0x3a7fae], shaving: [0.16, 0.03, 0.1, 0xe8c898], eraser: [0.26, 0.14, 0.16, 0xf07890], grade: [0.34, 0.42, 0.06, 0xe02a30] };
 const BOOKS = [0xd84a48, 0x3a7fae, 0x2a8a3a, 0xe0a020, 0x7a4aa0];
 
 export class FoeView {
@@ -82,7 +82,11 @@ export class FoeView {
     this.chunks = new T.InstancedMesh(new T.BoxGeometry(1, 1, 1), new T.MeshStandardMaterial({ roughness: 0.7, flatShading: true }), 48);
     this.chunks.instanceColor = new T.InstancedBufferAttribute(new Float32Array(48 * 3), 3);
     this.chunks.frustumCulled = false; this.chunks.count = 0; this.chunks.castShadow = true;
-    scene.add(this.orbs, this.motes, this.yarn, this.marks, this.nuts, this.caps, this.chunks);
+    // An alarm clock's ring: a violet shell spreading out, fading as it goes.
+    this.pulses = new T.InstancedMesh(new T.IcosahedronGeometry(1, 3), new T.MeshBasicMaterial({ transparent: true, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false, side: T.DoubleSide }), 6);
+    this.pulses.instanceColor = new T.InstancedBufferAttribute(new Float32Array(6 * 3), 3);
+    this.pulses.frustumCulled = false; this.pulses.count = 0;
+    scene.add(this.orbs, this.motes, this.yarn, this.marks, this.nuts, this.caps, this.chunks, this.pulses);
     this._m = new T.Matrix4(); this._q = new T.Quaternion(); this._p = new T.Vector3(); this._s = new T.Vector3(); this._c = new T.Color(); this._e = new T.Euler();
   }
 
@@ -159,7 +163,7 @@ export class FoeView {
       else if (f.kind === "buzzer") animBuzzer(f, N, t, grow);
       else if (f.kind === "bunny") animBunny(f, N, t, grow);
       else if (f.kind === "tub") animTub(f, N, t, grow);
-      else if (f.kind === "plane") animPlane(f, N, t, grow);
+      else if (f.kind === "clock") animClock(f, N, t, grow);
       else if (f.kind === "pencil") animPencil(f, N, t, grow, o);
       else if (f.kind === "backpack") animBackpack(f, N, t, grow);
       else if (f.kind === "sharpener") animSharpener(f, N, t, grow);
@@ -254,6 +258,16 @@ export class FoeView {
       }
       i++;
     }
+    let np = 0;
+    for (const P of run.pulses) {
+      if (np >= 6) break;
+      _p.set(P.x, P.y, P.z); _q.identity(); _s.setScalar(Math.max(0.1, P.r));
+      this.pulses.setMatrixAt(np, _m.compose(_p, _q, _s));
+      this.pulses.setColorAt(np, _c.set(0xa070ff).multiplyScalar(0.16 * (1 - P.r / P.max) + 0.03));
+      np++;
+    }
+    this.pulses.count = np;
+    this.pulses.instanceMatrix.needsUpdate = true; if (this.pulses.instanceColor) this.pulses.instanceColor.needsUpdate = true;
     this.chunks.count = nc;
     this.chunks.instanceMatrix.needsUpdate = true; if (this.chunks.instanceColor) this.chunks.instanceColor.needsUpdate = true;
     // Where a pencil is about to come down: a ring that tightens.
@@ -445,12 +459,17 @@ function animTub(f, N, t, grow) {
 
 // ── Ethan's school ──
 
-function animPlane(f, N, t, grow) {
-  // Nose along the flight (the sim's pitch), banking into turns, a flutter.
-  const crumpled = f.state === "crash";
-  N.body.rotation.set(-(f.pitch || 0) + (crumpled ? Math.sin(t * 30) * 0.3 : 0), 0, (f.roll || 0) + Math.sin(t * 9 + f.phase) * 0.05, "YXZ");
-  const aim = f.state === "aim" ? 1 + Math.sin(f.t * 40) * 0.06 : 1;
-  N.body.scale.set(grow * aim * (crumpled ? 0.7 : 1), grow * (crumpled ? 1.6 : 1), grow * (crumpled ? 0.8 : 1));
+function animClock(f, N, t, grow) {
+  // Ticks along; winding, its hands race; ringing, the bells rattle and it
+  // shakes; skipping, it shrinks away to nothing and pops back.
+  const wind = f.state === "wind" ? Math.min(1, f.t / 0.6) : 0, ring = f.state === "ring" ? Math.min(1, f.t / 1) : 0;
+  f.handA = (f.handA || 0) + (0.02 + wind * 0.6 + ring * 0.3);
+  N.minute.rotation.z = -f.handA; N.hour.rotation.z = -f.handA / 12;
+  N.bells.rotation.z = ring ? Math.sin(t * 60) * 0.25 * ring : Math.sin(t * 6 + f.phase) * 0.03;
+  const tick = Math.floor(t * 2 + f.phase) % 2 ? 0.02 : 0;
+  const skip = f.state === "skip" ? Math.max(0.05, 1 - f.t / 0.3) : 1;
+  N.body.rotation.set(Math.sin(t * 1.3 + f.phase) * 0.08, 0, tick + (ring ? Math.sin(t * 45) * 0.1 * ring : 0));
+  N.body.scale.setScalar(grow * skip * (1 + ring * 0.12));
 }
 
 function animPencil(f, N, t, grow, o) {

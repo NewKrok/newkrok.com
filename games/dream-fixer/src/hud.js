@@ -22,6 +22,7 @@ export class Hud {
       </svg>
       <div class="hot" data-i18n="overheated"></div>
       <div class="vignette"></div>
+      <div class="slowed"><span></span></div>
       <div class="wake"><span class="lbl" data-i18n="wakefulness"></span><div class="bar"><i class="lag"></i><i class="fill"></i></div><div class="stamina"><i></i></div></div>
       <div class="tasks"><div class="ttl"></div><ul></ul></div>
       <div class="prompt"></div>
@@ -71,6 +72,8 @@ export class Hud {
     this.tankEl = el.querySelector(".tankdots");
     this.hint.textContent = t("clickToAim");
     this.kitEl = el.querySelector(".kit");
+    this.slowEl = el.querySelector(".slowed");
+    this.slowEl.querySelector("span").textContent = t("slowed");
   }
 
   show(on) { this.el.classList.toggle("hidden", !on); }
@@ -124,6 +127,9 @@ export class Hud {
       this.last.stam = st; this.last.winded = run.winded;
     }
     this.hurt = Math.max(0, this.hurt - dt * 1.8);
+    // Slowed by an alarm clock: a violet haze and a word.
+    const slow = run.slowT > 0;
+    if (slow !== this.last.slow) { this.slowEl.classList.toggle("on", slow); this.last.slow = slow; }
     this.vig.style.opacity = (this.hurt * 0.9 + (hp < 0.35 ? 0.25 + Math.sin(performance.now() / 180) * 0.1 : 0)).toFixed(3);
     // "+N" by the purse while dust keeps coming in.
     if (this.plusN) {

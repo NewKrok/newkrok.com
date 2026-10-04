@@ -8,16 +8,20 @@ import { rng } from "../rng.js";
 // come up through the floor). Off it: the classroom to the west, the
 // library to the east, the stairwell up to the roof and its bell tower to
 // the north. The three anchors are at the teacher's end of the classroom,
-// in the library's reading corner and by the bell on the roof.
+// up on the library's gallery and by the bell on the roof.
 //
-// The Foam Cannon comes after the first anchor: lockers, shelves and the
-// bus roof hide memories that only foam steps reach.
+// The Foam Cannon comes after the first anchor, and the library's gallery
+// can only be climbed with it (nothing else reaches three metres up):
+// so the classroom or the roof come first. Lockers, shelves and the bus
+// roof hide memories that only foam steps reach too.
 
 const WALL = { side: 0xd8ccb4, sideD: 0xb8a888, bevel: 0.03 };
 const TRIM = { flat: { top: 0x2f6f9a, side: 0x2f6f9a } };
 const FLOOR = { cap: 0xcfc6b4, capD: 0xb8ae9a, side: 0x8a8070, sideD: 0x5a5248 };
 const CONCRETE = { side: 0x9a9286, sideD: 0x5e5850 };
 const H = 3.2;            // wall height
+const GALLERY = 3.0;      // the library gallery (a foam climb)
+const C_BRASS = 0xc89a48;
 
 export const school = {
   id: "school",
@@ -26,7 +30,7 @@ export const school = {
   song: "school",
   lamps: 4,
   unlockTool: { id: "foam", anchors: 1 },
-  boss: { kind: "pen", x: 0, z: 2, arena: { minX: -15, maxX: 15, minZ: -10.5, maxZ: 15.5 } },
+  boss: { kind: "pen", x: 0, z: 2, arena: { minX: -15, maxX: 15, minZ: -16, maxZ: 15.5 }, seal: { minX: -17.75, maxX: 17.75, minZ: -17.75, maxZ: 17.75 } },
   skins: {},
   // [id, x, z, y]: on the lockers, on the teacher's desk, on a bookshelf,
   // on the top row of the bleachers, on the bus roof.
@@ -38,18 +42,19 @@ export const school = {
   clouds: { count: 30, rMin: 16, rMax: 80, yMin: -22, yMax: 34 },
   shards: 80,
 
-  // Waves by how far along you are: pencils and planes first, then the
+  // Waves by how far along you are: pencils and alarm clocks first, then the
   // backpack, the last one with a sharpener.
   tiers: [
-    [[0, ["pencil", 2]], [0.35, ["plane", 2]], [0.65, ["pencil", 2], ["plane", 1]]],
-    [[0, ["plane", 2], ["pencil", 2]], [0.3, ["backpack", 1]], [0.55, ["pencil", 3]], [0.8, ["plane", 2], ["pencil", 1]]],
-    [[0, ["plane", 2], ["pencil", 2]], [0.3, ["sharpener", 1]], [0.55, ["backpack", 1], ["plane", 2]], [0.8, ["pencil", 3], ["plane", 1]]],
+    [[0, ["pencil", 2]], [0.35, ["clock", 2]], [0.65, ["pencil", 2], ["clock", 1]]],
+    [[0, ["clock", 2], ["pencil", 2]], [0.3, ["backpack", 1]], [0.55, ["pencil", 3]], [0.8, ["clock", 2], ["pencil", 1]]],
+    [[0, ["clock", 2], ["pencil", 2]], [0.3, ["sharpener", 1]], [0.55, ["backpack", 1], ["clock", 2]], [0.8, ["pencil", 3], ["clock", 1]]],
   ],
 
   // Routes for the headless bot, from the front steps.
   botRoutes: {
     classroom: [[0, 27], [0, 21], [-21, 21], [-21, 0], [-27, 0], [-35.4, 0]],
-    library: [[0, 27], [0, 21], [21, 21], [21, 0], [27, 0], [39.4, 0]],
+    // ("foam", x, z): the bot sets a foam step there, as a player would.
+    library: [[0, 27], [0, 21], [21, 21], [21, 0], [27, 0], [35, 0], ["foam", 36.6, 0], [36.6, 0], ["foam", 37.4, 0], [37.4, 0], [40.9, 0]],
     roof: [[0, 27], [0, 21], [21, 21], [21, -21], [0, -21], [0, -25.2], [0, -34], [0, -41.4]],
   },
 
@@ -64,18 +69,18 @@ export const school = {
 
     // ── Anchors ──
     k.anchor("classroom", -37, 0, { duration: 24, spawns: [[-30, -7], [-44, -7], [-44, 7.5], [-30, 7.5]] });
-    k.anchor("library", 41, 0, { duration: 26, spawns: [[36.5, -8.5], [44.5, -8.5], [44.5, 8.5], [36.5, 8.5]] });
+    k.anchor("library", 42.5, 0, { duration: 26, spawns: [[39.5, -7.5], [45, -7.5], [45, 7.5], [39.5, 7.5]] });
     k.anchor("roof", 0, -43, { duration: 28, spawns: [[-9, -37], [9, -37], [9, -47.5], [-9, -47.5]] });
 
     // Glitches already loose, a kind at a time: pencils in the south hall,
-    // planes in the east and west halls, a backpack in the library,
-    // planes on the roof.
+    // alarm clocks in the east and west halls, a backpack in the library,
+    // clocks on the roof.
     for (const [kind, x, z] of [
       ["pencil", -12, 21], ["pencil", -14, 21.5], ["pencil", 13, 20.8],
-      ["plane", 21, -10], ["plane", -21, -12], ["plane", -21, 10],
+      ["clock", 21, -10], ["clock", -21, -12], ["clock", -21, 10],
       ["pencil", -32, -6], ["pencil", -33, 5],
       ["backpack", 36, 7.5], ["pencil", 30, 9],
-      ["plane", -6, -44], ["plane", 6, -40], ["pencil", 5, -46],
+      ["clock", -6, -44], ["clock", 6, -40], ["pencil", 5, -46],
     ]) k.foe(kind, x, z);
 
     k.start(0, 33, 0);
@@ -160,21 +165,31 @@ export const school = {
   },
 
   // ── East: the library ──
+  // Shelves in rows down on the floor; the reading corner (and the anchor)
+  // up on a gallery three metres high with no way up: foam steps, or a
+  // foam ledge on its front, get you there.
   library(k, rnd) {
     k.block(35.2, 0, 22, 22.4, -1.5, 0, FLOOR);
     k.block(35.2, 0, 19, 19, -4, -1.5, CONCRETE);
-    k.block(35.2, 0, 21.6, 22, -0.2, 0.02, { flat: { top: 0x7a4a5a, side: 0x5a3440 } });
+    k.block(31, 0, 13.6, 22, -0.2, 0.02, { flat: { top: 0x7a4a5a, side: 0x5a3440 } });
+    const LH = 6.2;
     for (const s of [-1, 1]) {
-      k.block(35.1, s * 11, 22.2, 0.4, 0, H + 0.6, WALL);
-      k.block(35.1, s * 11, 22.4, 0.5, H + 0.6, H + 0.72, TRIM);
+      k.block(35.1, s * 11, 22.2, 0.4, 0, LH, WALL);
+      k.block(35.1, s * 11, 22.4, 0.5, LH, LH + 0.12, TRIM);
     }
-    k.block(46.2, 0, 0.4, 22.4, 0, H + 0.6, WALL);
-    k.block(46.2, 0, 0.5, 22.6, H + 0.6, H + 0.72, TRIM);
-    // Shelves in rows, an aisle down the middle.
+    k.block(46.2, 0, 0.4, 22.4, 0, LH, WALL);
+    k.block(46.2, 0, 0.5, 22.6, LH, LH + 0.12, TRIM);
+    // The gallery: dark wood panelling, carpet on top, a brass trim.
+    k.block(42.1, 0, 8.2, 21.6, 0, GALLERY, { side: 0x6a4028, sideD: 0x3e2414, cap: 0x8a4a5a, capD: 0x6a3a4a, bevel: 0.04 });
+    k.block(37.98, 0, 0.06, 21.6, GALLERY - 0.12, GALLERY + 0.04, { flat: { top: C_BRASS, side: C_BRASS } });
+    for (let z = -9; z <= 9; z += 3) k.block(37.97, z, 0.05, 1.6, 0.4, GALLERY - 0.5, { flat: { top: 0x5a3420, side: 0x7a4a2e } });
+    // Shelves in rows below, an aisle down the middle.
     for (const x of [29.5, 33]) for (const z of [-5.5, 5.5]) k.prop("bookshelf", x, z, { yaw: Math.PI / 2, opts: { seed: Math.round(x + z * 5), w: 4 }, collide: { w: 4, d: 0.8, h: 3.0 } });
-    for (const z of [-9.7, 9.7]) k.prop("bookshelf", 41, z, { opts: { seed: Math.round(z + 40), w: 8 }, collide: { w: 8, d: 0.8, h: 3.0 } });
-    for (const z of [-5.5, 5.5]) k.prop("readingTable", 41.5, z, { collide: { w: 2.4, d: 1.2, h: 0.82 } });
-    k.light(41, 3.8, 0, 0xffe0b0, 5, 12);
+    // Up on the gallery: shelves along the walls, two reading tables.
+    for (const z of [-9.9, 9.9]) k.prop("bookshelf", 42.2, z, { y: GALLERY, opts: { seed: Math.round(z + 40), w: 7.4 }, collide: { w: 7.4, d: 0.8, h: 3.0 } });
+    for (const z of [-5.5, 5.5]) k.prop("readingTable", 43, z, { y: GALLERY, collide: { w: 2.4, d: 1.2, h: 0.82 } });
+    k.light(42, GALLERY + 3.5, 0, 0xffe0b0, 5, 12);
+    k.light(31, 4, 0, 0xffe0b0, 4, 10);
     void rnd;
   },
 

@@ -169,7 +169,9 @@ export class PenBoss {
         // Nib down, dragging a red line across the floor.
         this.yaw = this.dir; tilt = 1;
         intent.forward = 1; speedMul = PEN.strike.speed / this.body.P.speed;
-        if (!this.hitDone && dist < PEN.r + P.r + 0.5 && P.y - b.y < 1.5) {
+        // It corrects foam steps too: rubs them out as it passes.
+        for (const p of [...run.foam.steps]) if (Math.hypot(p.x - b.x, p.z - b.z) < p.r + PEN.r) run.foam.melt(run, p);
+        if (!this.hitDone && dist < PEN.r + P.r + 0.5 && P.y - b.y < 2.2) {
           this.hitDone = true; run.hurt(PEN.strike.burn + 4, b.x, b.z);
           P.vx += -Math.sin(this.dir) * 7; P.vz += -Math.cos(this.dir) * 7; P.vy = 5; P.grounded = false;
         }
@@ -207,7 +209,7 @@ export class PenBoss {
           for (let i = 0; i < C.n; i++) {
             const a = run.rnd() * Math.PI * 2, r = i ? 2.5 + run.rnd() * 3 : 0.5;
             const x = Math.max(this.arena.minX, Math.min(this.arena.maxX, P.x + Math.cos(a) * r)), z = Math.max(this.arena.minZ, Math.min(this.arena.maxZ, P.z + Math.sin(a) * r));
-            this.circles.push({ x, z, y: run.kit.floorAt(x, z, P.y + 1), t: 0, T: C.T + i * 0.25, kind: run.rnd() < 0.5 ? "plane" : "pencil" });
+            this.circles.push({ x, z, y: run.kit.floorAt(x, z, P.y + 1), t: 0, T: C.T + i * 0.25, kind: run.rnd() < 0.5 ? "clock" : "pencil" });
           }
         }
         if (this.t > 1) { this.set("roam"); this.cd = 2 + run.rnd(); }
@@ -226,7 +228,7 @@ export class PenBoss {
         tilt = Math.sin(this.t * 20) * 0.15;
         if (this.t > 0.5 && !this.fired) {
           this.fired = true;
-          for (let i = 0; i < 2; i++) run.spawn("plane", b.x + (i ? 3 : -3), b.z, { group: "boss" });
+          for (let i = 0; i < 2; i++) run.spawn("clock", b.x + (i ? 3 : -3), b.z, { group: "boss" });
         }
         if (this.t > 2) { this.set("roam"); this.cd = 1; }
         break;

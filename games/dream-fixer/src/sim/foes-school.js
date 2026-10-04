@@ -4,11 +4,12 @@ import { AI } from "./foes.js";
 // Not the park's with new looks: each has a few moves and picks one by
 // how far you are and a roll of the dice, so they are harder to read.
 //
-//  plane      (Papírrepülő) circles you, now lazily, now in a rush. Then it
-//             takes aim (it hangs in the air, nose on you) and either dives
-//             straight at you, starts a dive and pulls up into a loop to
-//             come down from above, or drops low and skims past at waist
-//             height. A dive into a wall crumples it for a moment.
+//  clock      (Ébresztőóra) a red alarm clock floating about, ticking. It
+//             throws its hands at you; rings its bells (they shake first)
+//             and sends out a violet ring that slows you down for a few
+//             seconds if it reaches you (get away or behind something);
+//             and when you come close it skips ahead in time: gone, and
+//             back a few metres off.
 //  pencil     (Ceruza) pogoes along on its tip. Leaps high and comes down
 //             where you stand (a ring shows where; the landing sends out a
 //             ring to jump), spins like a top and comes after you (shots
@@ -28,7 +29,12 @@ import { AI } from "./foes.js";
 const TAU = Math.PI * 2;
 const rr = (run, [a, b]) => a + run.rnd() * (b - a);
 
-export const PLANE = { orbit: [6, 10], slow: 2.6, fast: 6.5, aim: 0.55, dive: 14, diveT: 1.1, loopT: 0.9, swoop: 11, swoopT: 1.1, cd: [2.2, 4.2], divers: 2, crash: 1.4 };
+export const CLOCK = {
+  orbit: [5, 8], speed: 3.2, cd: [2.2, 3.8], busy: 2,
+  hands: { wind: 0.6, n: 2, speed: 13, dmg: 5 },
+  ring: { wind: 1.0, max: 7.5, speed: 6.5, slow: 3 },
+  skip: { near: 3.2, dist: 6, cd: 4.5, time: 0.35 },
+};
 export const PENCIL = {
   hop: 0.42, cd: [1.4, 2.8], busy: 2,
   pogo: { min: 4, max: 10, crouch: 0.5, T: 0.85, r: 3.6, dmg: 6 },
@@ -89,133 +95,94 @@ function lob(run, f, sx, sy, sz, tx, ty, tz, T, o) {
 
 const busy = (run, kind, states) => run.foes.filter((o) => o.alive && o.kind === kind && states.includes(o.state)).length;
 
-// ── The paper plane ──
-function plane(run, f, dt, px, pcy, pz) {
+// ── The alarm clock ──
+function clock(run, f, dt, px, pcy, pz) {
   const P = run.body, d = f.def;
   f.cd -= dt;
+  f.skipCd = (f.skipCd ?? 1.5) - dt;
   f.home ??= [f.x, f.y, f.z];
   const dist = Math.hypot(f.x - px, f.z - pz) || 0.01;
   const on = AI.aware(run, f, dist);
   const floor = run.kit.floorAt(f.x, f.z, f.y + 1);
-  let steer = null;                 // [x, y, z, speed] to fly towards, or null: keep going
+  let hover = 1;
   switch (f.state) {
-    case "idle":
-    case "glide": {
-      // Its pace changes now and then: a lazy glide or a quick dash round you.
-      f.paceT = (f.paceT ?? 0) - dt;
-      if (f.paceT <= 0) { f.fast = run.rnd() < 0.4; f.paceT = 1.2 + run.rnd() * 2.2; }
-      const cx = on ? px : f.home[0], cz = on ? pz : f.home[2];
-      const want = on ? PLANE.orbit[0] + (PLANE.orbit[1] - PLANE.orbit[0]) * (0.5 + 0.5 * Math.sin(f.age * 0.4 + f.phase)) : 3;
-      const speed = on ? (f.fast ? PLANE.fast : PLANE.slow) : 2.2;
-      const a = Math.atan2(f.z - cz, f.x - cx) + f.dir * (speed / want) * 0.6;
-      const ty = (on ? Math.max(pcy + 1.6, floor + 1.4) : f.home[1]) + Math.sin(f.age * 1.3 + f.phase) * 0.6;
-      steer = [cx + Math.cos(a) * want, ty, cz + Math.sin(a) * want, speed];
-      if (on && f.cd <= 0 && dist < 20 && busy(run, "plane", ["aim", "dive", "loop", "swoop"]) < PLANE.divers && run.canSee(f.x, f.y, f.z)) {
-        const r = run.rnd();
-        f.attack = r < 0.5 ? "dive" : r < 0.75 ? "loop" : "swoop";
-        f.looped = false;
-        AI.setState(f, "aim");
-        run.events.push({ type: "planeAim", id: f.id, x: f.x, z: f.z });
-      }
+    case "idle": {
+      if (!on || f.cd > 0) break;
+      const sees = run.canSee(f.x, f.y, f.z);
+      if (dist < CLOCK.skip.near && f.skipCd <= 0) { AI.setState(f, "skip"); run.events.push({ type: "clockSkip", id: f.id, x: f.x, y: f.y, z: f.z }); break; }
+      if (!sees || dist > 20 || busy(run, "clock", ["wind", "ring"]) >= CLOCK.busy) break;
+      AI.setState(f, run.rnd() < 0.45 && dist < CLOCK.ring.max + 2 ? "ring" : "wind");
+      run.events.push({ type: f.state === "ring" ? "clockRing" : "clockWind", id: f.id, x: f.x, z: f.z });
       break;
     }
-    case "aim": {
-      // Hangs in the air, nose on you (a swoop first drops to your height).
-      f.vx *= 1 - 3 * dt; f.vz *= 1 - 3 * dt;
-      const ty = f.attack === "swoop" ? P.y + 1.0 : f.y;
-      f.vy += ((ty - f.y) * 3 - f.vy) * Math.min(1, dt * 4);
-      if (f.t > PLANE.aim) {
-        const lead = f.attack === "swoop" ? 0.15 : 0.3;
-        const tx = P.x + P.vx * lead, ty2 = P.y + 1.0, tz = P.z + P.vz * lead;
-        const ex = tx - f.x, ey = ty2 - f.y, ez = tz - f.z, l = Math.hypot(ex, ey, ez) || 1;
-        if (f.attack === "swoop") {
-          // Flat and fast, through where you stand and on past.
-          const h = Math.hypot(ex, ez) || 1;
-          f.vx = ex / h * PLANE.swoop; f.vz = ez / h * PLANE.swoop; f.vy = 0;
-          AI.setState(f, "swoop");
-        } else {
-          f.vx = ex / l * PLANE.dive; f.vy = ey / l * PLANE.dive; f.vz = ez / l * PLANE.dive;
-          AI.setState(f, "dive");
+    case "wind":
+      // Hands spinning, then flung at you.
+      hover = 0.3;
+      if (f.t > CLOCK.hands.wind) {
+        const H = CLOCK.hands;
+        for (let i = 0; i < H.n; i++) {
+          const lead = 0.3 * (i + 1), tx = P.x + P.vx * lead * 0.5 + (i ? 0.6 : -0.6), ty = P.y + 1.1, tz = P.z + P.vz * lead * 0.5;
+          const ex = tx - f.x, ey = ty - f.y, ez = tz - f.z, l = Math.hypot(ex, ey, ez) || 1;
+          run.spit({ x: f.x, y: f.y, z: f.z, vx: ex / l * H.speed, vy: ey / l * H.speed, vz: ez / l * H.speed, dmg: H.dmg, kind: "hand", owner: f.id });
         }
-        f.hitDone = false;
-        run.events.push({ type: "planeDive", id: f.id, x: f.x, z: f.z });
+        AI.setState(f, "idle"); f.cd = rr(run, CLOCK.cd);
       }
       break;
-    }
-    case "dive":
-    case "swoop": {
-      if (!f.hitDone && Math.hypot(P.x - f.x, P.y + 1 - f.y, P.z - f.z) < 0.85) {
-        f.hitDone = true; bonk(run, f, d.dmg);
-        AI.setState(f, "pullup");
-        break;
-      }
-      // A feint: pulls up into a loop and comes down again from above.
-      if (f.attack === "loop" && !f.looped && f.t > 0.22) {
-        f.loopDir = [f.vx, f.vz]; f.looped = true;
-        AI.setState(f, "loop");
-        break;
-      }
-      if (f.t > (f.state === "swoop" ? PLANE.swoopT : PLANE.diveT) || f.y < floor + 0.35) AI.setState(f, "pullup");
-      break;
-    }
-    case "loop": {
-      // Round a vertical circle over its own track, then dive at you again.
-      const k = f.t / PLANE.loopT, a = k * TAU, [lx, lz] = f.loopDir, h = Math.hypot(lx, lz) || 1, s = 10;
-      f.vx = lx / h * Math.cos(a) * s; f.vz = lz / h * Math.cos(a) * s; f.vy = Math.sin(a) * s;
-      if (k >= 0.75) {
-        f.attack = "dive"; AI.setState(f, "aim"); f.t = PLANE.aim * 0.6;
+    case "ring":
+      // The bells shake, then a slowing ring spreads out.
+      hover = 0;
+      if (f.t > CLOCK.ring.wind) {
+        run.pulse(f.x, f.y, f.z, CLOCK.ring);
+        AI.setState(f, "idle"); f.cd = rr(run, CLOCK.cd) + 1;
       }
       break;
-    }
-    case "pullup":
-      f.vx *= 1 - 1.5 * dt; f.vz *= 1 - 1.5 * dt;
-      f.vy += (4 - f.vy) * Math.min(1, dt * 3);
-      if (f.t > 0.8) { AI.setState(f, "glide"); f.cd = rr(run, PLANE.cd); }
-      break;
-    case "crash":
-      // Crumpled against a wall: flutters down, then shakes itself out.
-      f.vx = 0; f.vz = 0; f.vy -= 9 * dt;
-      if (f.t > PLANE.crash) { AI.setState(f, "pullup"); f.cd = rr(run, PLANE.cd); }
+    case "skip":
+      // Gone for a moment, then a few metres off (somewhere it can see you).
+      hover = 0;
+      if (f.t > CLOCK.skip.time) {
+        for (let k = 0; k < 8; k++) {
+          const a = run.rnd() * Math.PI * 2, x = px + Math.cos(a) * CLOCK.skip.dist, z = pz + Math.sin(a) * CLOCK.skip.dist;
+          const fl = AI.floorBelow(run.world, x, z, P.y + 2);
+          if (fl === -Infinity || fl < P.y - 2) continue;
+          const y = Math.max(fl + 1.6, pcy + 1);
+          if (!run.canSee(x, y, z)) continue;
+          f.x = x; f.y = y; f.z = z; f.vx = f.vy = f.vz = 0;
+          break;
+        }
+        run.events.push({ type: "clockSkip", id: f.id, x: f.x, y: f.y, z: f.z, back: true });
+        f.skipCd = CLOCK.skip.cd; AI.setState(f, "idle"); f.cd = Math.max(f.cd, 0.8);
+      }
       break;
     case "stun":
-      if (f.t > 0.3) AI.setState(f, "glide");
+      if (f.t > 0.3) AI.setState(f, "idle");
       break;
     case "sucked":
       f.vx *= 1 - 2 * dt; f.vy *= 1 - 2 * dt; f.vz *= 1 - 2 * dt;
-      if (f.t > 0.15) AI.setState(f, "glide");
-      break;
+      f.x += f.vx * dt; f.y += f.vy * dt; f.z += f.vz * dt;
+      if (f.t > 0.15) AI.setState(f, "idle");
+      return;
   }
-  if (steer) {
-    const [tx, ty, tz, speed] = steer;
-    const ax = (tx - f.x) * 1.2, ay = (ty - f.y) * 2, az = (tz - f.z) * 1.2;
-    f.vx += (ax - f.vx) * Math.min(1, dt * 2); f.vy += (ay - f.vy) * Math.min(1, dt * 2.5); f.vz += (az - f.vz) * Math.min(1, dt * 2);
-    const sp = Math.hypot(f.vx, f.vz);
-    if (sp > speed) { f.vx *= speed / sp; f.vz *= speed / sp; }
-  }
-  // Into a wall at speed: crumpled.
-  const sp3 = Math.hypot(f.vx, f.vy, f.vz);
-  if ((f.state === "dive" || f.state === "swoop") && sp3 > 1) {
-    const hit = run.world.raycast(f.x, f.y, f.z, f.vx / sp3, f.vy / sp3, f.vz / sp3, sp3 * dt + 0.35);
-    if (hit && hit.ny < 0.6) { AI.setState(f, "crash"); run.events.push({ type: "planeCrash", id: f.id, x: f.x, y: f.y, z: f.z }); }
-  }
+  // Drifting round you at a distance, bobbing (lazily over home if it has
+  // not noticed you).
+  const cx = on ? px : f.home[0], cz = on ? pz : f.home[2];
+  const want = on ? CLOCK.orbit[0] + (CLOCK.orbit[1] - CLOCK.orbit[0]) * (0.5 + 0.5 * Math.sin(f.age * 0.5 + f.phase)) : 2;
+  const a = Math.atan2(f.z - cz, f.x - cx) + f.dir * dt * (on ? 0.5 : 0.25);
+  const tx = cx + Math.cos(a) * want, tz = cz + Math.sin(a) * want;
+  const ty = (on ? Math.max(pcy + 1.4, floor + 1.4) : f.home[1]) + Math.sin(f.age * 1.6 + f.phase) * 0.35;
+  const ax = (tx - f.x) * 1.3 * hover, ay = (ty - f.y) * 2, az = (tz - f.z) * 1.3 * hover;
+  f.vx += (ax - f.vx) * Math.min(1, dt * 2.5); f.vy += (ay - f.vy) * Math.min(1, dt * 2.5); f.vz += (az - f.vz) * Math.min(1, dt * 2.5);
+  const sp = Math.hypot(f.vx, f.vz), max = CLOCK.speed;
+  if (sp > max) { f.vx *= max / sp; f.vz *= max / sp; }
+  if (f.state === "skip") { f.vx = f.vy = f.vz = 0; }
   f.x += f.vx * dt; f.y += f.vy * dt; f.z += f.vz * dt;
   for (const c of run.world.query(f.x, f.z, d.r)) {
-    if (c.y0 > f.y + 0.3 || run.topAt(c, f.x, f.z) < f.y - 0.3) continue;
+    if (c.y0 > f.y + 0.4 || run.topAt(c, f.x, f.z) < f.y - 0.4) continue;
     const pen = run.world.push2D(c, f.x, f.z, d.r);
     if (pen > 0) { f.x += run.world.nx * pen; f.z += run.world.nz * pen; }
   }
-  const low = f.state === "crash" ? 0.25 : f.state === "swoop" ? 0.6 : 0.5;
   const fl = run.kit.floorAt(f.x, f.z, f.y + 0.5);
-  if (f.y < fl + low) { f.y = fl + low; f.vy = Math.max(0, f.vy); }
-  // Nose along its flight; banks into turns.
-  const h = Math.hypot(f.vx, f.vz);
-  if (h > 0.3) {
-    const yaw = Math.atan2(-f.vx, -f.vz), turn = Math.atan2(Math.sin(yaw - f.yaw), Math.cos(yaw - f.yaw));
-    f.roll = (f.roll || 0) + (Math.max(-0.9, Math.min(0.9, turn * 3)) - (f.roll || 0)) * Math.min(1, dt * 5);
-    f.yaw = yaw;
-  }
-  if (f.state === "aim") f.yaw = AI.angTo(f.x, f.z, px, pz);
-  f.pitch = f.state === "aim" ? -0.35 : Math.atan2(f.vy, Math.max(h, 0.5));
+  if (f.y < fl + 0.7) { f.y = fl + 0.7; f.vy = Math.max(0, f.vy); }
+  f.yaw = AI.angTo(f.x, f.z, px, pz);
 }
 
 // ── The pencil ──
@@ -237,6 +204,7 @@ function pencil(run, f, dt, px, pcy, pz) {
       // It gets about in little pogo hops.
       if (b.grounded && f.hopT <= 0) { intent.jumpPressed = true; intent.jump = true; f.hopT = PENCIL.hop; }
       if (f.cd > 0 || busy(run, "pencil", ["crouch", "pogo", "spinup", "spin", "rock", "jab"]) >= PENCIL.busy || Math.abs(P.y - b.y) > 1.5) break;
+      if (!run.canSee(b.x, b.y + 1, b.z)) { f.cd = 0.4; break; }
       const r = run.rnd(), J = PENCIL.jab, S = PENCIL.spin, G = PENCIL.pogo;
       if (dist > J.min && dist < J.max && r < 0.4) { AI.setState(f, "rock"); run.events.push({ type: "windup", kind: "pencil", x: b.x, z: b.z }); }
       else if (dist < S.near && r < 0.75) { AI.setState(f, "spinup"); run.events.push({ type: "pencilSpin", x: b.x, z: b.z }); }
@@ -340,7 +308,7 @@ function backpack(run, f, dt, px, pcy, pz) {
       intent.strafe = Math.sin(f.age * 0.5 + f.phase) * 0.5;
       if (f.cd > 0 || Math.abs(P.y - b.y) > 2) break;
       const r = run.rnd(), sees = run.canSee(b.x, b.y + 1, b.z);
-      if (dist < PACK.chomp.near) { AI.setState(f, "chomp"); run.events.push({ type: "packWindup", x: b.x, z: b.z, chomp: true }); }
+      if (dist < PACK.chomp.near && sees) { AI.setState(f, "chomp"); run.events.push({ type: "packWindup", x: b.x, z: b.z, chomp: true }); }
       else if (r < 0.45 && dist < 16 && sees && AI.groundAlong(run, b.x, b.z, px, pz, b.y)) { AI.setState(f, "paw"); run.events.push({ type: "packWindup", x: b.x, z: b.z }); }
       else if (dist < 22 && sees) { AI.setState(f, "toss"); run.events.push({ type: "packWindup", x: b.x, z: b.z, toss: true }); f.volley = PACK.toss.n; f.volleyT = PACK.toss.wind; }
       else f.cd = 0.6;
@@ -445,4 +413,4 @@ function sharpener(run, f, dt, px, pcy, pz) {
   run.events.push({ type: "sharpPop", x: f.x, z: f.z });
 }
 
-export const SCHOOL = { plane, pencil, backpack, sharpener };
+export const SCHOOL = { clock, pencil, backpack, sharpener };

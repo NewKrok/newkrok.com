@@ -12,12 +12,13 @@ import { Run } from "../src/sim/run.js";
 import { LEVELS } from "../src/levels/index.js";
 import { World } from "../src/sim/world.js";
 import { DT } from "../src/config.js";
+import { TOOLS } from "../src/sim/tools.js";
 
 const seed = Number(process.argv[2] || 1), difficulty = process.argv[3] || "normal", skill = process.argv[4] || "casual";
 const def = LEVELS[process.argv[5] || "park"];
 if (!def?.botRoutes) { console.log("no bot routes for that level"); process.exit(1); }
 const SKILL = { sharp: { turn: 0.12, pitch: 0.08, react: 0, wobble: 0 }, casual: { turn: 0.08, pitch: 0.05, react: 0.25, wobble: 0.03 } }[skill];
-const SMALL = new Set(["fuzz", "bunny", "buzzer", "plane", "pencil"]), BIG = new Set(["tub", "knot", "backpack", "sharpener"]);
+const SMALL = new Set(["fuzz", "bunny", "buzzer", "clock", "pencil"]), BIG = new Set(["tub", "knot", "backpack", "sharpener"]);
 
 const run = new Run(def, { seed, difficulty, aimAssist: 0.03, tools: def.tools ?? ["stabilizer"] });
 const B = run.body;
@@ -153,7 +154,7 @@ function kite(intent, home = null, ring = 0) {
 function step(intent) {
   run.step({ forward: 0, strafe: 0, jump: false, jumpPressed: false, usePressed: false, ...intent }, DT);
   minHp = Math.min(minHp, run.hp);
-  for (const e of run.events) if (e.type === "respawn") { falls++; if (process.env.DEBUG) console.log("   fell from", lastPos.map((v) => v.toFixed(1)).join(", ")); }
+  for (const e of run.events) if (e.type === "respawn" && !e.pulled) { falls++; if (process.env.DEBUG) console.log("   fell from", lastPos.map((v) => v.toFixed(1)).join(", ")); }
   if (process.env.DEBUG && run.body.y < -0.5 && lastPos[1] >= -0.5) console.log("   dropping at", lastPos.map((v) => v.toFixed(2)).join(", "), "v", run.body.vx.toFixed(1), run.body.vz.toFixed(1), "t", run.time.toFixed(1));
   lastPos = [run.body.x, run.body.y, run.body.z];
   run.events.length = 0;
@@ -177,6 +178,9 @@ function walk(route) {
   const f0 = falls, n0 = run.faints;
   for (const [x, z, jump] of route) {
     if (falls !== f0 || run.faints !== n0) return false;
+    // A foam step to climb: set where a well-aimed blob would land, on
+    // whatever is there (the floor, or a step already standing).
+    if (x === "foam") { foamStep(z, jump); continue; }
     const sx = B.x, sz = B.z; let jumped = false, fights = 0;
     for (let i = 0; i < 900; i++) {
       const dx = x - B.x, dz = z - B.z;
@@ -196,12 +200,18 @@ function walk(route) {
   return true;
 }
 
+function foamStep(x, z) {
+  const S = run.tools.find((t) => t.id === "foam")?.def.step ?? TOOLS.foam.step;
+  run.foam.set(run, S, x, ground(x, z, B.y + 1.5), z, 0, 1, 0);
+  step({});
+}
+
 // The routes all start out from the middle of the dream. Standing at an
 // anchor already fixed (where a faint puts you back, too), first walk its
 // route back the other way.
 function backToMiddle() {
   const at = run.anchors.find((o) => o.state === "fixed" && Math.hypot(o.x - B.x, o.z - B.z) < 12);
-  if (at) walk(def.botRoutes[at.id].slice(0, -1).reverse());
+  if (at) walk(def.botRoutes[at.id].filter((p) => typeof p[0] === "number").slice(0, -1).reverse());
 }
 function goTo(a, route) {
   for (let k = 0; k < 8 && Math.hypot(B.x - a.x, B.z - a.z) > 2.5; k++) { backToMiddle(); walk(route); }
@@ -222,7 +232,9 @@ for (const a of run.anchors) {
   while (a.state === "tuning" && i++ < 60 * 150) {
     const intent = {};
     // Drifted out of the dream and back at another anchor: walk back.
-    if (Math.hypot(a.x - B.x, a.z - B.z) > a.ring + 3 && rewalks++ < 4) goTo(a, route);
+    if (Math.hypot(a.x - B.x, a.z - B.z) > a.ring + 3 && rewalks++ < 8) goTo(a, route);
+    // Fallen off a ledge the anchor stands on: climb back up the end of the route.
+    else if (B.y < a.y - 2 && B.grounded && rewalks++ < 8) { const k = route.findIndex((p) => p[0] === "foam"); walk(route.slice(Math.max(0, k - 1))); }
     aimAndFire(intent);
     kite(intent, a, a.ring - 2);
     step(intent);

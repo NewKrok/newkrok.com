@@ -43,7 +43,9 @@ export class Sfx {
           break;
         case "foamSpray": case "foamBlob": A.play(e.type); break;
         case "foamSplat": case "foamSet": case "foamGone": case "foamStuck": case "foamFree": A.play(e.type, 0, e.x, e.z); break;
-        case "planeAim": case "planeDive": case "planeCrash": case "pencilCrouch": case "pencilSpin": case "dizzy":
+        case "clockSkip": A.play("clockSkip", e.back ? 1 : 0, e.x, e.z); break;
+        case "slowed": A.play("slowed"); break;
+        case "clockWind": case "clockRing": case "pencilCrouch": case "pencilSpin": case "dizzy":
         case "packWindup": case "packCharge": case "packChomp": case "sharpGrind": case "sharpPop": case "penStrike": case "penLine": case "penCircle":
           A.play(e.type, 0, e.x, e.z); break;
         case "inkBurn": A.play("inkBurn"); break;

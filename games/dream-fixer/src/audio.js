@@ -11,7 +11,7 @@
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const hz = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
-const GAP = { planeAim: 0.15, planeDive: 0.1, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
+const GAP = { clockWind: 0.2, clockRing: 0.3, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
 
 const SONGS = {
   menu: { root: 60, bpm: 76, scale: [0, 2, 4, 7, 9], prog: [0, -3, 5, -5], lead: "box", drums: 0 },
@@ -202,9 +202,10 @@ export class Audio {
       case "foamGone": [0, 0.07, 0.15].forEach((dt) => at(dt, (tt) => this.#tone(d, tt, 0.08, { freq: 900 + Math.random() * 600, freqEnd: 1800, gain: 0.04 }))); break;
       case "foamStuck": N(0.3, { type: "bandpass", freq: 600, freqEnd: 1500, q: 2, gain: 0.08 }); S(0.2, { freq: 250, freqEnd: 400, gain: 0.05 }); break;
       case "foamFree": S(0.1, { freq: 700, freqEnd: 1400, gain: 0.05 }); break;
-      case "planeAim": N(0.25, { type: "bandpass", freq: 1600, freqEnd: 3400, q: 2, gain: 0.05 }); break;
-      case "planeDive": N(0.45, { type: "bandpass", freq: 600, freqEnd: 2200, q: 1.2, gain: 0.1 }); break;
-      case "planeCrash": [0, 0.05, 0.11, 0.16].forEach((dt) => at(dt, (tt) => this.#noise(d, tt, 0.06, { type: "bandpass", freq: 2500 + Math.random() * 1500, q: 2, gain: 0.07 }))); break;
+      case "clockWind": for (let i = 0; i < 8; i++) at(i * 0.07, (tt) => this.#tone(d, tt, 0.03, { type: "square", freq: i % 2 ? 2200 : 1700, gain: 0.025 })); break;
+      case "clockRing": for (let i = 0; i < 12; i++) at(0.25 + i * 0.06, (tt) => this.#bell(d, tt, hz(i % 2 ? 93 : 91), 0.035, 0.3, 0.2)); break;
+      case "clockSkip": S(0.3, { type: "sine", freq: k ? 300 : 1400, freqEnd: k ? 1400 : 300, gain: 0.06 }); break;
+      case "slowed": S(0.9, { type: "triangle", freq: 700, freqEnd: 180, gain: 0.08, verb: 0.4 }); S(0.9, { type: "sine", freq: 705, freqEnd: 185, gain: 0.05, detune: 20 }); break;
       case "pencilCrouch": S(0.3, { type: "triangle", freq: 700, freqEnd: 1500, gain: 0.05 }); break;
       case "pencilSpin": S(0.55, { type: "sawtooth", freq: 260, freqEnd: 900, gain: 0.04 }); N(0.5, { type: "bandpass", freq: 900, freqEnd: 2600, q: 3, gain: 0.04, attack: 0.1 }); break;
       case "dizzy": [0, 0.1, 0.2, 0.3].forEach((dt, i) => at(dt, (tt) => this.#tone(d, tt, 0.12, { type: "sine", freq: 900 - i * 120, freqEnd: 1100 - i * 120, gain: 0.04 }))); break;

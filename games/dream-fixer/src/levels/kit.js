@@ -36,12 +36,21 @@ export class Kit {
   }
 
   // Stairs from (x, z) going along yaw's forward (−z turned by yaw).
+  // Walkable stairs (a low rise) are drawn as steps but walked as a ramp
+  // under them, so the view glides up instead of bumping on every step;
+  // tall ones (bleachers) stay steps.
   stairs(x, z, w, n, rise, run, y0 = 0, look = {}, yaw = 0) {
-    const sn = Math.sin(yaw), cs = Math.cos(yaw);
+    const sn = Math.sin(yaw), cs = Math.cos(yaw), smooth = rise <= 0.4;
     for (let i = 0; i < n; i++) {
-      const f = run * (i + 0.5);
-      this.block(x - sn * f, z - cs * f, w, run, y0 - 0.2, y0 + rise * (i + 1), look, yaw);
+      const f = run * (i + 0.5), bx = x - sn * f, bz = z - cs * f, y1 = y0 + rise * (i + 1);
+      if (smooth) this.draw.push({ kind: "block", x: bx, z: bz, w, d: run, y0: y0 - 0.2, y1, yaw, look });
+      else this.block(bx, bz, w, run, y0 - 0.2, y1, look, yaw);
     }
+    if (!smooth) return;
+    // The ramp runs from the foot of the first step to the top of the last
+    // (its local +x along the stairs), solid down to the foot.
+    const L = run * n;
+    this.world.ramp({ x: x - sn * L / 2, z: z - cs * L / 2, y0: y0 - 0.2, ya: y0, yb: y0 + rise * n, hx: L / 2, hz: w / 2, yaw: yaw + Math.PI / 2 });
   }
 
   // A model from the registry. collide: { r, h } (upright cylinder),

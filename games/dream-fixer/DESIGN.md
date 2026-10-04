@@ -46,7 +46,7 @@ Margó egyre idegesebb, mert „ennyi hibás álom nem szokott lenni”.
 1. **Morzsa, a kutya:** a parkban elszabadultak a mókusok, a főellenség
    pedig a Porszívó. Ez a tutorial-fejezet.
 2. **Ethan (10 éves), matekdolgozat előtti éjszaka:** az iskolafolyosók
-   körbeérnek, papírrepülők, ceruzák és egy dühös hátizsák támadnak, a
+   körbeérnek, ébresztőórák, ceruzák és egy dühös hátizsák támadnak, a
    főellenség a Piros Toll.
 3. **Réka, a szakács:** óriásivá nőtt konyha, elszabadult ételek, a
    főellenség a Kuktafazék.
@@ -102,17 +102,19 @@ Az iskola lebegő darabja, tető nélküli termekkel. A buszos előtérről
 lépsz be; a folyosó négyzetben fut körbe a tornaterem körül (ez a
 „körbeérő folyosó”), róla nyílik nyugatra az osztályterem, keletre a
 könyvtár, északra a lépcsőház a tetőre, a csengőtoronyhoz. A horgonyok
-az osztályteremben, a könyvtár olvasósarkában és a tetőn vannak, a Piros
-Toll a tornaterem padlóján át jön fel. Az első horgony után jön a
-**Habágyú**; néhány emlék (szekrénytető, könyvespolc, busztető) csak
-hablépcsővel érhető el.
+az osztályteremben, a könyvtár 3 méter magas galériáján és a tetőn vannak,
+a Piros Toll a tornaterem padlóján át jön fel. Az első horgony után jön a
+**Habágyú**, és a galériára csak azzal lehet feljutni (hablépcső vagy
+habpárkány a galéria falán), így az osztályterem vagy a tető jön előbb;
+Cog szól, ha alatta állsz. Néhány emlék (szekrénytető, könyvespolc,
+busztető) is csak hablépcsővel érhető el.
 
 Itt az ellenfelek nem a park bőrcseréi: mindegyiknek több mozdulata van,
 és távolság meg kockadobás alapján választ, így nehezebb kiismerni őket.
 
 | Hiba | Viselkedés |
 | --- | --- |
-| **Papírrepülő** | Körözik, hol lassan, hol sietve. Megáll, rád szegezi az orrát, aztán vagy egyenesen rád bukik, vagy hurkot ír és felülről csap le, vagy leereszkedik és derékmagasságban oldalról húz el. Falnak repülve összegyűrődik. |
+| **Ébresztőóra** | Piros, lebegő, ketyeg. Ha pörögnek a mutatói, hozzád vágja őket; ha rázkódnak a csengői, lila gyűrűt csenget ki, ami pár másodpercre lelassít, ha elér (el lehet futni előle vagy elbújni mögüle); ha túl közel mész, „előreugrik az időben”, és pár méterrel arrébb bukkan fel. |
 | **Ceruza** | Pogózik. Felugrik és oda zuhan, ahol állsz (gyűrű jelzi; a landolás gyűrűjét át kell ugrani), pörgettyűként üldöz (ilyenkor lepattannak róla a lövések, utána szédül és puha), vagy hátradől és döf. |
 | **Hátizsák** | Nehéz, tartja a távolságot. Könyveket dob köréd (gyűrűk jelzik), kaparja a földet és egyenesen nekiront (falnak menve kábult és puha), közelről harap. Nem szívható be, nem lökhető. |
 | **Hegyező** | Egy helyben ül, ceruzákat köp ki. Közelről forgácsot permetez, messziről radírdarabokat dob. |
@@ -123,7 +125,16 @@ pöccint legyezőben; piros körökkel „kijavít” pontokat körülötted, am
 hibák pattannak ki. A második fázisban gyorsabb, kétszer húz egymás után,
 és pörögve tintagyűrűket küld (át kell ugrani). Ha habbal eltömöd a
 hegyét, feldől („bepacázott”), és többet sebződik, legjobban a kupak felőli
-vége.
+vége. Az útjába eső hablépcsőket kiradírozza.
+
+**Boss-aréna:** amikor a főellenség feljön, álomfüggöny zárja körbe az
+arénát (a falaknál magasabban, habbal sem lehet átmászni), aki kint
+volt, azt behúzza, és az ájulás is belül tesz vissza; a boss vége után
+eltűnik. A pálya adataiban: `boss.seal`.
+
+**Mindenhol:** a hibák csak akkor vesznek észre, ha látnak (falon át
+nem), a közelharc és a becsapódó gyűrűk sem mennek át falon. A lépcsők
+rámpaként járhatók, így a kamera nem ugrál rajtuk.
 
 ### Szerszámok (a „fegyverek”)
 

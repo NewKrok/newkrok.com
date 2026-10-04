@@ -19,6 +19,7 @@ export const HU = {
   allFixed: "Mindhárom horgony tart.",
   coreOpen: "Nyílik az álom szíve… valami nagy jön elő!",
   boss_vacuum: "A Porszívó",
+  slowed: "LELASSÍTVA",
   boss_pen: "A Piros Toll",
   bossPhase_vacuum: "Dühbe gurult: ugord át a kábelt!",
   bossPhase_pen: "Dühös: ugord át a tintagyűrűit!",

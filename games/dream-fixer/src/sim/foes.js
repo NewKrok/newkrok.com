@@ -17,7 +17,7 @@ import { SCHOOL } from "./foes-school.js";
 //  tub     (Fürdőkád) waddles about at a distance and lobs soap bubbles
 //                    that burst where they land (a ring shows where).
 //
-// Ethan's school has its own (foes-school.js): the paper plane, the
+// Ethan's school has its own (foes-school.js): the alarm clock, the
 // pencil, the backpack and the sharpener.
 //
 // The dream skins them (a tangled squirrel in the park); the sim only
@@ -50,7 +50,7 @@ export const FOES = {
   tub: { hp: 17.5, r: 0.9, h: 1.3, speed: 2, dmg: 6, dust: 10, hitR: 0.95, hitY: 0.75, knock: 0.15 },
   buzzer: { hp: 4, r: 0.4, speed: 3.4, dmg: 7, dust: 4, hitR: 0.46, hitY: 0, fly: true, knock: 0.6, catchable: true },
   knot: { hp: 16, r: 0.95, h: 1.4, dust: 12, hitR: 1.0, hitY: 0.75, still: true, knock: 0 },
-  plane: { hp: 2, r: 0.35, speed: 5, dmg: 6, dust: 3, hitR: 0.5, hitY: 0, fly: true, knock: 0.8, catchable: true },
+  clock: { hp: 5, r: 0.5, speed: 3.2, dmg: 5, dust: 4, hitR: 0.6, hitY: 0, fly: true, knock: 0.5, catchable: true },
   pencil: { hp: 4, r: 0.25, h: 1.3, speed: 3.6, jump: 5.5, dmg: 7, dust: 4, hitR: 0.42, hitY: 0.65, knock: 0.7, catchable: true },
   backpack: { hp: 20, r: 0.85, h: 1.3, speed: 2.2, dmg: 9, dust: 12, hitR: 0.95, hitY: 0.7, knock: 0.1, big: true, steady: true },
   sharpener: { hp: 16, r: 0.8, h: 1.1, dust: 12, hitR: 0.9, hitY: 0.55, still: true, knock: 0 },
@@ -233,7 +233,8 @@ function aware(run, f, dist) {
   if (f.provoked > 0) { notice(run, f); return true; }
   const c = run.calm, P = run.body;
   if (c && Math.hypot(P.x - c.x, P.z - c.z) < c.r) return (f.aware = false);
-  if (dist < 14 && !f.aware) { notice(run, f); alert(run, f, ALERT.notice, 4); }
+  // Spots you only if it can see you (not through a wall).
+  if (dist < 14 && !f.aware && run.canSee(f.px, f.cy, f.pz)) { notice(run, f); alert(run, f, ALERT.notice, 4); }
   else if (dist > 28) f.aware = false;      // lost you: back home
   return f.aware;
 }
@@ -335,7 +336,7 @@ function fuzz(run, f, dt, px, pz) {
       // Stuck against a ledge: hop (where there is no nav grid to plan
       // hops with; a blind hop near a brink sails off it).
       if (!run.nav && b.grounded && dist > 2 && b.speed2D < 0.8 && f.t > 0.3 && !waiting) { intent.jumpPressed = true; f.t = 0; }
-      if (dist < M.reach && Math.abs(dy) < 1.2 && !waiting) { setState(f, "windup"); run.attackers[f.kind]++; run.events.push({ type: "windup", kind: f.kind, x: b.x, z: b.z }); break; }
+      if (dist < M.reach && Math.abs(dy) < 1.2 && !waiting && run.canSee(b.x, b.y + d.h * 0.5, b.z)) { setState(f, "windup"); run.attackers[f.kind]++; run.events.push({ type: "windup", kind: f.kind, x: b.x, z: b.z }); break; }
       // A fuzz a little way off (or one that cannot reach you) may stop and
       // lob a nut instead (not the nightmare's own: the boss is busy enough).
       f.throwCd = (f.throwCd ?? 1 + run.rnd() * 2.5) - dt;
@@ -624,7 +625,7 @@ export function damageFoe(run, f, dmg, dx, dz, big) {
     if (f.state !== "lunge" && (f.guard ?? 1) >= 1 && (!f.def.steady || big)) { f.state = "stun"; f.t = 0; }
   } else if (f.def.fly) {
     f.vx += dx * 4 * k; f.vz += dz * 4 * k;
-    if (f.state === "windup" || f.state === "aim") { f.state = "stun"; f.t = 0; f.cd = 1.2; }
+    if (f.state === "windup" || f.state === "wind") { f.state = "stun"; f.t = 0; f.cd = 1.2; }
   }
   if (f.hp <= 0) {
     f.alive = false;

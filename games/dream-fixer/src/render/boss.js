@@ -241,9 +241,52 @@ class PenBossView {
 const VIEWS = { vacuum: VacuumBossView, pen: PenBossView };
 
 export class BossView {
-  constructor(scene, fx) { this.scene = scene; this.fx = fx; this.views = {}; }
+  constructor(scene, fx) { this.scene = scene; this.fx = fx; this.views = {}; this.curtain = null; }
   view(kind) { return (this.views[kind] ??= new VIEWS[kind](this.scene, this.fx)); }
-  clear() { for (const v of Object.values(this.views)) v.clear(); }
+  clear() { for (const v of Object.values(this.views)) v.clear(); this.dropCurtain(); }
   onEvent(e, run) { if (run.boss) this.view(run.boss.kind).onEvent(e, run); }
-  update(run, alpha, dt, t) { if (run.boss) this.view(run.boss.kind).update(run, alpha, dt, t); }
+  update(run, alpha, dt, t) {
+    if (run.boss) this.view(run.boss.kind).update(run, alpha, dt, t);
+    // The arena's dream curtain: up while the fight lasts.
+    if (run.sealed && !this.curtain) this.raiseCurtain(run);
+    if (!run.sealed && this.curtain) this.dropCurtain();
+    if (this.curtain) this.curtain.material.uniforms.time.value = t;
+  }
+
+  // Four shimmering pink sheets round the arena, fading upwards.
+  raiseCurtain(run) {
+    const S = run.sealed, y = run.boss ? run.boss.y : 0, H = 7;
+    const geo = new T.BufferGeometry(), pos = [], uv = [];
+    const corners = [[S.minX, S.minZ], [S.maxX, S.minZ], [S.maxX, S.maxZ], [S.minX, S.maxZ]];
+    let u = 0;
+    for (let i = 0; i < 4; i++) {
+      const [x0, z0] = corners[i], [x1, z1] = corners[(i + 1) % 4], L = Math.hypot(x1 - x0, z1 - z0);
+      pos.push(x0, y - 0.5, z0, x1, y - 0.5, z1, x1, y + H, z1, x0, y - 0.5, z0, x1, y + H, z1, x0, y + H, z0);
+      uv.push(u, 0, u + L, 0, u + L, 1, u, 0, u + L, 1, u, 1);
+      u += L;
+    }
+    geo.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
+    geo.setAttribute("uv", new T.Float32BufferAttribute(uv, 2));
+    const mat = new T.ShaderMaterial({
+      transparent: true, depthWrite: false, side: T.DoubleSide, blending: T.AdditiveBlending,
+      uniforms: { time: { value: 0 } },
+      vertexShader: "varying vec2 vU; void main() { vU = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+      fragmentShader: `uniform float time; varying vec2 vU;
+        void main() {
+          float fade = pow(1.0 - vU.y, 1.6);
+          float bands = pow(0.5 + 0.5 * sin(vU.x * 2.2 + time * 1.5 + sin(vU.y * 6.0 - time) * 1.2), 3.0);
+          float rise = 0.6 + 0.4 * sin(vU.y * 18.0 - time * 4.0);
+          gl_FragColor = vec4(vec3(1.0, 0.4, 0.8) * fade * (0.08 + bands * rise * 0.3), 1.0);
+        }`,
+    });
+    this.curtain = new T.Mesh(geo, mat);
+    this.curtain.renderOrder = 5;
+    this.scene.add(this.curtain);
+  }
+  dropCurtain() {
+    if (!this.curtain) return;
+    this.scene.remove(this.curtain);
+    this.curtain.geometry.dispose(); this.curtain.material.dispose();
+    this.curtain = null;
+  }
 }

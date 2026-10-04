@@ -22,7 +22,7 @@ export const park = {
   // The Fuzz Vacuum turns up once the first anchor holds.
   unlockTool: { id: "vacuum", anchors: 1 },
   // The nightmare comes up in the middle of the lawn.
-  boss: { kind: "vacuum", x: 0, z: 5, arena: { minX: -17, maxX: 17, minZ: -2, maxZ: 19 } },
+  boss: { kind: "vacuum", x: 0, z: 5, arena: { minX: -17, maxX: 17, minZ: -2, maxZ: 19 }, seal: { minX: -23, maxX: 23, minZ: -3.5, maxZ: 21.8 } },
   // The glitches' looks here (model ids; the dream skins every kind).
   skins: { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub" },
   // Biscuit's memories, tucked away off the paths and well away from the
