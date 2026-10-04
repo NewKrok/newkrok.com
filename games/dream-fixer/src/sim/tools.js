@@ -60,7 +60,7 @@ export const TOOLS = {
   },
   // Pressed: snapped open and shut, a short gust in a cone ahead that
   // stings everything in it, hard up close and fading out by `range`
-  // (no shove: it only hurts), and pops orbs. Aimed at your feet in
+  // (it only blows flyers back, `push`), and pops orbs. Aimed at your feet in
   // mid-air it lifts you a little, once per jump. Held second action: open over you, a shield in front and
   // above (it stops orbs, takes the edge off bonks), and in the air you
   // glide; an updraft carries an open umbrella up.
@@ -68,6 +68,7 @@ export const TOOLS = {
     interval: 0.45, heat: 0.22, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
     range: 4.5, cone: 0.5,
     damage: 2.4, far: 0.45, // at point blank; share of it left at the edge of the range
+    push: 9,              // a flyer blown back: its drift (m/s, dies away; ~3 m)
     hop: 8,               // the gust at your feet in mid-air: take-off speed
     shield: { cone: 1.15, guard: 0.3, heat: 0.12 },   // half angle; share of a bonk you still feel
     glide: { fall: 2.4, air: 1.8 },                   // fastest fall; air control ×

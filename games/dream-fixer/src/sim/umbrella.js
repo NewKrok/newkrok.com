@@ -2,8 +2,8 @@ import { damageFoe } from "./foes.js";
 
 // ── Grandpa Joe's umbrella, the Gust Umbrella ────────────────────────────
 // A gust (snapped open and shut) runs out a short way in a cone ahead and
-// stings whatever is in it, hard up close, fading with distance; it does
-// not shove. Orbs in it pop. Nothing goes through a wall.
+// stings whatever is in it, hard up close, fading with distance; only
+// flyers are blown back by it. Orbs in it pop. Nothing goes through a wall.
 // Aimed at your feet in mid-air it lifts you once per jump.
 //
 // Held open over you it is a shield in front and above: orbs stop on it,
@@ -72,8 +72,13 @@ export class Umbrella {
       if (!f.alive || f.state === "spawn") continue;
       const k = reach(f.px, f.cy, f.pz, f.def.hitR);
       if (!k) continue;
+      // A flyer is blown back too (nothing on the ground is).
       if (damageFoe(run, f, d.damage * k, 0, 0, false)) run.stats.popped++;
       else run.stats.hits++;
+      if (f.def.fly && f.alive) {
+        const ex = f.px - ox, ez = f.pz - oz, l = Math.hypot(ex, ez) || 1;
+        f.blowX = ex / l * d.push * k; f.blowZ = ez / l * d.push * k;
+      }
     }
     for (const s of run.spits) {
       if (s.harmless || s.life <= 0 || !reach(s.x, s.y, s.z, 0.4)) continue;

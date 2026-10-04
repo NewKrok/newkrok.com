@@ -126,6 +126,14 @@ export function stepFoes(run, dt) {
     f.age += dt;
     f.flash = Math.max(0, f.flash - dt * 6);
     if (!f.alive) continue;
+    // Blown back by the umbrella (a flyer): a drift on top of its own
+    // flying, dying away.
+    if (f.blowX || f.blowZ) {
+      f.x += f.blowX * dt; f.z += f.blowZ * dt;
+      const k = Math.exp(-BLOW_DRAG * dt);
+      f.blowX *= k; f.blowZ *= k;
+      if (Math.abs(f.blowX) + Math.abs(f.blowZ) < 0.05) f.blowX = f.blowZ = 0;
+    }
     // Foam slows a glitch's whole world down (stuck fast: it stops).
     const fdt = foamed(run, f, dt);
     f.t += fdt;
@@ -167,6 +175,7 @@ export function stepFoes(run, dt) {
 }
 
 function setState(f, s) { f.state = s; f.t = 0; }
+const BLOW_DRAG = 3;
 
 // What the school's glitches (foes-school.js) share with these.
 export const AI = {
