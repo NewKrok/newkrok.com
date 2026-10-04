@@ -168,6 +168,11 @@ export class FoeView {
       else if (f.kind === "backpack") animBackpack(f, N, t, grow);
       else if (f.kind === "sharpener") animSharpener(f, N, t, grow);
       else animKnot(f, N, t, grow);
+      // Asleep (the Lullaby Bell): lying over, breathing slowly.
+      const zz = f.sleepT > 0 ? Math.min(1, (v.sleepK || 0) + dt * 4) : Math.max(0, (v.sleepK || 0) - dt * 5);
+      v.sleepK = zz;
+      o.rotation.z = zz * (f.def.fly ? 0.35 : 0.95);
+      o.scale.set(1, 1 + zz * Math.sin(t * 2.2 + f.id) * 0.05, 1);
       // Hit flash.
       const flash = f.flash > 0.55;
       if (flash !== v.flashing) {

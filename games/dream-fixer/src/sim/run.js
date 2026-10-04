@@ -11,6 +11,7 @@ import { rng } from "../rng.js";
 import { toolDef, maxHpFor, magnetFor, perksFor, ITEM } from "../data/upgrades.js";
 import { Cog } from "./cog.js";
 import { Foam } from "./foam.js";
+import { Bell, backHit } from "./bell.js";
 
 // ── One visit to a dream ─────────────────────────────────────────────────
 // Everything that happens in a level, with no rendering: the body, the
@@ -58,6 +59,9 @@ export class Run {
     this.switchT = 0;
     this.balls = [];              // what the vacuum shoots back out
     this.foam = new Foam();       // the Foam Cannon's globs and steps
+    this.bell = new Bell();       // the Lullaby Bell's waves of sound
+    // Things in the dream that answer the bell (a jelly, a soufflé).
+    this.ringables = this.kit.ringables.map((g) => ({ ...g, wobbleT: 0 }));
     this.time = 0;
     this.events = [];
     this.hp = this.maxHp; this.hurtT = 9; this.invuln = 0;
@@ -208,7 +212,7 @@ export class Run {
     for (const f of this.foes) if (f.alive && f.group === "boss") { f.alive = false; this.events.push({ type: "pop", kind: f.kind, id: f.id, x: f.px, y: f.cy, z: f.pz, calm: true }); }
     this.boss = null; this.coreT = -1;
     this.unseal();
-    this.shocks.length = 0; this.pulses.length = 0;
+    this.shocks.length = 0; this.pulses.length = 0; this.bell.waves.length = 0;
     this.events.push({ type: "bossReset" });
   }
 
@@ -330,6 +334,7 @@ export class Run {
       if (this.winded && this.stamina >= STAMINA.again) this.winded = false;
     }
     b.step(this.world, intent, dt, (this.sprinting ? 1.45 : 1) * this.perks.speed * (this.boostT > 0 ? ITEM.espresso.speed : 1) * (this.slowT > 0 ? 0.5 : 1));
+    this.bell.bounce(this);
     if (b.jumped) this.events.push({ type: "jump" });
     if (b.landSpeed > 4) this.events.push({ type: "land", speed: b.landSpeed });
     // Water: a ring at every few steps through it, a splash on jumping in.
@@ -368,10 +373,14 @@ export class Run {
       else if (shot.blast) this.blast(tool);
       else if (shot.spray) this.foam.spray(this, tool);
       else if (shot.blob) this.foam.blob(this, tool);
+      else if (shot.ring) this.bell.ring(this, tool);
+      else if (shot.lull !== undefined) this.bell.lull(this, tool, shot.lull);
       else this.fire(tool, shot);
     }
     this.stepBalls(dt);
     this.foam.step(this, dt);
+    this.bell.step(this, dt);
+    this.bell.stepRingables(this, dt);
     if (intent.item) this.useItem(intent.item);
 
     stepAnchors(this, dt);
@@ -677,6 +686,17 @@ export class Run {
       if (s.life <= 0) continue;
       s.life -= dt;
       if (s.g) s.vy -= s.g * dt;
+      // Batted back by the bell: it stings the first glitch in its way.
+      if (s.back) {
+        const f = backHit(this, s);
+        if (f) {
+          if (s.splash) { this.burstSpit(s); continue; }
+          s.life = 0;
+          if (damageFoe(this, f, s.backDmg, s.vx / 20, s.vz / 20, false)) this.stats.popped++;
+          this.events.push({ type: "spitPop", x: s.x, y: s.y, z: s.z, kind: s.kind });
+          continue;
+        }
+      }
       const l = Math.hypot(s.vx, s.vy, s.vz) * dt;
       const hit = this.world.raycast(s.x, s.y, s.z, s.vx * dt / l, s.vy * dt / l, s.vz * dt / l, l);
       s.x += s.vx * dt; s.y += s.vy * dt; s.z += s.vz * dt;
@@ -698,6 +718,10 @@ export class Run {
     if (s.splash && !s.harmless) {
       const b = this.body;
       if (Math.hypot(b.x - s.x, b.z - s.z) < s.splash && Math.abs(b.y + 0.8 - s.y) < 2) this.hurt(s.dmg, s.x, s.z);
+    }
+    // A bubble batted back by the bell soaks the glitches it lands on.
+    if (s.splash && s.back) for (const f of this.foes) {
+      if (f.alive && Math.hypot(f.px - s.x, f.pz - s.z) < s.splash + f.def.r && Math.abs(f.cy - s.y) < 2.2 && damageFoe(this, f, s.backDmg + 1, 0, 0, false)) this.stats.popped++;
     }
     this.events.push({ type: "spitPop", x: s.x, y: s.y, z: s.z, splash: s.splash || 0, kind: s.kind });
   }

@@ -43,6 +43,9 @@ export class Sfx {
           break;
         case "foamSpray": case "foamBlob": A.play(e.type); break;
         case "foamSplat": case "foamSet": case "foamGone": case "foamStuck": case "foamFree": A.play(e.type, 0, e.x, e.z); break;
+        case "bellRing": A.play(e.type); break;
+        case "bellLull": A.play(e.type, e.k); break;
+        case "bellBat": case "foeSleep": case "foeWake": case "foeDrowsy": case "jellyWobble": case "boing": case "souffleFall": A.play(e.type, 0, e.x, e.z); break;
         case "clockSkip": A.play("clockSkip", e.back ? 1 : 0, e.x, e.z); break;
         case "slowed": A.play("slowed"); break;
         case "clockWind": case "clockRing": case "pencilCrouch": case "pencilSpin": case "dizzy":
@@ -88,7 +91,9 @@ export class Sfx {
     A.listener(b.x, b.z, b.yaw);
     if (!playing) { A.stopLoops(); return; }
     const tool = run.activeTool;
-    A.loop("charge", tool.charging ? 0.05 + tool.charge : 0);
+    const bell = tool.id === "bell";
+    A.loop("charge", tool.charging && !bell ? 0.05 + tool.charge : 0);
+    A.loop("hum", tool.charging && bell ? 0.05 + tool.charge : 0);
     A.loop("suck", tool.sucking ? 0.6 + Math.min(0.4, tool.heat) : 0);
     if (tool.overheated && !this.wasHot) A.play("overheat");
     if (!tool.overheated && this.wasHot) A.play("cooled");

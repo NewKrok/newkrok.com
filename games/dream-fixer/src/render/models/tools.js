@@ -224,3 +224,63 @@ export function foamCannon(b, { hand = true } = {}) {
 
   if (hand) glovedHand(b);
 }
+
+// The Lullaby Bell: a brass bell laid on its side, mouth forward, with a
+// lilac glow deep inside and a clapper hanging in it; a little mallet on
+// top that strikes it, and a wooden music box on the left whose crank
+// turns while you hum a lullaby. Nodes: "hammer" (raised, falls on a
+// ring), "clapper" (swings), "crank" (turns), "hum" (the glow inside).
+export const BELL_MUZZLE = [0, 0.03, -0.29];
+const BELL_GLOW = 0xc8b0ff;
+
+export function lullabyBell(b, { hand = true } = {}) {
+  const CY = 0.03, z0 = -0.1;
+  b.at([0, -0.055, 0.045], [-0.3, 0, 0], 1, () => {
+    b.add(SHAPE.box(0.042, 0.13, 0.058, 0.013), { grad: [C.woodD, C.woodL], facet: 0.08 });
+    b.add(SHAPE.box(0.048, 0.018, 0.064, 0.006), { p: [0, -0.068, 0], c: C.brassD, mat: "metal" });
+  });
+  b.add(SHAPE.box(0.01, 0.03, 0.012, 0.003), { p: [0, -0.012, -0.03], r: [0.25, 0, 0], c: C.iron, mat: "metal" });
+  b.add(SHAPE.torus(0.03, 0.0045, 5, 12, Math.PI), { p: [0, -0.005, -0.028], r: [0, RX, Math.PI], c: C.brassD, mat: "metal" });
+  // A wooden stock from the grip up to the bell's crown.
+  b.add(SHAPE.box(0.05, 0.034, 0.12, 0.01), { p: [0, CY - 0.03, -0.01], grad: [C.woodD, C.wood], facet: 0.06 });
+  b.add(SHAPE.box(0.054, 0.008, 0.124, 0.003), { p: [0, CY - 0.012, -0.01], c: C.brassD, mat: "metal" });
+
+  // ── The bell ──
+  const prof = [[0.016, 0], [0.025, 0.012], [0.029, 0.04], [0.031, 0.07], [0.036, 0.1], [0.045, 0.13], [0.058, 0.155], [0.064, 0.167], [0.062, 0.175], [0.055, 0.169], [0.042, 0.14], [0.028, 0.1]];
+  b.add(SHAPE.lathe(prof, 20), { p: [0, CY, z0], r: [-RX, 0, 0], grad: [C.brassD, C.brassL], mat: "metal", facet: 0.015 });
+  // The crown at the back, a knob and a collar.
+  b.add(SHAPE.ball(0.022, 10, 7), { p: [0, CY, z0 + 0.008], c: C.brass, mat: "metal" });
+  b.add(SHAPE.torus(0.03, 0.005, 5, 16), { p: [0, CY, z0 - 0.035], c: C.copper, mat: "metal" });
+  // A ring of engraved stars round the waist.
+  for (let i = 0; i < 6; i++) {
+    const a = i * Math.PI / 3 + 0.3;
+    b.add(SHAPE.ball(0.004, 6, 4), { p: [Math.sin(a) * 0.04, CY + Math.cos(a) * 0.04, z0 - 0.1], c: BELL_GLOW, mat: "glow", glow: 1.2 });
+  }
+  // The glowing lip and the glow deep inside.
+  b.add(SHAPE.torus(0.059, 0.004, 5, 22), { p: [0, CY, BELL_MUZZLE[2] + 0.012], c: BELL_GLOW, mat: "glow", glow: 2.2 });
+  b.node("hum", [0, CY, z0 - 0.09], [0, 0, 0], (n) => n.add(SHAPE.cyl(0.03, 0.03, 0.004, 14), { r: [RX, 0, 0], c: BELL_GLOW, mat: "glow", glow: 1.8 }));
+  // The clapper, hanging from the crown inside the bell.
+  b.node("clapper", [0, CY + 0.012, z0 - 0.06], [0, 0, 0], (n) => {
+    n.add(SHAPE.cyl(0.003, 0.003, 0.09, 6), { p: [0, -0.015, -0.04], r: [RX - 0.35, 0, 0], c: C.iron, mat: "metal" });
+    n.add(SHAPE.ball(0.014, 8, 6), { p: [0, -0.032, -0.085], c: C.brassD, mat: "metal" });
+  });
+
+  // ── The mallet on top: hinged at the back, its head over the shoulder ──
+  b.add(SHAPE.box(0.02, 0.022, 0.02, 0.004), { p: [0, CY + 0.032, z0 + 0.03], c: C.brassD, mat: "metal" });
+  b.node("hammer", [0, CY + 0.044, z0 + 0.03], [0, 0, 0], (n) => {
+    n.add(SHAPE.cyl(0.004, 0.004, 0.13, 6), { p: [0, 0, -0.065], r: [RX, 0, 0], c: C.woodL });
+    n.add(SHAPE.cyl(0.013, 0.013, 0.036, 10, 0.004), { p: [0, 0, -0.13], r: [0, 0, RX], c: C.red });
+    for (const s of [-1, 1]) n.add(SHAPE.cyl(0.0135, 0.0135, 0.004, 10), { p: [s * 0.018, 0, -0.13], r: [0, 0, RX], c: C.cream });
+  });
+
+  // ── The music box on the left, with its crank ──
+  b.add(SHAPE.box(0.034, 0.04, 0.056, 0.006), { p: [-0.05, CY - 0.012, -0.02], grad: [C.woodD, C.woodL], facet: 0.06 });
+  b.add(SHAPE.box(0.036, 0.006, 0.058, 0.002), { p: [-0.05, CY + 0.009, -0.02], c: C.brass, mat: "metal" });
+  b.add(SHAPE.cyl(0.006, 0.006, 0.012, 8), { p: [-0.072, CY - 0.012, -0.02], r: [0, 0, RX], c: C.brassD, mat: "metal" });
+  b.node("crank", [-0.078, CY - 0.012, -0.02], [0, 0, 0], (n) => {
+    n.add(SHAPE.box(0.004, 0.034, 0.006, 0.001), { p: [0, 0.015, 0], c: C.brass, mat: "metal" });
+    n.add(SHAPE.cyl(0.005, 0.005, 0.016, 6), { p: [-0.006, 0.03, 0], r: [0, 0, RX], c: C.cream });
+  });
+
+  if (hand) glovedHand(b);
+}

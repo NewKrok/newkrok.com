@@ -4,7 +4,7 @@
 // has cooled to `unlock`.
 
 // The order tools sit in your hands (and on the number keys).
-export const TOOL_ORDER = ["stabilizer", "vacuum", "foam"];
+export const TOOL_ORDER = ["stabilizer", "vacuum", "foam", "bell"];
 
 export const TOOLS = {
   stabilizer: {
@@ -48,6 +48,16 @@ export const TOOLS = {
     // how long it lasts (and blinks before it goes), how many at once.
     step: { r: 1.1, h: 1.0, ledge: 0.5, life: 15, warn: 3, max: 3 },
   },
+  // Pressed: a ring, a wave of sound running out in a cone that shoves
+  // glitches back and bats orbs back at whoever threw them. Held second
+  // action: hum a lullaby (the longer, the wider), released to send it
+  // out all round you: small glitches fall asleep, big ones get drowsy.
+  bell: {
+    interval: 0.42, heat: 0.2, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
+    range: 9, cone: 0.5, speed: 32, damage: 1, push: 8,
+    // r0…r1: the lullaby's reach, short hum to full; sleep / drowsy: seconds.
+    lull: { time: 0.9, min: 0.3, heat: 0.55, r0: 4, r1: 7.5, speed: 11, sleep: 6, drowsy: 4 },
+  },
 };
 
 export class ToolState {
@@ -70,6 +80,7 @@ export class ToolState {
   step(intent, dt, out) {
     if (this.id === "vacuum") return this.stepVacuum(intent, dt, out);
     if (this.id === "foam") return this.stepFoam(intent, dt, out);
+    if (this.id === "bell") return this.stepBell(intent, dt, out);
     const d = this.def;
     this.cd -= dt;
     this.sinceShot += dt;
@@ -141,6 +152,36 @@ export class ToolState {
       }
     }
     this.altHeld = !!intent.alt;
+    return out;
+  }
+
+  // The Lullaby Bell reports { ring } on a press and { lull: k } when a
+  // hummed lullaby is let go.
+  stepBell(intent, dt, out) {
+    const d = this.def, L = d.lull;
+    this.cd -= dt;
+    this.sinceShot += dt;
+    if (this.sinceShot > d.coolDelay) this.heat = Math.max(0, this.heat - d.cool * dt);
+    if (this.overheated && this.heat <= d.unlock) this.overheated = false;
+    if (this.overheated) { this.charge = 0; this.charging = false; return out; }
+    if (intent.alt) {
+      this.charging = true;
+      this.charge = Math.min(1, this.charge + dt / L.time);
+      this.sinceShot = 0;
+    } else if (this.charging) {
+      this.charging = false;
+      if (this.charge >= L.min) {
+        out.push({ lull: this.charge });
+        this.addHeat(L.heat * (0.5 + 0.5 * this.charge));
+        this.cd = d.interval;
+      }
+      this.charge = 0;
+    }
+    if (intent.fire && !this.charging && this.cd <= 0) {
+      out.push({ ring: true });
+      this.cd = d.interval;
+      this.addHeat(d.heat);
+    }
     return out;
   }
 

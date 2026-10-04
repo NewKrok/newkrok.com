@@ -1,4 +1,5 @@
-import { stabilizer, fuzzVacuum, foamCannon } from "./tools.js";
+import { stabilizer, fuzzVacuum, foamCannon, lullabyBell } from "./tools.js";
+import { jelly, souffle } from "./kitchen.js";
 import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./characters.js";
 import { anchor } from "./dream.js";
 import { vacuumBoss } from "./boss.js";
@@ -18,6 +19,9 @@ export const MODELS = {
   stabilizer: { build: stabilizer, frame: 0.55 },
   vacuum: { build: fuzzVacuum, frame: 0.55, anim: (o, t) => { o.userData.nodes.fan.rotation.z = t * 20; } },
   foam: { build: foamCannon, frame: 0.55, anim: (o, t) => { o.userData.nodes.pump.position.z = -0.105 + 0.06 + Math.abs(Math.sin(t * 2)) * 0.03; } },
+  bell: { build: lullabyBell, frame: 0.55, anim: (o, t) => { const N = o.userData.nodes; N.hammer.rotation.x = -0.5 + Math.abs(Math.sin(t * 2)) * 0.5; N.crank.rotation.x = t * 3; N.clapper.rotation.x = Math.sin(t * 4) * 0.15; } },
+  jelly: { build: jelly, frame: 3.2, anim: (o, t) => { const s = Math.sin(t * 9) * 0.08; o.userData.nodes.body.scale.set(1 - s * 0.6, 1 + s, 1 - s * 0.6); } },
+  souffle: { build: souffle, frame: 3.6, anim: (o, t) => { o.userData.nodes.puff.scale.y = 0.6 + Math.cos(t) * 0.4; } },
   csavar: {
     build: csavar, frame: 1.1,
     anim: (o, t) => {

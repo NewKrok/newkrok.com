@@ -48,7 +48,7 @@ Margó egyre idegesebb, mert „ennyi hibás álom nem szokott lenni”.
 2. **Ethan (10 éves), matekdolgozat előtti éjszaka:** az iskolafolyosók
    körbeérnek, ébresztőórák, ceruzák és egy dühös hátizsák támadnak, a
    főellenség a Piros Toll.
-3. **Réka, a szakács:** óriásivá nőtt konyha, elszabadult ételek, a
+3. **Rosie, a szakács:** óriásivá nőtt konyha, elszabadult ételek, a
    főellenség a Kuktafazék.
 4. **Béla bácsi:** zuhanós álom lebegő kertszigeteken, a régi vasútállomás
    emlékével. A főellenség a Nagy Ébresztőóra. Ez a legérzelmesebb fejezet.
@@ -146,15 +146,27 @@ töltéskorlát van, ami magától visszaáll.
 | **Stabilizátor** | Gyors, pontos „kisimító” lövés | Feltöltött lövés | 1. fejezet |
 | **Kócszívó** | A sugara mindent koptat, amit ér; a kis hibákat (legfeljebb hármat) és az álomport beszívja | A beszívott hibát szétpukkanó fonalgombócként lövi vissza, üres tartállyal légfúvás | 1. fejezet |
 | **Habágyú** | Lelassító hab | Megszilárduló habplatform (puzzle és mozgás) | 2. fejezet |
-| **Csengő** | Hanghullám, ami eltaszít | Kisebb hibák elaltatása | 3. fejezet |
+| **Altatócsengő** | Csengetés: kúpban szaladó hanghullám, ami hátralöki a hibákat, és a lövedékeiket visszaüti a dobójukra | Nyomva tartva altatódalt dúdol (minél tovább, annál messzebbre ér), elengedve körbefut: a kis hibák elalszanak, a nagyok csak elálmosodnak | 3. fejezet |
 | **Villáskulcs** | Közelharc és tárgyak megütése | — | Mindig nálad van |
+
+**Az Altatócsengő részletei.** Az alvó hiba lefekszik, „Z”-k szállnak
+belőle, és semmit sem csinál pár másodpercig; az első találat felébreszti,
+és duplán számít (a saját csengetésed is felkelti). A nagyok (kád,
+hátizsák, csomó, hegyező) nem alszanak el, csak lelassulnak. A
+visszaütött lövedék neked már nem árt, a hibáknak igen (a buborék
+körben fröccsen). A hang falon nem megy át. Az álomban vannak dolgok,
+amik felelnek a csengőre (`kit.ringable`): a **zselé** megrezzen, és
+amíg rezeg, trambulin (kb. 4–5 méterre dob fel); a **szuflé** egy
+csengetésre végleg összeesik, és szabad az út. A főellenség kaphat
+`rung` és `lulled` horgot.
 
 A Gyár **munkapadján** álomporért lehet vásárolni, négy fülön, mindenről
 forgatható 3D előnézettel és „most → következő” értékkel:
 
 - **Szerszámok:** szerszámonként 3–4 fejlesztés, mindegyik 2–3 szinttel
   (hűtés, sebzés, tűzgyorsaság, töltés; a Kócszívónál hatótáv, sugár,
-  tartály, robbanás).
+  tartály, robbanás; az Altatócsengőnél perem, nyelv, altatódal,
+  zenedoboz).
 - **Szerelő:** éberség, párnázott mellény (kevesebb sebzés), futás,
   sebesség, pormágnes, porszita (több por), nagyobb zseb (több kellék).
 - **Cog:** gyűjtőkar (elrepül a messzi porért és hozza), ápoló modul (csendes
@@ -245,7 +257,9 @@ kód többi része az adataiból dolgozik:
 
 **Fejlesztői pályák:** a `dev: true` pálya nem kerül a táblára, és nem
 ment haladást; `?level=<id>` (csak dev) ott indít. A `lab` a Habágyú
-próbapályája, minden szerszámmal.
+próbapályája, a `belllab` az Altatócsengőé (altatnivaló csapat,
+dobálós hibák a visszaütéshez, zselék egy teraszhoz és egy oszlophoz,
+szuflé egy fal résében), mindkettő minden szerszámmal.
 
 **Modellminőség:** lesz egy fejlesztői modellnéző (`?model=<id>`), ami egy
 modellt forgatva mutat. A headless screenshotokon így minden modellt

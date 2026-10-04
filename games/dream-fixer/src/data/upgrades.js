@@ -31,6 +31,11 @@ export const UPGRADES = [
   { id: "foam_mix", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [50, 100, 160], stat: (l) => `${num(TOOLS.foam.hold + 0.7 * l)} s` },
   { id: "foam_set", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [40, 85, 140], stat: (l) => `${TOOLS.foam.step.life + 5 * l} s` },
   { id: "foam_tank", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [80, 160], stat: (l) => String(TOOLS.foam.step.max + l) },
+  // ── The Lullaby Bell (once you have it) ──
+  { id: "bell_rim", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [45, 90, 150], stat: (l) => `${num(TOOLS.bell.range + 1.5 * l)} m` },
+  { id: "bell_clapper", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [50, 100, 160], stat: (l) => pct(1 + 0.25 * l) },
+  { id: "bell_lull", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [55, 110, 170], stat: (l) => `${num(TOOLS.bell.lull.sleep + 1.5 * l)} s` },
+  { id: "bell_box", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [60, 120], stat: (l) => `${num(TOOLS.bell.lull.r1 + 1.5 * l)} m` },
   // ── You ──
   { id: "wake_coffee", tab: "me", model: "mugCoffee", costs: [45, 90, 150], stat: (l) => String(maxHpFor({ wake_coffee: l })) },
   { id: "wake_pad", tab: "me", model: "vest", costs: [55, 110, 180], stat: (l) => pct(1 - 0.1 * l) },
@@ -88,6 +93,12 @@ export function toolDef(id, owned = {}) {
     d.hold += 0.7 * m;
     d.step.life += 5 * s;
     d.step.max += k;
+  } else if (id === "bell") {
+    const r = L("bell_rim"), c = L("bell_clapper"), s = L("bell_lull"), b = L("bell_box");
+    d.range += 1.5 * r; d.cone *= 1 + 0.1 * r;
+    d.damage *= 1 + 0.25 * c; d.push *= 1 + 0.15 * c;
+    d.lull.sleep += 1.5 * s; d.lull.drowsy += 1 * s;
+    d.lull.r1 += 1.5 * b; d.lull.r0 += 0.5 * b; d.lull.time *= 1 - 0.15 * b; d.lull.heat *= 1 - 0.1 * b;
   }
   return d;
 }

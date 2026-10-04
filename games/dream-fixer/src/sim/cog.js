@@ -124,7 +124,7 @@ export class Cog {
     const b = run.body;
     let best = null, bd = range;
     for (const f of run.foes) {
-      if (!f.alive || f.state === "spawn" || !(f.aware || f.group)) continue;
+      if (!f.alive || f.state === "spawn" || f.sleepT > 0 || !(f.aware || f.group)) continue;
       const d = Math.hypot(f.px - b.x, f.pz - b.z);
       if (d >= bd) continue;
       const ex = f.px - this.x, ey = f.cy - this.y, ez = f.pz - this.z, l = Math.hypot(ex, ey, ez);

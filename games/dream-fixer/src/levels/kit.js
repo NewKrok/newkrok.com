@@ -17,6 +17,7 @@ export class Kit {
     this.marks = {};           // named points for the story and the spawner
     this.lights = [];
     this.waters = [];          // { x, z, w, d, y }: pond surfaces (drawn by the renderer)
+    this.ringables = [];       // things the Lullaby Bell sets off (drawn by the renderer)
     this.floorLimit = 50;      // indoors: below the ceiling
   }
 
@@ -95,9 +96,25 @@ export class Kit {
     for (const p of this.waters) if (Math.abs(x - p.x) < p.w / 2 && Math.abs(z - p.z) < p.d / 2) return p.y;
     return null;
   }
+  // Something that answers the Lullaby Bell, drawn and moved by the
+  // renderer. "jelly": wobbles when rung, and while it does it throws you
+  // up (o.boing: take-off speed); "souffle": a tall puffed one that falls
+  // flat for good (a way that opens). o: { r, h, y, color }.
+  ringable(kind, x, z, o = {}) {
+    const y = o.y ?? this.floorAt(x, z);
+    const D = RINGABLE[kind], r = o.r ?? D.r, h = o.h ?? D.h;
+    const c = this.world.cyl({ x, z, r, y0: y - 0.3, y1: y + h, tag: kind });
+    this.ringables.push({ id: `${kind}${this.ringables.length}`, kind, x, z, ...D, ...o, y, r, h, c });
+  }
   mark(name, x, z, y) { this.marks[name] = { x, y: y ?? this.floorAt(x, z), z }; }
   light(x, y, z, color, intensity = 6, dist = 9) { this.lights.push({ x, y, z, color, intensity, dist }); }
 }
+
+// What each kind of ringable is like unless the level says otherwise.
+const RINGABLE = {
+  jelly: { r: 1.1, h: 1, wobble: 4.5, boing: 13.5, color: 0xff5a6e },
+  souffle: { r: 1.2, h: 2.6, low: 0.35, color: 0xf2c46a },
+};
 
 export function buildLevel(def) {
   const k = new Kit();

@@ -120,6 +120,7 @@ export function stepFoes(run, dt) {
     const fdt = foamed(run, f, dt);
     f.t += fdt;
     if (f.state === "spawn") { if (f.t > 0.5) setState(f, "idle"); else continue; }
+    if (f.sleepT > 0) { doze(run, f, dt); continue; }
     if (!fdt) {
       // Stuck fast in foam, a flyer drops to the ground.
       if (f.def.fly) {
@@ -174,9 +175,11 @@ function foamed(run, f, dt) {
     if (f.stuckT <= 0) { f.foam = FOAM.after; run.events.push({ type: "foamFree", id: f.id, x: f.px, y: f.cy, z: f.pz }); }
     return 0;
   }
-  if (!f.foam) return dt;
+  // (Drowsy from the bell's lullaby: half asleep on its feet.)
+  const drowsy = f.drowsyT > 0 ? ((f.drowsyT -= dt), SLEEP.drowsy) : 1;
+  if (!f.foam) return dt * drowsy;
   f.foam = Math.max(0, f.foam - FOAM.dry * dt);
-  return dt * (1 - FOAM.slow * Math.min(1, f.foam));
+  return dt * drowsy * (1 - FOAM.slow * Math.min(1, f.foam));
 }
 
 // Foam on a glitch (`amount`, 1 fills it); `hold` overrides how long a
@@ -193,6 +196,54 @@ export function foamFoe(run, f, amount, hold = FOAM.hold) {
     run.events.push({ type: "foamStuck", id: f.id, kind: f.kind, x: f.px, y: f.cy, z: f.pz });
   }
 }
+
+// ── Sleep ──
+// The Lullaby Bell's lullaby puts a small glitch to sleep for a while: it
+// sinks to the ground and does nothing at all. A hit wakes it, and that
+// first one counts WAKE times. A big or rooted one only gets drowsy (its
+// whole world runs at DROWSY speed).
+export const SLEEP = { wake: 2, drowsy: 0.45 };
+const sleeps = (f) => !f.def.big && !f.def.still && !f.def.steady && f.def.hp <= 6;
+
+export function lullFoe(run, f, sleep, drowsy) {
+  if (!f.alive || f.state === "spawn") return;
+  if (!sleeps(f)) {
+    f.drowsyT = Math.max(f.drowsyT || 0, drowsy);
+    run.events.push({ type: "foeDrowsy", id: f.id, x: f.px, y: f.cy, z: f.pz });
+    return;
+  }
+  if (!(f.sleepT > 0)) run.events.push({ type: "foeSleep", id: f.id, kind: f.kind, x: f.px, y: f.cy, z: f.pz });
+  f.sleepT = Math.max(f.sleepT || 0, sleep);
+  // Whatever it was about to do, it forgets.
+  setState(f, "idle");
+  f.spin = 0; f.mark = null; f.guard = 1; f.leap = false; f.hitDone = true;
+  if (f.body) { f.body.vx = 0; f.body.vz = 0; } else { f.vx = 0; f.vz = 0; }
+}
+
+function doze(run, f, dt) {
+  f.sleepT -= dt;
+  if (f.body) {
+    // Out cold: it drops where it stood (still falls off an edge).
+    const was = f.body.grounded;
+    f.body.step(run.world, NOTHING, dt, 0);
+    keepOn(run, f.body, was);
+    if (f.body.fell) { f.alive = false; f.hp = 0; f.lost = true; }
+  } else if (f.def.fly) {
+    const floor = run.kit.floorAt(f.x, f.z, f.y + 0.5) + 0.3;
+    f.vy = (f.vy || 0) - 12 * dt; f.y += f.vy * dt;
+    if (f.y < floor) { f.y = floor; f.vy = 0; }
+  }
+  if (f.sleepT <= 0) wake(run, f);
+}
+
+function wake(run, f) {
+  f.sleepT = 0;
+  setState(f, "idle");
+  f.cd = Math.max(f.cd, 0.6);
+  run.events.push({ type: "foeWake", id: f.id, x: f.px, y: f.cy, z: f.pz });
+}
+
+const NOTHING = { forward: 0, strafe: 0 };
 
 // The last guard at the brink: a walker that stepped off a drop on its own
 // (crowded, sliding along the edge) is put back where it stood.
@@ -611,7 +662,10 @@ export function damageFoe(run, f, dmg, dx, dz, big) {
   if (!f.alive || f.state === "spawn" && f.t < 0.2) return false;
   // Stuck in foam: it cannot dodge or roll with it.
   const stuck = f.stuckT > 0;
-  f.hp -= (stuck ? dmg * FOAM.hurt : dmg) * (f.guard ?? 1);
+  // Asleep: the hit wakes it, and hurts twice as much.
+  const rude = f.sleepT > 0;
+  if (rude) wake(run, f);
+  f.hp -= (stuck ? dmg * FOAM.hurt : dmg) * (f.guard ?? 1) * (rude ? SLEEP.wake : 1);
   f.flash = 1;
   // Hit from afar: it comes for you, and so do the ones round it. The calm
   // of the arrival spot is over once you start a fight.
