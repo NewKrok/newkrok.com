@@ -553,7 +553,7 @@ function weightedPick(R, list) {
   return list[list.length - 1][0];
 }
 
-// The Vigil: no horde, the keepers one after another, each with its own
+// The Vigil: the keepers one after another, each with its own
 // stage's strength.
 function tickRush(R) {
   const st = R.stage;
