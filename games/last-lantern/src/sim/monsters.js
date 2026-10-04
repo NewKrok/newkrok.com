@@ -1,4 +1,4 @@
-import { Vec2 } from "@newkrok/nape-js";
+import { Vec2, InteractionGroup } from "@newkrok/nape-js";
 import { DT, HERO_R, RECYCLE_DIST, SPAWN_MIN, SPAWN_MAX, clamp, lerp, hyp, wrapPi } from "../config.js";
 import { MON, WORM_SEGMENTS, WORM_SEG_R } from "../data/monsters.js";
 import {
@@ -478,6 +478,10 @@ function spawnWorm(R, x, y) {
   const head = spawnMonster(R, "wormhead", x, y);
   if (!head) return null;
   head.segs = [];
+  // Head and segments ignore one another: overlapping neighbours pushed
+  // each other sideways and the body ran in two rows.
+  const group = new InteractionGroup(true);
+  head.body.group = group;
   let prev = head, along = 0;
   const a = Math.atan2(y - heroY(R), x - heroX(R));
   for (let i = 0; i < WORM_SEGMENTS; i++) {
@@ -490,6 +494,7 @@ function spawnWorm(R, x, y) {
     s.parent = head;
     s.index = i;
     s.along = along;
+    s.body.group = group;
     head.segs.push(s);
     prev = s;
   }

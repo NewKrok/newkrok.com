@@ -67,8 +67,11 @@ export class Fx {
     this.ravenBeak = inst(scene, GEO.coneFwd, new T.MeshLambertMaterial({ color: 0x8a8070 }), 6, false);
     this.ravenEye = inst(scene, GEO.sph, new T.MeshBasicMaterial({ color: 0xffd060 }), 12, false);
     this.globs = inst(scene, GEO.sph, new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 }), 40);
-    this.pools = inst(scene, GEO.disc, add({ opacity: 0.35 }), 80);
-    this.poolRings = inst(scene, GEO.thinRing, add({ opacity: 0.6 }), 80);
+    // Pools are tinted, not lit: overlapping ones must not add up to white
+    // (a field of holy water bloomed into a glare). Their rims stay additive
+    // but dim.
+    this.pools = inst(scene, GEO.disc, add({ opacity: 0.3, blending: T.NormalBlending }), 80);
+    this.poolRings = inst(scene, GEO.thinRing, add({ opacity: 0.42 }), 80);
     this.scythes = inst(scene, new T.TorusGeometry(1, 0.12, 4, 12, Math.PI * 1.2), add({ color: 0xd0d8ff }), 6, false);
     this.pick = {};
     const pg = {
@@ -289,7 +292,7 @@ export class Fx {
       this.c.setHex(col).multiplyScalar(fade * (z.kind === "mud" ? 0.6 : z.kind === "smoke" ? 0.28 : 1));
       this.pools.setColorAt(nz, this.c);
       this.set(this.poolRings, nz, z.x, z.y, 1.4, 0, r, r, 1);
-      this.c.setHex(z.sun ? 0xfff0b0 : z.earth ? 0x3a2a18 : z.kind === "holy" ? 0xb8f0ff : z.kind === "fire" ? 0xffc070 : z.kind === "smoke" ? 0x2a2432 : 0x5a7a3a).multiplyScalar(fade);
+      this.c.setHex(z.sun ? 0xfff0b0 : z.earth ? 0x3a2a18 : z.kind === "holy" ? 0x5ab0e0 : z.kind === "fire" ? 0xffc070 : z.kind === "smoke" ? 0x2a2432 : 0x5a7a3a).multiplyScalar(fade);
       this.poolRings.setColorAt(nz, this.c);
       nz++;
     }
