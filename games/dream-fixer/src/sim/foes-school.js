@@ -414,3 +414,6 @@ function sharpener(run, f, dt, px, pcy, pz) {
 }
 
 export const SCHOOL = { clock, pencil, backpack, sharpener };
+
+// The walkers' shared bits, for the kitchen's glitches too.
+export const WALKER = { move, touching, bonk, lob, busy, potter, rr };

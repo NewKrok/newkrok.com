@@ -16,7 +16,7 @@ export class Sfx {
       switch (e.type) {
         case "shot": A.play(e.big ? "bigZap" : "zap"); if (e.foe || e.boss) A.play(e.boss ? "bossHit" : "hit", e.boss === "bag" ? 1 : 0); break;
         case "pop": A.play(e.big ? "bigPop" : "pop", 0, e.x, e.z); break;
-        case "spawn": if (e.kind === "knot" || e.kind === "sharpener") A.play("knotSpawn", 0, e.x, e.z); break;
+        case "spawn": if (e.kind === "knot" || e.kind === "sharpener" || e.kind === "grinder") A.play("knotSpawn", 0, e.x, e.z); break;
         case "spit": A.play("spit", 0, e.x, e.z); break;
         case "spitPop": A.play(e.splash ? "splash" : e.kind === "nut" ? "nutHit" : "orbPop", 0, e.x, e.z); break;
         case "nutWindup": A.play("chitter", 0, e.x, e.z); break;
@@ -44,6 +44,12 @@ export class Sfx {
         case "foamSpray": case "foamBlob": A.play(e.type); break;
         case "foamSplat": case "foamSet": case "foamGone": case "foamStuck": case "foamFree": A.play(e.type, 0, e.x, e.z); break;
         case "bellRing": A.play(e.type); break;
+        case "sneeze": case "steamBurn": A.play(e.type); break;
+        case "cookerLid": A.play(e.type, e.off ? 1 : 0, e.x, e.z); break;
+        case "meatWind": case "meatRoll": case "meatSplit": case "pepperShake": case "pepperWind": case "pepperBurst": case "pepperDodge": case "cloudBlown":
+        case "pinRock": case "pinRoll": case "pinRise": case "grindWind": case "grindPop":
+        case "cookerRattle": case "cookerSteam": case "cookerHop": case "cookerLand": case "cookerWhistle": case "cookerBlow":
+          A.play(e.type, 0, e.x, e.z); break;
         case "bellLull": A.play(e.type, e.k); break;
         case "bellBat": case "foeSleep": case "foeWake": case "foeDrowsy": case "jellyWobble": case "boing": case "souffleFall": A.play(e.type, 0, e.x, e.z); break;
         case "clockSkip": A.play("clockSkip", e.back ? 1 : 0, e.x, e.z); break;

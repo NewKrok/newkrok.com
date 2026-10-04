@@ -104,6 +104,18 @@ const DIRECTORS = {
     },
     on: { "spawn:sharpener": "sharpener", dizzy: "dizzy", slowed: "slowed", bossRise: "boss", "bossAttack:strike": "strike", penBlot: "blot", bossPhase: "phase", bossPop: "win" },
   }),
+  kitchen: dreamDirector("kitchen", {
+    meet: [["meatball", 12, "meatball"], ["pepper", 16, "pepper"], ["rollingpin", 16, "rollingpin"]],
+    // By the pantry door or under the counter: Cog says what is in the
+    // way, or (with the Lullaby Bell) what to do about it.
+    frame(D, run, dt, S, q) {
+      if (!q(1.5)) return;
+      const b = run.body, bell = run.tools.some((t) => t.id === "bell"), on = (id) => run.ringables.find((g) => g.id === id);
+      if (b.y < 1 && !on("door")?.flat && Math.abs(b.x + 12.5) < 3 && Math.abs(b.z + 4.8) < 3.5) D.say(bell ? "kitchen_flatten" : "kitchen_puffy");
+      else if (b.y < 1 && Math.hypot(b.x + 13, b.z + 16.4) < 4.5) D.say(bell ? "kitchen_bounce" : "kitchen_wobbly");
+    },
+    on: { "spawn:grinder": "grinder", meatSplit: "split", sneeze: "sneeze", dizzy: "dizzy", bossRise: "boss", cookerWhistle: "whistle", cookerLid: "lid", bossPhase: "phase", bossPop: "win" },
+  }),
   factory: {
     start(D, run, P) {
       // First time in: the welcome. Back from a dream: how it went. Any
@@ -121,6 +133,7 @@ const DIRECTORS = {
       // The journal: once ever, when you wander over to it (or a while later).
       // A new client calls once the last dream is done (not straight after it: that night is over).
       if (S.P?.done.includes("park") && !S.P.done.includes("school") && !S.P.log.includes("hub_newjob") && !D.said.has("hub_back1") && q(3)) D.say("hub_newjob");
+      if (S.P?.done.includes("school") && !S.P.done.includes("kitchen") && !S.P.log.includes("hub_newjob2") && !D.said.has("hub_back1") && q(3)) D.say("hub_newjob2");
       if (!S.P?.log.includes("hub_journal") && (from(run, -8.7, -4.2) < 3.5 || (S.time > 40 && (D.said.has("hub_intro3") || D.said.has("hub_back2")))) && q(2)) D.say("hub_journal");
     },
   },

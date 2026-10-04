@@ -2,6 +2,7 @@ import * as T from "three";
 import { make } from "./modelkit.js";
 import { vacuumBoss } from "./models/boss.js";
 import { redPen } from "./models/school.js";
+import { pressureCooker } from "./models/kitchen.js";
 import { C } from "./palette.js";
 import { lerp, damp } from "../config.js";
 
@@ -236,9 +237,130 @@ class PenBossView {
   }
 }
 
+
+// ── The Pressure Cooker on screen ──
+// Shuffles and jiggles, the gauge needle climbing with the pressure; in
+// the red it shakes and whistles. Its steam jets are long white beams
+// near the floor, a hop's landing spot a ring tightening; rung, the lid
+// rattles, and rattled off it flies up and away (the glow inside shows)
+// until it drops back on.
+class CookerBossView {
+  constructor(scene, fx) {
+    this.scene = scene; this.fx = fx;
+    this.o = null;
+    const beam = new T.CylinderGeometry(0.35, 0.7, 1, 10, 1, true).rotateX(Math.PI / 2).translate(0, 0, -0.5);
+    this.jets = [0, 1].map(() => {
+      const m = new T.Mesh(beam, new T.MeshBasicMaterial({ color: new T.Color(0xffffff).multiplyScalar(0.55), transparent: true, opacity: 0.5, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false, side: T.DoubleSide }));
+      m.visible = false; scene.add(m); return m;
+    });
+    this.ring = new T.Mesh(new T.RingGeometry(0.88, 1, 40).rotateX(-Math.PI / 2), new T.MeshBasicMaterial({ color: new T.Color(0xff9a60), side: T.DoubleSide, toneMapped: false, transparent: true, opacity: 0.8, depthWrite: false }));
+    this.ring.visible = false; scene.add(this.ring);
+    this.flashing = false;
+    this.lid = { t: 9, off: false };
+  }
+
+  clear() {
+    if (this.o) { this.scene.remove(this.o); this.o = null; }
+    for (const j of this.jets) j.visible = false;
+    this.ring.visible = false;
+    this.lid = { t: 9, off: false };
+  }
+
+  onEvent(e, run) {
+    const fx = this.fx;
+    if (e.type === "bossRise") {
+      const y = run.kit.floorAt(e.x, e.z);
+      for (let i = 0; i < 4; i++) fx.puff(e.x + (Math.random() - 0.5) * 4, y + 0.5, e.z + (Math.random() - 0.5) * 4, 2);
+      fx.ring([e.x, y + 0.1, e.z], [0, 1, 0], 0xffd0a0, 7, 0.8);
+    } else if (e.type === "cookerRattle") {
+      fx.burst([e.x, e.y, e.z], [0, 1, 0], 0xffffff, 8 + e.k * 10, 3, 0.05);
+      this.rattleKick = 1;
+    } else if (e.type === "cookerLid") {
+      this.lid = { t: 0, off: e.off };
+      fx.puff(e.x, e.y + 0.5, e.z, 2.4);
+      fx.burst([e.x, e.y, e.z], [0, 1, 0], e.off ? C.dreamPink : 0xffffff, 30, 6, 0.08);
+      if (e.off) fx.ring([e.x, e.y, e.z], [0, 1, 0], C.dreamPink, 4, 0.5);
+    } else if (e.type === "cookerLand" || e.type === "cookerBlow") {
+      const y = run.kit.floorAt(e.x, e.z);
+      for (let i = 0; i < (e.type === "cookerBlow" ? 8 : 4); i++) { const a = Math.random() * Math.PI * 2; fx.puff(e.x + Math.cos(a) * 2, y + 0.6, e.z + Math.sin(a) * 2, 1.6); }
+    } else if (e.type === "bossPop" && run.boss) {
+      for (let i = 0; i < 90; i++) {
+        const a = Math.random() * Math.PI * 2, u = Math.random() * 2 - 1, s = Math.sqrt(1 - u * u), v = 4 + Math.random() * 8;
+        fx.spark(e.x, e.y, e.z, Math.cos(a) * s * v, u * v + 3, Math.sin(a) * s * v, 0.8 + Math.random() * 0.8, 0.1 + Math.random() * 0.1, [C.dream, C.dreamPink, C.dreamGold, 0xd8302a][i % 4], 6);
+      }
+      for (let i = 0; i < 6; i++) fx.puff(e.x + (Math.random() - 0.5) * 2.5, e.y + (Math.random() - 0.5) * 2, e.z + (Math.random() - 0.5) * 2.5, 2.2);
+      fx.ring([e.x, e.y - 1.3, e.z], [0, 1, 0], C.dream, 16, 1.2);
+      if (this.o) this.o.visible = false;
+    }
+  }
+
+  update(run, alpha, dt, t) {
+    const B = run.boss;
+    if (!this.o) {
+      this.o = make(pressureCooker);
+      this.meshes = [];
+      this.o.traverse((m) => { if (m.isMesh) { this.meshes.push(m); m.userData.mat = m.material; } });
+      this.scene.add(this.o);
+    }
+    if (!B.alive) { this.o.visible = false; for (const j of this.jets) j.visible = false; this.ring.visible = false; return; }
+    const o = this.o, N = o.userData.nodes, b = B.body, st = B.state;
+    const rise = st === "rise" ? easeOut(B.rise) : 1;
+    const x = lerp(B.lx, b.x, alpha), y = lerp(B.ly, b.y + B.hopY, alpha) - (1 - rise) * 3.4, z = lerp(B.lz, b.z, alpha);
+    o.position.set(x, y, z);
+    o.rotation.y = B.yaw;
+    // Jiggles as it shuffles, squats before a hop, shakes in the red.
+    const hot = st === "whistle" ? 0.05 + B.t * 0.02 : st === "down" ? 0.06 : B.pressure > 0.75 ? 0.015 : 0;
+    const crouch = st === "hop" && B.t < 0.55 ? Math.min(1, B.t / 0.4) : 0;
+    N.body.rotation.set(Math.sin(t * 47) * hot, 0, Math.sin(t * 41) * hot + Math.sin(t * 8) * 0.02 * Math.min(1, b.speed2D));
+    N.body.scale.set(1 + crouch * 0.1, 1 - crouch * 0.15 + (B.hopY > 0.5 ? 0.06 : 0), 1 + crouch * 0.1);
+    N.needle.rotation.z = 2 - B.pressure * 4 + (st === "whistle" ? Math.sin(t * 50) * 0.1 : 0);
+    N.valve.rotation.y += dt * (st === "whistle" ? 40 : 2 + B.pressure * 8);
+    // The lid: lifted a little, rattling, flying off and dropping back on.
+    this.rattleKick = Math.max(0, (this.rattleKick || 0) - dt * 4);
+    const L = this.lid; L.t += dt;
+    const jig = (B.rattle * 0.06 + this.rattleKick * 0.08) * Math.sin(t * 60);
+    if (B.lidOff) {
+      const k = Math.min(1, L.t / 0.9);
+      N.lid.position.set(2.5 * k, 2.25 + 6 * k * (1.6 - k), 0);
+      N.lid.rotation.set(k * 3, 0, k * 2);
+      N.lid.visible = k < 1;
+    } else {
+      const k = L.off === false && L.t < 0.4 ? 1 - L.t / 0.4 : 0;
+      N.lid.visible = true;
+      N.lid.position.set(0, 2.25 + B.lidUp * 0.4 + k * 3 + Math.abs(jig), 0);
+      N.lid.rotation.set(jig, 0, jig * 0.7);
+    }
+    N.core.visible = B.lidOff;
+    if (B.lidOff && Math.random() < dt * 30) this.fx.spark(x + (Math.random() - 0.5) * 2, y + 2.4, z + (Math.random() - 0.5) * 2, 0, 3 + Math.random() * 2, 0, 0.8, 0.12, Math.random() < 0.5 ? 0xffffff : C.dreamPink, -1);
+    if ((st === "whistle" || B.pressure > 0.8) && !B.lidOff && Math.random() < dt * 25) this.fx.spark(x, y + 3.3, z + 0.5, (Math.random() - 0.5), 4, (Math.random() - 0.5), 0.5, 0.1, 0xffffff, -1);
+    // Steam jets.
+    for (let i = 0; i < 2; i++) {
+      const j = this.jets[i], a = B.jets[i];
+      j.visible = a !== undefined;
+      if (!j.visible) continue;
+      const len = 11;
+      j.position.set(x - Math.sin(a) * 1.5, y + 0.55, z - Math.cos(a) * 1.5);
+      j.rotation.set(0, a, 0);
+      j.scale.set(1 + Math.sin(t * 30 + i) * 0.1, 1, len);
+      if (Math.random() < 0.8) { const u = Math.random() * len; this.fx.spark(j.position.x - Math.sin(a) * u, y + 0.55 + (Math.random() - 0.5) * 0.4, j.position.z - Math.cos(a) * u, -Math.sin(a) * 6, 0.8, -Math.cos(a) * 6, 0.35, 0.12, 0xffffff, 0); }
+    }
+    // Steam about to come: puffs at the vents.
+    if (st === "steam" && !B.jets.length && Math.random() < 0.6) { const a = Math.random() * Math.PI * 2; this.fx.puff(x + Math.cos(a) * 1.6, y + 0.5, z + Math.sin(a) * 1.6, 0.5); }
+    // A hop's landing spot.
+    this.ring.visible = !!B.mark;
+    if (B.mark) {
+      const k = Math.min(1, B.t / 1.4);
+      this.ring.position.set(B.mark[0], B.mark[1] + 0.06, B.mark[2]);
+      this.ring.scale.setScalar(B.mark[3] * (1.6 - 0.6 * k));
+    }
+    const flash = B.flash > 0.6;
+    if (flash !== this.flashing) { for (const m of this.meshes) m.material = flash ? FLASH : m.userData.mat; this.flashing = flash; }
+  }
+}
+
 // ── Whichever nightmare the dream has ──
 // One view per boss kind, made when that boss first shows up.
-const VIEWS = { vacuum: VacuumBossView, pen: PenBossView };
+const VIEWS = { vacuum: VacuumBossView, pen: PenBossView, cooker: CookerBossView };
 
 export class BossView {
   constructor(scene, fx) { this.scene = scene; this.fx = fx; this.views = {}; this.curtain = null; }

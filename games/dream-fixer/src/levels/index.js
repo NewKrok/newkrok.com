@@ -1,6 +1,7 @@
 import { factory } from "./factory.js";
 import { park } from "./park.js";
 import { school } from "./school.js";
+import { kitchen } from "./kitchen.js";
 import { lab } from "./lab.js";
 import { belllab } from "./belllab.js";
 
@@ -9,12 +10,12 @@ import { belllab } from "./belllab.js";
 // CLIENTS is the board in story order: a client whose dream is built has a
 // `level`; `after` is the dream that has to be fixed before they call.
 
-export const LEVELS = { factory, park, school, lab, belllab };
+export const LEVELS = { factory, park, school, kitchen, lab, belllab };
 
 export const CLIENTS = [
   { id: "park", level: "park" },
   { id: "school", level: "school", after: "park" },
-  { id: "kitchen", after: "school" },
+  { id: "kitchen", level: "kitchen", after: "school" },
   { id: "garden", after: "kitchen" },
   { id: "space", after: "garden" },
 ];

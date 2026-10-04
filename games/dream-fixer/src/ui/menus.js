@@ -232,7 +232,7 @@ export class Menus {
   result(run, { onFactory, onAgain }) {
     const s = run.stats, m = Math.floor(run.time / 60), sec = String(Math.floor(run.time % 60)).padStart(2, "0");
     const mems = run.memories.filter((x) => x.got).length;
-    this.show("result", `<div class="panel narrow result-card"><h2>${esc(t("dreamFixed"))}</h2><p>${esc(t("dreamFixedSub"))}</p><p class="outro">${esc(outroText(run.def.id))}</p><table>
+    this.show("result", `<div class="panel narrow result-card"><h2>${esc(t("dreamFixed"))}</h2><p>${esc(t(`dreamFixedSub_${run.def.id}`) === `dreamFixedSub_${run.def.id}` ? t("dreamFixedSub") : t(`dreamFixedSub_${run.def.id}`))}</p><p class="outro">${esc(outroText(run.def.id))}</p><table>
       <tr><td>${esc(t("r_time"))}</td><td>${m}:${sec}</td></tr><tr><td>${esc(t("r_dust"))}</td><td>+${run.dust} ✦</td></tr>
       <tr><td>${esc(t("memories"))}</td><td>${mems}/${run.memories.length}</td></tr>
       <tr><td>${esc(t("r_popped"))}</td><td>${s.popped}</td></tr><tr><td>${esc(t("r_faints"))}</td><td>${run.faints}</td></tr></table>

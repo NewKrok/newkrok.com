@@ -12,6 +12,7 @@ import { toolDef, maxHpFor, magnetFor, perksFor, ITEM } from "../data/upgrades.j
 import { Cog } from "./cog.js";
 import { Foam } from "./foam.js";
 import { Bell, backHit } from "./bell.js";
+import { SNEEZE } from "./foes-kitchen.js";
 
 // ── One visit to a dream ─────────────────────────────────────────────────
 // Everything that happens in a level, with no rendering: the body, the
@@ -28,7 +29,7 @@ export const DIFFICULTY = {
 
 // Wakefulness does not come back by itself: popped glitches now and then
 // leave a dream drop behind (chance per kind; better when you are low).
-const HEAL = { amount: 6, life: 30, magnet: 5, chance: { fuzz: 0.2, bunny: 0.1, buzzer: 0.25, tub: 0.6, knot: 0.6, clock: 0.25, pencil: 0.2, backpack: 0.6, sharpener: 0.6 } };
+const HEAL = { amount: 6, life: 30, magnet: 5, chance: { fuzz: 0.2, bunny: 0.1, buzzer: 0.25, tub: 0.6, knot: 0.6, clock: 0.25, pencil: 0.2, backpack: 0.6, sharpener: 0.6, meatball: 0.12, pepper: 0.25, rollingpin: 0.6, grinder: 0.6 } };
 // Falling off the dream costs a bit too.
 const FALL_DMG = 12;
 
@@ -78,6 +79,8 @@ export class Run {
     this.shocks = [];
     this.pulses = [];             // an alarm clock's slowing rings
     this.slowT = 0;               // slowed down by one (seconds left)
+    this.clouds = [];             // pepper clouds hanging over the floor
+    this.sneezeT = 0;             // how close the next sneeze is (in a cloud)
     this.stats = { popped: 0, shots: 0, hits: 0 };
     this.anchors = this.kit.anchors.map((a) => new Anchor(a));
     this.nearAnchor = null;
@@ -212,7 +215,7 @@ export class Run {
     for (const f of this.foes) if (f.alive && f.group === "boss") { f.alive = false; this.events.push({ type: "pop", kind: f.kind, id: f.id, x: f.px, y: f.cy, z: f.pz, calm: true }); }
     this.boss = null; this.coreT = -1;
     this.unseal();
-    this.shocks.length = 0; this.pulses.length = 0; this.bell.waves.length = 0;
+    this.shocks.length = 0; this.pulses.length = 0; this.bell.waves.length = 0; this.clouds.length = 0;
     this.events.push({ type: "bossReset" });
   }
 
@@ -249,6 +252,27 @@ export class Run {
       }
     }
     this.pulses = this.pulses.filter((p) => p.r < p.max);
+  }
+
+  // Pepper clouds: stand in one and you sneeze now and then (the view
+  // jerks, it stings). They thin out and go by themselves.
+  stepClouds(dt) {
+    const b = this.body;
+    let inside = false;
+    for (const c of this.clouds) {
+      c.t += dt;
+      const k = c.t > c.life - 1 ? c.life - c.t : 1;
+      if (Math.hypot(b.x - c.x, b.z - c.z) < c.r * Math.max(0.3, k) && b.y - c.y < 2.2 && b.y > c.y - 1) inside = true;
+    }
+    this.clouds = this.clouds.filter((c) => c.t < c.life);
+    if (!inside) { this.sneezeT = Math.max(0, this.sneezeT - dt); return; }
+    this.sneezeT += dt;
+    if (this.sneezeT < SNEEZE.every) return;
+    this.sneezeT = 0;
+    b.yaw += (this.rnd() - 0.5) * 2 * SNEEZE.yaw;
+    b.pitch = Math.max(-1.4, Math.min(1.4, b.pitch + (this.rnd() - 0.3) * SNEEZE.pitch));
+    this.events.push({ type: "sneeze" });
+    this.hurt(SNEEZE.dmg, b.x, b.z);
   }
 
   stepShocks(dt) {
@@ -447,6 +471,7 @@ export class Run {
     this.stepHeals(dt);
     this.stepShocks(dt);
     this.stepPulses(dt);
+    this.stepClouds(dt);
     this.foes = this.foes.filter((f) => f.alive || f.age < 0.1);
   }
 
@@ -610,6 +635,7 @@ export class Run {
       s.vx += ex / el * 40 * dt; s.vy += ey / el * 40 * dt; s.vz += ez / el * 40 * dt;
       if (el < 1.2) { s.life = 0; s.harmless = true; this.events.push({ type: "spitPop", x: s.x, y: s.y, z: s.z, sucked: true }); }
     }
+    for (const c of this.clouds) if (this.inCone(c.x, c.y + 0.8, c.z, d.range + c.r, d.cone + 0.3)) c.life = Math.min(c.life, c.t + 0.6);
     for (const m of this.dustMotes) if (m.t > 0.2 && this.inCone(m.x, m.y, m.z, d.range * 1.5, d.cone * 1.3)) {
       const ex = nx - m.x, ey = ny - m.y, ez = nz - m.z, el = Math.hypot(ex, ey, ez) || 1;
       m.vx += ex / el * 60 * dt; m.vy += ey / el * 60 * dt; m.vz += ez / el * 60 * dt;

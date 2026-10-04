@@ -67,7 +67,8 @@ function spawnWave(run, a, w) {
     for (let i = 0; i < n; i++) {
       const p = list[k % list.length].p; k++;
       const j = (run.rnd() - 0.5) * 1.6;
-      run.spawn(kind, p[0] + j, p[1] - j, { group: a.id });
+      // (On the floor round the anchor: not on a table over it.)
+      run.spawn(kind, p[0] + j, p[1] - j, { group: a.id, y: run.kit.floorAt(p[0] + j, p[1] - j, a.y + 2) });
     }
   }
 }

@@ -71,6 +71,13 @@ export class Bell {
           break;
         }
       }
+      // A ring blows pepper clouds away.
+      if (!w.lull) for (const c of run.clouds) {
+        if (w.hit.has(c.id) || !passes(c.x, c.y + 0.8, c.z, c.r)) continue;
+        w.hit.add(c.id);
+        c.life = Math.min(c.life, c.t + 0.3);
+        run.events.push({ type: "cloudBlown", x: c.x, y: c.y + 0.8, z: c.z });
+      }
       for (const g of run.ringables) {
         if (w.hit.has(g.id) || !passes(g.x, g.y + g.h * 0.5, g.z, g.r)) continue;
         w.hit.add(g.id);

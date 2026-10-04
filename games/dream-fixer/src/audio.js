@@ -11,13 +11,14 @@
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const hz = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
-const GAP = { bellRing: 0.08, bellBat: 0.05, boing: 0.12, foeSleep: 0.08, foeWake: 0.1, foeDrowsy: 0.1, clockWind: 0.2, clockRing: 0.3, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
+const GAP = { sneeze: 0.3, meatRoll: 0.15, pepperShake: 0.3, pepperBurst: 0.1, pinRoll: 0.2, steamBurn: 0.3, cookerRattle: 0.08, bellRing: 0.08, bellBat: 0.05, boing: 0.12, foeSleep: 0.08, foeWake: 0.1, foeDrowsy: 0.1, clockWind: 0.2, clockRing: 0.3, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
 
 const SONGS = {
   menu: { root: 60, bpm: 76, scale: [0, 2, 4, 7, 9], prog: [0, -3, 5, -5], lead: "box", drums: 0 },
   factory: { root: 58, bpm: 84, scale: [0, 2, 4, 5, 7, 9], prog: [0, 5, -3, -5], lead: "box", drums: 0.3 },
   park: { root: 62, bpm: 100, scale: [0, 2, 4, 7, 9], prog: [0, 5, -3, -5], lead: "box", drums: 0.5 },
   school: { root: 65, bpm: 112, scale: [0, 2, 4, 5, 7, 9], prog: [0, 4, 5, 3], lead: "box", drums: 0.6 },
+  kitchen: { root: 60, bpm: 118, scale: [0, 2, 4, 5, 7, 9, 10], prog: [0, 5, 3, 4], lead: "box", drums: 0.65 },
   boss: { root: 57, bpm: 122, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, -4, -2, -5], lead: "square", drums: 1 },
   win: { root: 64, bpm: 90, scale: [0, 2, 4, 7, 9], prog: [0, 5, 7, 0], lead: "box", drums: 0 },
 };
@@ -212,6 +213,29 @@ export class Audio {
       case "foeWake": S(0.12, { type: "triangle", freq: 500, freqEnd: 1300, gain: 0.06 }); break;
       case "jellyWobble": [0, 0.08, 0.16, 0.24].forEach((dt, i) => at(dt, (tt) => this.#tone(d, tt, 0.09, { type: "sine", freq: 180 - i * 15, freqEnd: 260 - i * 20, gain: 0.08 }))); break;
       case "boing": S(0.35, { type: "sine", freq: 140, freqEnd: 620, gain: 0.16 }); S(0.25, { type: "triangle", freq: 280, freqEnd: 1000, gain: 0.05 }); break;
+      // Rosie's kitchen.
+      case "meatWind": S(0.4, { type: "triangle", freq: 120, freqEnd: 80, gain: 0.1 }); break;
+      case "meatRoll": N(0.6, { type: "lowpass", freq: 600, freqEnd: 300, gain: 0.12 }); S(0.5, { type: "triangle", freq: 90, freqEnd: 140, gain: 0.08 }); break;
+      case "meatSplit": S(0.15, { freq: 300, freqEnd: 900, gain: 0.08 }); N(0.12, { type: "bandpass", freq: 900, q: 2, gain: 0.08 }); break;
+      case "pepperShake": [0, 0.08, 0.16, 0.24, 0.32].forEach((dt) => at(dt, (tt) => this.#noise(d, tt, 0.06, { type: "highpass", freq: 4000, gain: 0.06 }))); break;
+      case "pepperWind": S(0.4, { type: "square", freq: 500, freqEnd: 800, gain: 0.025 }); break;
+      case "pepperBurst": N(0.12, { type: "highpass", freq: 3000, gain: 0.08 }); S(0.08, { type: "square", freq: 1200, freqEnd: 600, gain: 0.03 }); break;
+      case "pepperDodge": S(0.12, { freq: 900, freqEnd: 1800, gain: 0.04 }); break;
+      case "sneeze": N(0.18, { type: "bandpass", freq: 1500, q: 1, gain: 0.05, attack: 0.12 }); at(0.2, (tt) => { this.#noise(d, tt, 0.3, { type: "bandpass", freq: 2500, freqEnd: 900, q: 0.8, gain: 0.22 }); this.#tone(d, tt, 0.2, { type: "triangle", freq: 500, freqEnd: 250, gain: 0.08 }); }); break;
+      case "cloudBlown": N(0.4, { type: "bandpass", freq: 800, freqEnd: 2500, q: 1, gain: 0.08 }); break;
+      case "pinRock": [0, 0.15, 0.3, 0.45].forEach((dt) => at(dt, (tt) => this.#tone(d, tt, 0.08, { type: "triangle", freq: 160, gain: 0.08 }))); break;
+      case "pinRoll": N(1.2, { type: "lowpass", freq: 400, gain: 0.15 }); S(1.2, { type: "triangle", freq: 70, freqEnd: 100, gain: 0.1 }); break;
+      case "pinRise": S(0.5, { type: "triangle", freq: 120, freqEnd: 260, gain: 0.08 }); break;
+      case "grindWind": [0, 0.12, 0.24, 0.36].forEach((dt) => at(dt, (tt) => this.#noise(d, tt, 0.08, { type: "bandpass", freq: 700, q: 3, gain: 0.1 }))); break;
+      case "grindPop": S(0.2, { freq: 200, freqEnd: 500, gain: 0.12 }); N(0.15, { type: "lowpass", freq: 1200, gain: 0.08 }); break;
+      case "cookerRattle": [0, 0.04, 0.09].forEach((dt) => at(dt, (tt) => this.#tone(d, tt, 0.05, { type: "square", freq: 700 + Math.random() * 300, gain: 0.04 }))); N(0.2, { type: "highpass", freq: 3000, gain: 0.05 }); break;
+      case "cookerLid": S(0.5, { freq: k ? 300 : 500, freqEnd: k ? 900 : 150, gain: 0.15 }); N(0.8, { type: "highpass", freq: 1500, freqEnd: 600, gain: 0.2 }); if (k) [79, 84, 88].forEach((n, i) => at(0.1 + i * 0.06, (tt) => this.#bell(d, tt, hz(n), 0.06))); break;
+      case "cookerSteam": N(1.5, { type: "highpass", freq: 2000, freqEnd: 1200, gain: 0.14, attack: 0.1 }); break;
+      case "cookerHop": S(0.4, { type: "triangle", freq: 120, freqEnd: 300, gain: 0.12 }); break;
+      case "cookerLand": S(0.4, { freq: 90, freqEnd: 40, gain: 0.3, verb: 0.2 }); N(0.4, { type: "lowpass", freq: 800, freqEnd: 150, gain: 0.25 }); at(0.02, (tt) => this.#tone(d, tt, 0.6, { type: "triangle", freq: 220, freqEnd: 200, gain: 0.05, verb: 0.4 })); break;
+      case "cookerWhistle": S(2.1, { type: "sine", freq: 1800, freqEnd: 2600, gain: 0.07, attack: 0.3 }); S(2.1, { type: "sine", freq: 1830, freqEnd: 2650, gain: 0.05, attack: 0.3 }); break;
+      case "cookerBlow": N(0.9, { type: "lowpass", freq: 3000, freqEnd: 300, gain: 0.3 }); S(0.5, { freq: 80, freqEnd: 40, gain: 0.25 }); break;
+      case "steamBurn": N(0.2, { type: "highpass", freq: 2500, gain: 0.1 }); break;
       case "souffleFall": S(0.9, { type: "sawtooth", freq: 420, freqEnd: 70, gain: 0.05 }); N(0.9, { type: "lowpass", freq: 1600, freqEnd: 200, gain: 0.12, attack: 0.05 }); at(0.85, (tt) => this.#tone(d, tt, 0.12, { freq: 120, freqEnd: 60, gain: 0.12 })); break;
       case "clockWind": for (let i = 0; i < 8; i++) at(i * 0.07, (tt) => this.#tone(d, tt, 0.03, { type: "square", freq: i % 2 ? 2200 : 1700, gain: 0.025 })); break;
       case "clockRing": for (let i = 0; i < 12; i++) at(0.25 + i * 0.06, (tt) => this.#bell(d, tt, hz(i % 2 ? 93 : 91), 0.035, 0.3, 0.2)); break;

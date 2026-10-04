@@ -1,5 +1,5 @@
 import { stabilizer, fuzzVacuum, foamCannon, lullabyBell } from "./tools.js";
-import { jelly, souffle } from "./kitchen.js";
+import { jelly, souffle, meatball, pepperShaker, rollingPin, meatGrinder, pressureCooker, kitchenWindow, panRail, knob, faucet, burner, kettle, jar, cuttingBoard, breadLoaf, fridge, flourSack, tableCloth, mug, tomato, bucket, spoon, pea } from "./kitchen.js";
 import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./characters.js";
 import { anchor } from "./dream.js";
 import { vacuumBoss } from "./boss.js";
@@ -21,6 +21,28 @@ export const MODELS = {
   foam: { build: foamCannon, frame: 0.55, anim: (o, t) => { o.userData.nodes.pump.position.z = -0.105 + 0.06 + Math.abs(Math.sin(t * 2)) * 0.03; } },
   bell: { build: lullabyBell, frame: 0.55, anim: (o, t) => { const N = o.userData.nodes; N.hammer.rotation.x = -0.5 + Math.abs(Math.sin(t * 2)) * 0.5; N.crank.rotation.x = t * 3; N.clapper.rotation.x = Math.sin(t * 4) * 0.15; } },
   jelly: { build: jelly, frame: 3.2, anim: (o, t) => { const s = Math.sin(t * 9) * 0.08; o.userData.nodes.body.scale.set(1 - s * 0.6, 1 + s, 1 - s * 0.6); } },
+  meatball: { build: meatball, frame: 2, anim: (o, t) => { const n = o.userData.nodes.body, h = Math.abs(Math.sin(t * 5)); n.position.y = h * 0.25; n.scale.set(1 + (1 - h) * 0.1, 1 - (1 - h) * 0.12, 1 + (1 - h) * 0.1); } },
+  pepper: { build: pepperShaker, frame: 2, anim: (o, t) => { o.userData.nodes.body.rotation.z = Math.sin(t * 2) * 0.3; } },
+  rollingpin: { build: rollingPin, frame: 3.6, anim: (o, t) => { o.userData.nodes.roller.rotation.x = t * 2; } },
+  grinder: { build: meatGrinder, frame: 3.4, anim: (o, t) => { o.userData.nodes.crank.rotation.x = t * 3; } },
+  cooker: { build: pressureCooker, frame: 7, anim: (o, t) => { const N = o.userData.nodes; N.valve.rotation.y = t * 6; N.needle.rotation.z = -1.2 + Math.abs(Math.sin(t * 0.5)) * 2.4; N.lid.position.y = 2.25 + Math.max(0, Math.sin(t * 1.3)) * 0.4; } },
+  kitchenWindow: { build: kitchenWindow, frame: 18 },
+  panRail: { build: panRail, frame: 16 },
+  knob: { build: knob, frame: 1 },
+  faucet: { build: faucet, frame: 6 },
+  burner: { build: burner, frame: 5 },
+  kettle: { build: kettle, frame: 5 },
+  jar: { build: jar, frame: 3.4 },
+  cuttingBoard: { build: cuttingBoard, frame: 7 },
+  breadLoaf: { build: breadLoaf, frame: 3.4 },
+  fridge: { build: fridge, frame: 22 },
+  flourSack: { build: flourSack, frame: 3.4 },
+  tableCloth: { build: tableCloth, frame: 22 },
+  mug: { build: mug, frame: 3.4 },
+  tomato: { build: tomato, frame: 4.4 },
+  bucket: { build: bucket, frame: 3.4 },
+  spoon: { build: spoon, frame: 8 },
+  pea: { build: pea, frame: 1.2 },
   souffle: { build: souffle, frame: 3.6, anim: (o, t) => { o.userData.nodes.puff.scale.y = 0.6 + Math.cos(t) * 0.4; } },
   csavar: {
     build: csavar, frame: 1.1,

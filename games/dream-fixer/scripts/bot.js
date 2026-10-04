@@ -2,9 +2,10 @@
 // on the way), tunes it and fights off the waves, then the boss. It fights
 // like a player would: the Stabilizer by default, the Fuzz Vacuum on small
 // glitches up close (and their catch shot back at the big ones, or into
-// the boss's nozzle), backing off and circling instead of standing in a
-// crowd, going for a pink heart when low. Prints how long each part took
-// and how hard it was.
+// the boss's nozzle), the Lullaby Bell on the Pressure Cooker's lid,
+// backing off and circling instead of standing in a crowd, jumping the
+// rings that run along the floor, going for a pink heart when low. Prints
+// how long each part took and how hard it was.
 //
 //   node scripts/bot.js [seed] [difficulty] [skill] [level]
 //   skill: casual (slower, wobbly aim, reacts late) or sharp
@@ -18,7 +19,7 @@ const seed = Number(process.argv[2] || 1), difficulty = process.argv[3] || "norm
 const def = LEVELS[process.argv[5] || "park"];
 if (!def?.botRoutes) { console.log("no bot routes for that level"); process.exit(1); }
 const SKILL = { sharp: { turn: 0.12, pitch: 0.08, react: 0, wobble: 0 }, casual: { turn: 0.08, pitch: 0.05, react: 0.25, wobble: 0.03 } }[skill];
-const SMALL = new Set(["fuzz", "bunny", "buzzer", "clock", "pencil"]), BIG = new Set(["tub", "knot", "backpack", "sharpener"]);
+const SMALL = new Set(["fuzz", "bunny", "buzzer", "clock", "pencil", "meatball", "pepper"]), BIG = new Set(["tub", "knot", "backpack", "sharpener", "rollingpin", "grinder"]);
 
 // The tools a player brings: whatever the dreams before this one handed out.
 const before = CLIENTS.slice(0, Math.max(0, CLIENTS.findIndex((c) => c.level === def.id))).map((c) => LEVELS[c.level]?.unlockTool?.id).filter(Boolean);
@@ -62,6 +63,9 @@ function pickTarget() {
 // it does not flap): the vacuum with a crowd of small ones close or a
 // catch to shoot at a big one, the Stabilizer otherwise.
 function toolFor(tgt) {
+  // The Pressure Cooker: ring its lid off with the bell, then shoot inside.
+  const S = run.boss;
+  if (tgt?.boss && S?.kind === "cooker" && !S.lidOff && toolIndex("bell") >= 0 && !run.tools[toolIndex("bell")].overheated && Math.hypot(S.x - B.x, S.z - B.z) < 9) return "bell";
   const vac = run.tools[toolIndex("vacuum")];
   if (!vac || vac.overheated || tgt?.orb) return "stabilizer";
   if (tgt?.nozzle) return "vacuum";
@@ -96,7 +100,8 @@ function aimAndFire(intent) {
   B.yaw += Math.max(-SKILL.turn, Math.min(SKILL.turn, d));
   B.pitch += Math.max(-SKILL.pitch, Math.min(SKILL.pitch, pitch - B.pitch));
   const tool = run.activeTool, on = Math.abs(d) < 0.2;
-  if (tool.id === "vacuum") {
+  if (tool.id === "bell") intent.fire = on && !tool.overheated;
+  else if (tool.id === "vacuum") {
     // Shoot the catch back at a big one (a press: alt down for a step, then
     // up), or at anything once the tank is full.
     const big = tgt.boss || BIG.has(tgt.kind) || tool.tank.length >= tool.def.tankSize;
@@ -154,6 +159,8 @@ function kite(intent, home = null, ring = 0) {
 }
 
 function step(intent) {
+  // A ring running along the floor about to reach you: jump it.
+  if (B.grounded && run.shocks.some((s) => { const d = Math.hypot(B.x - s.x, B.z - s.z); return d > s.r && d - s.r < 1.2 && B.y - s.y < 0.45; })) { intent.jumpPressed = true; intent.jump = true; }
   run.step({ forward: 0, strafe: 0, jump: false, jumpPressed: false, usePressed: false, ...intent }, DT);
   minHp = Math.min(minHp, run.hp);
   for (const e of run.events) if (e.type === "respawn" && !e.pulled) { falls++; if (process.env.DEBUG) console.log("   fell from", lastPos.map((v) => v.toFixed(1)).join(", ")); }
@@ -165,7 +172,7 @@ function step(intent) {
 // Clear the glitches that have noticed you before going on (a while at most).
 function clearAround(maxT = 25) {
   for (let i = 0; i < 60 * maxT; i++) {
-    const after = run.foes.some((o) => o.alive && (o.aware || o.group) && dist(o) < 18);
+    const after = run.foes.some((o) => o.alive && (o.aware || o.group) && dist(o) < 18 && run.canSee(o.px, o.cy, o.pz));
     if (!after) return;
     const intent = {};
     aimAndFire(intent);
@@ -183,13 +190,15 @@ function walk(route) {
     // A foam step to climb: set where a well-aimed blob would land, on
     // whatever is there (the floor, or a step already standing).
     if (x === "foam") { foamStep(z, jump); continue; }
+    // Something the bell sets off (a soufflé, a jelly): rung, as if from here.
+    if (x === "bell") { const g = run.ringables.find((o) => o.id === z); if (g) { run.bell.setOff(run, g); if (g.kind === "jelly") g.wobbleT = 30; step({}); } continue; }
     const sx = B.x, sz = B.z; let jumped = false, fights = 0;
     for (let i = 0; i < 900; i++) {
       const dx = x - B.x, dz = z - B.z;
       if (Math.hypot(dx, dz) < 0.45 && B.grounded) break;
       if (falls !== f0 || run.faints !== n0) return false;
       // Something has come for you: deal with it first.
-      if (fights < 3 && run.foes.some((o) => o.alive && (o.aware || o.group) && !o.def.still && dist(o) < 9)) { fights++; clearAround(); continue; }
+      if (fights < 3 && run.foes.some((o) => o.alive && (o.aware || o.group) && !o.def.still && dist(o) < 9 && run.canSee(o.px, o.cy, o.pz))) { fights++; clearAround(); continue; }
       B.yaw = Math.atan2(-dx, -dz); B.pitch = 0;
       const tr = Math.hypot(B.x - sx, B.z - sz);
       // Jump at the take-off point, or whenever it walks into a ledge.
@@ -197,6 +206,7 @@ function walk(route) {
       if (j) jumped = true;
       step({ forward: 1, jump: jumped && B.vy > 0, jumpPressed: j, toolTo: toolIndex("stabilizer") });
       B.yaw = Math.atan2(-(x - B.x), -(z - B.z));
+      if (process.env.DEBUG && i === 899) console.log("   stuck walking to", x, z, "at", B.x.toFixed(1), B.y.toFixed(1), B.z.toFixed(1));
     }
   }
   return true;
@@ -236,7 +246,7 @@ for (const a of run.anchors) {
     // Drifted out of the dream and back at another anchor: walk back.
     if (Math.hypot(a.x - B.x, a.z - B.z) > a.ring + 3 && rewalks++ < 8) goTo(a, route);
     // Fallen off a ledge the anchor stands on: climb back up the end of the route.
-    else if (B.y < a.y - 2 && B.grounded && rewalks++ < 8) { const k = route.findIndex((p) => p[0] === "foam"); walk(route.slice(Math.max(0, k - 1))); }
+    else if (B.y < a.y - 2 && B.grounded && rewalks++ < 8) { const k = route.findIndex((p) => p[0] === "foam" || p[0] === "bell"); walk(route.slice(Math.max(0, k - 1))); }
     aimAndFire(intent);
     kite(intent, a, a.ring - 2);
     step(intent);
@@ -266,6 +276,10 @@ if (def.boss) {
       const side = S.state === "aim" ? 2 : 0.7;
       move(intent, dx / d * away + (-dz / d) * side, dz / d * away + (dx / d) * side);
       if (S.ring && Math.abs(d - S.ring.r) < 1.6 && B.grounded) { intent.jumpPressed = true; intent.jump = true; }
+      // A steam jet sweeping round at you: jump it.
+      if (S.jets?.some((a) => Math.abs(Math.atan2(Math.sin(Math.atan2(-(B.x - S.x), -(B.z - S.z)) - a), Math.cos(Math.atan2(-(B.x - S.x), -(B.z - S.z)) - a))) < 0.45) && d < 11 && B.grounded) { intent.jumpPressed = true; intent.jump = true; }
+      // Its landing spot: get out from under.
+      if (S.mark) { const mx = B.x - S.mark[0], mz = B.z - S.mark[2], md = Math.hypot(mx, mz) || 1; if (md < S.mark[3] + 1) move(intent, mx / md, mz / md); }
       // Low and a heart about: get it.
       if (run.hp < run.maxHp * 0.4) kite(intent);
     }

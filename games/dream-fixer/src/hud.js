@@ -97,6 +97,7 @@ export class Hud {
     if (e.type === "bossReset") { clearTimeout(this.bannerTimer); this.bannerTimer = setTimeout(() => this.banner(t("bossReset")), 1200); }
     if (e.type === "bossPhase") this.banner(t(`bossPhase_${e.kind ?? "vacuum"}`));
     if (e.type === "penBlot") this.banner(t("bossBlot"), true);
+    if (e.type === "cookerLid" && e.off) this.banner(t("bossLid"), true);
     if (e.type === "bossClog") this.banner(t("bossClog"), true);
     if (e.type === "itemUse") this.kitFlash = e.id;
     if (e.type === "itemNo") this.banner(t("kit_awake"));

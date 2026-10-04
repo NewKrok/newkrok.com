@@ -13,12 +13,14 @@ import { lerp } from "../config.js";
 
 // The looks a dream gives each kind (model ids), unless its level says
 // otherwise. A skin keeps the nodes its kind's animation moves.
-const SKINS = { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub", clock: "clock", pencil: "pencil", backpack: "backpack", sharpener: "sharpener" };
+const SKINS = { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub", clock: "clock", pencil: "pencil", backpack: "backpack", sharpener: "sharpener", meatball: "meatball", pepper: "pepper", rollingpin: "rollingpin", grinder: "grinder" };
 const FLASH = new T.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
 const POP_COLORS = { bunny: [0xc4c0cc, 0x7a7684, C.dream, 0xffffff], tub: [0xffffff, 0x8fd0f0, C.dream, 0xffd23a], fuzz: [0xe8a060, 0xc8743a, C.dream, 0xffffff], buzzer: [0xf2c14e, 0x5a3620, C.dream, 0xffffff], knot: [0xe8a060, C.dreamPink, C.dream, 0xffffff], pillow: [0xffffff, 0xf4eaff, 0xd8c8ff, C.dreamPink],
-  clock: [0xe8423a, 0xfaf6e8, C.brass, C.dream], pencil: [0xffd040, 0xe8c898, 0xf07890, C.dream], backpack: [0xd84a48, 0x2a3a6a, 0xffd23a, C.dream], sharpener: [0xb8c2cc, 0xe8c898, C.dreamPink, C.dream] };
+  clock: [0xe8423a, 0xfaf6e8, C.brass, C.dream], pencil: [0xffd040, 0xe8c898, 0xf07890, C.dream], backpack: [0xd84a48, 0x2a3a6a, 0xffd23a, C.dream], sharpener: [0xb8c2cc, 0xe8c898, C.dreamPink, C.dream],
+  meatball: [0x8a4a2a, 0xc8302a, 0x3a8a2a, C.dream], pepper: [0x2a2420, 0xd8e0e8, C.dreamPink, C.dream], rollingpin: [0xd8a870, 0xf4f0e8, C.dreamPink, C.dream], grinder: [0x4a505a, 0xc8302a, C.dreamPink, C.dream] };
 // What school glitches throw: [size x, y, z, colour] for a tumbling chunk.
-const CHUNKS = { hand: [0.06, 0.4, 0.04, 0x2a2440], book: [0.42, 0.1, 0.32, 0x3a7fae], shaving: [0.16, 0.03, 0.1, 0xe8c898], eraser: [0.26, 0.14, 0.16, 0xf07890], grade: [0.34, 0.42, 0.06, 0xe02a30] };
+const CHUNKS = { hand: [0.06, 0.4, 0.04, 0x2a2440], book: [0.42, 0.1, 0.32, 0x3a7fae], shaving: [0.16, 0.03, 0.1, 0xe8c898], eraser: [0.26, 0.14, 0.16, 0xf07890], grade: [0.34, 0.42, 0.06, 0xe02a30],
+  peppercorn: [0.1, 0.1, 0.1, 0x2a2420], mince: [0.16, 0.07, 0.12, 0xb0503a], sauce: [0.34, 0.22, 0.34, 0xd8302a], bean: [0.26, 0.16, 0.18, 0xd06a2a] };
 const BOOKS = [0xd84a48, 0x3a7fae, 0x2a8a3a, 0xe0a020, 0x7a4aa0];
 
 export class FoeView {
@@ -86,6 +88,10 @@ export class FoeView {
     this.pulses = new T.InstancedMesh(new T.IcosahedronGeometry(1, 3), new T.MeshBasicMaterial({ transparent: true, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false, side: T.DoubleSide }), 6);
     this.pulses.instanceColor = new T.InstancedBufferAttribute(new Float32Array(6 * 3), 3);
     this.pulses.frustumCulled = false; this.pulses.count = 0;
+    // Pepper clouds: grey-brown puffs hanging over the floor, churning.
+    this.dusts = new T.InstancedMesh(new T.IcosahedronGeometry(1, 1), new T.MeshBasicMaterial({ color: 0x6a5a4c, transparent: true, opacity: 0.42, depthWrite: false }), 64);
+    this.dusts.frustumCulled = false; this.dusts.count = 0;
+    scene.add(this.dusts);
     scene.add(this.orbs, this.motes, this.yarn, this.marks, this.nuts, this.caps, this.chunks, this.pulses);
     this._m = new T.Matrix4(); this._q = new T.Quaternion(); this._p = new T.Vector3(); this._s = new T.Vector3(); this._c = new T.Color(); this._e = new T.Euler();
   }
@@ -167,12 +173,17 @@ export class FoeView {
       else if (f.kind === "pencil") animPencil(f, N, t, grow, o);
       else if (f.kind === "backpack") animBackpack(f, N, t, grow);
       else if (f.kind === "sharpener") animSharpener(f, N, t, grow);
+      else if (f.kind === "meatball") animMeatball(f, N, t, grow);
+      else if (f.kind === "pepper") animPepper(f, N, t, grow);
+      else if (f.kind === "rollingpin") animPin(f, N, t, grow, dt);
+      else if (f.kind === "grinder") animGrinder(f, N, t, grow);
       else animKnot(f, N, t, grow);
       // Asleep (the Lullaby Bell): lying over, breathing slowly.
       const zz = f.sleepT > 0 ? Math.min(1, (v.sleepK || 0) + dt * 4) : Math.max(0, (v.sleepK || 0) - dt * 5);
       v.sleepK = zz;
       o.rotation.z = zz * (f.def.fly ? 0.35 : 0.95);
-      o.scale.set(1, 1 + zz * Math.sin(t * 2.2 + f.id) * 0.05, 1);
+      const ms = f.mini ? 0.62 : 1;
+      o.scale.set(ms, ms * (1 + zz * Math.sin(t * 2.2 + f.id) * 0.05), ms);
       // Hit flash.
       const flash = f.flash > 0.55;
       if (flash !== v.flashing) {
@@ -272,6 +283,19 @@ export class FoeView {
       np++;
     }
     this.pulses.count = np;
+    let nd = 0;
+    for (const c of run.clouds) {
+      const fade = Math.min(1, c.t * 3, (c.life - c.t) / 1);
+      for (let k = 0; k < 7 && nd < 64; k++) {
+        const a = k * 0.9 + c.id + t * 0.3 * (k % 2 ? 1 : -1), r = k ? c.r * (0.35 + 0.4 * ((k * 0.37) % 1)) : 0;
+        _p.set(c.x + Math.cos(a) * r, c.y + 0.6 + (k % 3) * 0.45 + Math.sin(t * 1.5 + k) * 0.1, c.z + Math.sin(a) * r);
+        _q.identity(); _s.setScalar(Math.max(0.01, c.r * (0.45 + (k % 2) * 0.15) * fade));
+        this.dusts.setMatrixAt(nd++, _m.compose(_p, _q, _s));
+      }
+      if (Math.random() < 0.3) this.fx.spark(c.x + (Math.random() - 0.5) * c.r * 1.5, c.y + 0.3 + Math.random() * 1.5, c.z + (Math.random() - 0.5) * c.r * 1.5, 0, 0.3, 0, 0.8, 0.04, 0x3a3028, -0.2);
+    }
+    this.dusts.count = nd;
+    this.dusts.instanceMatrix.needsUpdate = true;
     this.pulses.instanceMatrix.needsUpdate = true; if (this.pulses.instanceColor) this.pulses.instanceColor.needsUpdate = true;
     this.chunks.count = nc;
     this.chunks.instanceMatrix.needsUpdate = true; if (this.chunks.instanceColor) this.chunks.instanceColor.needsUpdate = true;
@@ -509,4 +533,46 @@ function animBackpack(f, N, t, grow) {
 function animSharpener(f, N, t, grow) {
   N.crank.rotation.x = f.crank || 0;
   N.core.scale.setScalar((1 + (f.pulse || 0) * 0.7 + Math.sin(t * 4 + f.phase) * 0.08) * grow);
+}
+
+// ── Rosie's kitchen ──
+
+function animMeatball(f, N, t, grow) {
+  const b = f.body, sp = b.speed2D;
+  // Bouncing along it squashes on each landing; winding up it squats;
+  // rolling, it turns over and over.
+  let sy = 1, sxz = 1;
+  if (f.state === "wind" || f.state === "crouch") { const k = Math.min(1, f.t / 0.4); sy = 1 - 0.3 * k; sxz = 1 + 0.18 * k; }
+  else if (f.state === "dazed") { sy = 0.7 + Math.sin(t * 20) * 0.05; sxz = 1.25; }
+  else if (!b.grounded) { sy = 1.12; sxz = 0.92; }
+  else if (sp > 0.5) { sy = 0.9; sxz = 1.06; }
+  f.rollA = (f.rollA || 0) + (f.state === "roll" ? sp * 0.03 / 0.36 * 2 : 0);
+  N.body.scale.set(sxz * grow, sy * grow, sxz * grow);
+  N.body.rotation.x = f.state === "roll" ? -f.rollA : Math.sin(f.age * 6 + f.phase) * 0.08;
+  N.body.position.y = f.state === "roll" ? 0 : 0;
+}
+
+function animPepper(f, N, t, grow) {
+  const shake = f.state === "shake" ? Math.sin(t * 40) * 0.25 : 0;
+  f.tiltV = (f.tiltV || 0) + ((f.tilt || 0) - (f.tiltV || 0)) * 0.15;
+  N.body.rotation.set(-f.tiltV + shake, 0, Math.sin(t * 2 + f.phase) * 0.1);
+  N.body.position.y = Math.sin(t * 3 + f.phase) * 0.06;
+  N.body.scale.setScalar(grow);
+}
+
+function animPin(f, N, t, grow, dt) {
+  const b = f.body, sp = b.speed2D;
+  f.spinA = (f.spinA || 0) + (f.state === "roll" ? -sp / 0.3 : -sp / 0.3 * 0.5) * dt;
+  N.roller.rotation.x = f.spinA;
+  // Rocking before a roll; stood on end for a slam.
+  const rock = f.state === "rock" ? Math.sin(t * 14) * 0.18 * Math.min(1, f.t * 3) : f.state === "dazed" ? Math.sin(t * 18) * 0.08 : 0;
+  const up = f.up || 0, fall = f.fall || 0;
+  N.body.rotation.set(-fall * Math.PI / 2, 0, up * Math.PI / 2 + rock);
+  N.body.position.set(0, 0.3 + up * 1.05 * (1 - fall), -fall * 1.35 * up);
+  N.body.scale.setScalar(grow);
+}
+
+function animGrinder(f, N, t, grow) {
+  N.crank.rotation.x = f.crank || 0;
+  N.core.scale.setScalar((1 + (f.pulse || 0) * 0.6 + Math.sin(t * 4 + f.phase) * 0.06) * grow);
 }

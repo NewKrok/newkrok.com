@@ -1,6 +1,7 @@
 import { Body } from "./player.js";
 import { World } from "./world.js";
 import { SCHOOL } from "./foes-school.js";
+import { KITCHEN, MEATBALL } from "./foes-kitchen.js";
 
 // ── Glitches ─────────────────────────────────────────────────────────────
 // What goes wrong in a dream. Nobody dies: a glitch that runs out of `hp`
@@ -18,7 +19,9 @@ import { SCHOOL } from "./foes-school.js";
 //                    that burst where they land (a ring shows where).
 //
 // Ethan's school has its own (foes-school.js): the alarm clock, the
-// pencil, the backpack and the sharpener.
+// pencil, the backpack and the sharpener; Rosie's kitchen too
+// (foes-kitchen.js): the meatball, the pepper shaker, the rolling pin and
+// the meat grinder.
 //
 // The dream skins them (a tangled squirrel in the park); the sim only
 // knows the kind. Glitches already loose in a dream mind their own
@@ -54,6 +57,10 @@ export const FOES = {
   pencil: { hp: 4, r: 0.25, h: 1.3, speed: 3.6, jump: 5.5, dmg: 7, dust: 4, hitR: 0.42, hitY: 0.65, knock: 0.7, catchable: true },
   backpack: { hp: 20, r: 0.85, h: 1.3, speed: 2.2, dmg: 9, dust: 12, hitR: 0.95, hitY: 0.7, knock: 0.1, big: true, steady: true },
   sharpener: { hp: 16, r: 0.8, h: 1.1, dust: 12, hitR: 0.9, hitY: 0.55, still: true, knock: 0 },
+  meatball: { hp: 3, r: 0.36, h: 0.72, speed: 4.2, jump: 5.5, dmg: 6, dust: 2, hitR: 0.44, hitY: 0.36, knock: 1.1, catchable: true, split: true },
+  pepper: { hp: 4, r: 0.4, speed: 3.6, dmg: 3, dust: 4, hitR: 0.5, hitY: 0, fly: true, knock: 0.6, catchable: true },
+  rollingpin: { hp: 16, r: 0.55, h: 0.6, speed: 2.4, dmg: 9, dust: 10, hitR: 0.8, hitY: 0.3, knock: 0.2, steady: true },
+  grinder: { hp: 16, r: 0.85, h: 1.6, dust: 12, hitR: 0.95, hitY: 0.8, still: true, knock: 0 },
 };
 
 const TAU = Math.PI * 2;
@@ -76,6 +83,9 @@ export class Foe {
     this.parent = o.parent ?? null;
     this.phase = run.rnd() * TAU;
     this.pulse = 0;
+    // A little one (a meatball's half): smaller, quicker, no further split.
+    this.mini = !!o.mini;
+    const k = this.mini ? 0.62 : 1;
     if (d.fly) {
       this.x = x; this.y = y; this.z = z;
       this.vx = 0; this.vy = 0; this.vz = 0;
@@ -83,7 +93,7 @@ export class Foe {
     } else if (d.still) {
       this.x = x; this.y = y; this.z = z;
     } else {
-      this.body = new Body(x, y, z, { radius: d.r, height: d.h, step: 0.5, speed: d.speed, accel: 30, airAccel: 6, jump: d.jump ?? 6.2 });
+      this.body = new Body(x, y, z, { radius: d.r * k, height: d.h * k, step: 0.5, speed: d.speed, accel: 30, airAccel: 6, jump: d.jump ?? 6.2 });
       this.body.grounded = true;
     }
   }
@@ -131,6 +141,7 @@ export function stepFoes(run, dt) {
       continue;
     }
     if (SCHOOL[f.kind]) SCHOOL[f.kind](run, f, fdt, px, pcy, pz);
+    else if (KITCHEN[f.kind]) KITCHEN[f.kind](run, f, fdt, px, pcy, pz);
     else if (f.kind === "fuzz" || f.kind === "bunny") fuzz(run, f, fdt, px, pz);
     else if (f.kind === "tub") tub(run, f, fdt, px, pz);
     else if (f.kind === "buzzer") buzzer(run, f, fdt, px, pcy, pz);
@@ -684,8 +695,19 @@ export function damageFoe(run, f, dmg, dx, dz, big) {
   if (f.hp <= 0) {
     f.alive = false;
     run.events.push({ type: "pop", kind: f.kind, id: f.id, x: f.px, y: f.cy, z: f.pz, big: !!(f.def.still || f.def.big) });
-    run.dropDust(f.px, f.cy, f.pz, f.def.dust);
+    run.dropDust(f.px, f.cy, f.pz, f.mini ? 1 : f.def.dust);
     run.dropHeal(f);
+    // A big meatball comes apart in two little ones.
+    if (f.def.split && !f.mini) {
+      const S = MEATBALL.split;
+      for (let i = 0; i < S.n; i++) {
+        const a = run.rnd() * TAU;
+        const m = run.spawn(f.kind, f.px + Math.cos(a) * 0.5, f.pz + Math.sin(a) * 0.5, { mini: true, hpMul: S.hp, group: f.group, parent: f.parent, y: f.py });
+        m.body.vx = Math.cos(a) * 3; m.body.vy = 4; m.body.vz = Math.sin(a) * 3; m.body.grounded = false;
+        if (!m.group) { m.aware = true; m.provoked = ALERT.provoked; }
+      }
+      run.events.push({ type: "meatSplit", x: f.px, y: f.cy, z: f.pz });
+    }
     return true;
   }
   run.events.push({ type: "foeHit", id: f.id, kind: f.kind });

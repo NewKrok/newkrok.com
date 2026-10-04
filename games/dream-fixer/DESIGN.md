@@ -48,8 +48,8 @@ Margó egyre idegesebb, mert „ennyi hibás álom nem szokott lenni”.
 2. **Ethan (10 éves), matekdolgozat előtti éjszaka:** az iskolafolyosók
    körbeérnek, ébresztőórák, ceruzák és egy dühös hátizsák támadnak, a
    főellenség a Piros Toll.
-3. **Rosie, a szakács:** óriásivá nőtt konyha, elszabadult ételek, a
-   főellenség a Kuktafazék.
+3. **Rosie, a szakács, a büféje nyitása előtti éjszaka:** óriásivá nőtt
+   konyha, elszabadult ételek, a főellenség a Kuktafazék.
 4. **Béla bácsi:** zuhanós álom lebegő kertszigeteken, a régi vasútállomás
    emlékével. A főellenség a Nagy Ébresztőóra. Ez a legérzelmesebb fejezet.
 5. **Zsófi, az űrhajós:** honvágy, egy súlytalan űrállomás, benne a
@@ -135,6 +135,42 @@ eltűnik. A pálya adataiban: `boss.seal`.
 **Mindenhol:** a hibák csak akkor vesznek észre, ha látnak (falon át
 nem), a közelharc és a becsapódó gyűrűk sem mennek át falon. A lépcsők
 rámpaként járhatók, így a kamera nem ugrál rajtuk.
+
+### Rosie konyhája (3. fejezet)
+
+Rosie holnap nyitja a saját kis büféjét, és a konyhája óriásira nőtt:
+egy teáskanálnyi vagy benne. A konyhapadló egy darabja lebeg az esti
+égen, mögötte a csempés fal az ablakkal. Az ajtó előtti lábtörlőn
+érkezel. A hátsó fal mentén fut a pult (öt méter magas, rajta a
+mosogató és a tűzhely, fölötte egy polc), a sarokban a hűtő, nyugatra a
+kamra (külön szoba), délnyugatra a nagy asztal a székekkel, középen a
+nyitott padló a szőnyeggel: ott jön fel a Kuktafazék. A horgonyok: az
+asztal alatt, a kamrában, a pulton a tűzhely mellett.
+
+Az első horgony után jön az **Altatócsengő**. A kamra ajtaját egy
+felfújódott szuflé tömi be (egy csengetés lelapítja), a pultra csak egy
+rezgő zselé dob fel (három hablépcső épp nem elég), így az asztal jön
+előbb. Zselé visz fel a polcra és egy szék ülésére is, a kamrában a
+lisztes zsákokra: ott emlékek várnak. Csavar szól, ha a szuflé vagy a
+pult alatt állsz.
+
+| Hiba | Viselkedés |
+| --- | --- |
+| **Húsgombóc** | Pattogva jön, nekiütközik. Lelapul, és egyenesen rád gurul (falnak menve kábult és puha), vagy leguggol, és magasra pattanva oda esik, ahol állsz (gyűrű jelzi, az érkezés gyűrűjét át kell ugrani). Szétpukkanva két kis gombócra válik, a Kócszívó egyben nyeli le. |
+| **Borsszóró** | Repül. Föléd lebeg, és borsfelhőt ráz ki: aki benne áll, tüsszent (megrándul a célzás, és csíp). Messziről borsszemeket lő legyezőben, közelről félreugrik, ha rácélzol. A csengetés elfújja a felhőt, a Kócszívó beszívja. |
+| **Sodrófa** | Nehéz, tartja a távolságot. Billeg, aztán ajtószélesen rád gurul: át kell ugrani (falnak menve kábult). Közelről felágaskodik, és hosszában rád dől (gyűrű jelzi). |
+| **Húsdaráló** | Egy helyben ül, gombócokat teker ki. Közelről darált húst permetez, messziről szószt dob (gyűrűk jelzik). |
+
+**A Kuktafazék:** csoszog, a mérőjén nő a nyomás. A lábánál lévő
+szelepekből gőzsugár söpör körbe a padlón (át kell ugrani); felugrik, és
+oda érkezik, ahol álltál (gyűrű jelzi, alatta ne legyél, az érkezés
+gyűrűjét ugord át); megemeli a fedőt, és forró babot dob, vagy két
+gombócot enged ki. Ha a nyomás pirosba ér, fütyül, aztán robban (két
+gőzgyűrű). Az Altatócsengő a kulcs: minden csengetés megzörgeti a fedőt
+(nagyobb nyomásnál jobban), és ha lerázod, kiengedi a nyomást, és pár
+másodpercig sokkal többet sebződik, legjobban belül. Az altatódal
+megfelezi a nyomást, és egy kicsit lelassítja. A második fázisban
+gyorsabb, két sugarat fúj egyszerre, és kétszer ugrik egymás után.
 
 ### Szerszámok (a „fegyverek”)
 

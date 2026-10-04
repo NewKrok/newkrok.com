@@ -78,7 +78,7 @@ export class Kit {
   start(x, z, yaw = 0) { this.spawn = { x, y: this.floorAt(x, z), z, yaw }; }
   // A dream anchor. o: { waves: [[progress, [kind, n], …], …], spawns: [[x, z], …], ring, duration }
   anchor(id, x, z, o = {}) {
-    const y = this.floorAt(x, z);
+    const y = o.y ?? this.floorAt(x, z);
     this.anchors.push({ id, x, y, z, ...o });
     this.world.cyl({ x, z, r: 1.0, y0: y, y1: y + 0.8 });
   }
