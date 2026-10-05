@@ -92,9 +92,7 @@ async function startGame() {
   }
 
   // ── Screens ──
-  let menuAt = 0;
   const setState = (s) => {
-    if (s !== state) menuAt = performance.now();
     state = s;
     const playing = s === "play";
     hud.show(playing);
@@ -320,8 +318,6 @@ async function startGame() {
     if (input.padOn && input.pad.any()) audio.unlock();
     const edges = input.pressed();
     if (state !== "play" && input.padOn) padNav.frame(input.pad, time);
-    // Esc in a menu: back, close or resume (not the moment a menu opens, nor on the title).
-    if (state !== "play" && edges.has("pause") && performance.now() - menuAt > 300 && menus.open !== "title") { padNav.press("[data-a=back], [data-a=close], [data-a=resume]"); edges.delete("pause"); }
     if (state === "play") {
       hud.touch = input.isTouch;
       hud.pad = input.usingPad;
