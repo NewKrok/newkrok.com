@@ -5,9 +5,12 @@ import { MODELS } from "./models/index.js";
 // ── The yo-yo on screen ──────────────────────────────────────────────────
 // The yo-yo out on its string (spinning as it flies), the string from
 // your hand to it, a gold trail; star handles that turn to face you and
-// light up when the view points at one in reach; stars circling a yanked glitch while it is dizzy.
+// light up when the view points at one in reach; stars circling a
+// yanked glitch while it is dizzy. The lasso's string and trail are pale
+// blue; a glitch it tied up wears loops of it.
 
-const GOLD = 0xffe27a, STRING = 0xfff6e0;
+const GOLD = 0xffe27a, STRING = 0xfff6e0, LASSO = 0x9fe0ff;
+const LOOPS = 24;
 
 export class YoyoView {
   constructor(scene, fx) {
@@ -22,6 +25,12 @@ export class YoyoView {
       new T.MeshBasicMaterial({ color: STRING, toneMapped: false, fog: true }));
     this.string.visible = false;
     scene.add(this.string);
+    // Loops of string round the glitches the lasso tied up (three each).
+    this.loops = new T.InstancedMesh(new T.TorusGeometry(1, 0.06, 4, 16), new T.MeshBasicMaterial({ color: LASSO, toneMapped: false, fog: true }), LOOPS);
+    this.loops.count = 0;
+    this.loops.frustumCulled = false;
+    scene.add(this.loops);
+    this._m = new T.Matrix4(); this._q = new T.Quaternion(); this._e = new T.Euler(); this._p = new T.Vector3(); this._s = new T.Vector3();
   }
 
   clear() {
@@ -42,9 +51,12 @@ export class YoyoView {
 
   onEvent(e) {
     const fx = this.fx;
-    if (e.type === "yoyoHit" || e.type === "yoyoBounce") {
-      fx.burst([e.x, e.y, e.z], [0, 1, 0], GOLD, e.type === "yoyoHit" ? 12 : 8, 4, 0.05);
-      fx.ring([e.x, e.y, e.z], [0, 1, 0], GOLD, 0.4, 0.2);
+    if (e.type === "yoyoHit") {
+      const c = e.lasso ? LASSO : GOLD;
+      fx.burst([e.x, e.y, e.z], [0, 1, 0], c, 12, 4, 0.05);
+      fx.ring([e.x, e.y, e.z], [0, 1, 0], c, 0.4, 0.2);
+    } else if (e.type === "foeTied" || e.type === "foeFree") {
+      fx.burst([e.x, e.y, e.z], [0, 1, 0], LASSO, e.type === "foeTied" ? 14 : 8, 3, 0.04);
     } else if (e.type === "yoyoClack") {
       fx.burst([e.x, e.y, e.z], e.n, 0xffffff, 6, 3, 0.035);
     } else if (e.type === "yoyoHook") {
@@ -87,9 +99,25 @@ export class YoyoView {
       this.string.position.set(...tip);
       this.string.lookAt(at[0], at[1], at[2]);
       this.string.rotateY(Math.PI);
-      this.string.scale.set(0.006, 0.006, l);
-      if (Math.random() < dt * (B.bounces > 0 ? 60 : 30)) fx.spark(at[0], at[1], at[2], 0, 0.3, 0, 0.3, 0.035, GOLD, 0);
+      this.string.scale.set(B.lasso ? 0.009 : 0.006, B.lasso ? 0.009 : 0.006, l);
+      this.string.material.color.setHex(B.lasso ? LASSO : STRING);
+      if (Math.random() < dt * 30) fx.spark(at[0], at[1], at[2], 0, 0.3, 0, 0.3, 0.035, B.lasso ? LASSO : GOLD, 0);
     }
+    // Loops round the tied-up ones, slipping loose as time runs out.
+    let n = 0;
+    for (const f of run.foes) {
+      if (!f.alive || !(f.tieT > 0)) continue;
+      const R = f.def.hitR * 1.05, h = f.def.fly ? R : Math.max(R, (f.def.h ?? 1) * 0.5);
+      const loose = f.tieT < 0.6 ? 1 + (0.6 - f.tieT) * 0.8 : 1;
+      for (let i = 0; i < 3 && n < LOOPS; i++) {
+        this._p.set(f.px, f.cy + (i - 1) * h * 0.45, f.pz);
+        this._q.setFromEuler(this._e.set(Math.PI / 2 + Math.sin(t * 3 + i * 2 + f.id) * 0.15, 0, (i - 1) * 0.25));
+        this._s.setScalar(R * loose * (1 - Math.abs(i - 1) * 0.12));
+        this.loops.setMatrixAt(n++, this._m.compose(this._p, this._q, this._s));
+      }
+    }
+    this.loops.count = n;
+    this.loops.instanceMatrix.needsUpdate = true;
     // Stars round a dizzy one.
     for (const f of run.foes) {
       if (!f.alive || !(f.yankT > 0) || f.yanking || Math.random() > dt * 14) continue;

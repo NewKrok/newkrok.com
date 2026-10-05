@@ -485,7 +485,7 @@ export class Run {
       else if (shot.ring) this.bell.ring(this, tool);
       else if (shot.lull !== undefined) this.bell.lull(this, tool, shot.lull);
       else if (shot.gust) this.umbrella.gust(this, tool);
-      else if (shot.throw) this.yoyo.throw(this, tool, !!shot.bounce);
+      else if (shot.throw) this.yoyo.throw(this, tool, !!shot.lasso);
       else this.fire(tool, shot);
     }
     this.stepBalls(dt);

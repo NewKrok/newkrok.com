@@ -11,7 +11,7 @@
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const hz = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
-const GAP = { yoyoThrow: 0.05, yoyoCatch: 0.05, yoyoHit: 0.05, yoyoClack: 0.06, yoyoHook: 0.1, yoyoLetGo: 0.1, yoyoBounce: 0.04, foeYank: 0.06, foeDizzy: 0.1, gnomeStone: 0.1, gnomeGo: 0.12, rainPat: 0.08, soaked: 0.3, canSquirt: 0.08, sunSeed: 0.06, mowerRev: 0.2, tileWarn: 0.2, tileDrop: 0.15, tileBack: 0.15, bigclockClink: 0.1, gust: 0.08, umbrellaBlock: 0.05, umbrellaOpen: 0.12, umbrellaShut: 0.12, pinwheel: 0.3, sneeze: 0.3, meatRoll: 0.15, pepperShake: 0.3, pepperBurst: 0.1, pinRoll: 0.2, steamBurn: 0.3, cookerRattle: 0.08, bellRing: 0.08, bellBat: 0.05, boing: 0.12, foeSleep: 0.08, foeWake: 0.1, foeDrowsy: 0.1, clockWind: 0.2, clockRing: 0.3, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
+const GAP = { yoyoThrow: 0.05, yoyoCatch: 0.05, yoyoHit: 0.05, yoyoClack: 0.06, yoyoHook: 0.1, yoyoLetGo: 0.1, foeTied: 0.06, foeFree: 0.08, foeYank: 0.06, foeDizzy: 0.1, gnomeStone: 0.1, gnomeGo: 0.12, rainPat: 0.08, soaked: 0.3, canSquirt: 0.08, sunSeed: 0.06, mowerRev: 0.2, tileWarn: 0.2, tileDrop: 0.15, tileBack: 0.15, bigclockClink: 0.1, gust: 0.08, umbrellaBlock: 0.05, umbrellaOpen: 0.12, umbrellaShut: 0.12, pinwheel: 0.3, sneeze: 0.3, meatRoll: 0.15, pepperShake: 0.3, pepperBurst: 0.1, pinRoll: 0.2, steamBurn: 0.3, cookerRattle: 0.08, bellRing: 0.08, bellBat: 0.05, boing: 0.12, foeSleep: 0.08, foeWake: 0.1, foeDrowsy: 0.1, clockWind: 0.2, clockRing: 0.3, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
 
 const SONGS = {
   menu: { root: 60, bpm: 76, scale: [0, 2, 4, 7, 9], prog: [0, -3, 5, -5], lead: "box", drums: 0 },
@@ -252,7 +252,8 @@ export class Audio {
       case "yoyoClack": S(0.05, { type: "square", freq: 1300, freqEnd: 900, gain: 0.03 }); N(0.03, { type: "highpass", freq: 2500, gain: 0.05 }); break;
       case "yoyoHook": this.#bell(d, t, hz(88), 0.07, 0.8, 0.3); this.#bell(d, t + 0.05, hz(95), 0.05, 0.6, 0.3); N(0.08, { type: "highpass", freq: 4000, gain: 0.05 }); break;
       case "yoyoLetGo": S(0.15, { type: "sine", freq: 400, freqEnd: 900, gain: 0.05 }); break;
-      case "yoyoBounce": S(0.1, { type: "triangle", freq: 700, freqEnd: 1500, gain: 0.06 }); break;
+      case "foeTied": N(0.25, { type: "bandpass", freq: 1400, freqEnd: 600, q: 4, gain: 0.07 }); S(0.08, { type: "triangle", freq: 500, freqEnd: 350, gain: 0.05 }); break;
+      case "foeFree": N(0.12, { type: "bandpass", freq: 700, freqEnd: 1800, q: 3, gain: 0.05 }); break;
       case "foeYank": S(0.3, { type: "sine", freq: 300, freqEnd: 1200, gain: 0.06 }); break;
       case "foeDizzy": [0, 0.08, 0.16].forEach((dt, i) => at(dt, (tt) => this.#bell(d, tt, hz(91 - i * 3), 0.03, 0.4, 0.2))); break;
       // The Lullaby Bell: a bright strike with a long ring; the lullaby a

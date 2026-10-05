@@ -146,6 +146,7 @@ export function stepFoes(run, dt) {
     if (f.state === "spawn") { if (f.t > 0.5) setState(f, "idle"); else continue; }
     if (f.sleepT > 0) { doze(run, f, dt); continue; }
     if (f.yankT > 0) { yanked(run, f, dt); continue; }
+    if (f.tieT > 0) { tied(run, f, dt); continue; }
     if (!fdt) {
       // Stuck fast in foam, a flyer drops to the ground.
       if (f.def.fly) {
@@ -293,6 +294,33 @@ export function yankFoe(run, f, tx, ty, tz) {
   startle(run, f);
   run.events.push({ type: "foeYank", id: f.id, kind: f.kind, x: f.px, y: f.cy, z: f.pz });
   return true;
+}
+
+// The yo-yo's lasso: tied up where it stands (a flyer where it hangs),
+// it can do nothing until the string slips off. A hit does not free it.
+export function tieFoe(run, f, time) {
+  if (!f.alive || f.state === "spawn") return;
+  f.sleepT = 0; f.mark = null; f.leap = false; f.hitDone = true; f.spin = 0; f.blowX = f.blowZ = 0;
+  if (f.yankT > 0) { f.yankT = 0; f.yanking = false; }
+  setState(f, "idle");
+  f.tieT = Math.max(f.tieT || 0, time);
+  if (f.body) { f.body.vx = f.body.vz = 0; }
+  else { f.vx = f.vy = f.vz = 0; }
+  startle(run, f);
+  run.events.push({ type: "foeTied", id: f.id, x: f.px, y: f.cy, z: f.pz });
+}
+
+function tied(run, f, dt) {
+  if (f.body) {
+    const b = f.body; b.vx = b.vz = 0;
+    b.step(run.world, NOTHING, dt, 0);
+    if (b.fell) { f.alive = false; f.hp = 0; f.lost = true; return; }
+  }
+  f.tieT -= dt;
+  if (f.tieT <= 0) {
+    f.tieT = 0; setState(f, "idle"); f.cd = Math.max(f.cd, 0.4);
+    run.events.push({ type: "foeFree", id: f.id, x: f.px, y: f.cy, z: f.pz });
+  }
 }
 
 function yanked(run, f, dt) {
@@ -749,8 +777,8 @@ export function damageFoe(run, f, dmg, dx, dz, big) {
   if (!f.group) { notice(run, f); f.provoked = ALERT.provoked; alert(run, f, ALERT.hit, ALERT.provoked); }
   run.calm = null;
   const k = stuck ? 0 : f.def.knock * (big ? 2.2 : 1);
-  if (f.yankT > 0) {
-    // (On its way in, or seeing stars: a hit does not shove it about.)
+  if (f.yankT > 0 || f.tieT > 0) {
+    // (On its way in, seeing stars or tied up: a hit does not shove it about.)
   } else if (f.body && k > 0) {
     f.body.vx += dx * 3.5 * k; f.body.vz += dz * 3.5 * k;
     if (big) { f.body.vy = 3; f.body.grounded = false; }

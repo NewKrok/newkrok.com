@@ -79,14 +79,15 @@ export const TOOLS = {
   // It stings the first glitch it meets and yanks a small one to you,
   // dizzy; it pops orbs on the way; on a star handle (kit.hook) it
   // catches, and the string reels you in to it. Held second action: it
-  // throws a trick shot that bounces from glitch to glitch.
+  // throws it as a lasso: it ties a glitch up, and only the lasso catches
+  // on star handles and reels you in.
   yoyo: {
     interval: 0.1, heat: 0.15, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
     range: 12, speed: 36, back: 32,                  // m; out and back (m/s)
     damage: 2.2, r: 0.2,                             // the yo-yo's own size, for hitting
     yank: 2.2,                                       // a yanked glitch lands this far in front of you
     reel: { speed: 17, accel: 70, pop: 4.5, time: 3 }, // reeled in: top speed, how fast, a hop at the end, give up after
-    bounce: { n: 3, range: 7, damage: 1.8, heat: 0.3 },   // the trick shot: glitches it hits, how far it looks for the next, per hit
+    lasso: { tie: 3, big: 1.2, damage: 0.5, heat: 0.18 },  // tied up (s; big, heavy and rooted ones), a sting, heat per throw
   },
 };
 
@@ -241,20 +242,20 @@ export class ToolState {
   }
 
   // The yo-yo reports { throw } on a press while it is in your hand, and
-  // { throw, bounce } for the second action (a trick shot, one per press).
+  // { throw, lasso } for the second action (one per press).
   stepYoyo(intent, dt, out) {
     const d = this.def;
     this.cd -= dt;
     this.sinceShot += dt;
     if (this.sinceShot > d.coolDelay) this.heat = Math.max(0, this.heat - d.cool * dt);
     if (this.overheated && this.heat <= d.unlock) this.overheated = false;
-    const trick = !!intent.alt && !this.altHeld;
+    const lasso = !!intent.alt && !this.altHeld;
     this.altHeld = !!intent.alt;
     if (this.overheated || this.out || this.cd > 0) return out;
-    if (trick) {
-      out.push({ throw: true, bounce: true });
+    if (lasso) {
+      out.push({ throw: true, lasso: true });
       this.cd = d.interval;
-      this.addHeat(d.bounce.heat);
+      this.addHeat(d.lasso.heat);
     } else if (intent.fire) {
       out.push({ throw: true });
       this.cd = d.interval;

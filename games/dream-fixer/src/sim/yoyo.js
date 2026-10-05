@@ -1,19 +1,19 @@
-import { damageFoe, yankFoe, yankable } from "./foes.js";
+import { damageFoe, yankFoe, yankable, tieFoe } from "./foes.js";
 
 // ── Sophie's yo-yo, the Star Yo-Yo ───────────────────────────────────────
 // Thrown, it flies straight out along the view on its string and comes
-// back to your hand. The first glitch it meets is stung, and a small one
-// is yanked to you (it lands dizzy in front of you, see foes.js); the
-// nightmare may answer it (`yanked`). Orbs on its way pop. A wall sends it
-// back.
+// back to your hand. Orbs on its way pop; a wall sends it back.
 //
-// Star handles hang about the dream (kit.hook): one the view points at
-// lights up, and the yo-yo goes straight for it, catches and reels you in.
-// Jump to let go early; you come off it with a little hop.
+// The throw (first action) is the hit: the first glitch it meets is
+// stung, and a small one is yanked to you (it lands dizzy in front of
+// you, see foes.js); the nightmare may answer it (`yanked`).
 //
-// Second action: a trick shot. It yanks nothing, but from each glitch it
-// hits it bounces on to the nearest one in sight (up to `bounce.n` of
-// them), then comes home.
+// The lasso (second action) is the string: it does not hurt much, but a
+// glitch it meets is tied up for a while (`tieFoe`, a big one not for
+// long; the nightmare may answer `tied`), and only the lasso catches on
+// the star handles about the dream (kit.hook): one the view points at
+// lights up, the lasso goes straight for it and reels you in. Jump to let
+// go early; you come off it with a little hop.
 
 export class YoYo {
   constructor(kit) {
@@ -55,12 +55,12 @@ export class YoYo {
     return best;
   }
 
-  throw(run, tool, bounce = false) {
+  throw(run, tool, lasso = false) {
     const [hx, hy, hz] = this.hand(run);
     let [dx, dy, dz] = run.aimDir();
     const aim = (x, y, z) => { const ex = x - hx, ey = y - hy, ez = z - hz, l = Math.hypot(ex, ey, ez) || 1; dx = ex / l; dy = ey / l; dz = ez / l; };
     // The view's crosshair is at the eye: aim from the hand at what it points at.
-    const h = this.aimHook;
+    const h = lasso ? this.aimHook : null;
     if (h) aim(h.x, h.y, h.z);
     else {
       const f = run.opts.aimAssist > 0 ? run.target(run.opts.aimAssist) : null;
@@ -71,10 +71,10 @@ export class YoYo {
         aim(b.x + dx * t, b.eyeY + dy * t, b.z + dz * t);
       }
     }
-    this.ball = { state: "out", x: hx, y: hy, z: hz, dx, dy, dz, gone: 0, hook: null, bounces: bounce ? tool.def.bounce.n : 0, hit: new Set() };
+    this.ball = { state: "out", x: hx, y: hy, z: hz, dx, dy, dz, gone: 0, hook: null, lasso };
     tool.out = true;
     run.stats.shots++;
-    run.events.push({ type: "yoyoThrow", dir: [dx, dy, dz], bounce });
+    run.events.push({ type: "yoyoThrow", dir: [dx, dy, dz], lasso });
   }
 
   // Before the body moves: reeled in on the string.
@@ -133,14 +133,14 @@ export class YoYo {
     let t = step, what = null, target = null, mul = 1, part = null;
     const wall = run.world.raycast(B.x, B.y, B.z, B.dx, B.dy, B.dz, step);
     if (wall) { t = wall.t; what = "wall"; }
-    if (!B.hit.size) for (const h of this.hooks) {
+    if (B.lasso) for (const h of this.hooks) {
       // (Not the one you are hanging from, right by your hand.)
       if ((h.x - B.x) ** 2 + (h.y - B.y) ** 2 + (h.z - B.z) ** 2 < h.r * h.r) continue;
       const tt = raySphere(B.x, B.y, B.z, B.dx, B.dy, B.dz, h.x, h.y, h.z, h.r);
       if (tt >= 0 && tt < t) { t = tt; what = "hook"; target = h; }
     }
     for (const f of run.foes) {
-      if (!f.alive || f.state === "spawn" || B.hit.has(f)) continue;
+      if (!f.alive || f.state === "spawn") continue;
       const tt = raySphere(B.x, B.y, B.z, B.dx, B.dy, B.dz, f.px, f.cy, f.pz, f.def.hitR + d.r);
       if (tt >= 0 && tt < t) { t = tt; what = "foe"; target = f; }
     }
@@ -170,12 +170,12 @@ export class YoYo {
       return;
     }
     if (what === "foe") {
-      const f = target, b = run.body, trick = B.bounces > 0;
+      const f = target, b = run.body;
       run.stats.hits++;
-      B.hit.add(f);
-      run.events.push({ type: "yoyoHit", x: B.x, y: B.y, z: B.z, id: f.id });
-      if (damageFoe(run, f, trick ? d.bounce.damage : d.damage, B.dx, B.dz, false)) run.stats.popped++;
-      else if (!trick && yankable(f)) {
+      run.events.push({ type: "yoyoHit", x: B.x, y: B.y, z: B.z, id: f.id, lasso: B.lasso });
+      if (damageFoe(run, f, B.lasso ? d.lasso.damage : d.damage, B.dx, B.dz, false)) run.stats.popped++;
+      else if (B.lasso) tieFoe(run, f, f.def.big || f.def.steady || f.def.still || f.def.hp > 10 ? d.lasso.big : d.lasso.tie);
+      else if (yankable(f)) {
         // To just in front of you (not off the edge of anything).
         const fx = f.px - b.x, fz = f.pz - b.z, l = Math.hypot(fx, fz) || 1;
         const k = Math.min(d.yank, l), tx = b.x + fx / l * k, tz = b.z + fz / l * k;
@@ -183,31 +183,14 @@ export class YoYo {
         const ok = floor > b.y - 1.5 || f.def.fly;
         if (ok) yankFoe(run, f, tx, f.def.fly ? b.y + 1.4 : floor, tz);
       }
-      // A trick shot: on to the nearest one in sight it has not hit yet.
-      if (trick && --B.bounces > 0) {
-        let next = null, best = d.bounce.range;
-        for (const o of run.foes) {
-          if (!o.alive || o.state === "spawn" || B.hit.has(o)) continue;
-          const ex = o.px - B.x, ey = o.cy - B.y, ez = o.pz - B.z, l = Math.hypot(ex, ey, ez);
-          if (l >= best || run.world.raycast(B.x, B.y, B.z, ex / l, ey / l, ez / l, l - o.def.hitR)) continue;
-          next = o; best = l;
-        }
-        if (next) {
-          const ex = next.px - B.x, ey = next.cy - B.y, ez = next.pz - B.z, l = Math.hypot(ex, ey, ez);
-          B.dx = ex / l; B.dy = ey / l; B.dz = ez / l;
-          B.gone = Math.max(0, d.range - l - 1);
-          run.events.push({ type: "yoyoBounce", x: B.x, y: B.y, z: B.z });
-          return;
-        }
-      }
       B.state = "back";
       return;
     }
     if (what === "boss") {
       run.stats.hits++;
-      Bo.yanked?.(run, part);
-      Bo.damage(run, d.damage * mul, part);
-      run.events.push({ type: "yoyoHit", x: B.x, y: B.y, z: B.z, boss: true });
+      if (B.lasso) Bo.tied?.(run, part); else Bo.yanked?.(run, part);
+      Bo.damage(run, (B.lasso ? d.lasso.damage : d.damage) * mul, part);
+      run.events.push({ type: "yoyoHit", x: B.x, y: B.y, z: B.z, boss: true, lasso: B.lasso });
       B.state = "back";
       return;
     }

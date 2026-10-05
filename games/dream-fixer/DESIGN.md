@@ -234,7 +234,7 @@ töltéskorlát van, ami magától visszaáll.
 | **Habágyú** | Lelassító hab | Megszilárduló habplatform (puzzle és mozgás) | 2. fejezet |
 | **Altatócsengő** | Csengetés: kúpban szaladó hanghullám, ami hátralöki a hibákat (keveset sebez: irányító eszköz, nem fő fegyver), és a lövedékeiket visszaüti a dobójukra | Nyomva tartva altatódalt dúdol (minél tovább, annál messzebbre ér), elengedve körbefut: a kis hibák elalszanak, a nagyok csak elálmosodnak | 3. fejezet |
 | **Szélernyő** | Rövid széllökés kúpban: közelről erősebben sebez a Stabilizátornál, távolabb gyengül, 4,5 méter után semmi; a földön járókat nem löki el, csak a repülőket, a lövedékeket szétpukkasztja | Nyomva tartva kinyitod: pajzs elöl és felül, a levegőben siklasz, a feláramlás felvisz | 4. fejezet |
-| **Csillagjojó** | Kattintásra előrevágod a zsinórján, és visszajön: az első hibát megcsípi, a kicsit eléd rántja (szédülten érkezik, és amíg szédül, többet sebződik), a golyókat útközben szétpukkasztja; ha egy csillagos kapaszkodót ér, megakad rajta, és a zsinór behúz oda | Trükkdobás: nem ránt, hanem minden eltalált hibáról továbbpattan a legközelebbire, amit lát (3 hibáig), aztán visszajön | 5. fejezet |
+| **Csillagjojó** | Kattintásra előrevágod a zsinórján, és visszajön: az első hibát megcsípi, a kicsit eléd rántja (szédülten érkezik, és amíg szédül, többet sebződik), a golyókat útközben szétpukkasztja | Lasszó: alig sebez, de a hibát pár másodpercre gúzsba köti (a nagyokat rövidebben); csak a lasszó akad meg a csillagos kapaszkodókon, és húz be oda | 5. fejezet |
 | **Villáskulcs** | Közelharc és tárgyak megütése | — | Mindig nálad van |
 
 **Az Altatócsengő részletei.** Az alvó hiba lefekszik, „Z”-k szállnak
@@ -277,14 +277,15 @@ rántja: a gyalogosok kis ívben repülnek, a repülők odasodródnak, és
 pár másodpercig szédülnek (csillagok a fejük körül), közben másfélszer
 annyit sebződnek. Az álomban **csillagos kapaszkodók** lógnak
 (`kit.hook`): amelyikre a célkereszt mutat, és elérhető, felragyog, és
-a jojó magától arra megy. Ha elkapja, a zsinór behúz (ugrással
+a lasszó (jobb gomb) magától arra megy. Ha elkapja, a zsinór behúz (ugrással
 korábban elengedheted), a végén egy kis szökkenéssel. A kapaszkodóról
 lógva a következőre is dobhatsz, így láncban át lehet kelni a nagy
-réseken. A jobb gomb trükkdobás: ugyanígy repül, de nem ránt, hanem az
-eltalált hibáról továbbpattan a legközelebbire, amit 7 méteren belül
-lát (falon át nem), összesen 3 hibáig, aztán hazajön; többet melegít.
-(Az első változatban nyomva tartva körbejárt körülötted, de az nem
-tetszett.) A főellenség kaphat `yanked` horgot.
+réseken. A jobb gomb a lasszó (halványkék zsinór): alig sebez, de az eltalált
+hibát 3 másodpercre gúzsba köti (a nagyokat, nehezeket, gyökereseket
+1,2-re), és közben az semmit sem tud csinálni; a főellenség kaphat
+`tied` horgot. A kapaszkodókra csak a lasszó akad. (Előtte volt
+nyomva tartott körbepörgetés és pattogó trükkdobás is, de egyik sem
+vált el eléggé a sima dobástól.) A főellenség kaphat `yanked` horgot.
 
 **Alacsony gravitáció.** A pálya adatában `gravity` (pl. 0,5) minden
 testre hat: a játékos és a gyalogos hibák lassabban esnek, magasabbra
