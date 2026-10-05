@@ -42,13 +42,16 @@ const key = (o) => (o ? o.id ?? (o.orb ? "orb" : o.nozzle ? "nozzle" : "boss") :
 function pickTarget() {
   const s = run.spits.find((o) => !o.harmless && Math.hypot(o.x - B.x, o.z - B.z) < 6);
   if (s) return { px: s.x, cy: s.y, pz: s.z, orb: true };
-  let best = null, bd = 1e9;
+  let best = null, bd = 1e9, stone = null;
   for (const o of run.foes) {
     if (!o.alive || o.state === "spawn") continue;
+    // A gnome gone to stone is not worth shooting: look away and let it come.
+    if (o.state === "stone") { if (!stone || dist(o) < dist(stone)) stone = o; continue; }
     // A knot keeps spinning out more: it goes first unless something is on top of you.
     const d = dist(o) * (o.kind === "knot" ? 0.3 : 1);
     if (d < bd && d < 40 && run.canSee(o.px, o.cy, o.pz)) { bd = d; best = o; }
   }
+  if (!best && stone && dist(stone) < 18) return { away: stone, px: stone.px, cy: stone.cy, pz: stone.pz, id: "away" };
   const S = run.boss;
   if ((!best || bd > 12) && S?.alive && !S.invulnerable) {
     // Its nozzle while it sucks and the tank holds something to clog it with.
@@ -90,6 +93,12 @@ function aimAndFire(intent) {
   else if (reactT <= 0 || !tgtRef || tgtRef.alive === false) { tgtRef = want; reactT = SKILL.react; }
   let tgt = reactT > 0 && SKILL.react ? null : tgtRef;
   if (tgt && tgt.alive === false) tgt = null;
+  // Turned away from a stone gnome, waiting for it to come.
+  if (tgt?.away) {
+    const a = Math.atan2(tgt.px - B.x, tgt.pz - B.z), d = Math.atan2(Math.sin(a - B.yaw), Math.cos(a - B.yaw));
+    B.yaw += Math.max(-SKILL.turn, Math.min(SKILL.turn, d));
+    return null;
+  }
   // Tools: switch once the wish has held a moment (a player does not flap).
   const w = toolFor(tgt);
   wantT = w === wantTool ? wantT + DT : 0;

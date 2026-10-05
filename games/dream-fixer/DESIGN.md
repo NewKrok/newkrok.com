@@ -198,7 +198,7 @@ résnél vagy a szélforgónál állsz.
 
 | Hiba | Viselkedés |
 | --- | --- |
-| **Kerti törpe** | Kicsi, gyalogos. Ha ránézel, kővé dermed (nem mozdul, de sebezhető); ha elfordulsz, rohan feléd, közelről lapáttal üt, messziről kavicsot dob. A hátad mögé kerülők a veszélyesek. |
+| **Kerti törpe** | Kicsi, gyalogos. Ha ránézel, egy pillanat (fél másodperc) múlva kővé dermed: nem mozdul, és csak a sebzés negyedét kapja. Ha elfordulsz, rohan feléd, közelről lapáttal üt, messziről kavicsot dob. A trükk: elfordulni, hagyni jönni, visszafordulni és megütni, mielőtt megdermed. |
 | **Locsolókanna** | Repül. Föléd áll, megbillen, és esőfelhőt locsol: aki alatta áll, ázik (sebződik), kivéve, ha nyitott ernyő van a feje fölött. Messziről vízsugarat lő (három csepp). A széllökés elfújja. |
 | **Fűnyíró** | Nehéz, tartja a távolságot. Felbőg, és rád ront, közben lassan utánad kanyarodik (az utolsó pillanatban lépj félre; falnak menve kábult és puha). Messziről fűnyesedéket szór legyezőben. |
 | **Napraforgó** | Egy helyben áll, arccal követ. Sorozatban magokat lő (az ernyő megfogja, a csengő visszaüti), közelről szirom-gyűrűt ráz le (át kell ugrani), és a lehullott magjaiból kerti törpék kelnek ki. |

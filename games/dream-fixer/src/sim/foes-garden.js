@@ -5,11 +5,12 @@ import { WALKER } from "./foes-school.js";
 // Like the school's and the kitchen's, each picks its move by how far you
 // are and a roll of the dice.
 //
-//  gnome       (Kerti törpe) a garden gnome. Look at it and it turns to
-//              stone (it cannot move, but it can be hit); look away and
-//              it runs at you, bonks you with its shovel up close, or
-//              throws a pebble from a few metres off. The ones behind you
-//              are the ones to worry about.
+//  gnome       (Kerti törpe) a garden gnome. Look at it and a moment later
+//              it turns to stone: it cannot move, and hits barely scratch
+//              it. Look away and it runs at you, bonks you with its shovel
+//              up close, or throws a pebble from a few metres off. The
+//              trick: look away, let it come, turn and hit it before it
+//              sets.
 //  can         (Locsolókanna) a watering can flying about. Floats over you,
 //              tips and pours a shower: stand under it and you get soaked
 //              (it stings), unless an open umbrella is over your head.
@@ -27,6 +28,8 @@ const { move, touching, bonk, busy, potter, rr } = WALKER;
 
 export const GNOME = {
   look: 0.32,                // you are looking at it within this (radians, plus its size)
+  set: 0.5,                  // seconds you have to look at it before it is stone
+  stone: 0.4,                // the share of a hit that a stone one feels
   rush: 1.7,                 // its speed when you are not
   cd: [1.6, 2.8], busy: 2,
   bonk: { near: 1.5, wind: 0.35, dmg: 6, cd: 1.3 },
@@ -65,9 +68,11 @@ function gnome(run, f, dt, px, pcy, pz) {
   const intent = { forward: 0, strafe: 0 };
   let speedMul = 1;
   const on = AI.aware(run, f, dist);
-  // Seen: stone, whatever it was doing.
+  // Seen for a moment: stone, whatever it was doing.
   const seen = on && watched(run, f, G.look);
-  if (seen && f.state !== "stone" && f.state !== "stun" && f.state !== "sucked") {
+  f.seenT = seen ? (f.seenT || 0) + dt : 0;
+  // (A hit does not stop it setting: being shot at is being looked at.)
+  if (f.seenT > G.set && f.state !== "stone" && f.state !== "sucked") {
     AI.setState(f, "stone");
     run.events.push({ type: "gnomeStone", id: f.id, x: b.x, z: b.z });
   }
@@ -86,8 +91,8 @@ function gnome(run, f, dt, px, pcy, pz) {
       break;
     }
     case "stone":
-      // Frozen mid-step; the moment you look away it is off again.
-      speedMul = 0;
+      // Frozen mid-step, hard as stone; the moment you look away it is off again.
+      speedMul = 0; f.guard = G.stone;
       if (!seen && f.t > 0.12) { AI.setState(f, "chase"); run.events.push({ type: "gnomeGo", id: f.id, x: b.x, z: b.z }); }
       break;
     case "wind":
