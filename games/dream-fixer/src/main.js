@@ -46,6 +46,8 @@ async function startGame() {
   const menus = new Menus(app, audio);
   menus.preview = new BenchPreview();
   const padNav = new PadNav(app, audio);
+  // A menu opened with the pad in hand starts with its main button focused.
+  menus.onShow = () => { if (input.usingPad) padNav.focusMain(); };
 
   const save = () => saveProgress(progress);
   // A dream is played normal, or (once fixed) in deep sleep: hard.

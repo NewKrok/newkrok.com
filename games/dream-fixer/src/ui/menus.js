@@ -46,6 +46,7 @@ export class Menus {
         actions[a]?.(b);
       });
     }
+    this.onShow?.(name);
     return this.el.firstElementChild;
   }
 

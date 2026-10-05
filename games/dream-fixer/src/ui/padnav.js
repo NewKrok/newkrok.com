@@ -12,8 +12,25 @@ export class PadNav {
   constructor(root, audio) {
     this.root = root;
     this.audio = audio;
-    // The focus ring only shows while the pad is driving the menus.
-    addEventListener("mousemove", (e) => { if (Math.abs(e.movementX) + Math.abs(e.movementY) > 2) document.body.classList.remove("pad-nav"); });
+    // The focus ring only shows while the pad is driving the menus. Only a
+    // real hand on the mouse takes it away: not the jump the cursor makes
+    // when the pointer lock lets go, nor a twitch right after a pad press.
+    this.padT = 0;
+    addEventListener("mousemove", (e) => {
+      const m = Math.abs(e.movementX) + Math.abs(e.movementY);
+      if (m > 4 && m < 150 && !document.pointerLockElement && performance.now() - this.padT > 1500) document.body.classList.remove("pad-nav");
+    });
+    addEventListener("mousedown", () => document.body.classList.remove("pad-nav"));
+  }
+
+  // A menu just opened while the pad is in hand: its main button is
+  // focused straight away, so you can see where you are.
+  focusMain() {
+    const list = this.focusables();
+    if (!list.length || list.includes(document.activeElement)) return;
+    document.body.classList.add("pad-nav");
+    this.padT = performance.now();
+    this.main(list).focus({ preventScroll: true });
   }
 
   focusables() {
@@ -22,17 +39,18 @@ export class PadNav {
     return [...scr.querySelectorAll("button, input")].filter(visible);
   }
 
-  main(list) { return list.find((b) => b.classList.contains("big")) ?? list.find((b) => b.classList.contains("btn") && !b.classList.contains("ghost")) ?? list[0]; }
+  main(list) { return list.find((b) => b.classList.contains("tile") && b.classList.contains("sel")) ?? list.find((b) => b.classList.contains("big")) ?? list.find((b) => b.classList.contains("btn") && !b.classList.contains("ghost")) ?? list[0]; }
 
   // pad: the Gamepad, time: seconds (for the stick's key-repeat).
   frame(pad, time) {
     const dir = pad.nav(time);
-    if (dir) { document.body.classList.add("pad-nav"); this.move(dir); }
+    if (dir) { document.body.classList.add("pad-nav"); this.padT = performance.now(); this.move(dir); }
     const P = (b) => pad.pressed(b);
     if (P(BTN.B)) { this.press("[data-a=back], [data-a=close], [data-a=resume]"); return; }
     if (P(BTN.START)) { this.press("[data-a=resume]"); return; }
     if (P(BTN.A)) {
       document.body.classList.add("pad-nav");
+      this.padT = performance.now();
       const list = this.focusables(), el = document.activeElement;
       const target = list.includes(el) ? el : this.main(list);
       if (target?.type === "range") this.move("right");

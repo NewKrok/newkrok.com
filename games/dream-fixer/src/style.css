@@ -269,7 +269,8 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; border-radius: 
 .hud .tankdots.foam i.f { background: #9fe0ff; box-shadow: 0 0 6px #9fe0ff; }
 
 /* ── Gamepad: a clear focus ring while the pad drives the menus ── */
-body.pad-nav .menus button:focus, body.pad-nav .menus input:focus { outline: 3px solid var(--brass); outline-offset: 3px; }
+body.pad-nav .menus button:focus, body.pad-nav .menus input:focus { outline: 3px solid var(--brass); outline-offset: 3px; box-shadow: 0 0 0 6px rgba(255, 210, 122, 0.25), 0 0 18px rgba(255, 210, 122, 0.45); }
+body.pad-nav .menus .tile:focus, body.pad-nav .menus .btn.ghost:focus { background: rgba(255, 210, 122, 0.2); }
 @keyframes pulse { 50% { opacity: 0.45; } }
 
 /* ── The journal ── */
