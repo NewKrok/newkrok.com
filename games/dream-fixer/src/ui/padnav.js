@@ -15,10 +15,14 @@ export class PadNav {
     // The focus ring only shows while the pad is driving the menus. Only a
     // real hand on the mouse takes it away: not the jump the cursor makes
     // when the pointer lock lets go, nor a twitch right after a pad press.
-    this.padT = 0;
+    // A real hand: a few moves in a row adding up to a fair distance.
+    this.padT = 0; this.mouseAcc = 0; this.mouseT = 0;
     addEventListener("mousemove", (e) => {
-      const m = Math.abs(e.movementX) + Math.abs(e.movementY);
-      if (m > 4 && m < 150 && !document.pointerLockElement && performance.now() - this.padT > 1500) document.body.classList.remove("pad-nav");
+      const m = Math.abs(e.movementX) + Math.abs(e.movementY), now = performance.now();
+      if (m > 150 || document.pointerLockElement || now - this.padT < 1500) return;
+      this.mouseAcc = now - this.mouseT > 250 ? m : this.mouseAcc + m;
+      this.mouseT = now;
+      if (this.mouseAcc > 60) document.body.classList.remove("pad-nav");
     });
     addEventListener("mousedown", () => document.body.classList.remove("pad-nav"));
   }
@@ -94,7 +98,7 @@ export class PadNav {
       }
     }
     if (!cands.length) {
-      if (vertical) { const pn = cur.closest(".panel"); (pn?.querySelector(".jbody") ?? pn)?.scrollBy({ top: sgn * 160, behavior: "smooth" }); }
+      if (vertical) { const pn = cur.closest(".panel"); (pn?.querySelector(".jbody, .achlist") ?? pn)?.scrollBy({ top: sgn * 160, behavior: "smooth" }); }
       return;
     }
     const near = Math.min(...cands.map((c) => c.gap)) + 12;

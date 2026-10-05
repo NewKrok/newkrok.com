@@ -337,7 +337,9 @@ body.pad-nav .menus .tile:focus, body.pad-nav .menus .btn.ghost:focus { backgrou
 .achs .bhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .achs .purse { font-size: 18px; font-weight: 800; color: #ffe7a8; }
 .achlist { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; max-height: 60vh; overflow-y: auto; }
-.ach { display: flex; gap: 10px; align-items: center; padding: 9px 11px; border-radius: 12px; background: rgba(255, 247, 230, 0.06); opacity: 0.55; }
+.achlist li { display: flex; }
+.ach { flex: 1; display: flex; gap: 10px; align-items: center; padding: 9px 11px; border: 0; border-radius: 12px; background: rgba(255, 247, 230, 0.06); opacity: 0.55; color: var(--ink); font: inherit; text-align: left; cursor: default; }
+body.pad-nav .menus .ach:focus { opacity: 1; }
 .ach.on { opacity: 1; background: rgba(255, 210, 122, 0.14); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.45); }
 .ach i { flex: none; width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; font-style: normal; font-size: 20px; font-weight: 800; background: rgba(20, 26, 44, 0.6); color: var(--ink-dim); }
 .ach.on i { background: linear-gradient(#ffe7a8, #e3b35c); color: #3a2a1a; }

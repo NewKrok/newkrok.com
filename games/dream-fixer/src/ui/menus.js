@@ -150,7 +150,8 @@ export class Menus {
     const got = ACHIEVEMENTS.filter((a) => progress.ach[a.id]).length;
     const rows = ACHIEVEMENTS.map((a) => {
       const [name, desc] = t(`a_${a.id}`), on = !!progress.ach[a.id];
-      return `<li class="ach ${on ? "on" : ""}"><i>${on ? a.icon : "?"}</i><div><b>${esc(name)}</b><p>${esc(desc)}</p></div></li>`;
+      // (Buttons that do nothing, so a pad can step through the list.)
+      return `<li><button class="ach ${on ? "on" : ""}" tabindex="-1"><i>${on ? a.icon : "?"}</i><div><b>${esc(name)}</b><p>${esc(desc)}</p></div></button></li>`;
     }).join("");
     this.show("achievements", `<div class="panel wide achs"><div class="bhead"><h2>${esc(t("achievements"))}</h2><div class="purse">${esc(t("ach_count", { n: got, of: ACHIEVEMENTS.length }))}</div></div>
       <ul class="achlist">${rows}</ul><div class="actions"><button class="btn" data-a="close">${esc(t("close"))}</button></div></div>`, { close: onClose }, "dim");
