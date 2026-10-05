@@ -22,11 +22,11 @@
 // a few seconds, lit up all over: it takes more damage.
 
 export const MOON = {
-  hp: 170, r: 2.1, hover: 6, low: 2.4, chain: 1.3,   // chain: how far its bead hangs under it, let down
+  hp: 150, r: 2.1, hover: 6, low: 2.4, chain: 1.3,   // chain: how far its bead hangs under it, let down
   speed: [2.2, 3],
-  beam: { follow: 1.5, lock: 0.5, r: 2.2, dmg: 11, n: [1, 2] },
-  tide: { time: 2.2, brace: 0.7, near: 3, pull: [3.4, 4.4], rings: [1, 2], gap: 0.5, dmg: 9, max: 12, speed: 8 },
-  rocks: { wind: 0.8, n: [5, 7], gap: 0.12, dmg: 7, splash: 1.7 },
+  beam: { follow: 1.5, lock: 0.5, r: 2.2, dmg: 13, n: [1, 2] },
+  tide: { time: 2.2, brace: 0.7, near: 3, pull: [3.4, 4.4], rings: [1, 2], gap: 0.5, dmg: 11, max: 12, speed: 8 },
+  rocks: { wind: 0.8, n: [5, 7], gap: 0.12, dmg: 9, splash: 1.7 },
   rockets: { n: 2, max: 3 },
   doze: { every: [2, 3], time: 3.2, chainUp: 0.2 },   // attacks between naps; how long; the bead drawn up
   tether: { time: 4, mul: 2 },

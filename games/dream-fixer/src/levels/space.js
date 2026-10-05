@@ -54,8 +54,8 @@ export const space = {
   // spinning top, the last one with a planet mobile.
   tiers: [
     [[0, ["robot", 2]], [0.35, ["rocket", 1]], [0.65, ["robot", 2], ["rocket", 1]]],
-    [[0, ["robot", 2], ["rocket", 1]], [0.3, ["top", 1]], [0.55, ["robot", 2]], [0.8, ["rocket", 2], ["robot", 1]]],
-    [[0, ["rocket", 2], ["robot", 1]], [0.3, ["mobile", 1]], [0.55, ["robot", 3]], [0.8, ["rocket", 1], ["robot", 2]]],
+    [[0, ["robot", 2], ["rocket", 1]], [0.3, ["top", 1]], [0.55, ["robot", 3]], [0.8, ["rocket", 2], ["robot", 2]]],
+    [[0, ["rocket", 2], ["robot", 2]], [0.3, ["mobile", 1]], [0.55, ["robot", 3], ["rocket", 1]], [0.8, ["top", 1], ["rocket", 1], ["robot", 2]]],
   ],
 
   // Routes for the headless bot, from the dock. ("hook", id): lasso that

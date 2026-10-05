@@ -57,6 +57,9 @@ function pickTarget() {
     // Its nozzle while it sucks and the tank holds something to clog it with.
     const vac = run.tools[toolIndex("vacuum")];
     if (S.state === "suck" && vac?.tank.length) return { px: S.nozzle[0], cy: S.nozzle[1], pz: S.nozzle[2], boss: true, nozzle: true };
+    // The Red Pen: foam on its nib till it is blotted, then shoot.
+    const foam = run.tools[toolIndex("foam")];
+    if (S.kind === "pen" && S.state !== "blotted" && foam && !foam.overheated && Math.hypot(S.x - B.x, S.z - B.z) < 11) { const [x, y, z] = S.hitSpheres()[0]; return { px: x, cy: y, pz: z, boss: true, nib: true }; }
     // Its weakest spot (the highest damage multiplier).
     const [x, y, z] = S.hitSpheres().reduce((a, b) => (b[4] > a[4] ? b : a));
     return { px: x, cy: y, pz: z, boss: true };
@@ -71,6 +74,7 @@ function toolFor(tgt) {
   // The Pressure Cooker: ring its lid off with the bell, then shoot inside.
   const S = run.boss;
   if (tgt?.boss && S?.kind === "cooker" && !S.lidOff && toolIndex("bell") >= 0 && !run.tools[toolIndex("bell")].overheated && Math.hypot(S.x - B.x, S.z - B.z) < 9) return "bell";
+  if (tgt?.nib) return "foam";
   // Something right in your face (not a flyer): the umbrella's gust.
   const umb = run.tools[toolIndex("umbrella")];
   if (umb && !umb.overheated && tgt && !tgt.orb && !tgt.boss && !tgt.def?.fly && dist(tgt) < 3.8) return "umbrella";

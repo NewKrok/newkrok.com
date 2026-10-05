@@ -56,8 +56,8 @@ export const garden = {
   // the lawnmower, the last one with a sunflower.
   tiers: [
     [[0, ["gnome", 2]], [0.35, ["can", 1]], [0.65, ["gnome", 2], ["can", 1]]],
-    [[0, ["gnome", 2], ["can", 1]], [0.3, ["mower", 1]], [0.55, ["gnome", 2]], [0.8, ["can", 2], ["gnome", 1]]],
-    [[0, ["can", 2], ["gnome", 1]], [0.3, ["sunflower", 1]], [0.55, ["gnome", 3]], [0.8, ["can", 1], ["gnome", 2]]],
+    [[0, ["gnome", 2], ["can", 1]], [0.3, ["mower", 1]], [0.55, ["gnome", 2], ["can", 1]], [0.8, ["can", 2], ["gnome", 1]]],
+    [[0, ["can", 2], ["gnome", 1]], [0.3, ["sunflower", 1]], [0.55, ["gnome", 3], ["can", 1]], [0.8, ["can", 1], ["gnome", 2]]],
   ],
 
   // Routes for the headless bot, from the garden path. ("glide", x, z):
