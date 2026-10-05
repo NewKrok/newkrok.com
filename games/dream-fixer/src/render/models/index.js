@@ -1,4 +1,5 @@
-import { stabilizer, fuzzVacuum, foamCannon, lullabyBell, gustUmbrella } from "./tools.js";
+import { stabilizer, fuzzVacuum, foamCannon, lullabyBell, gustUmbrella, starYoyo, yoyoBall } from "./tools.js";
+import { starHook } from "./space.js";
 import { pinwheel, windWell, gnome, wateringCan, wateringPot, lawnMower, sunflower, bigAlarmClock, raisedBed, shed, roseBush, greenhouse, flowerPot, appleTree, signalBox, stationHouse } from "./garden.js";
 import { jelly, souffle, meatball, pepperShaker, rollingPin, meatGrinder, pressureCooker, kitchenWindow, panRail, knob, faucet, burner, kettle, jar, cuttingBoard, breadLoaf, fridge, flourSack, tableCloth, mug, tomato, bucket, spoon, pea } from "./kitchen.js";
 import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./characters.js";
@@ -22,6 +23,9 @@ export const MODELS = {
   foam: { build: foamCannon, frame: 0.55, anim: (o, t) => { o.userData.nodes.pump.position.z = -0.105 + 0.06 + Math.abs(Math.sin(t * 2)) * 0.03; } },
   bell: { build: lullabyBell, frame: 0.55, anim: (o, t) => { const N = o.userData.nodes; N.hammer.rotation.x = -0.5 + Math.abs(Math.sin(t * 2)) * 0.5; N.crank.rotation.x = t * 3; N.clapper.rotation.x = Math.sin(t * 4) * 0.15; } },
   umbrella: { build: gustUmbrella, frame: 0.8, anim: (o, t) => { const k = 0.1 + 0.9 * Math.min(1, Math.max(0, Math.sin(t * 1.2) * 1.4 + 0.4)); o.userData.nodes.canopy.scale.set(k, k, 1 + (1 - k) * 0.6); } },
+  yoyo: { build: starYoyo, frame: 0.55 },
+  yoyoBall: { build: yoyoBall, frame: 0.9, anim: spin("spin", "x", 6) },
+  starHook: { build: starHook, frame: 2.4, anim: spin("star", "y", 1) },
   pinwheel: { build: pinwheel, frame: 3, anim: spin("wheel", "z", 4) },
   windWell: { build: windWell, frame: 4.5 },
   gnome: { build: gnome, frame: 1.6, anim: (o, t) => { const N = o.userData.nodes; N.body.rotation.z = Math.sin(t * 6) * 0.08; N.shovel.rotation.x = -Math.abs(Math.sin(t * 2)) * 1.2; } },

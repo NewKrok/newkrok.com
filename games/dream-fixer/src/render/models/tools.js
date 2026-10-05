@@ -337,3 +337,47 @@ export function gustUmbrella(b, { hand = true } = {}) {
   if (hand) glovedHand(b);
 }
 
+
+// The Star Yo-Yo: Sophie's old yo-yo, navy halves with a glowing gold
+// star on each face and a gold rim, on a wooden trick handle with a brass
+// arm and a ring the string runs through. Nodes: "yoyo" (hidden while it
+// is out on its string), "glow" (the ring, flares on a throw).
+export const YOYO_MUZZLE = [0, 0.02, -0.2];
+const YOYO_GLOW = 0xffe27a, YOYO_A = 0x2a3a8a;
+
+// A five-pointed star outline (outer radius r) for SHAPE.extrude.
+const starOutline = (r, inner = 0.45) => Array.from({ length: 10 }, (_, i) => {
+  const a = Math.PI / 2 + i * Math.PI / 5, k = i % 2 ? r * inner : r;
+  return [Math.cos(a) * k, Math.sin(a) * k];
+});
+
+// The two halves of a yo-yo of radius R, its axle along x.
+export function yoyoHalves(n, R) {
+  for (const s of [-1, 1]) {
+    n.add(SHAPE.cyl(R, R * 0.72, R * 0.55, 18, R * 0.1), { p: [s * R * 0.34, 0, 0], r: [0, 0, -s * RX], grad: [shade(YOYO_A, 0.7), YOYO_A], facet: 0.03 });
+    n.add(SHAPE.torus(R * 0.93, R * 0.07, 5, 20), { p: [s * R * 0.6, 0, 0], r: [0, RX, 0], c: C.brassL, mat: "metal" });
+    n.add(SHAPE.extrude(starOutline(R * 0.62), R * 0.06), { p: [s * R * 0.62, 0, 0], r: [0, RX, 0], c: YOYO_GLOW, mat: "glow", glow: 1.8 });
+  }
+  n.add(SHAPE.cyl(R * 0.18, R * 0.18, R * 0.2, 8), { r: [0, 0, RX], c: C.cream });
+}
+
+export function starYoyo(b, { hand = true } = {}) {
+  const CY = 0.02, z = YOYO_MUZZLE[2];
+  b.at([0, -0.055, 0.045], [-0.3, 0, 0], 1, () => {
+    b.add(SHAPE.box(0.042, 0.13, 0.058, 0.013), { grad: [C.woodD, C.woodL], facet: 0.08 });
+    b.add(SHAPE.box(0.048, 0.018, 0.064, 0.006), { p: [0, -0.068, 0], c: C.brassD, mat: "metal" });
+  });
+  // The brass arm out from the grip, and the ring at its end.
+  b.add(SHAPE.box(0.026, 0.024, 0.11, 0.007), { p: [0, CY - 0.012, -0.035], grad: [C.brassD, C.brass], mat: "metal" });
+  b.add(SHAPE.torus(0.016, 0.004, 5, 12), { p: [0, CY, -0.1], c: C.brassL, mat: "metal" });
+  b.node("glow", [0, CY, -0.1], [0, 0, 0], (n) => n.add(SHAPE.torus(0.011, 0.003, 5, 12), { c: YOYO_GLOW, mat: "glow", glow: 2 }));
+  // The string from the ring down to the yo-yo, and the yo-yo itself.
+  b.add(SHAPE.cyl(0.0018, 0.0018, Math.abs(z + 0.1), 4), { p: [0, CY, (z - 0.1) / 2], r: [RX, 0, 0], c: C.paper });
+  b.node("yoyo", [0, CY, z], [0, 0, 0], (n) => yoyoHalves(n, 0.036));
+  if (hand) glovedHand(b);
+}
+
+// The yo-yo out on its string, as big as a dream likes it.
+export function yoyoBall(b, { r = 0.16 } = {}) {
+  b.node("spin", [0, 0, 0], [0, 0, 0], (n) => yoyoHalves(n, r));
+}

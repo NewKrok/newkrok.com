@@ -15,6 +15,7 @@ export class World {
     this.grid = new Map();
     this.stamp = 0;
     this.killY = -40;
+    this.gravity = 1;                  // a dream may be lighter (scales every body's fall)
     this.nx = 0; this.nz = 0;          // last push2D normal
     this._q = [];
   }

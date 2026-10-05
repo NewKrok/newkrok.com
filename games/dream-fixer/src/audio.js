@@ -11,7 +11,7 @@
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const hz = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
-const GAP = { gnomeStone: 0.1, gnomeGo: 0.12, rainPat: 0.08, soaked: 0.3, canSquirt: 0.08, sunSeed: 0.06, mowerRev: 0.2, tileWarn: 0.2, tileDrop: 0.15, tileBack: 0.15, bigclockClink: 0.1, gust: 0.08, umbrellaBlock: 0.05, umbrellaOpen: 0.12, umbrellaShut: 0.12, pinwheel: 0.3, sneeze: 0.3, meatRoll: 0.15, pepperShake: 0.3, pepperBurst: 0.1, pinRoll: 0.2, steamBurn: 0.3, cookerRattle: 0.08, bellRing: 0.08, bellBat: 0.05, boing: 0.12, foeSleep: 0.08, foeWake: 0.1, foeDrowsy: 0.1, clockWind: 0.2, clockRing: 0.3, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
+const GAP = { yoyoThrow: 0.05, yoyoCatch: 0.05, yoyoHit: 0.05, yoyoClack: 0.06, yoyoHook: 0.1, yoyoLetGo: 0.1, yoyoSpinHit: 0.05, foeYank: 0.06, foeDizzy: 0.1, gnomeStone: 0.1, gnomeGo: 0.12, rainPat: 0.08, soaked: 0.3, canSquirt: 0.08, sunSeed: 0.06, mowerRev: 0.2, tileWarn: 0.2, tileDrop: 0.15, tileBack: 0.15, bigclockClink: 0.1, gust: 0.08, umbrellaBlock: 0.05, umbrellaOpen: 0.12, umbrellaShut: 0.12, pinwheel: 0.3, sneeze: 0.3, meatRoll: 0.15, pepperShake: 0.3, pepperBurst: 0.1, pinRoll: 0.2, steamBurn: 0.3, cookerRattle: 0.08, bellRing: 0.08, bellBat: 0.05, boing: 0.12, foeSleep: 0.08, foeWake: 0.1, foeDrowsy: 0.1, clockWind: 0.2, clockRing: 0.3, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
 
 const SONGS = {
   menu: { root: 60, bpm: 76, scale: [0, 2, 4, 7, 9], prog: [0, -3, 5, -5], lead: "box", drums: 0 },
@@ -243,6 +243,18 @@ export class Audio {
       case "umbrellaShut": N(0.08, { type: "bandpass", freq: 1500, q: 1.2, gain: 0.06 }); S(0.06, { type: "triangle", freq: 260, freqEnd: 180, gain: 0.04 }); break;
       case "umbrellaBlock": N(0.07, { type: "bandpass", freq: 1100, q: 1.5, gain: 0.14 }); S(0.09, { type: "sine", freq: 300, freqEnd: 150, gain: 0.08 }); break;
       case "pinwheel": for (let i = 0; i < 10; i++) at(i * 0.05, (tt) => this.#tone(d, tt, 0.035, { type: "square", freq: 600 + i * 60, gain: 0.02 })); N(0.6, { type: "bandpass", freq: 800, freqEnd: 1600, q: 1, gain: 0.05, attack: 0.05 }); break;
+      // The Star Yo-Yo: a whirr out, a plastic snap back in the hand, a
+      // thwack on a glitch, a tock on a wall; a handle catches with a
+      // bright clink; a yanked glitch whoops, and comes in seeing stars.
+      case "yoyoThrow": S(0.22, { type: "triangle", freq: 500, freqEnd: 1300, gain: 0.05 }); N(0.2, { type: "bandpass", freq: 1200, freqEnd: 2600, q: 2, gain: 0.05 }); break;
+      case "yoyoCatch": N(0.03, { type: "highpass", freq: 3000, gain: 0.06 }); S(0.05, { type: "square", freq: 900, freqEnd: 600, gain: 0.025 }); break;
+      case "yoyoHit": S(0.09, { type: "triangle", freq: 420, freqEnd: 160, gain: 0.12 }); N(0.05, { type: "bandpass", freq: 1800, q: 2, gain: 0.08 }); break;
+      case "yoyoClack": S(0.05, { type: "square", freq: 1300, freqEnd: 900, gain: 0.03 }); N(0.03, { type: "highpass", freq: 2500, gain: 0.05 }); break;
+      case "yoyoHook": this.#bell(d, t, hz(88), 0.07, 0.8, 0.3); this.#bell(d, t + 0.05, hz(95), 0.05, 0.6, 0.3); N(0.08, { type: "highpass", freq: 4000, gain: 0.05 }); break;
+      case "yoyoLetGo": S(0.15, { type: "sine", freq: 400, freqEnd: 900, gain: 0.05 }); break;
+      case "yoyoSpinHit": S(0.06, { type: "triangle", freq: 600 + Math.random() * 200, freqEnd: 300, gain: 0.07 }); break;
+      case "foeYank": S(0.3, { type: "sine", freq: 300, freqEnd: 1200, gain: 0.06 }); break;
+      case "foeDizzy": [0, 0.08, 0.16].forEach((dt, i) => at(dt, (tt) => this.#bell(d, tt, hz(91 - i * 3), 0.03, 0.4, 0.2))); break;
       // The Lullaby Bell: a bright strike with a long ring; the lullaby a
       // falling music-box phrase; sleepers sigh, wakers squeak.
       case "bellRing": { const r = [0, 2, 4][Math.floor(Math.random() * 3)]; this.#bell(d, t, hz(81 + r), 0.11, 1.4, 0.5); this.#bell(d, t, hz(88 + r), 0.05, 0.9, 0.5); N(0.03, { type: "highpass", freq: 5000, gain: 0.05 }); S(0.12, { type: "triangle", freq: 330, freqEnd: 220, gain: 0.05 }); break; }
@@ -347,6 +359,7 @@ export class Audio {
       else if (name === "bossSuck") { L.f = noise("lowpass", 500, 0.7); L.f.connect(g); L.o = osc("sawtooth", 60); const og = c.createGain(); og.gain.value = 0.2; L.o.connect(og).connect(g); }
       else if (name === "tune") { L.o = osc("sine", 220); L.o2 = osc("sine", 331); L.o.connect(g); L.o2.connect(g); }
       else if (name === "hum") { L.o = osc("sine", 523); L.o2 = osc("sine", 784); const tg = c.createGain(); tg.gain.value = 1; L.o.connect(tg); L.o2.connect(tg); tg.connect(g); L.trem = osc("sine", 6); const tq = c.createGain(); tq.gain.value = 0.35; L.trem.connect(tq).connect(tg.gain); }
+      else if (name === "whirr") { L.f = noise("bandpass", 900, 2); L.f.connect(g); L.o = osc("triangle", 180); const og = c.createGain(); og.gain.value = 0.25; L.o.connect(og).connect(g); }
       else if (name === "wind") { L.f = noise("bandpass", 600, 0.7); L.f.connect(g); }
       else if (name === "buzz") { L.o = osc("sawtooth", 180); const f = c.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 600; f.Q.value = 2; L.o.connect(f).connect(g); }
     }
@@ -357,6 +370,7 @@ export class Audio {
     else if (name === "bossSuck") { L.f.frequency.setTargetAtTime(300 + k * 700, t, 0.2); L.g.gain.setTargetAtTime(0.25 * k, t, 0.1); }
     else if (name === "tune") { L.o.frequency.setTargetAtTime(220 + k * 220, t, 0.2); L.o2.frequency.setTargetAtTime(331 + k * 330, t, 0.2); L.g.gain.setTargetAtTime(0.03, t, 0.2); }
     else if (name === "hum") { L.o.frequency.setTargetAtTime(523 * (1 + k * 0.5), t, 0.08); L.o2.frequency.setTargetAtTime(784 * (1 + k * 0.5), t, 0.08); L.trem.frequency.setTargetAtTime(4 + k * 6, t, 0.1); L.g.gain.setTargetAtTime(0.015 + k * 0.03, t, 0.08); }
+    else if (name === "whirr") { L.f.frequency.setTargetAtTime(700 + k * 900, t, 0.1); L.o.frequency.setTargetAtTime(140 + k * 160 + Math.sin(t * 11) * 25, t, 0.03); L.g.gain.setTargetAtTime(0.06 * Math.min(1, k + 0.3), t, 0.08); }
     else if (name === "wind") { L.f.frequency.setTargetAtTime(350 + k * 900 + Math.sin(t * 3) * 80, t, 0.15); L.g.gain.setTargetAtTime(0.09 * k, t, 0.15); }
     else if (name === "buzz") { L.o.frequency.setTargetAtTime(170 + Math.sin(t * 7) * 10, t, 0.05); L.g.gain.setTargetAtTime(0.03 * k, t, 0.1); }
   }

@@ -21,6 +21,7 @@ export class Kit {
     this.updrafts = [];        // columns of rising air an open umbrella rides up
     this.pinwheels = [];       // a gust sets them spinning (and their updraft blowing)
     this.tiles = [];           // paving that can fall away (drawn and moved by the renderer)
+    this.hooks = [];           // star handles the yo-yo catches on (and reels you in to)
     this.floorLimit = 50;      // indoors: below the ceiling
   }
 
@@ -132,6 +133,9 @@ export class Kit {
     const c = this.world.box({ x, z, y0, y1, hx: w / 2, hz: d / 2 });
     this.tiles.push({ id, x, z, w, d, y0, y1, look: o.look ?? {}, fixed: !!o.fixed, c });
   }
+  // A star handle hanging in the air at (x, y, z): the yo-yo's string
+  // catches on it and reels you in. o: { r (how near the yo-yo must pass) }.
+  hook(id, x, y, z, o = {}) { this.hooks.push({ id, x, y, z, r: o.r ?? 0.7 }); }
   mark(name, x, z, y) { this.marks[name] = { x, y: y ?? this.floorAt(x, z), z }; }
   light(x, y, z, color, intensity = 6, dist = 9) { this.lights.push({ x, y, z, color, intensity, dist }); }
 }
@@ -148,5 +152,6 @@ export function buildLevel(def) {
   // The memories are listed in the level's data (the board counts them).
   for (const [id, x, z, y] of def.memories ?? []) k.memory(id, x, z, y);
   k.world.killY = def.killY ?? -30;
+  k.world.gravity = def.gravity ?? 1;
   return k;
 }

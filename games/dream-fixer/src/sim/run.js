@@ -13,6 +13,7 @@ import { Cog } from "./cog.js";
 import { Foam } from "./foam.js";
 import { Bell, backHit } from "./bell.js";
 import { Umbrella } from "./umbrella.js";
+import { YoYo } from "./yoyo.js";
 import { SNEEZE } from "./foes-kitchen.js";
 import { CAN } from "./foes-garden.js";
 
@@ -67,6 +68,8 @@ export class Run {
     this.ringables = this.kit.ringables.map((g) => ({ ...g, wobbleT: 0 }));
     // The umbrella's gusts, its glide, updrafts and pinwheels.
     this.umbrella = new Umbrella(this.kit);
+    // The yo-yo on its string, and the star handles it catches on.
+    this.yoyo = new YoYo(this.kit);
     this.time = 0;
     this.events = [];
     this.hp = this.maxHp; this.hurtT = 9; this.invuln = 0;
@@ -207,6 +210,7 @@ export class Run {
     const b = this.body, m = 1.5;
     if (b.x < S.minX || b.x > S.maxX || b.z < S.minZ || b.z > S.maxZ) {
       const x = Math.max(S.minX + m, Math.min(S.maxX - m, b.x)), z = Math.max(S.minZ + m, Math.min(S.maxZ - m, b.z));
+      this.yoyo.reset(this);
       b.place(x, this.kit.floorAt(x, z, 20), z, b.yaw);
       this.events.push({ type: "respawn", pulled: true });
     }
@@ -398,6 +402,7 @@ export class Run {
     const lost = !!(this.boss?.alive || this.coreT > 0);
     if (lost) this.bossLost = true;
     const c = lost ? this.checkpoint : this.respawnAt(), b = this.body;
+    this.yoyo.reset(this);
     b.place(c.x, c.y, c.z, c.yaw);
     this.hp = this.maxHp;
     this.invuln = 1.5;
@@ -433,6 +438,7 @@ export class Run {
       if (this.winded && this.stamina >= STAMINA.again) this.winded = false;
     }
     this.umbrella.carry(this, dt);
+    this.yoyo.carry(this, intent, dt);
     // (Walking under an open umbrella is slower; gliding is not.)
     const under = this.umbrella.open(this) && b.grounded ? this.activeTool.def.walk : 1;
     b.step(this.world, intent, dt, (this.sprinting ? 1.45 : 1) * this.perks.speed * (this.boostT > 0 ? ITEM.espresso.speed : 1) * (this.slowT > 0 ? 0.5 : 1) * under);
@@ -451,6 +457,7 @@ export class Run {
       // Falling out of a dream puts you back at the last anchor, a little
       // less awake.
       const c = this.respawnAt();
+      this.yoyo.reset(this);
       b.place(c.x, c.y, c.z, b.yaw);
       this.events.push({ type: "respawn" });
       this.invuln = 0;
@@ -478,6 +485,7 @@ export class Run {
       else if (shot.ring) this.bell.ring(this, tool);
       else if (shot.lull !== undefined) this.bell.lull(this, tool, shot.lull);
       else if (shot.gust) this.umbrella.gust(this, tool);
+      else if (shot.throw) this.yoyo.throw(this, tool);
       else this.fire(tool, shot);
     }
     this.stepBalls(dt);
@@ -485,6 +493,7 @@ export class Run {
     this.bell.step(this, dt);
     this.bell.stepRingables(this, dt);
     this.umbrella.step(this, dt);
+    this.yoyo.step(this, dt);
     if (intent.item) this.useItem(intent.item);
 
     stepAnchors(this, dt);

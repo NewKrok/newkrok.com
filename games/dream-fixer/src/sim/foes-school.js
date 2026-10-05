@@ -221,7 +221,7 @@ function pencil(run, f, dt, px, pcy, pz) {
       if (f.t > PENCIL.pogo.crouch) {
         const [tx, , tz] = f.mark, ty = AI.floorBelow(run.world, tx, tz, P.y + 0.3);
         if (ty === -Infinity || Math.abs(ty - b.y) > 1.6) { f.mark = null; AI.setState(f, "chase"); f.cd = 0.8; break; }
-        const T = PENCIL.pogo.T, g = 27;
+        const T = PENCIL.pogo.T, g = 27 * run.world.gravity;
         b.vx = (tx - b.x) / T; b.vz = (tz - b.z) / T; b.vy = (ty - b.y + 0.5 * g * T * T) / T; b.grounded = false;
         f.mark[1] = ty;
         AI.setState(f, "pogo");

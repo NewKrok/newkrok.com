@@ -16,6 +16,7 @@ import { WaterView } from "./water.js";
 import { FoamView } from "./foam.js";
 import { BellView } from "./bell.js";
 import { UmbrellaView } from "./umbrella.js";
+import { YoyoView } from "./yoyo.js";
 import { TileView } from "./tiles.js";
 import { C } from "./palette.js";
 import { damp, lerp } from "../config.js";
@@ -44,6 +45,7 @@ export class GameView {
     this.foamView = new FoamView(this.scene, this.fx);
     this.bellView = new BellView(this.scene, this.fx);
     this.umbrellaView = new UmbrellaView(this.scene, this.fx);
+    this.yoyoView = new YoyoView(this.scene, this.fx);
     this.tileView = new TileView(this.scene, this.fx);
     this.companion = new Companion(this.scene);
     this.talking = false;
@@ -130,6 +132,7 @@ export class GameView {
     }
     this.bellView.load(run);
     this.umbrellaView.load(run);
+    this.yoyoView.load(run);
     this.tileView.load(run);
     const def = run.def, kit = run.kit;
     this.foes.setSkins(def.skins);
@@ -174,6 +177,10 @@ export class GameView {
         this.umbrellaView.onEvent(e, run, this.muzzleWorld());
         if (e.type === "gust") { this.gusted = true; this.muzzleFlash = Math.max(this.muzzleFlash || 0, 0.6); }
         if (e.type === "umbrellaBlock") this.shake = Math.min(1, this.shake + 0.1);
+      } else if (e.type.startsWith("yoyo") || e.type === "foeYank") {
+        this.yoyoView.onEvent(e);
+        if (e.type === "yoyoThrow") this.thrown = true;
+        if (e.type === "yoyoHook") this.shake = Math.min(1, this.shake + 0.1);
       } else if (e.type === "shot") {
         const end = [e.o[0] + e.d[0] * e.t, e.o[1] + e.d[1] * e.t, e.o[2] + e.d[2] * e.t];
         const from = this.muzzleWorld();
@@ -358,7 +365,9 @@ export class GameView {
       sucking: tool.sucking, tank: tool.tank, launched: this.launched, blasted: this.blasted,
       sprayed: this.sprayed, blobbed: this.blobbed, rang: this.rang, lulled: this.lulled,
       open: tool.open, gusted: this.gusted, gliding: tool.open && !b.grounded,
+      thrown: this.thrown, spinning: tool.spinning, yoyoOut: !!(run.yoyo.ball || run.yoyo.spin),
     });
+    this.thrown = false;
     this.shotThisFrame = 0; this.launched = false; this.blasted = false; this.sprayed = false; this.blobbed = false; this.rang = false; this.lulled = false; this.gusted = false;
     // The vacuum's stream: flecks rushing into the nozzle.
     if (tool.sucking) this.suckStream(run, dt);
@@ -372,6 +381,7 @@ export class GameView {
     this.foamView.update(run, alpha, dt, t, m);
     this.bellView.update(run, dt, t);
     this.umbrellaView.update(run, dt, t);
+    this.yoyoView.update(run, dt, t, m);
     this.tileView.update(run, dt, t);
     this.fx.update(dt);
     this.adapt(dt);

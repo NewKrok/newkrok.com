@@ -25,6 +25,7 @@ export class Body {
     this.pushX = 0; this.pushZ = 0;            // outside drift for the next step (m/s)
     this.glide = 0;                            // an open umbrella: fastest fall (0: none)
     this.airMul = 1;                           // …and more say in the air
+    this.reel = null;                          // { vx, vy, vz }: a yo-yo's string pulling you (no walking, no gravity)
     this.r = this.P.radius; this.h = this.P.height;
   }
 
@@ -40,6 +41,17 @@ export class Body {
     this.px = this.x; this.py = this.y; this.pz = this.z;
     this.landSpeed = 0; this.stepUp = 0; this.fell = false;
 
+    // Reeled in on a yo-yo's string: it alone says where you go.
+    if (this.reel) {
+      this.vx = this.reel.vx; this.vy = this.reel.vy; this.vz = this.reel.vz;
+      this.grounded = false; this.jumped = false; this.coyoteT = 0;
+    } else this.walk(intent, dt, speedMul, world.gravity ?? 1);
+    this.move(world, dt);
+  }
+
+  // The wanted velocity from the stick / keys, the jump and gravity (a
+  // dream may be lighter: `g` scales it).
+  walk(intent, dt, speedMul, G) {
     // ── Wanted velocity from the stick / keys, in the look direction ──
     let f = intent.forward || 0, s = intent.strafe || 0;
     const len = Math.hypot(f, s);
@@ -65,15 +77,17 @@ export class Body {
 
     // ── Gravity: lighter while rising with the button held ──
     if (!this.grounded) {
-      const g = this.vy > 0 && intent.jump ? this.P.gravity : this.P.fallGravity;
+      const g = (this.vy > 0 && intent.jump ? this.P.gravity : this.P.fallGravity) * G;
       if (this.glide > 0 && this.vy < 0) {
         // Under an open umbrella the fall eases off to a glide (quickly,
         // if it opens in the middle of a long drop).
         const over = Math.max(0, -this.vy - this.glide);
         this.vy = Math.max(this.vy - g * dt, -this.glide - over * Math.exp(-8 * dt));
-      } else this.vy = Math.max(this.vy - g * dt, -this.P.maxFall);
+      } else this.vy = Math.max(this.vy - g * dt, -this.P.maxFall * Math.sqrt(G));
     }
+  }
 
+  move(world, dt) {
     // ── Across: in small steps so a fast body cannot tunnel through thin walls ──
     // A drift from outside (a vacuum's pull) adds to the walk and is not
     // eaten by friction; it lasts one step.

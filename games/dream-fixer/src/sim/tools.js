@@ -4,7 +4,7 @@
 // has cooled to `unlock`.
 
 // The order tools sit in your hands (and on the number keys).
-export const TOOL_ORDER = ["stabilizer", "vacuum", "foam", "bell", "umbrella"];
+export const TOOL_ORDER = ["stabilizer", "vacuum", "foam", "bell", "umbrella", "yoyo"];
 
 export const TOOLS = {
   stabilizer: {
@@ -75,6 +75,19 @@ export const TOOLS = {
     walk: 0.72,           // walking speed under an open umbrella
     lift: 46, rise: 7,    // an updraft: push up (m/s²), fastest climb
   },
+  // Pressed: thrown straight out on its string (and back to your hand).
+  // It stings the first glitch it meets and yanks a small one to you,
+  // dizzy; it pops orbs on the way; on a star handle (kit.hook) it
+  // catches, and the string reels you in to it. Held second action: it
+  // goes round and round you, knocking back whatever it meets.
+  yoyo: {
+    interval: 0.1, heat: 0.15, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
+    range: 12, speed: 36, back: 32,                  // m; out and back (m/s)
+    damage: 2.2, r: 0.2,                             // the yo-yo's own size, for hitting
+    yank: 2.2,                                       // a yanked glitch lands this far in front of you
+    reel: { speed: 17, accel: 70, pop: 4.5, time: 3 }, // reeled in: top speed, how fast, a hop at the end, give up after
+    spin: { r: 2.1, speed: 11, damage: 1.1, every: 0.3, heat: 0.36, push: 1 }, // round you: radius, rad/s, per hit, again after (s), per s
+  },
 };
 
 export class ToolState {
@@ -91,6 +104,8 @@ export class ToolState {
     this.sucking = false;
     this.altHeld = false;
     this.open = false;        // umbrella: held open
+    this.out = false;         // yo-yo: out on its string (not in your hand)
+    this.spinning = false;    // yo-yo: going round you
   }
 
   // Returns the shots this step wants: [{ damage, big }] (usually 0 or 1).
@@ -100,6 +115,7 @@ export class ToolState {
     if (this.id === "foam") return this.stepFoam(intent, dt, out);
     if (this.id === "bell") return this.stepBell(intent, dt, out);
     if (this.id === "umbrella") return this.stepUmbrella(intent, dt, out);
+    if (this.id === "yoyo") return this.stepYoyo(intent, dt, out);
     const d = this.def;
     this.cd -= dt;
     this.sinceShot += dt;
@@ -219,6 +235,24 @@ export class ToolState {
     // Open over your head it is a shield and a glide, not a fan.
     if (!this.open && !this.overheated && intent.fire && this.cd <= 0) {
       out.push({ gust: true });
+      this.cd = d.interval;
+      this.addHeat(d.heat);
+    }
+    return out;
+  }
+
+  // The yo-yo reports { throw } on a press while it is in your hand; held
+  // second action it goes round you (`spinning`), warming as it goes.
+  stepYoyo(intent, dt, out) {
+    const d = this.def;
+    this.cd -= dt;
+    this.sinceShot += dt;
+    if (this.sinceShot > d.coolDelay) this.heat = Math.max(0, this.heat - d.cool * dt);
+    if (this.overheated && this.heat <= d.unlock) this.overheated = false;
+    this.spinning = !this.overheated && !!intent.alt && !this.out;
+    if (this.spinning) this.addHeat(d.spin.heat * dt);
+    else if (!this.overheated && intent.fire && !this.out && this.cd <= 0) {
+      out.push({ throw: true });
       this.cd = d.interval;
       this.addHeat(d.heat);
     }

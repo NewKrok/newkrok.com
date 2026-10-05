@@ -145,6 +145,7 @@ export function stepFoes(run, dt) {
     f.t += fdt;
     if (f.state === "spawn") { if (f.t > 0.5) setState(f, "idle"); else continue; }
     if (f.sleepT > 0) { doze(run, f, dt); continue; }
+    if (f.yankT > 0) { yanked(run, f, dt); continue; }
     if (!fdt) {
       // Stuck fast in foam, a flyer drops to the ground.
       if (f.def.fly) {
@@ -272,6 +273,53 @@ function wake(run, f) {
 
 const NOTHING = { forward: 0, strafe: 0 };
 
+// ── The yo-yo's yank ──
+// A small glitch the yo-yo hits is pulled to (tx, tz), just in front of
+// you: a walker in a quick low arc, a flyer drifting in. It comes in
+// dizzy, does nothing for a moment, and every hit meanwhile counts
+// YANK.hurt times. (Big, heavy and rooted ones only take the hit.)
+export const YANK = { dizzy: 1.2, hurt: 1.5, fly: 7, time: 2.5 };
+export const yankable = (f) => !f.def.big && !f.def.steady && !f.def.still && f.def.hp <= 6;
+
+export function yankFoe(run, f, tx, ty, tz) {
+  if (!f.alive || f.state === "spawn" || !yankable(f)) return false;
+  f.sleepT = 0; f.mark = null; f.leap = false; f.hitDone = true; f.spin = 0; f.blowX = f.blowZ = 0;
+  setState(f, "idle");
+  f.yankT = YANK.dizzy; f.yanking = true; f.yankAge = 0; f.yankTo = [tx, ty, tz];
+  if (f.body) {
+    const b = f.body, G = 27 * run.world.gravity, l = Math.hypot(tx - b.x, tz - b.z), T = 0.3 + l * 0.04;
+    b.vx = (tx - b.x) / T; b.vz = (tz - b.z) / T; b.vy = (ty - b.y + 0.5 * G * T * T) / T; b.grounded = false;
+  }
+  startle(run, f);
+  run.events.push({ type: "foeYank", id: f.id, kind: f.kind, x: f.px, y: f.cy, z: f.pz });
+  return true;
+}
+
+function yanked(run, f, dt) {
+  f.yankAge += dt;
+  if (f.yanking) {
+    if (f.body) {
+      const b = f.body, vx = b.vx, vz = b.vz;
+      b.step(run.world, NOTHING, dt, 0);
+      b.vx = vx; b.vz = vz;
+      if (b.fell) { f.alive = false; f.hp = 0; f.lost = true; return; }
+      if (b.grounded && f.yankAge > 0.1) { b.vx = b.vz = 0; f.yanking = false; }
+    } else {
+      const [tx, ty, tz] = f.yankTo, k = 1 - Math.exp(-YANK.fly * dt);
+      f.x += (tx - f.x) * k; f.y += (ty - f.y) * k; f.z += (tz - f.z) * k;
+      f.vx = f.vy = f.vz = 0;
+      if (Math.hypot(tx - f.x, ty - f.y, tz - f.z) < 0.4) f.yanking = false;
+    }
+    if (f.yankAge > YANK.time) f.yanking = false;
+    if (f.yanking) return;
+    run.events.push({ type: "foeDizzy", id: f.id, x: f.px, y: f.cy, z: f.pz });
+  }
+  // Seeing stars where it landed.
+  if (f.body) { const b = f.body; b.vx = b.vz = 0; b.step(run.world, NOTHING, dt, 0); }
+  f.yankT -= dt;
+  if (f.yankT <= 0) { f.yankT = 0; setState(f, "idle"); f.cd = Math.max(f.cd, 0.4); }
+}
+
 // The last guard at the brink: a walker that stepped off a drop on its own
 // (crowded, sliding along the edge) is put back where it stood.
 function keepOn(run, b, wasGrounded) {
@@ -345,8 +393,8 @@ function wayTo(run, b, px, pz, dist) {
 }
 
 // Hop over a gap to (x, y, z) in an arc high enough to clear the edges.
-function hopTo(b, x, y, z) {
-  const g = 27, ex = x - b.x, ez = z - b.z, l = Math.hypot(ex, ez);
+function hopTo(b, x, y, z, g = 27) {
+  const ex = x - b.x, ez = z - b.z, l = Math.hypot(ex, ez);
   const T = 0.5 + l * 0.07;
   b.vx = ex / T; b.vz = ez / T; b.vy = (y - b.y + 0.5 * g * T * T) / T; b.grounded = false;
 }
@@ -436,7 +484,7 @@ function fuzz(run, f, dt, px, pz) {
     }
     case "hop":
       speedMul = 0;
-      if (f.t > 0.22) { hopTo(b, f.hop[0], f.hop[1], f.hop[2]); setState(f, "flying"); }
+      if (f.t > 0.22) { hopTo(b, f.hop[0], f.hop[1], f.hop[2], 27 * run.world.gravity); setState(f, "flying"); }
       break;
     case "flying":
       if (f.t > 0.15 && b.grounded) { b.vx *= 0.2; b.vz *= 0.2; setState(f, "chase"); }
@@ -448,7 +496,7 @@ function fuzz(run, f, dt, px, pz) {
         // Up and over in an arc that comes down where you are headed (or
         // where you are, if that is not over ground). Out of reach by now,
         // or nothing but void between: it thinks better of it.
-        const P = run.body, g = 27;
+        const P = run.body, g = 27 * run.world.gravity;
         const T0 = (LEAP.vy + Math.sqrt(Math.max(0, LEAP.vy ** 2 + 2 * g * (b.y - P.y)))) / g;
         let tx = P.x + P.vx * T0 * 0.5, tz = P.z + P.vz * T0 * 0.5;
         // Land on the ground there (you may be in the air), a little short.
@@ -692,14 +740,18 @@ export function damageFoe(run, f, dmg, dx, dz, big) {
   // Asleep: the hit wakes it, and hurts twice as much.
   const rude = f.sleepT > 0;
   if (rude) wake(run, f);
-  f.hp -= (stuck ? dmg * FOAM.hurt : dmg) * (f.guard ?? 1) * (rude ? SLEEP.wake : 1);
+  // Dizzy from the yo-yo's yank: helpless.
+  const dizzy = f.yankT > 0 ? YANK.hurt : 1;
+  f.hp -= (stuck ? dmg * FOAM.hurt : dmg) * (f.guard ?? 1) * (rude ? SLEEP.wake : 1) * dizzy;
   f.flash = 1;
   // Hit from afar: it comes for you, and so do the ones round it. The calm
   // of the arrival spot is over once you start a fight.
   if (!f.group) { notice(run, f); f.provoked = ALERT.provoked; alert(run, f, ALERT.hit, ALERT.provoked); }
   run.calm = null;
   const k = stuck ? 0 : f.def.knock * (big ? 2.2 : 1);
-  if (f.body && k > 0) {
+  if (f.yankT > 0) {
+    // (On its way in, or seeing stars: a hit does not shove it about.)
+  } else if (f.body && k > 0) {
     f.body.vx += dx * 3.5 * k; f.body.vz += dz * 3.5 * k;
     if (big) { f.body.vy = 3; f.body.grounded = false; }
     // (A spinning pencil shrugs it off; a heavy one only flinches at a big hit.)

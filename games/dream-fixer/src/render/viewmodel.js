@@ -1,6 +1,6 @@
 import * as T from "three";
 import { make, MAT } from "./modelkit.js";
-import { stabilizer, STABILIZER_MUZZLE, fuzzVacuum, VACUUM_MUZZLE, foamCannon, FOAM_MUZZLE, lullabyBell, BELL_MUZZLE, gustUmbrella, UMBRELLA_MUZZLE } from "./models/tools.js";
+import { stabilizer, STABILIZER_MUZZLE, fuzzVacuum, VACUUM_MUZZLE, foamCannon, FOAM_MUZZLE, lullabyBell, BELL_MUZZLE, gustUmbrella, UMBRELLA_MUZZLE, starYoyo, YOYO_MUZZLE } from "./models/tools.js";
 import { damp } from "../config.js";
 
 // ── The tool in your hand ────────────────────────────────────────────────
@@ -17,6 +17,7 @@ const TOOLS = {
   foam: { build: foamCannon, muzzle: FOAM_MUZZLE, cool: new T.Color(0x9fe0ff), at: [0.005, -0.02, -0.03] },
   bell: { build: lullabyBell, muzzle: BELL_MUZZLE, cool: new T.Color(0xc8b0ff), at: [0.01, -0.02, -0.02] },
   umbrella: { build: gustUmbrella, muzzle: UMBRELLA_MUZZLE, cool: new T.Color(0xa8f0c0), at: [0.01, -0.01, 0.03], s: 0.85 },
+  yoyo: { build: starYoyo, muzzle: YOYO_MUZZLE, cool: new T.Color(0xffe27a), at: [0.01, -0.02, -0.01] },
 };
 
 export class ViewModel {
@@ -107,6 +108,10 @@ export class ViewModel {
     this.open = damp(this.open || 0, s.tool === "umbrella" && s.open && !swapping ? 1 : 0, 11, dt);
     if (s.gusted) { this.snap = 1; this.kick = Math.min(1.6, this.kick + 0.5); this.flash = 1; }
     this.snap = Math.max(0, (this.snap || 0) - dt / 0.28);
+    // Yo-yo: a flick of the wrist on a throw, a circling hand while it spins.
+    if (s.thrown) { this.kick = Math.min(1.6, this.kick + 0.6); this.flick = 1; this.flash = 1; }
+    this.flick = damp(this.flick || 0, 0, 8, dt);
+    this.whirl = damp(this.whirl || 0, s.tool === "yoyo" && s.spinning ? 1 : 0, 10, dt);
 
     const bx = Math.sin(this.bobT) * 0.012 * this.bobAmt, by = -Math.abs(Math.cos(this.bobT)) * 0.012 * this.bobAmt;
     const shake = (this.charge > 0.05 ? Math.sin(s.t * 90) * 0.0016 * this.charge : 0) + (s.sucking ? Math.sin(s.t * 70) * 0.0012 : 0);
@@ -120,6 +125,11 @@ export class ViewModel {
       this.sway.x * 0.8,
       -this.sway.x * 0.5 + bx * 2,
     );
+    if (this.current === "yoyo") {
+      this.pivot.rotation.x -= this.flick * 0.5;
+      this.pivot.position.x += Math.cos(s.t * 11) * 0.012 * this.whirl;
+      this.pivot.position.y += Math.sin(s.t * 11) * 0.012 * this.whirl;
+    }
     const up = this.current === "umbrella" ? this.open : 0;
     if (up) {
       this.pivot.position.x += up * 0.03; this.pivot.position.y += up * 0.1; this.pivot.position.z += up * 0.04;
@@ -153,6 +163,7 @@ export class ViewModel {
       N.canopy.rotation.z += dt * this.open * (s.gliding ? 2.5 : 0.3);
     }
     if (N.glow) N.glow.scale.setScalar(1 + this.flash * 0.6);
+    if (N.yoyo) N.yoyo.visible = !s.yoyoOut;
     // Glow colour: cool → orange → red with the heat, brighter on each shot.
     const c = tool.glowMat.color;
     if (s.heat < 0.6) c.copy(tool.cool).lerp(WARM, s.heat / 0.6); else c.copy(WARM).lerp(HOT, (s.heat - 0.6) / 0.4);

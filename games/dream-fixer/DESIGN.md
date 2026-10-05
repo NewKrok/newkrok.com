@@ -53,8 +53,10 @@ Margó egyre idegesebb, mert „ennyi hibás álom nem szokott lenni”.
 4. **Joe nagypapa (Grandpa Joe):** zuhanós álom lebegő kertszigeteken, a
    régi vasútállomás emlékével. A főellenség a Nagy Ébresztőóra. Ez a
    legérzelmesebb fejezet. Itt jön a **Szélernyő**, Joe régi esernyője.
-5. **Zsófi, az űrhajós:** honvágy, egy súlytalan űrállomás, benne a
-   gyerekkori szobája darabjaival.
+5. **Sophie, az űrhajós:** honvágy, egy súlytalan űrállomás, benne a
+   gyerekkori szobája darabjaival. Az egész állomáson alacsony a
+   gravitáció (magas, lassú ugrások). Itt jön a **Csillagjojó**, Sophie
+   gyerekkori jojója.
 6. **Finálé, Álmos álma:** kiderül, hogy a hibák onnan szivárognak, hogy a
    Gyár nagy gépe száz éve nem aludt, mert mindig mások álmait gyártja. Az
    utolsó küldetésben nem legyőzöd, hanem **elaltatod**: megjavítod a saját
@@ -232,6 +234,7 @@ töltéskorlát van, ami magától visszaáll.
 | **Habágyú** | Lelassító hab | Megszilárduló habplatform (puzzle és mozgás) | 2. fejezet |
 | **Altatócsengő** | Csengetés: kúpban szaladó hanghullám, ami hátralöki a hibákat (keveset sebez: irányító eszköz, nem fő fegyver), és a lövedékeiket visszaüti a dobójukra | Nyomva tartva altatódalt dúdol (minél tovább, annál messzebbre ér), elengedve körbefut: a kis hibák elalszanak, a nagyok csak elálmosodnak | 3. fejezet |
 | **Szélernyő** | Rövid széllökés kúpban: közelről erősebben sebez a Stabilizátornál, távolabb gyengül, 4,5 méter után semmi; a földön járókat nem löki el, csak a repülőket, a lövedékeket szétpukkasztja | Nyomva tartva kinyitod: pajzs elöl és felül, a levegőben siklasz, a feláramlás felvisz | 4. fejezet |
+| **Csillagjojó** | Kattintásra előrevágod a zsinórján, és visszajön: az első hibát megcsípi, a kicsit eléd rántja (szédülten érkezik, és amíg szédül, többet sebződik), a golyókat útközben szétpukkasztja; ha egy csillagos kapaszkodót ér, megakad rajta, és a zsinór behúz oda | Nyomva tartva körbejár körülötted, és hátralöki, amit ér | 5. fejezet |
 | **Villáskulcs** | Közelharc és tárgyak megütése | — | Mindig nálad van |
 
 **Az Altatócsengő részletei.** Az alvó hiba lefekszik, „Z”-k szállnak
@@ -265,6 +268,25 @@ kinyílik (a siklás sosem hagy cserben), csak nem fúj és nem véd. Az
 tetejéig viszi; a **szélforgó** (`kit.pinwheel`) egy széllökéstől pár
 másodpercig pörög, és amíg pörög, fúj a hozzá kötött feláramlás. A
 főellenség kaphat `gusted` horgot.
+
+**A Csillagjojó részletei.** A dobás egyenesen megy a célkereszt felé
+(12 méterig), az első dolgon megáll, és visszajön a kezedbe; amíg kint
+van, nem dobhatsz újra (nyomva tartva folyamatosan dobálsz). A kis
+hibákat (nem a nagyokat, nem a nehezeket, nem a gyökereseket) eléd
+rántja: a gyalogosok kis ívben repülnek, a repülők odasodródnak, és
+pár másodpercig szédülnek (csillagok a fejük körül), közben másfélszer
+annyit sebződnek. Az álomban **csillagos kapaszkodók** lógnak
+(`kit.hook`): amelyikre a célkereszt mutat, és elérhető, felragyog, és
+a jojó magától arra megy. Ha elkapja, a zsinór behúz (ugrással
+korábban elengedheted), a végén egy kis szökkenéssel. A kapaszkodóról
+lógva a következőre is dobhatsz, így láncban át lehet kelni a nagy
+réseken. Körbepörgetve (jobb gomb) a jojó karnyújtásnyira kering, és
+minden hibát kb. harmad másodpercenként megcsíp és hátralök; a
+golyókat elkapja. A főellenség kaphat `yanked` horgot.
+
+**Alacsony gravitáció.** A pálya adatában `gravity` (pl. 0,5) minden
+testre hat: a játékos és a gyalogos hibák lassabban esnek, magasabbra
+ugranak; a hibák ugrásainak íve is ehhez számol.
 
 A Gyár **munkapadján** álomporért lehet vásárolni, négy fülön, mindenről
 forgatható 3D előnézettel és „most → következő” értékkel:
@@ -313,7 +335,7 @@ Morzsa parkjában a Kóc bőre egy összegabalyodott, dühös **mókus**: a kuty
 
 - **Asztali gép:** WASD és egér (Pointer Lock), szóköz az ugrás, bal/jobb
   egérgomb a fő és a másodlagos funkció, E a szerelés és a használat,
-  1–5 és a görgő a szerszámváltás.
+  1–6 és a görgő a szerszámváltás.
 - **Mobil:** bal oldalon virtuális joystick a mozgáshoz, jobb oldalon
   húzással nézel. Gombok: lövés, másodlagos, ugrás, szerelés, és
   szerszámváltó kerék. Beállítható **automatikus lövés**, amikor a célkereszt
@@ -369,8 +391,12 @@ szuflé egy fal résében), az `umbrellalab` a Szélernyőé (lebegő
 kertszigetek: kis hibák a nagy gyep szélén a ledobáshoz, északon 9
 méteres rés egy alacsonyabb szigetre, csak siklással, ott repülők és
 dobálók a pajzshoz; keleten mindig fújó feláramlás egy magas szigetre,
-délnyugaton szélforgós feláramlás egy oszlopszigetre), mind minden
-szerszámmal.
+délnyugaton szélforgós feláramlás egy oszlopszigetre), a `yoyolab` a
+Csillagjojóé (alacsony gravitációjú állomásfedélzetek: nyugaton kis
+hibák a megrántáshoz, északon 18 méteres rés két kapaszkodóval a
+túlsó fedélzetig, ott repülők és nagyok; keleten egy torony,
+amelynek a tetejére csak a pereme fölötti kapaszkodó visz), mind
+minden szerszámmal.
 
 **Modellminőség:** lesz egy fejlesztői modellnéző (`?model=<id>`), ami egy
 modellt forgatva mutat. A headless screenshotokon így minden modellt
