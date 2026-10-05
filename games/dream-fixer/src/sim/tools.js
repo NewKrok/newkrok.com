@@ -79,14 +79,14 @@ export const TOOLS = {
   // It stings the first glitch it meets and yanks a small one to you,
   // dizzy; it pops orbs on the way; on a star handle (kit.hook) it
   // catches, and the string reels you in to it. Held second action: it
-  // goes round and round you, knocking back whatever it meets.
+  // throws a trick shot that bounces from glitch to glitch.
   yoyo: {
     interval: 0.1, heat: 0.15, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
     range: 12, speed: 36, back: 32,                  // m; out and back (m/s)
     damage: 2.2, r: 0.2,                             // the yo-yo's own size, for hitting
     yank: 2.2,                                       // a yanked glitch lands this far in front of you
     reel: { speed: 17, accel: 70, pop: 4.5, time: 3 }, // reeled in: top speed, how fast, a hop at the end, give up after
-    spin: { r: 2.1, speed: 11, damage: 1.1, every: 0.3, heat: 0.36, push: 1 }, // round you: radius, rad/s, per hit, again after (s), per s
+    bounce: { n: 3, range: 7, damage: 1.8, heat: 0.3 },   // the trick shot: glitches it hits, how far it looks for the next, per hit
   },
 };
 
@@ -105,7 +105,6 @@ export class ToolState {
     this.altHeld = false;
     this.open = false;        // umbrella: held open
     this.out = false;         // yo-yo: out on its string (not in your hand)
-    this.spinning = false;    // yo-yo: going round you
   }
 
   // Returns the shots this step wants: [{ damage, big }] (usually 0 or 1).
@@ -241,17 +240,22 @@ export class ToolState {
     return out;
   }
 
-  // The yo-yo reports { throw } on a press while it is in your hand; held
-  // second action it goes round you (`spinning`), warming as it goes.
+  // The yo-yo reports { throw } on a press while it is in your hand, and
+  // { throw, bounce } for the second action (a trick shot, one per press).
   stepYoyo(intent, dt, out) {
     const d = this.def;
     this.cd -= dt;
     this.sinceShot += dt;
     if (this.sinceShot > d.coolDelay) this.heat = Math.max(0, this.heat - d.cool * dt);
     if (this.overheated && this.heat <= d.unlock) this.overheated = false;
-    this.spinning = !this.overheated && !!intent.alt && !this.out;
-    if (this.spinning) this.addHeat(d.spin.heat * dt);
-    else if (!this.overheated && intent.fire && !this.out && this.cd <= 0) {
+    const trick = !!intent.alt && !this.altHeld;
+    this.altHeld = !!intent.alt;
+    if (this.overheated || this.out || this.cd > 0) return out;
+    if (trick) {
+      out.push({ throw: true, bounce: true });
+      this.cd = d.interval;
+      this.addHeat(d.bounce.heat);
+    } else if (intent.fire) {
       out.push({ throw: true });
       this.cd = d.interval;
       this.addHeat(d.heat);

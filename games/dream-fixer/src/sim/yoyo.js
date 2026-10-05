@@ -11,15 +11,15 @@ import { damageFoe, yankFoe, yankable } from "./foes.js";
 // lights up, and the yo-yo goes straight for it, catches and reels you in.
 // Jump to let go early; you come off it with a little hop.
 //
-// Held second action: round and round you at arm's length plus a bit,
-// knocking back whatever it meets (each glitch once every `spin.every`).
+// Second action: a trick shot. It yanks nothing, but from each glitch it
+// hits it bounces on to the nearest one in sight (up to `bounce.n` of
+// them), then comes home.
 
 export class YoYo {
   constructor(kit) {
     this.hooks = kit.hooks.map((h) => ({ ...h }));
     this.ball = null;          // out on its string: { state: "out" | "back" | "hooked", x, y, z, dx, dy, dz, gone, hook }
     this.reeling = null;       // the handle pulling you in: { hook, t, best, stuckT, v }
-    this.spin = null;          // going round you: { a, x, y, z, hits }
     this.aimHook = null;       // the handle the view points at, in reach (it lights up)
   }
 
@@ -34,8 +34,8 @@ export class YoYo {
   // Back in your hand at once (a faint, a fall, another tool).
   reset(run) {
     const t = this.tool(run);
-    if (t) { t.out = false; t.spinning = false; }
-    this.ball = null; this.reeling = null; this.spin = null;
+    if (t) t.out = false;
+    this.ball = null; this.reeling = null;
     run.body.reel = null;
   }
 
@@ -55,7 +55,7 @@ export class YoYo {
     return best;
   }
 
-  throw(run, tool) {
+  throw(run, tool, bounce = false) {
     const [hx, hy, hz] = this.hand(run);
     let [dx, dy, dz] = run.aimDir();
     const aim = (x, y, z) => { const ex = x - hx, ey = y - hy, ez = z - hz, l = Math.hypot(ex, ey, ez) || 1; dx = ex / l; dy = ey / l; dz = ez / l; };
@@ -71,10 +71,10 @@ export class YoYo {
         aim(b.x + dx * t, b.eyeY + dy * t, b.z + dz * t);
       }
     }
-    this.ball = { state: "out", x: hx, y: hy, z: hz, dx, dy, dz, gone: 0, hook: null };
+    this.ball = { state: "out", x: hx, y: hy, z: hz, dx, dy, dz, gone: 0, hook: null, bounces: bounce ? tool.def.bounce.n : 0, hit: new Set() };
     tool.out = true;
     run.stats.shots++;
-    run.events.push({ type: "yoyoThrow", dir: [dx, dy, dz] });
+    run.events.push({ type: "yoyoThrow", dir: [dx, dy, dz], bounce });
   }
 
   // Before the body moves: reeled in on the string.
@@ -109,9 +109,8 @@ export class YoYo {
     const tool = this.tool(run);
     if (!tool) return;
     const held = run.activeTool === tool && run.switchT <= 0 && !run.opts.noTools;
-    if (!held && (this.ball || this.reeling || this.spin)) this.reset(run);
+    if (!held && (this.ball || this.reeling)) this.reset(run);
     this.aimHook = held && !this.ball ? this.findHook(run, tool.def) : null;
-    if (held && tool.spinning) this.spinRound(run, tool, dt); else this.spin = null;
     if (this.ball) this.fly(run, tool, dt);
   }
 
@@ -134,14 +133,14 @@ export class YoYo {
     let t = step, what = null, target = null, mul = 1, part = null;
     const wall = run.world.raycast(B.x, B.y, B.z, B.dx, B.dy, B.dz, step);
     if (wall) { t = wall.t; what = "wall"; }
-    for (const h of this.hooks) {
+    if (!B.hit.size) for (const h of this.hooks) {
       // (Not the one you are hanging from, right by your hand.)
       if ((h.x - B.x) ** 2 + (h.y - B.y) ** 2 + (h.z - B.z) ** 2 < h.r * h.r) continue;
       const tt = raySphere(B.x, B.y, B.z, B.dx, B.dy, B.dz, h.x, h.y, h.z, h.r);
       if (tt >= 0 && tt < t) { t = tt; what = "hook"; target = h; }
     }
     for (const f of run.foes) {
-      if (!f.alive || f.state === "spawn") continue;
+      if (!f.alive || f.state === "spawn" || B.hit.has(f)) continue;
       const tt = raySphere(B.x, B.y, B.z, B.dx, B.dy, B.dz, f.px, f.cy, f.pz, f.def.hitR + d.r);
       if (tt >= 0 && tt < t) { t = tt; what = "foe"; target = f; }
     }
@@ -171,10 +170,12 @@ export class YoYo {
       return;
     }
     if (what === "foe") {
-      const f = target, b = run.body;
+      const f = target, b = run.body, trick = B.bounces > 0;
       run.stats.hits++;
-      if (damageFoe(run, f, d.damage, B.dx, B.dz, false)) run.stats.popped++;
-      else if (yankable(f)) {
+      B.hit.add(f);
+      run.events.push({ type: "yoyoHit", x: B.x, y: B.y, z: B.z, id: f.id });
+      if (damageFoe(run, f, trick ? d.bounce.damage : d.damage, B.dx, B.dz, false)) run.stats.popped++;
+      else if (!trick && yankable(f)) {
         // To just in front of you (not off the edge of anything).
         const fx = f.px - b.x, fz = f.pz - b.z, l = Math.hypot(fx, fz) || 1;
         const k = Math.min(d.yank, l), tx = b.x + fx / l * k, tz = b.z + fz / l * k;
@@ -182,7 +183,23 @@ export class YoYo {
         const ok = floor > b.y - 1.5 || f.def.fly;
         if (ok) yankFoe(run, f, tx, f.def.fly ? b.y + 1.4 : floor, tz);
       }
-      run.events.push({ type: "yoyoHit", x: B.x, y: B.y, z: B.z, id: f.id });
+      // A trick shot: on to the nearest one in sight it has not hit yet.
+      if (trick && --B.bounces > 0) {
+        let next = null, best = d.bounce.range;
+        for (const o of run.foes) {
+          if (!o.alive || o.state === "spawn" || B.hit.has(o)) continue;
+          const ex = o.px - B.x, ey = o.cy - B.y, ez = o.pz - B.z, l = Math.hypot(ex, ey, ez);
+          if (l >= best || run.world.raycast(B.x, B.y, B.z, ex / l, ey / l, ez / l, l - o.def.hitR)) continue;
+          next = o; best = l;
+        }
+        if (next) {
+          const ex = next.px - B.x, ey = next.cy - B.y, ez = next.pz - B.z, l = Math.hypot(ex, ey, ez);
+          B.dx = ex / l; B.dy = ey / l; B.dz = ez / l;
+          B.gone = Math.max(0, d.range - l - 1);
+          run.events.push({ type: "yoyoBounce", x: B.x, y: B.y, z: B.z });
+          return;
+        }
+      }
       B.state = "back";
       return;
     }
@@ -200,48 +217,6 @@ export class YoYo {
       return;
     }
     if (B.gone >= d.range - 1e-3) B.state = "back";
-  }
-
-  // ── Round and round you ──
-  spinRound(run, tool, dt) {
-    const b = run.body, d = tool.def, S = d.spin;
-    if (!this.spin) {
-      this.spin = { a: -b.yaw, hits: new Map() };
-      run.events.push({ type: "yoyoSpin" });
-    }
-    const sp = this.spin;
-    sp.a += S.speed * dt;
-    const cx = b.x, cy = b.y + 1.05, cz = b.z;
-    sp.x = cx + Math.cos(sp.a) * S.r; sp.y = cy; sp.z = cz + Math.sin(sp.a) * S.r;
-    const again = (id) => {
-      if (run.time - (sp.hits.get(id) ?? -9) < S.every) return false;
-      sp.hits.set(id, run.time);
-      return true;
-    };
-    for (const f of run.foes) {
-      if (!f.alive || f.state === "spawn") continue;
-      const R = f.def.hitR + d.r + 0.15;
-      if ((f.px - sp.x) ** 2 + (f.pz - sp.z) ** 2 > R * R || Math.abs(f.cy - sp.y) > R + 0.5 || !again(f.id)) continue;
-      const ox = f.px - cx, oz = f.pz - cz, l = Math.hypot(ox, oz) || 1;
-      run.stats.hits++;
-      if (damageFoe(run, f, S.damage, ox / l * S.push, oz / l * S.push, false)) run.stats.popped++;
-      run.events.push({ type: "yoyoSpinHit", x: sp.x, y: sp.y, z: sp.z });
-    }
-    for (const s of run.spits) {
-      if (s.life <= 0 || s.harmless || (s.x - sp.x) ** 2 + (s.y - sp.y) ** 2 + (s.z - sp.z) ** 2 > 0.6 ** 2) continue;
-      s.life = 0; s.harmless = true;
-      run.events.push({ type: "spitPop", x: s.x, y: s.y, z: s.z, kind: s.kind });
-    }
-    const Bo = run.boss;
-    if (Bo?.alive && !Bo.invulnerable) {
-      for (const [x, y, z, r, m, p] of Bo.hitSpheres()) {
-        if ((x - sp.x) ** 2 + (y - sp.y) ** 2 + (z - sp.z) ** 2 > (r + d.r + 0.1) ** 2 || !again(`boss:${p}`)) continue;
-        run.stats.hits++;
-        Bo.damage(run, S.damage * m, p);
-        run.events.push({ type: "yoyoSpinHit", x: sp.x, y: sp.y, z: sp.z, boss: true });
-        break;
-      }
-    }
   }
 }
 

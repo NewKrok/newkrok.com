@@ -108,10 +108,9 @@ export class ViewModel {
     this.open = damp(this.open || 0, s.tool === "umbrella" && s.open && !swapping ? 1 : 0, 11, dt);
     if (s.gusted) { this.snap = 1; this.kick = Math.min(1.6, this.kick + 0.5); this.flash = 1; }
     this.snap = Math.max(0, (this.snap || 0) - dt / 0.28);
-    // Yo-yo: a flick of the wrist on a throw, a circling hand while it spins.
+    // Yo-yo: a flick of the wrist on a throw.
     if (s.thrown) { this.kick = Math.min(1.6, this.kick + 0.6); this.flick = 1; this.flash = 1; }
     this.flick = damp(this.flick || 0, 0, 8, dt);
-    this.whirl = damp(this.whirl || 0, s.tool === "yoyo" && s.spinning ? 1 : 0, 10, dt);
 
     const bx = Math.sin(this.bobT) * 0.012 * this.bobAmt, by = -Math.abs(Math.cos(this.bobT)) * 0.012 * this.bobAmt;
     const shake = (this.charge > 0.05 ? Math.sin(s.t * 90) * 0.0016 * this.charge : 0) + (s.sucking ? Math.sin(s.t * 70) * 0.0012 : 0);
@@ -125,11 +124,7 @@ export class ViewModel {
       this.sway.x * 0.8,
       -this.sway.x * 0.5 + bx * 2,
     );
-    if (this.current === "yoyo") {
-      this.pivot.rotation.x -= this.flick * 0.5;
-      this.pivot.position.x += Math.cos(s.t * 11) * 0.012 * this.whirl;
-      this.pivot.position.y += Math.sin(s.t * 11) * 0.012 * this.whirl;
-    }
+    if (this.current === "yoyo") this.pivot.rotation.x -= this.flick * 0.5;
     const up = this.current === "umbrella" ? this.open : 0;
     if (up) {
       this.pivot.position.x += up * 0.03; this.pivot.position.y += up * 0.1; this.pivot.position.z += up * 0.04;

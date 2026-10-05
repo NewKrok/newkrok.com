@@ -47,7 +47,7 @@ export class Sfx {
         case "gust": case "gustHop": case "umbrellaBlock": A.play(e.type); break;
         case "pinwheel": A.play(e.type, 0, e.x, e.z); break;
         case "yoyoThrow": case "yoyoCatch": case "yoyoLetGo": A.play(e.type); break;
-        case "yoyoHit": case "yoyoClack": case "yoyoHook": case "yoyoSpinHit": case "foeYank": case "foeDizzy": A.play(e.type, 0, e.x, e.z); break;
+        case "yoyoHit": case "yoyoClack": case "yoyoHook": case "yoyoBounce": case "foeYank": case "foeDizzy": A.play(e.type, 0, e.x, e.z); break;
         case "rainPat": case "soaked": case "bigclockHit": A.play(e.type); break;
         case "mowerRev": A.play(e.type, e.small ? 1 : 0, e.x, e.z); break;
         case "gnomeStone": case "gnomeGo": case "gnomeWind": case "canWind": case "canPour": case "canSquirt": case "mowerCharge": case "mowerClip":
@@ -117,8 +117,8 @@ export class Sfx {
     if (open !== !!this.wasOpen) A.play(open ? "umbrellaOpen" : "umbrellaShut");
     this.wasOpen = open;
     A.loop("wind", run.umbrella.inDraft ? 0.9 : open && !b.grounded ? 0.45 : 0);
-    // The yo-yo whirring round you, or the string reeling you in.
-    A.loop("whirr", run.yoyo.reeling ? 1 : run.yoyo.spin ? 0.5 : 0);
+    // The string reeling you in.
+    A.loop("whirr", run.yoyo.reeling ? 1 : 0);
     if (tool.overheated && !this.wasHot) A.play("overheat");
     if (!tool.overheated && this.wasHot) A.play("cooled");
     this.wasHot = tool.overheated;

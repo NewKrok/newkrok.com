@@ -45,7 +45,7 @@ export const UPGRADES = [
   { id: "yoyo_string", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [45, 90, 150], stat: (l) => `${num(TOOLS.yoyo.range + 2 * l)} m` },
   { id: "yoyo_weight", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [50, 100, 160], stat: (l) => pct(1 + 0.25 * l) },
   { id: "yoyo_bearing", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [55, 110], stat: (l) => `${num(TOOLS.yoyo.speed * (1 + 0.15 * l))} m/s` },
-  { id: "yoyo_trick", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [50, 100, 160], stat: (l) => `${num(TOOLS.yoyo.spin.r + 0.4 * l)} m` },
+  { id: "yoyo_trick", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [50, 100, 160], stat: (l) => String(TOOLS.yoyo.bounce.n + l) },
   // ── You ──
   { id: "wake_coffee", tab: "me", model: "mugCoffee", costs: [45, 90, 150], stat: (l) => String(maxHpFor({ wake_coffee: l })) },
   { id: "wake_pad", tab: "me", model: "vest", costs: [55, 110, 180], stat: (l) => pct(1 - 0.1 * l) },
@@ -112,9 +112,9 @@ export function toolDef(id, owned = {}) {
   } else if (id === "yoyo") {
     const st = L("yoyo_string"), w = L("yoyo_weight"), br = L("yoyo_bearing"), tr = L("yoyo_trick");
     d.range += 2 * st; d.reel.speed *= 1 + 0.08 * st;
-    d.damage *= 1 + 0.25 * w; d.spin.damage *= 1 + 0.15 * w;
+    d.damage *= 1 + 0.25 * w; d.bounce.damage *= 1 + 0.25 * w;
     d.speed *= 1 + 0.15 * br; d.back *= 1 + 0.15 * br; d.heat *= 1 - 0.12 * br;
-    d.spin.r += 0.4 * tr; d.spin.damage *= 1 + 0.15 * tr; d.spin.heat *= 1 - 0.12 * tr;
+    d.bounce.n += tr; d.bounce.range += 1 * tr;
   } else if (id === "umbrella") {
     const c = L("umb_canopy"), r = L("umb_ribs"), s = L("umb_spring"), w = L("umb_cloth");
     d.glide.fall *= 1 - 0.15 * c; d.glide.air *= 1 + 0.1 * c; d.shield.cone *= 1 + 0.06 * c;

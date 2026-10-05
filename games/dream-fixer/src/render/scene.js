@@ -365,7 +365,7 @@ export class GameView {
       sucking: tool.sucking, tank: tool.tank, launched: this.launched, blasted: this.blasted,
       sprayed: this.sprayed, blobbed: this.blobbed, rang: this.rang, lulled: this.lulled,
       open: tool.open, gusted: this.gusted, gliding: tool.open && !b.grounded,
-      thrown: this.thrown, spinning: tool.spinning, yoyoOut: !!(run.yoyo.ball || run.yoyo.spin),
+      thrown: this.thrown, yoyoOut: !!run.yoyo.ball,
     });
     this.thrown = false;
     this.shotThisFrame = 0; this.launched = false; this.blasted = false; this.sprayed = false; this.blobbed = false; this.rang = false; this.lulled = false; this.gusted = false;
