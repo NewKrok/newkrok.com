@@ -87,9 +87,10 @@ export class Companion {
     if (g.mode === "wait") Object.assign(g, { mode: "back", t: 0 });
     if (g.mode === "loop") {
       if (!g.pinged) { g.pinged = true; this.onPing?.(); }
-      const a = g.a0 + (g.t / 1.4) * Math.PI * 2;
-      if (g.t > 1.4) Object.assign(g, { mode: "lead", t: 0, ignored: 0, pinged: false });
-      return [b.x + Math.cos(a) * 1.4, b.y + 1.75 + Math.sin(g.t * 4.5) * 0.15, b.z + Math.sin(a) * 1.4, 9];
+      // A slow, easy loop (eased in and out) so you can follow him round.
+      const L = 3.2, u = Math.min(1, g.t / L), a = g.a0 + u * u * (3 - 2 * u) * Math.PI * 2;
+      if (g.t > L + 0.3) Object.assign(g, { mode: "lead", t: 0, ignored: 0, pinged: false });
+      return [b.x + Math.cos(a) * 1.6, b.y + 1.75 + Math.sin(g.t * 3) * 0.15, b.z + Math.sin(a) * 1.6, 6];
     }
     // Is he being followed? You look his way, or walk towards the lift.
     const cx = p.x - b.x, cy = p.y - (b.y + 1.58), cz = p.z - b.z, cl = Math.hypot(cx, cy, cz) || 1;
