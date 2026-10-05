@@ -47,6 +47,14 @@ export class PadNav {
 
   // pad: the Gamepad, time: seconds (for the stick's key-repeat).
   frame(pad, time) {
+    // The right stick scrolls the list (or panel) you are in.
+    const dt = Math.min(0.1, time - (this.lastT ?? time)), ry = pad.axes[3] || 0;
+    this.lastT = time;
+    if (Math.abs(ry) > 0.05) {
+      const scr = this.root.querySelector(".menus .screen"), act = document.activeElement;
+      const box = (scr?.contains(act) && act.closest(".achlist, .jbody, .tiles")) || scr?.querySelector(".achlist, .jbody, .tiles") || scr?.querySelector(".panel");
+      box?.scrollBy({ top: ry * 900 * dt });
+    }
     const dir = pad.nav(time);
     if (dir) { document.body.classList.add("pad-nav"); this.padT = performance.now(); this.move(dir); }
     const P = (b) => pad.pressed(b);

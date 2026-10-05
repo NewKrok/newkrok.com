@@ -339,7 +339,8 @@ body.pad-nav .menus .tile:focus, body.pad-nav .menus .btn.ghost:focus { backgrou
 .achlist { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; max-height: 60vh; overflow-y: auto; }
 .achlist li { display: flex; }
 .ach { flex: 1; display: flex; gap: 10px; align-items: center; padding: 9px 11px; border: 0; border-radius: 12px; background: rgba(255, 247, 230, 0.06); opacity: 0.55; color: var(--ink); font: inherit; text-align: left; cursor: default; }
-body.pad-nav .menus .ach:focus { opacity: 1; }
+/* In lists the ring sits inside the card (an outline there gets cut off by the scroll box). */
+body.pad-nav .menus .ach:focus, body.pad-nav .menus .tile:focus { outline: none; opacity: 1; background: rgba(255, 210, 122, 0.16); box-shadow: inset 0 0 0 2px var(--brass); }
 .ach.on { opacity: 1; background: rgba(255, 210, 122, 0.14); box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.45); }
 .ach i { flex: none; width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; font-style: normal; font-size: 20px; font-weight: 800; background: rgba(20, 26, 44, 0.6); color: var(--ink-dim); }
 .ach.on i { background: linear-gradient(#ffe7a8, #e3b35c); color: #3a2a1a; }
