@@ -11,7 +11,7 @@
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const hz = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
-const GAP = { yoyoThrow: 0.05, yoyoCatch: 0.05, yoyoHit: 0.05, yoyoClack: 0.06, yoyoHook: 0.1, yoyoLetGo: 0.1, foeTied: 0.06, foeFree: 0.08, foeYank: 0.06, foeDizzy: 0.1, gnomeStone: 0.1, gnomeGo: 0.12, rainPat: 0.08, soaked: 0.3, canSquirt: 0.08, sunSeed: 0.06, mowerRev: 0.2, tileWarn: 0.2, tileDrop: 0.15, tileBack: 0.15, bigclockClink: 0.1, gust: 0.08, umbrellaBlock: 0.05, umbrellaOpen: 0.12, umbrellaShut: 0.12, pinwheel: 0.3, sneeze: 0.3, meatRoll: 0.15, pepperShake: 0.3, pepperBurst: 0.1, pinRoll: 0.2, steamBurn: 0.3, cookerRattle: 0.08, bellRing: 0.08, bellBat: 0.05, boing: 0.12, foeSleep: 0.08, foeWake: 0.1, foeDrowsy: 0.1, clockWind: 0.2, clockRing: 0.3, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
+const GAP = { rocketPuff: 0.08, robotZap: 0.08, robotClap: 0.08, topBounce: 0.1, mobileThrow: 0.1, moonRock: 0.06, moonClink: 0.1, yoyoThrow: 0.05, yoyoCatch: 0.05, yoyoHit: 0.05, yoyoClack: 0.06, yoyoHook: 0.1, yoyoLetGo: 0.1, foeTied: 0.06, foeFree: 0.08, foeYank: 0.06, foeDizzy: 0.1, gnomeStone: 0.1, gnomeGo: 0.12, rainPat: 0.08, soaked: 0.3, canSquirt: 0.08, sunSeed: 0.06, mowerRev: 0.2, tileWarn: 0.2, tileDrop: 0.15, tileBack: 0.15, bigclockClink: 0.1, gust: 0.08, umbrellaBlock: 0.05, umbrellaOpen: 0.12, umbrellaShut: 0.12, pinwheel: 0.3, sneeze: 0.3, meatRoll: 0.15, pepperShake: 0.3, pepperBurst: 0.1, pinRoll: 0.2, steamBurn: 0.3, cookerRattle: 0.08, bellRing: 0.08, bellBat: 0.05, boing: 0.12, foeSleep: 0.08, foeWake: 0.1, foeDrowsy: 0.1, clockWind: 0.2, clockRing: 0.3, dizzy: 0.3, inkBurn: 0.2, foamSpray: 0.06, foamSplat: 0.05, zap: 0.04, hit: 0.04, pop: 0.05, dust: 0.025, bonk: 0.1, windup: 0.12, spit: 0.1, orbPop: 0.06, hurt: 0.12, step: 0.2, land: 0.15, jump: 0.1, blast: 0.2, beep: 0.05, bossHit: 0.07, wade: 0.12, nut: 0.08, nutHit: 0.05, chitter: 0.15, notice: 0.12 };
 
 const SONGS = {
   menu: { root: 60, bpm: 76, scale: [0, 2, 4, 7, 9], prog: [0, -3, 5, -5], lead: "box", drums: 0 },
@@ -20,6 +20,7 @@ const SONGS = {
   school: { root: 65, bpm: 112, scale: [0, 2, 4, 5, 7, 9], prog: [0, 4, 5, 3], lead: "box", drums: 0.6 },
   kitchen: { root: 60, bpm: 118, scale: [0, 2, 4, 5, 7, 9, 10], prog: [0, 5, 3, 4], lead: "box", drums: 0.65 },
   garden: { root: 62, bpm: 96, scale: [0, 2, 4, 7, 9, 11], prog: [0, 5, -3, 4], lead: "box", drums: 0.45 },
+  space: { root: 57, bpm: 84, scale: [0, 2, 4, 7, 9, 11], prog: [0, -3, 5, 2], lead: "box", drums: 0.35 },
   boss: { root: 57, bpm: 122, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, -4, -2, -5], lead: "square", drums: 1 },
   win: { root: 64, bpm: 90, scale: [0, 2, 4, 7, 9], prog: [0, 5, 7, 0], lead: "box", drums: 0 },
 };
@@ -243,6 +244,34 @@ export class Audio {
       case "umbrellaShut": N(0.08, { type: "bandpass", freq: 1500, q: 1.2, gain: 0.06 }); S(0.06, { type: "triangle", freq: 260, freqEnd: 180, gain: 0.04 }); break;
       case "umbrellaBlock": N(0.07, { type: "bandpass", freq: 1100, q: 1.5, gain: 0.14 }); S(0.09, { type: "sine", freq: 300, freqEnd: 150, gain: 0.08 }); break;
       case "pinwheel": for (let i = 0; i < 10; i++) at(i * 0.05, (tt) => this.#tone(d, tt, 0.035, { type: "square", freq: 600 + i * 60, gain: 0.02 })); N(0.6, { type: "bandpass", freq: 800, freqEnd: 1600, q: 1, gain: 0.05, attack: 0.05 }); break;
+      // Sophie's station: a rocket's flame splutters and roars; a tin robot
+      // clanks, clicks its key round and zaps; a top hums up and thunks off
+      // walls; the mobile tinkles; the Moon Lamp hums, its light comes down
+      // with a swell, its chain clinks.
+      case "rocketAim": S(0.7, { type: "sawtooth", freq: 120, freqEnd: 260, gain: 0.04 }); N(0.7, { type: "bandpass", freq: 900, freqEnd: 1600, q: 1, gain: 0.05, attack: 0.2 }); break;
+      case "rocketDash": N(0.6, { type: "bandpass", freq: 600, freqEnd: 2400, q: 0.7, gain: 0.14 }); S(0.4, { type: "sine", freq: 300, freqEnd: 900, gain: 0.05 }); break;
+      case "rocketSputter": for (let i = 0; i < 5; i++) at(i * 0.11, (tt) => this.#noise(d, tt, 0.05, { type: "lowpass", freq: 700, gain: 0.08 })); break;
+      case "rocketPuff": N(0.08, { type: "bandpass", freq: 2200, q: 2, gain: 0.05 }); S(0.08, { type: "sine", freq: 1400, freqEnd: 1900, gain: 0.03 }); break;
+      case "robotWind": S(0.2, { type: "square", freq: 400, freqEnd: 700, gain: 0.03 }); break;
+      case "robotClap": N(0.05, { type: "bandpass", freq: 2500, q: 2, gain: 0.14 }); S(0.06, { type: "square", freq: 900, freqEnd: 500, gain: 0.03 }); break;
+      case "robotCrank": for (let i = 0; i < 8; i++) at(i * 0.07, (tt) => this.#tone(d, tt, 0.025, { type: "square", freq: 1800 + i * 40, gain: 0.025 })); break;
+      case "robotZap": S(0.1, { type: "square", freq: 1800, freqEnd: 600, gain: 0.03 }); N(0.06, { type: "highpass", freq: 5000, gain: 0.04 }); break;
+      case "robotDown": S(0.6, { type: "square", freq: 600, freqEnd: 90, gain: 0.03 }); break;
+      case "robotUp": for (let i = 0; i < 4; i++) at(i * 0.06, (tt) => this.#tone(d, tt, 0.03, { type: "square", freq: 900 + i * 200, gain: 0.025 })); break;
+      case "topWind": S(1, { type: "triangle", freq: 200, freqEnd: 700, gain: 0.06, attack: 0.2 }); break;
+      case "topGo": S(0.5, { type: "triangle", freq: 700, freqEnd: 500, gain: 0.06 }); N(0.4, { type: "bandpass", freq: 1200, q: 1, gain: 0.05 }); break;
+      case "topBounce": S(0.12, { type: "sine", freq: 180, freqEnd: 80, gain: 0.12 }); N(0.06, { type: "lowpass", freq: 1500, gain: 0.08 }); break;
+      case "topFan": N(0.2, { type: "highpass", freq: 3500, gain: 0.07 }); break;
+      case "mobileThrow": this.#bell(d, t, hz(84 + Math.floor(Math.random() * 4) * 2), 0.04, 0.5, 0.3); S(0.2, { type: "sine", freq: 600, freqEnd: 300, gain: 0.04 }); break;
+      case "mobileSpin": for (let i = 0; i < 8; i++) at(i * 0.07, (tt) => this.#bell(d, tt, hz(79 + (i % 4) * 3), 0.035, 0.4, 0.3)); break;
+      case "mobilePop": S(0.15, { type: "sine", freq: 400, freqEnd: 1100, gain: 0.05 }); break;
+      case "moonBeamOn": S(1.6, { type: "sine", freq: 330, freqEnd: 440, gain: 0.05, attack: 0.3, verb: 0.5 }); break;
+      case "moonBeam": N(0.6, { type: "lowpass", freq: 2500, freqEnd: 300, gain: 0.16 }); this.#bell(d, t, hz(91), 0.06, 1.2, 0.6); break;
+      case "moonTideRing": S(0.5, { type: "sine", freq: 110, freqEnd: 60, gain: 0.14 }); N(0.4, { type: "lowpass", freq: 600, gain: 0.1 }); break;
+      case "moonRock": N(0.15, { type: "lowpass", freq: 900, gain: 0.07 }); break;
+      case "moonTethered": [76, 72, 67, 64].forEach((n, i) => at(i * 0.08, (tt) => this.#bell(d, tt, hz(n), 0.06, 0.8, 0.4))); N(0.4, { type: "bandpass", freq: 1400, freqEnd: 500, q: 3, gain: 0.08 }); break;
+      case "moonFree": [64, 67, 72].forEach((n, i) => at(i * 0.08, (tt) => this.#bell(d, tt, hz(n), 0.04, 0.6, 0.3))); break;
+      case "moonClink": this.#bell(d, t, hz(96), 0.05, 0.25, 0.1); break;
       // The Star Yo-Yo: a whirr out, a plastic snap back in the hand, a
       // thwack on a glitch, a tock on a wall; a handle catches with a
       // bright clink; a yanked glitch whoops, and comes in seeing stars.

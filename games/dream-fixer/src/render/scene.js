@@ -177,7 +177,7 @@ export class GameView {
         this.umbrellaView.onEvent(e, run, this.muzzleWorld());
         if (e.type === "gust") { this.gusted = true; this.muzzleFlash = Math.max(this.muzzleFlash || 0, 0.6); }
         if (e.type === "umbrellaBlock") this.shake = Math.min(1, this.shake + 0.1);
-      } else if (e.type.startsWith("yoyo") || e.type === "foeYank") {
+      } else if (e.type.startsWith("yoyo") || e.type === "foeYank" || e.type === "foeTied" || e.type === "foeFree") {
         this.yoyoView.onEvent(e);
         if (e.type === "yoyoThrow") this.thrown = true;
         if (e.type === "yoyoHook") this.shake = Math.min(1, this.shake + 0.1);
@@ -221,8 +221,10 @@ export class GameView {
         if (e.type === "tileDrop" && Math.hypot(e.x - run.body.x, e.z - run.body.z) < 8) this.shake = Math.min(1, this.shake + 0.25);
       } else if (e.type === "soaked") {
         this.ringBurst(run, 0x6ac0f0, 10);
-      } else if (e.type.startsWith("boss") || e.type.startsWith("pen") || e.type.startsWith("cooker") || e.type.startsWith("bigclock")) {
+      } else if (e.type.startsWith("boss") || e.type.startsWith("pen") || e.type.startsWith("cooker") || e.type.startsWith("bigclock") || e.type.startsWith("moon")) {
         this.bossView.onEvent(e, run);
+        if (e.type === "moonBeam" && Math.hypot(e.x - run.body.x, e.z - run.body.z) < 6) this.shake = Math.min(1, this.shake + 0.3);
+        if (e.type === "moonTethered") this.shake = Math.min(1, this.shake + 0.4);
         if (e.type === "bossRise" || e.type === "bossPop") this.shake = Math.min(1, this.shake + 0.7);
         if (e.type === "bossGulp") this.shake = 1;
         if (e.type === "bossHit") { /* the flash is enough */ }

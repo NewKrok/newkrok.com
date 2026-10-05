@@ -222,6 +222,63 @@ magasabb, két csengővel a tetején, a hátán felhúzókulccsal.
   még egy a kulcsra). Ha eltalálod, lejár: pár másodpercre megáll,
   kinyílik az üveglapja, és az arca sokkal többet sebződik.
 
+### Sophie állomása (5. fejezet)
+
+Sophie Daytonban (Ohio) nőtt fel, a szobája plafonján világító
+csillagokkal, amiket az apja a valódi csillagképek szerint ragasztott
+fel. Fél éve van az űrállomáson, holnap lesz az első űrsétája, és ma
+éjjel honvágya van: az álmában az állomás tele van a gyerekszobája
+darabjaival. Az egész álomban fele akkora a gravitáció (`gravity: 0.5`):
+kb. 2,4 méterre ugrasz, 8 métert (sprintelve 12-t), és lassan esel. Az
+égen csillagok, a kupola mögött a Föld.
+
+- **A dokk** (délen): itt érkezel, a zsilip előtt. Keletre egy
+  holdkő lebeg (emlék), három kapaszkodó visz át oda és vissza.
+- **A hub** (középen): a gyerekszobája az állomásba nőve (ágy, íróasztal
+  a földgömbbel, játékosláda, falnyi könyvespolc; a tetején emlék, fölötte
+  egy kapaszkodó), a széleken konzolok.
+- **A hálófülke** (nyugaton, folyosón át, gyalog): emeletes ágy (a felső
+  ágyon emlék), szekrény, babaház. Az első horgony.
+- **A napelemsor** (keleten): két 18 méteres rés, mindegyik fölött három
+  kapaszkodó (egy-egy méterrel a peremeken túl és középen), így oda és
+  vissza is át lehet kelni. A túlsó fedélzeten a második horgony, attól
+  északra, 3 méterrel feljebb a parabolaantenna (emlék), oda és vissza
+  egy-egy kapaszkodó.
+- **A csillagvizsgáló** (északnyugaton): a hubhoz csatlakozó toldalék
+  fölött egy 12 méter magas torony teteje, két kapaszkodó visz fel. Az
+  apja távcsöve, csillagtérkép, a harmadik horgony. Lefelé egyszerűen
+  leugrasz.
+- **A kupola** (északon, rövid folyosón át): a Holdlámpa arénája, a
+  széleken négy kapaszkodó.
+
+Az első horgony után jön a **Csillagjojó**; a napelemsor, a
+csillagvizsgáló és az emlékek fele csak a lasszóval érhető el. Az utolsó
+kapaszkodó mindig kb. 1 méterrel a túlsó perem előtt lóg, mert
+elengedéskor kb. 6 métert repülsz tovább. Csavar szól a rés szélén és a
+torony tövében.
+
+| Hiba | Viselkedés |
+| --- | --- |
+| **Plüssrakéta** | Repül. Megáll, remeg, céloz (a lángja köhög), aztán egyenesen átszáguld ott, ahol álltál: lépj félre. Utána egy pillanatig köhög, puha. Messziről csillagokat pöfékel. |
+| **Felhúzós robot** | Kicsi, gyalogos. Közelről rád tapsol, pár méterről felhúzza a kulcsát, és nekiszalad, messziről az antennájával szikrázik. 7–10 másodpercenként lejár: megáll, puha, amíg fel nem húzza magát. |
+| **Búgócsiga** | Nagy, nehéz, tartja a távolságot. Felpörög, rád lő, és visszapattan a falakról és a peremekről (ugord át); utána billeg, kábult és puha. Messziről szikralegyezőt szór. |
+| **Bolygó-forgó** | Egy helyben áll (az ágya fölötti forgó). Egyenként hozzád vágja a bolygóit (visszanőnek), közelről körbelendíti őket (a gyűrűt ugord át), és plüssrakéták válnak le róla. |
+
+**A Holdlámpa:** Sophie éjjeli lámpája, egy autónyi, álmos arcú hold,
+ami a kupola padlója fölött lebeg; alatta lóg a húzólánca, a végén egy
+arany csillaggal.
+- **Fénykör:** a padlón követ egy fénykör, aztán megáll, és lezúdul
+  benne a holdfény: lépj ki belőle (a második fázisban kettő, az egyik
+  eléd fut).
+- **Árapály:** magához húz, aztán gyűrűk futnak ki a padlón alóla
+  (ugord át, vagy lógj egy kapaszkodón).
+- **Holdkövek:** egy marék követ dob, ahol leesnek, szétpattannak
+  (gyűrűk mutatják).
+- **Rakéták:** két plüssrakétát enged ki.
+- **A kulcs:** a húzóláncot csak a lasszó éri el (minden más
+  csak megkoccintja). Ha meghúzod, a hold leereszkedik a padlóig, pár
+  másodpercig ott marad, mindenütt világít, és sokkal többet sebződik.
+
 ### Szerszámok (a „fegyverek”)
 
 Egyik szerszámnak sincs lőszere. A casual játék érdekében hő- vagy

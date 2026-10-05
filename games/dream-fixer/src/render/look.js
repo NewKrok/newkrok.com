@@ -25,20 +25,52 @@ export function envMap(renderer) {
 }
 
 // Vertical gradient sky dome: horizon, zenith and a warm glow near the sun.
-export function skyDome({ top = 0x6fb4ff, horizon = 0xffe2c4, bottom = 0xc9e6ff, sunDir = [0.4, 0.6, -0.5], sunGlow = 0xfff0c8 } = {}) {
+// stars: 0…1, a field of stars over the gradient; earth: { dir, r } a
+// blue planet hanging in the sky (Sophie's station looks down on it).
+export function skyDome({ top = 0x6fb4ff, horizon = 0xffe2c4, bottom = 0xc9e6ff, sunDir = [0.4, 0.6, -0.5], sunGlow = 0xfff0c8, stars = 0, earth = null } = {}) {
   const g = new T.SphereGeometry(400, 32, 16);
   const m = new T.ShaderMaterial({
     side: T.BackSide, depthWrite: false, fog: false,
     uniforms: {
       top: { value: new T.Color(top) }, horizon: { value: new T.Color(horizon) }, bottom: { value: new T.Color(bottom) },
       sunDir: { value: new T.Vector3(...sunDir).normalize() }, sunGlow: { value: new T.Color(sunGlow) },
+      stars: { value: stars }, earthDir: { value: new T.Vector3(...(earth?.dir ?? [0, -1, 0])).normalize() }, earthR: { value: earth?.r ?? 0 },
     },
     vertexShader: `varying vec3 vDir; void main() { vDir = normalize(position); vec4 p = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * p; gl_Position.z = gl_Position.w; }`,
-    fragmentShader: `uniform vec3 top, horizon, bottom, sunGlow, sunDir; varying vec3 vDir;
+    fragmentShader: `uniform vec3 top, horizon, bottom, sunGlow, sunDir, earthDir; uniform float stars, earthR; varying vec3 vDir;
+      float hash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
       void main() {
-        float y = vDir.y;
+        vec3 d = normalize(vDir);
+        float y = d.y;
         vec3 c = y > 0.0 ? mix(horizon, top, pow(clamp(y, 0.0, 1.0), 0.55)) : mix(horizon, bottom, pow(clamp(-y, 0.0, 1.0), 0.5));
-        float s = max(dot(normalize(vDir), sunDir), 0.0);
+        if (stars > 0.0) {
+          // A star in some cells of a fine grid over the sphere, twinkle-free.
+          vec3 g = floor(d * 220.0);
+          float h = hash(g), r = length(fract(d * 220.0) - 0.5);
+          c += vec3(0.9, 0.95, 1.0) * stars * step(0.985, h) * smoothstep(0.35, 0.0, r) * (0.5 + 2.5 * fract(h * 97.0));
+        }
+        if (earthR > 0.0) {
+          // The Earth: blue seas, green and sand lands, swirls of cloud, a
+          // pale rim of air; lit from the sun's side.
+          float a = acos(clamp(dot(d, earthDir), -1.0, 1.0));
+          if (a < earthR * 1.08) {
+            vec3 u = normalize(cross(earthDir, vec3(0.0, 1.0, 0.0))), v = cross(u, earthDir);
+            vec2 q = vec2(dot(d, u), dot(d, v)) / sin(earthR);
+            float k = clamp(1.0 - dot(q, q), 0.0, 1.0), z = sqrt(k);
+            vec3 n = normalize(q.x * u + q.y * v - z * earthDir);
+            float land = sin(q.x * 7.0 + sin(q.y * 5.0) * 1.6) * sin(q.y * 6.0 + q.x * 2.0) + sin(q.x * 13.0 - q.y * 11.0) * 0.35;
+            float cloud = smoothstep(0.55, 0.9, sin(q.x * 9.0 + q.y * 14.0 + sin(q.y * 21.0)) * 0.5 + sin(q.y * 17.0 - q.x * 4.0) * 0.5);
+            vec3 e = land > 0.25 ? mix(vec3(0.22, 0.48, 0.24), vec3(0.62, 0.55, 0.36), smoothstep(0.6, 1.1, land)) : vec3(0.08, 0.26, 0.62);
+            e = mix(e, vec3(0.95), cloud * 0.85);
+            float lit = 0.25 + 0.75 * clamp(dot(n, sunDir) * 0.5 + 0.6, 0.0, 1.0);
+            vec3 body = e * lit;
+            float rim = smoothstep(0.0, 0.25, 1.0 - z);
+            body = mix(body, vec3(0.5, 0.75, 1.0), rim * 0.35);
+            float edge = smoothstep(earthR * 1.08, earthR, a);
+            c = a < earthR ? body : mix(c, vec3(0.35, 0.6, 1.0), edge * 0.6);
+          }
+        }
+        float s = max(dot(d, sunDir), 0.0);
         c += sunGlow * (pow(s, 24.0) * 0.25 + pow(s, 900.0) * 1.0);
         gl_FragColor = vec4(c, 1.0);
         #include <colorspace_fragment>

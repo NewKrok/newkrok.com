@@ -3,6 +3,7 @@ import { park } from "./park.js";
 import { school } from "./school.js";
 import { kitchen } from "./kitchen.js";
 import { garden } from "./garden.js";
+import { space } from "./space.js";
 import { lab } from "./lab.js";
 import { belllab } from "./belllab.js";
 import { umbrellalab } from "./umbrellalab.js";
@@ -13,14 +14,14 @@ import { yoyolab } from "./yoyolab.js";
 // CLIENTS is the board in story order: a client whose dream is built has a
 // `level`; `after` is the dream that has to be fixed before they call.
 
-export const LEVELS = { factory, park, school, kitchen, garden, lab, belllab, umbrellalab, yoyolab };
+export const LEVELS = { factory, park, school, kitchen, garden, space, lab, belllab, umbrellalab, yoyolab };
 
 export const CLIENTS = [
   { id: "park", level: "park" },
   { id: "school", level: "school", after: "park" },
   { id: "kitchen", level: "kitchen", after: "school" },
   { id: "garden", level: "garden", after: "kitchen" },
-  { id: "space", after: "garden" },
+  { id: "space", level: "space", after: "garden" },
 ];
 
 // Is the client's dream on the board for the taking?

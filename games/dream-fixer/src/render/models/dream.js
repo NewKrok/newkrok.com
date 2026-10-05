@@ -2,6 +2,7 @@ import { SHAPE } from "../modelkit.js";
 import { C } from "../palette.js";
 import { memoryItem } from "./kitchen.js";
 import { gardenMemory } from "./garden.js";
+import { spaceMemory } from "./space.js";
 
 // ── Dream machinery ──────────────────────────────────────────────────────
 // Things the Factory builds into every dream, whatever the dreamer.
@@ -93,7 +94,7 @@ export function memoryBubble(b, { item = "hedgehog" } = {}) {
         n.add(SHAPE.cyl(0.032, 0.032, 0.04, 8), { p: [0, 0.16, 0], c: 0xf07890 });
         n.add(SHAPE.ball(0.035, 6, 4), { p: [0, 0.04, -0.03], s: [1, 1.2, 0.4], c: 0x2a8a3a });
       });
-    } else if (!memoryItem(n, item) && !gardenMemory(n, item)) {
+    } else if (!memoryItem(n, item) && !gardenMemory(n, item) && !spaceMemory(n, item)) {
       n.add(SHAPE.box(0.12, 0.08, 0.14, 0.02), { c: C.cream });
       n.both((s) => n.add(SHAPE.box(0.02, 0.02, 0.08), { p: [s * 0.03, 0, -0.1], c: C.brass, mat: "metal" }));
       n.add(SHAPE.torus(0.1, 0.015, 4, 12, Math.PI * 1.4), { p: [0, 0, 0.14], r: [RX, 0, 0], c: C.black });

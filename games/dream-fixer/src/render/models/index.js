@@ -1,5 +1,5 @@
 import { stabilizer, fuzzVacuum, foamCannon, lullabyBell, gustUmbrella, starYoyo, yoyoBall } from "./tools.js";
-import { starHook } from "./space.js";
+import { starHook, plushRocket, windupRobot, spinTop, planetMobile, moonLamp, airlock, kidBed, kidDesk, toyChest, bookcase, stationConsole, spaceLamp, glowStar, porchLight, porthole, bunkBed, wardrobe, dollhouse, dish, telescope, starChart, cupolaFrame, asteroid } from "./space.js";
 import { pinwheel, windWell, gnome, wateringCan, wateringPot, lawnMower, sunflower, bigAlarmClock, raisedBed, shed, roseBush, greenhouse, flowerPot, appleTree, signalBox, stationHouse } from "./garden.js";
 import { jelly, souffle, meatball, pepperShaker, rollingPin, meatGrinder, pressureCooker, kitchenWindow, panRail, knob, faucet, burner, kettle, jar, cuttingBoard, breadLoaf, fridge, flourSack, tableCloth, mug, tomato, bucket, spoon, pea } from "./kitchen.js";
 import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./characters.js";
@@ -26,6 +26,29 @@ export const MODELS = {
   yoyo: { build: starYoyo, frame: 0.55 },
   yoyoBall: { build: yoyoBall, frame: 0.9, anim: spin("spin", "x", 6) },
   starHook: { build: starHook, frame: 2.4, anim: spin("star", "y", 1) },
+  rocket: { build: plushRocket, frame: 2, anim: (o, t) => { const N = o.userData.nodes; N.body.rotation.z = Math.sin(t * 2) * 0.2; N.flame.scale.setScalar(0.8 + Math.abs(Math.sin(t * 9)) * 0.4); } },
+  robot: { build: windupRobot, frame: 1.8, anim: (o, t) => { const N = o.userData.nodes; N.key.rotation.z = t * 4; N.armL.rotation.x = Math.sin(t * 4) * 0.8; N.armR.rotation.x = -Math.sin(t * 4) * 0.8; } },
+  top: { build: spinTop, frame: 3, anim: (o, t) => { const N = o.userData.nodes; N.spin.rotation.y = t * 6; N.body.rotation.z = Math.sin(t * 2) * 0.1; } },
+  mobile: { build: planetMobile, frame: 4, anim: spin("arms", "y", 0.8) },
+  moon: { build: moonLamp, frame: 12, anim: (o, t) => { const N = o.userData.nodes; N.lids.scale.y = 0.2 + Math.abs(Math.sin(t * 0.6)) * 0.8; N.chain.rotation.z = Math.sin(t * 1.3) * 0.15; } },
+  airlock: { build: airlock, frame: 9 },
+  kidBed: { build: kidBed, frame: 6 },
+  kidDesk: { build: kidDesk, frame: 4.5 },
+  toyChest: { build: toyChest, frame: 3.4 },
+  bookcase: { build: bookcase, frame: 6 },
+  console: { build: stationConsole, frame: 3.4 },
+  spaceLamp: { build: spaceLamp, frame: 5 },
+  glowStar: { build: glowStar, frame: 1.6 },
+  porchLight: { build: porchLight, frame: 4.5 },
+  porthole: { build: porthole, frame: 3.4 },
+  bunkBed: { build: bunkBed, frame: 6 },
+  wardrobe: { build: wardrobe, frame: 5.5 },
+  dollhouse: { build: dollhouse, frame: 4.5 },
+  dish: { build: dish, frame: 4.5 },
+  telescope: { build: telescope, frame: 4 },
+  starChart: { build: starChart, frame: 3.4 },
+  cupolaFrame: { build: cupolaFrame, frame: 40 },
+  asteroid: { build: asteroid, frame: 9 },
   pinwheel: { build: pinwheel, frame: 3, anim: spin("wheel", "z", 4) },
   windWell: { build: windWell, frame: 4.5 },
   gnome: { build: gnome, frame: 1.6, anim: (o, t) => { const N = o.userData.nodes; N.body.rotation.z = Math.sin(t * 6) * 0.08; N.shovel.rotation.x = -Math.abs(Math.sin(t * 2)) * 1.2; } },

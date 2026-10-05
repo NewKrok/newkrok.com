@@ -128,6 +128,23 @@ const DIRECTORS = {
     },
     on: { soaked: "soaked", dizzy: "dizzy", bossRise: "boss", bigclockTimesup: "timesup", bigclockClink: "key", bigclockUnwound: "unwound", bossPhase: "phase", bossPop: "win" },
   }),
+  space: dreamDirector("space", {
+    meet: [["robot", 12, "robot"], ["rocket", 16, "rocket"], ["top", 16, "top"], ["mobile", 18, "mobile"]],
+    // At the east edge over the array's gap, or at the foot of the
+    // observatory tower: Cog says what is in the way, or (with the yo-yo)
+    // what to do about it. In the fight: the pull-chain, if you have not
+    // pulled it down after a while.
+    frame(D, run, dt, S, q) {
+      const B = run.boss;
+      S.bossT = B?.alive && !B.invulnerable ? (S.bossT || 0) + dt : 0;
+      if (S.bossT > 14 && !D.said.has("space_tethered") && q(2)) D.say("space_chain");
+      if (!q(1.5)) return;
+      const b = run.body, yo = run.tools.some((t) => t.id === "yoyo");
+      if (b.x > 12 && b.x < 16.5 && Math.abs(b.z) < 5 && b.y < 1 && b.y > -0.5) D.say(yo ? "space_lasso" : "space_gap");
+      else if (from(run, -16, -13) < 4.5 && b.y < 1) D.say(yo ? "space_climb" : "space_tower");
+    },
+    on: { dizzy: "dizzy", bossRise: "boss", "bossAttack:beam": "beam", "bossAttack:tide": "tide", moonTethered: "tethered", bossPhase: "phase", bossPop: "win" },
+  }),
   factory: {
     start(D, run, P) {
       // First time in: the welcome. Back from a dream: how it went. Any
@@ -147,6 +164,7 @@ const DIRECTORS = {
       if (S.P?.done.includes("park") && !S.P.done.includes("school") && !S.P.log.includes("hub_newjob") && !D.said.has("hub_back1") && q(3)) D.say("hub_newjob");
       if (S.P?.done.includes("school") && !S.P.done.includes("kitchen") && !S.P.log.includes("hub_newjob2") && !D.said.has("hub_back1") && q(3)) D.say("hub_newjob2");
       if (S.P?.done.includes("kitchen") && !S.P.done.includes("garden") && !S.P.log.includes("hub_newjob3") && !D.said.has("hub_back1") && q(3)) D.say("hub_newjob3");
+      if (S.P?.done.includes("garden") && !S.P.done.includes("space") && !S.P.log.includes("hub_newjob4") && !D.said.has("hub_back1") && q(3)) D.say("hub_newjob4");
       if (!S.P?.log.includes("hub_journal") && (from(run, -8.7, -4.2) < 3.5 || (S.time > 40 && (D.said.has("hub_intro3") || D.said.has("hub_back2")))) && q(2)) D.say("hub_journal");
     },
   },

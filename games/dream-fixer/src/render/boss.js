@@ -1,9 +1,10 @@
 import * as T from "three";
-import { make } from "./modelkit.js";
+import { make, MAT } from "./modelkit.js";
 import { vacuumBoss } from "./models/boss.js";
 import { redPen } from "./models/school.js";
 import { pressureCooker } from "./models/kitchen.js";
 import { bigAlarmClock } from "./models/garden.js";
+import { moonLamp } from "./models/space.js";
 import { C } from "./palette.js";
 import { lerp, damp } from "../config.js";
 
@@ -453,9 +454,104 @@ class ClockBossView {
   }
 }
 
+// ── The Moon Lamp on screen ──
+// Rises out from under the cupola floor and floats there, turning to
+// you, its eyes half shut; wide open when it shines a spotlight. Its
+// spotlights are rings on the floor (pale, then bright once they stop),
+// a column of moonlight comes down in each; during a tide flecks stream
+// in under it. Pulled down on its chain it lights up all over, eyes
+// squeezed shut.
+class MoonBossView {
+  constructor(scene, fx) {
+    this.scene = scene; this.fx = fx;
+    this.o = null;
+    this.spots = [0, 1].map(() => {
+      const m = new T.Mesh(new T.RingGeometry(0.86, 1, 40).rotateX(-Math.PI / 2), new T.MeshBasicMaterial({ color: 0xd8e0ff, transparent: true, depthWrite: false, toneMapped: false, side: T.DoubleSide }));
+      m.visible = false; m.renderOrder = 4; scene.add(m); return m;
+    });
+    this.flashing = false;
+  }
+
+  clear() {
+    if (this.o) { this.scene.remove(this.o); this.o = null; }
+    for (const s of this.spots) s.visible = false;
+  }
+
+  onEvent(e, run) {
+    const fx = this.fx;
+    if (e.type === "bossRise") {
+      const y = run.kit.floorAt(e.x, e.z);
+      for (let i = 0; i < 5; i++) fx.puff(e.x + (Math.random() - 0.5) * 5, y + 0.5, e.z + (Math.random() - 0.5) * 5, 2.2);
+      fx.ring([e.x, y + 0.1, e.z], [0, 1, 0], 0xd8e0ff, 8, 0.8);
+    } else if (e.type === "moonBeam") {
+      fx.ring([e.x, e.y + 0.08, e.z], [0, 1, 0], 0xffffff, e.r, 0.4);
+      for (let i = 0; i < 26; i++) {
+        const a = Math.random() * Math.PI * 2, r = Math.random() * e.r;
+        fx.spark(e.x + Math.cos(a) * r, e.y + 0.1, e.z + Math.sin(a) * r, 0, 6 + Math.random() * 6, 0, 0.5, 0.07, i % 2 ? 0xffffff : 0xd8e0ff, 0);
+      }
+    } else if (e.type === "moonTethered") {
+      fx.burst([e.x, e.y, e.z], [0, 1, 0], 0xffe27a, 40, 6, 0.08);
+      fx.ring([e.x, e.y, e.z], [0, 1, 0], 0x9fe0ff, 3, 0.5);
+    } else if (e.type === "moonClink") {
+      fx.burst([e.x, e.y, e.z], [0, 1, 0], 0xffffff, 8, 3, 0.04);
+    } else if (e.type === "bossPop" && run.boss) {
+      for (let i = 0; i < 100; i++) {
+        const a = Math.random() * Math.PI * 2, u = Math.random() * 2 - 1, s = Math.sqrt(1 - u * u), v = 4 + Math.random() * 9;
+        fx.spark(e.x, e.y, e.z, Math.cos(a) * s * v, u * v + 3, Math.sin(a) * s * v, 0.8 + Math.random() * 0.8, 0.1 + Math.random() * 0.1, [C.dream, C.dreamPink, C.dreamGold, 0xf4ecc8][i % 4], 6);
+      }
+      for (let i = 0; i < 7; i++) fx.puff(e.x + (Math.random() - 0.5) * 3, e.y + (Math.random() - 0.5) * 3, e.z + (Math.random() - 0.5) * 3, 2.4);
+      fx.ring([e.x, e.y - 2, e.z], [0, 1, 0], C.dream, 18, 1.2);
+      if (this.o) this.o.visible = false;
+    }
+  }
+
+  update(run, alpha, dt, t) {
+    const B = run.boss;
+    if (!this.o) {
+      this.o = make(moonLamp);
+      this.meshes = [];
+      // Its own glow material, so it can light up when it is pulled down.
+      this.glowMat = MAT.glow.clone();
+      this.o.traverse((m) => { if (m.isMesh) { if (m.material === MAT.glow) m.material = this.glowMat; this.meshes.push(m); m.userData.mat = m.material; } });
+      this.scene.add(this.o);
+    }
+    if (!B.alive) { this.o.visible = false; for (const s of this.spots) s.visible = false; return; }
+    const o = this.o, N = o.userData.nodes, st = B.state;
+    const x = lerp(B.lx, B.x, alpha), y = lerp(B.ly, B.y, alpha), z = lerp(B.lz, B.z, alpha);
+    o.position.set(x, y, z);
+    o.rotation.y = B.yaw;
+    const shake = st === "down" ? Math.sin(t * 47) * 0.06 : st === "tethered" ? Math.sin(t * 20) * 0.03 : 0;
+    N.moon.rotation.set(Math.sin(t * 0.7) * 0.05 + shake, 0, Math.sin(t * 0.5) * 0.06 + shake);
+    // Eyelids: half shut while it drifts, open to shine, squeezed shut when pulled down.
+    const lid = st === "tethered" || st === "down" ? 1 : st === "beam" || st === "roar" ? 0.05 : 0.45 + Math.sin(t * 0.8) * 0.08;
+    N.lids.scale.y = damp(N.lids.scale.y, lid, 8, dt);
+    N.chain.rotation.z = st === "tethered" ? 0 : Math.sin(t * 1.3) * 0.15;
+    N.chain.rotation.x = st === "tethered" ? 0 : Math.cos(t * 1.1) * 0.1;
+    this.glowMat.color.setScalar(0.85 + B.glow * 0.9 + (st === "tethered" ? Math.sin(t * 8) * 0.12 : 0));
+    // Spotlights on the floor.
+    for (let i = 0; i < 2; i++) {
+      const s = this.spots[i], m = B.marks[i];
+      s.visible = !!m;
+      if (!m) continue;
+      s.position.set(m[0], m[1] + 0.07, m[2]);
+      s.scale.setScalar(m[3] * (m[4] ? 1 : 1.15 + Math.sin(t * 6) * 0.05));
+      s.material.opacity = m[4] ? 0.9 : 0.45;
+      if (Math.random() < dt * (m[4] ? 40 : 10)) this.fx.spark(x + (m[0] - x) * Math.random(), y + (m[1] - y) * Math.random(), z + (m[2] - z) * Math.random(), 0, -1, 0, 0.4, 0.05, 0xd8e0ff, 0);
+    }
+    // The tide: flecks streaming in under it.
+    if (st === "tide" && B.t < 2.2 && Math.random() < dt * 40) {
+      const a = Math.random() * Math.PI * 2, r = 4 + Math.random() * 6;
+      this.fx.spark(x + Math.cos(a) * r, B.y0 + 0.3, z + Math.sin(a) * r, -Math.cos(a) * r / 0.8, 0.5, -Math.sin(a) * r / 0.8, 0.8, 0.05, 0xc8d8ff, 0);
+    }
+    if (st === "tethered" && Math.random() < dt * 20) this.fx.spark(x + (Math.random() - 0.5) * 4, y + (Math.random() - 0.5) * 4, z + (Math.random() - 0.5) * 4, 0, 1.5, 0, 0.6, 0.08, 0xffe27a, -0.5);
+    const flash = B.flash > 0.6;
+    if (flash !== this.flashing) { for (const m of this.meshes) m.material = flash ? FLASH : m.userData.mat; this.flashing = flash; }
+  }
+}
+
 // ── Whichever nightmare the dream has ──
 // One view per boss kind, made when that boss first shows up.
-const VIEWS = { vacuum: VacuumBossView, pen: PenBossView, cooker: CookerBossView, bigclock: ClockBossView };
+const VIEWS = { vacuum: VacuumBossView, pen: PenBossView, cooker: CookerBossView, bigclock: ClockBossView, moon: MoonBossView };
 
 export class BossView {
   constructor(scene, fx) { this.scene = scene; this.fx = fx; this.views = {}; this.curtain = null; }

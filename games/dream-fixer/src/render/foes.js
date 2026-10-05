@@ -13,18 +13,22 @@ import { lerp } from "../config.js";
 
 // The looks a dream gives each kind (model ids), unless its level says
 // otherwise. A skin keeps the nodes its kind's animation moves.
-const SKINS = { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub", clock: "clock", pencil: "pencil", backpack: "backpack", sharpener: "sharpener", meatball: "meatball", pepper: "pepper", rollingpin: "rollingpin", grinder: "grinder", gnome: "gnome", can: "can", mower: "mower", sunflower: "sunflower" };
+const SKINS = { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub", clock: "clock", pencil: "pencil", backpack: "backpack", sharpener: "sharpener", meatball: "meatball", pepper: "pepper", rollingpin: "rollingpin", grinder: "grinder", gnome: "gnome", can: "can", mower: "mower", sunflower: "sunflower", rocket: "rocket", robot: "robot", top: "top", mobile: "mobile" };
 const FLASH = new T.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
 // A gnome you are looking at: stone grey all over.
 const STONE = new T.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.95, flatShading: true });
 const POP_COLORS = { bunny: [0xc4c0cc, 0x7a7684, C.dream, 0xffffff], tub: [0xffffff, 0x8fd0f0, C.dream, 0xffd23a], fuzz: [0xe8a060, 0xc8743a, C.dream, 0xffffff], buzzer: [0xf2c14e, 0x5a3620, C.dream, 0xffffff], knot: [0xe8a060, C.dreamPink, C.dream, 0xffffff], pillow: [0xffffff, 0xf4eaff, 0xd8c8ff, C.dreamPink],
   clock: [0xe8423a, 0xfaf6e8, C.brass, C.dream], pencil: [0xffd040, 0xe8c898, 0xf07890, C.dream], backpack: [0xd84a48, 0x2a3a6a, 0xffd23a, C.dream], sharpener: [0xb8c2cc, 0xe8c898, C.dreamPink, C.dream],
   meatball: [0x8a4a2a, 0xc8302a, 0x3a8a2a, C.dream], pepper: [0x2a2420, 0xd8e0e8, C.dreamPink, C.dream], rollingpin: [0xd8a870, 0xf4f0e8, C.dreamPink, C.dream], grinder: [0x4a505a, 0xc8302a, C.dreamPink, C.dream],
-  gnome: [0xe8423a, 0x3a6ab8, 0xf4f2ea, C.dream], can: [0x5ab06a, 0x9fe0ff, C.brass, C.dream], mower: [0xd8483a, 0x3a3e46, 0x7ab85a, C.dream], sunflower: [0xffd84a, 0x4a2e1a, 0x5aa04a, C.dream] };
+  gnome: [0xe8423a, 0x3a6ab8, 0xf4f2ea, C.dream], can: [0x5ab06a, 0x9fe0ff, C.brass, C.dream], mower: [0xd8483a, 0x3a3e46, 0x7ab85a, C.dream], sunflower: [0xffd84a, 0x4a2e1a, 0x5aa04a, C.dream],
+  rocket: [0xe8483a, 0xf3e6c8, 0x3a6ab8, C.dream], robot: [0x9aa8c0, 0xe8423a, 0xffd23a, C.dream], top: [0xd8343a, 0x2a4aa0, 0xf3e6c8, C.dream], mobile: [0xe8a050, 0x5a9ae8, 0xb88ae8, C.dream] };
 // What school glitches throw: [size x, y, z, colour] for a tumbling chunk.
 const CHUNKS = { hand: [0.06, 0.4, 0.04, 0x2a2440], book: [0.42, 0.1, 0.32, 0x3a7fae], shaving: [0.16, 0.03, 0.1, 0xe8c898], eraser: [0.26, 0.14, 0.16, 0xf07890], grade: [0.34, 0.42, 0.06, 0xe02a30],
   peppercorn: [0.1, 0.1, 0.1, 0x2a2420], mince: [0.16, 0.07, 0.12, 0xb0503a], sauce: [0.34, 0.22, 0.34, 0xd8302a], bean: [0.26, 0.16, 0.18, 0xd06a2a],
-  pebble: [0.16, 0.12, 0.14, 0x8a867a], drop: [0.12, 0.18, 0.12, 0x6ac0f0], clipping: [0.2, 0.03, 0.06, 0x5aa04a], seed: [0.12, 0.05, 0.08, 0x2a1a0e] };
+  pebble: [0.16, 0.12, 0.14, 0x8a867a], drop: [0.12, 0.18, 0.12, 0x6ac0f0], clipping: [0.2, 0.03, 0.06, 0x5aa04a], seed: [0.12, 0.05, 0.08, 0x2a1a0e],
+  moonrock: [0.42, 0.34, 0.38, 0xb8b0a0] };
+// Orbs of other colours than the dream pink (Sophie's toys' stars, zaps, sparks, planets).
+const ORB = { bubble: 0x9fe0ff, yarn: 0xf0a050, star: 0xffe27a, zap: 0x9fe0ff, spark: 0xffa040, planet: 0xa8b8ff };
 const BOOKS = [0xd84a48, 0x3a7fae, 0x2a8a3a, 0xe0a020, 0x7a4aa0];
 
 export class FoeView {
@@ -185,6 +189,10 @@ export class FoeView {
       else if (f.kind === "can") animCan(f, N, t, grow);
       else if (f.kind === "mower") animMower(f, N, t, grow, dt);
       else if (f.kind === "sunflower") animSunflower(f, N, t, grow);
+      else if (f.kind === "rocket") animRocket(f, N, t, grow);
+      else if (f.kind === "robot") animRobot(f, N, t, grow, dt);
+      else if (f.kind === "top") animTop(f, N, t, grow);
+      else if (f.kind === "mobile") animMobile(f, N, t, grow);
       else animKnot(f, N, t, grow);
       // Asleep (the Lullaby Bell): lying over, breathing slowly.
       const zz = f.sleepT > 0 ? Math.min(1, (v.sleepK || 0) + dt * 4) : Math.max(0, (v.sleepK || 0) - dt * 5);
@@ -271,8 +279,8 @@ export class FoeView {
       const w = (1 + Math.sin(t * (bubble ? 9 : 30) + s.id) * (bubble ? 0.08 : 0.15)) * (bubble ? 2.2 : 1);
       _p.set(s.x, s.y, s.z); _q.identity(); _s.setScalar(w);
       this.orbs.setMatrixAt(i, _m.compose(_p, _q, _s));
-      this.orbs.setColorAt(i, _c.set(bubble ? 0x9fe0ff : s.kind === "yarn" ? 0xf0a050 : C.dreamPink).multiplyScalar(bubble ? 1.3 : s.kind === "yarn" ? 1.4 : 2.2));
-      if (Math.random() < 0.5) this.fx.spark(s.x, s.y, s.z, (Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5), 0.3, 0.05, bubble ? 0xffffff : C.dreamPink, 0);
+      this.orbs.setColorAt(i, _c.set(ORB[s.kind] ?? C.dreamPink).multiplyScalar(bubble ? 1.3 : s.kind === "yarn" ? 1.4 : 2.2));
+      if (Math.random() < 0.5) this.fx.spark(s.x, s.y, s.z, (Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5), 0.3, 0.05, bubble ? 0xffffff : ORB[s.kind] ?? C.dreamPink, 0);
       // Where a bubble will land: a ring on the ground, tightening.
       if (bubble && r < 16) {
         const k = Math.max(0, Math.min(1, s.y - s.ty) / 6);
@@ -639,5 +647,49 @@ function animSunflower(f, N, t, grow) {
   N.head.rotation.set(-0.15 + kick + Math.sin(t * 1.3 + f.phase) * 0.05, 0, shake);
   N.head.scale.setScalar(grow);
   N.core.scale.setScalar(1 + (f.pulse || 0) * 0.25 + Math.sin(t * 4 + f.phase) * 0.03);
+}
+
+// ── Sophie's station ──
+
+function animRocket(f, N, t, grow) {
+  // Bobs and rolls lazily; aiming it shakes, dashing it flares, sputtering
+  // it coughs and droops.
+  const aim = f.state === "aim" ? Math.min(1, f.t / 0.7) : 0, dash = f.state === "dash", sput = f.state === "sputter";
+  N.body.rotation.set(sput ? 0.4 : 0, 0, Math.sin(t * 1.5 + f.phase) * 0.25 + (aim ? Math.sin(t * 50) * 0.08 * aim : 0) + (dash ? t * 12 : 0));
+  N.body.position.y = Math.sin(t * 2.2 + f.phase) * 0.05;
+  N.body.scale.setScalar(grow);
+  N.flame.scale.setScalar(dash ? 1.8 : sput ? 0.3 + Math.abs(Math.sin(t * 23)) * 0.6 : 0.6 + aim * 0.8 + Math.abs(Math.sin(t * 9)) * 0.2);
+}
+
+function animRobot(f, N, t, grow, dt) {
+  // Marches stiff-legged, rocking; claps on a wind-up; its key whirs
+  // before a sprint and stops dead when it has run down.
+  const walk = f.body.speed2D > 0.4 ? 1 : 0, down = f.state === "rundown";
+  N.body.rotation.set(down ? 0.25 : 0, 0, Math.sin(t * 10 + f.phase) * 0.1 * walk);
+  N.body.position.y = Math.abs(Math.sin(t * 10 + f.phase)) * 0.04 * walk;
+  N.body.scale.setScalar(grow);
+  N.key.rotation.z += dt * (f.state === "crank" ? 30 : f.state === "sprint" ? 14 : down ? 0 : 3);
+  const clap = f.state === "wind" ? Math.min(1, f.t / 0.35) : 0, swing = Math.sin(t * 10 + f.phase) * 0.6 * walk;
+  N.armL.rotation.set(-clap * 1.4 + swing, 0, clap * 0.6);
+  N.armR.rotation.set(-clap * 1.4 - swing, 0, -clap * 0.6);
+  N.antenna.scale.setScalar(f.state === "zap" ? 1 + Math.min(1, f.t / 0.5) * 0.6 : 1);
+}
+
+function animTop(f, N, t, grow) {
+  // Always turning (fast when it spins), leaning into its run, toppling
+  // round and round when dazed.
+  N.spin.rotation.y = f.whirl || 0;
+  const wob = f.state === "wobble" ? 0.35 : f.state === "windup" ? Math.sin(t * 30) * 0.05 : 0.04;
+  N.body.rotation.set(Math.sin(t * 7 + f.phase) * wob, 0, Math.cos(t * 7 + f.phase) * wob);
+  N.body.scale.setScalar(grow);
+}
+
+function animMobile(f, N, t, grow) {
+  // Its planets swing round (fast when it is about to fling them out),
+  // one gone for each it has thrown.
+  N.arms.rotation.y = f.swing || 0;
+  N.arms.scale.setScalar(grow * (1 + (f.pulse || 0) * 0.15));
+  for (let i = 0; i < 4; i++) N[`p${i}`].visible = i < (f.planets ?? 4);
+  N.hub.scale.setScalar(1 + (f.pulse || 0) * 0.3);
 }
 

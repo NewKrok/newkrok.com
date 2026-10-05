@@ -3,6 +3,7 @@ import { World } from "./world.js";
 import { SCHOOL } from "./foes-school.js";
 import { KITCHEN, MEATBALL } from "./foes-kitchen.js";
 import { GARDEN } from "./foes-garden.js";
+import { SPACE } from "./foes-space.js";
 
 // ── Glitches ─────────────────────────────────────────────────────────────
 // What goes wrong in a dream. Nobody dies: a glitch that runs out of `hp`
@@ -23,7 +24,9 @@ import { GARDEN } from "./foes-garden.js";
 // pencil, the backpack and the sharpener; Rosie's kitchen too
 // (foes-kitchen.js): the meatball, the pepper shaker, the rolling pin and
 // the meat grinder; Grandpa Joe's garden too (foes-garden.js): the gnome,
-// the watering can, the lawnmower and the sunflower.
+// the watering can, the lawnmower and the sunflower; Sophie's station too
+// (foes-space.js): the plush rocket, the wind-up robot, the spinning top
+// and the planet mobile.
 //
 // The dream skins them (a tangled squirrel in the park); the sim only
 // knows the kind. Glitches already loose in a dream mind their own
@@ -67,6 +70,10 @@ export const FOES = {
   can: { hp: 4, r: 0.45, speed: 3.4, dmg: 3, dust: 4, hitR: 0.5, hitY: 0, fly: true, knock: 0.6, catchable: true },
   mower: { hp: 18, r: 0.8, h: 1.0, speed: 2.3, dmg: 9, dust: 11, hitR: 0.9, hitY: 0.5, knock: 0.15, big: true, steady: true },
   sunflower: { hp: 16, r: 0.6, h: 3, dust: 12, hitR: 0.95, hitY: 2.3, still: true, knock: 0 },
+  rocket: { hp: 4, r: 0.4, speed: 3.6, dmg: 7, dust: 4, hitR: 0.5, hitY: 0, fly: true, knock: 0.6, catchable: true },
+  robot: { hp: 5, r: 0.32, h: 0.9, speed: 2.6, dmg: 6, dust: 3, hitR: 0.45, hitY: 0.45, knock: 0.9, catchable: true },
+  top: { hp: 18, r: 0.75, h: 1.1, speed: 2.2, dmg: 9, dust: 11, hitR: 0.85, hitY: 0.55, knock: 0.15, big: true, steady: true },
+  mobile: { hp: 16, r: 0.7, h: 2.6, dust: 12, hitR: 0.9, hitY: 2, still: true, knock: 0 },
 };
 
 const TAU = Math.PI * 2;
@@ -159,6 +166,7 @@ export function stepFoes(run, dt) {
     if (SCHOOL[f.kind]) SCHOOL[f.kind](run, f, fdt, px, pcy, pz);
     else if (KITCHEN[f.kind]) KITCHEN[f.kind](run, f, fdt, px, pcy, pz);
     else if (GARDEN[f.kind]) GARDEN[f.kind](run, f, fdt, px, pcy, pz);
+    else if (SPACE[f.kind]) SPACE[f.kind](run, f, fdt, px, pcy, pz);
     else if (f.kind === "fuzz" || f.kind === "bunny") fuzz(run, f, fdt, px, pz);
     else if (f.kind === "tub") tub(run, f, fdt, px, pz);
     else if (f.kind === "buzzer") buzzer(run, f, fdt, px, pcy, pz);

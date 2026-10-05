@@ -4,7 +4,8 @@
 // glitches up close (and their catch shot back at the big ones, or into
 // the boss's nozzle), the Lullaby Bell on the Pressure Cooker's lid, the
 // Gust Umbrella on whatever is right in its face (and to glide and ride
-// updrafts where a route says so),
+// updrafts where a route says so), the Star Yo-Yo's lasso to ride star
+// handles where a route says so and to pull the Moon Lamp down by its chain,
 // backing off and circling instead of standing in a crowd, jumping the
 // rings that run along the floor, going for a pink heart when low. Prints
 // how long each part took and how hard it was.
@@ -21,7 +22,7 @@ const seed = Number(process.argv[2] || 1), difficulty = process.argv[3] || "norm
 const def = LEVELS[process.argv[5] || "park"];
 if (!def?.botRoutes) { console.log("no bot routes for that level"); process.exit(1); }
 const SKILL = { sharp: { turn: 0.12, pitch: 0.08, react: 0, wobble: 0 }, casual: { turn: 0.08, pitch: 0.05, react: 0.25, wobble: 0.03 } }[skill];
-const SMALL = new Set(["fuzz", "bunny", "buzzer", "clock", "pencil", "meatball", "pepper", "gnome", "can"]), BIG = new Set(["tub", "knot", "backpack", "sharpener", "rollingpin", "grinder", "mower", "sunflower"]);
+const SMALL = new Set(["fuzz", "bunny", "buzzer", "clock", "pencil", "meatball", "pepper", "gnome", "can", "rocket", "robot"]), BIG = new Set(["tub", "knot", "backpack", "sharpener", "rollingpin", "grinder", "mower", "sunflower", "top", "mobile"]);
 
 // The tools a player brings: whatever the dreams before this one handed out.
 const before = CLIENTS.slice(0, Math.max(0, CLIENTS.findIndex((c) => c.level === def.id))).map((c) => LEVELS[c.level]?.unlockTool?.id).filter(Boolean);
@@ -32,7 +33,7 @@ const origHurt = run.hurt.bind(run);
 run.hurt = (a, x, z) => { const before = run.hp; origHurt(a, x, z); hurtTotal += Math.max(0, before - run.hp); };
 
 // ── Looking and shooting ──
-let tgtRef = null, reactT = 0, wantTool = "stabilizer", wantT = 0, altT = 0;
+let tgtRef = null, reactT = 0, wantTool = "stabilizer", wantT = 0, altT = 0, chainCd = 0;
 const dist = (o) => Math.hypot(o.px - B.x, o.pz - B.z);
 const toolIndex = (id) => run.tools.findIndex((t) => t.id === id);
 const key = (o) => (o ? o.id ?? (o.orb ? "orb" : o.nozzle ? "nozzle" : "boss") : null);
@@ -208,6 +209,8 @@ function walk(route) {
     if (x === "glide") { if (!glide(z, jump)) return false; continue; }
     if (x === "gust") { gustAt(z); continue; }
     if (x === "draft") { draft(z); continue; }
+    // The yo-yo: lasso a star handle and ride the string to it.
+    if (x === "hook") { if (!hookTo(z)) return false; continue; }
     // Something the bell sets off (a soufflé, a jelly): rung, as if from here.
     if (x === "bell") { const g = run.ringables.find((o) => o.id === z); if (g) { run.bell.setOff(run, g); if (g.kind === "jelly") g.wobbleT = 30; step({}); } continue; }
     const sx = B.x, sz = B.z; let jumped = false, fights = 0;
@@ -255,6 +258,25 @@ function glide(x, z) {
     step({ forward: d > 0.6 ? 1 : 0, alt: air || edge, jumpPressed: edge, jump: edge || (air && B.vy > 0) });
   }
   return true;
+}
+
+// Lasso a star handle (the yo-yo's right click: a press) and ride the
+// string to it; it lets go at the end, and the next step of the route
+// steers on from there (another handle, or a landing).
+function hookTo(id) {
+  const h = run.yoyo.hooks.find((o) => o.id === id), yi = toolIndex("yoyo");
+  if (!h || yi < 0) return false;
+  if (run.tool !== yi) { step({ toolTo: yi }); for (let i = 0; i < 19; i++) step({ jump: B.vy > 0 }); }
+  const f0 = falls;
+  for (let i = 0; i < 90 && !run.yoyo.reeling; i++) {
+    if (falls !== f0) return false;
+    const [hx, hy, hz] = [h.x, h.y, h.z], dx = hx - B.x, dz = hz - B.z;
+    B.yaw = Math.atan2(-dx, -dz); B.pitch = Math.atan2(hy - B.eyeY, Math.hypot(dx, dz));
+    step({ alt: i % 2 === 0 && !run.yoyo.ball, jump: B.vy > 0 });
+  }
+  if (!run.yoyo.reeling) return false;
+  for (let i = 0; i < 300 && run.yoyo.reeling; i++) step({});
+  return falls === f0;
 }
 
 // A gust at a pinwheel from where you stand.
@@ -339,6 +361,8 @@ if (def.boss) {
     // The Big Alarm Clock's key: close by, jump, a gust at your feet for a
     // lift, then a gust at the key.
     if (S?.alive && S.kind === "bigclock" && S.state !== "unwound" && !S.invulnerable && keyTry(S)) continue;
+    // The Moon Lamp's pull-chain: the lasso, now and then, from a few metres.
+    if (S?.alive && S.kind === "moon" && !S.tethered && !S.invulnerable && chainTry(S)) continue;
     aimAndFire(intent);
     if (S?.alive) {
       const dx = B.x - S.x, dz = B.z - S.z, d = Math.hypot(dx, dz) || 1;
@@ -352,6 +376,8 @@ if (def.boss) {
       if (S.ring && Math.abs(d - S.ring.r) < 1.6 && B.grounded) { intent.jumpPressed = true; intent.jump = true; }
       // A steam jet sweeping round at you: jump it.
       if (S.jets?.some((a) => Math.abs(Math.atan2(Math.sin(Math.atan2(-(B.x - S.x), -(B.z - S.z)) - a), Math.cos(Math.atan2(-(B.x - S.x), -(B.z - S.z)) - a))) < 0.45) && d < 11 && B.grounded) { intent.jumpPressed = true; intent.jump = true; }
+      // A spotlight on you: out of the circle.
+      for (const m of S.marks ?? []) { const mx = B.x - m[0], mz = B.z - m[2], md = Math.hypot(mx, mz) || 1; if (md < m[3] + 1.2) move(intent, mx / md, mz / md); }
       // Its landing spot: get out from under.
       if (S.mark) { const mx = B.x - S.mark[0], mz = B.z - S.mark[2], md = Math.hypot(mx, mz) || 1; if (md < S.mark[3] + 1) move(intent, mx / md, mz / md); }
       // Low and a heart about: get it.
@@ -376,6 +402,22 @@ if (def.boss) {
   }
   console.log(`boss     ${run.won ? "down" : "NOT down"} after ${(run.time - tb).toFixed(1)}s  faints ${run.faints - f0}  tries ${tries}`);
 }
+// One go at the Moon Lamp's chain with the lasso (true if it threw).
+function chainTry(S) {
+  chainCd -= DT;
+  const yi = toolIndex("yoyo"), [x, y, z] = S.hitSpheres()[0], d = Math.hypot(x - B.x, y - B.eyeY, z - B.z);
+  if (yi < 0 || chainCd > 0 || d > 10 || run.tools[yi].overheated || !run.canSee(x, y, z) || (S.marks?.length && S.marks.some((m) => Math.hypot(B.x - m[0], B.z - m[2]) < m[3] + 1))) return false;
+  chainCd = 2 + Math.random();
+  if (run.tool !== yi) { step({ toolTo: yi }); for (let i = 0; i < 19; i++) step({}); }
+  for (let i = 0; i < 40; i++) {
+    const [cx, cy, cz] = S.hitSpheres()[0];
+    B.yaw = Math.atan2(-(cx - B.x), -(cz - B.z)); B.pitch = Math.atan2(cy - B.eyeY, Math.hypot(cx - B.x, cz - B.z));
+    step({ alt: i === 0 || i === 6 });
+    if (S.tethered) break;
+  }
+  return true;
+}
+
 // One go at the Big Alarm Clock's key (true if it tried).
 function keyTry(S) {
   const ui = toolIndex("umbrella"), d = Math.hypot(S.x - B.x, S.z - B.z);
