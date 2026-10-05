@@ -82,9 +82,9 @@ export const TOOLS = {
   // throws it as a lasso: it ties a glitch up, and only the lasso catches
   // on star handles and reels you in.
   yoyo: {
-    interval: 0.1, heat: 0.15, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
+    interval: 0.3, heat: 0.15, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
     range: 12, speed: 36, back: 32,                  // m; out and back (m/s)
-    damage: 2.2, r: 0.2,                             // the yo-yo's own size, for hitting
+    damage: 1.5, r: 0.2,                             // the yo-yo's own size, for hitting
     yank: 2.2,                                       // a yanked glitch lands this far in front of you
     reel: { speed: 17, accel: 70, pop: 4.5, time: 3 }, // reeled in: top speed, how fast, a hop at the end, give up after
     lasso: { tie: 3, big: 1.2, damage: 0.5, heat: 0.18 },  // tied up (s; big, heavy and rooted ones), a sting, heat per throw

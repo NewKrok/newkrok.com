@@ -523,8 +523,10 @@ class MoonBossView {
     const shake = st === "down" ? Math.sin(t * 47) * 0.06 : st === "tethered" ? Math.sin(t * 20) * 0.03 : 0;
     N.moon.rotation.set(Math.sin(t * 0.7) * 0.05 + shake, 0, Math.sin(t * 0.5) * 0.06 + shake);
     // Eyelids: half shut while it drifts, open to shine, squeezed shut when pulled down.
-    const lid = st === "tethered" || st === "down" ? 1 : st === "beam" || st === "roar" ? 0.05 : 0.45 + Math.sin(t * 0.8) * 0.08;
+    const lid = st === "tethered" || st === "down" || st === "doze" ? 1 : st === "beam" || st === "roar" ? 0.05 : 0.45 + Math.sin(t * 0.8) * 0.08;
     N.lids.scale.y = damp(N.lids.scale.y, lid, 8, dt);
+    // The chain hangs as far as the sim lets it down (drawn up between naps).
+    N.chain.scale.y = (B.chainLen + 0.2) / 1.5;
     N.chain.rotation.z = st === "tethered" ? 0 : Math.sin(t * 1.3) * 0.15;
     N.chain.rotation.x = st === "tethered" ? 0 : Math.cos(t * 1.1) * 0.1;
     this.glowMat.color.setScalar(0.85 + B.glow * 0.9 + (st === "tethered" ? Math.sin(t * 8) * 0.12 : 0));
@@ -543,6 +545,8 @@ class MoonBossView {
       const a = Math.random() * Math.PI * 2, r = 4 + Math.random() * 6;
       this.fx.spark(x + Math.cos(a) * r, B.y0 + 0.3, z + Math.sin(a) * r, -Math.cos(a) * r / 0.8, 0.5, -Math.sin(a) * r / 0.8, 0.8, 0.05, 0xc8d8ff, 0);
     }
+    // Dozing: little Zs drifting up off it.
+    if (st === "doze" && Math.random() < dt * 4) this.fx.spark(x + 1.5, y + 2, z, 0.4, 1.2, 0, 1.4, 0.12, 0xd8e0ff, -0.2);
     if (st === "tethered" && Math.random() < dt * 20) this.fx.spark(x + (Math.random() - 0.5) * 4, y + (Math.random() - 0.5) * 4, z + (Math.random() - 0.5) * 4, 0, 1.5, 0, 0.6, 0.08, 0xffe27a, -0.5);
     const flash = B.flash > 0.6;
     if (flash !== this.flashing) { for (const m of this.meshes) m.material = flash ? FLASH : m.userData.mat; this.flashing = flash; }

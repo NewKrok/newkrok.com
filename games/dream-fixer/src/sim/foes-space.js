@@ -252,23 +252,26 @@ function top(run, f, dt, px, pcy, pz) {
       }
       break;
     case "spin": {
-      // Off in a straight line, bouncing off walls and edges.
+      // Off in a straight line at full speed from the start, bouncing off
+      // walls and edges (once per knock: a corner is not three bounces).
       const [ux, uz] = f.dir2;
+      f.bounceT = (f.bounceT || 0) - dt;
+      const bounce = (nx, nz) => {
+        const d = f.dir2[0] * nx + f.dir2[1] * nz;
+        f.dir2 = [f.dir2[0] - 2 * d * nx, f.dir2[1] - 2 * d * nz];
+        f.bounces++; f.bounceT = 0.2;
+        run.events.push({ type: "topBounce", x: b.x, z: b.z });
+      };
       const ahead = AI.floorBelow(run.world, b.x + ux * (f.def.r + 0.4), b.z + uz * (f.def.r + 0.4), b.y);
-      if (ahead < b.y - 1) { f.dir2 = [-ux, -uz]; f.bounces++; run.events.push({ type: "topBounce", x: b.x, z: b.z }); }
+      if (ahead < b.y - 1 && f.bounceT <= 0) bounce(ux, uz);
       f.yaw = Math.atan2(-f.dir2[0], -f.dir2[1]);
       intent.forward = 1; speedMul = S.speed / f.def.speed;
-      const x0 = b.x, z0 = b.z;
+      b.vx = f.dir2[0] * S.speed; b.vz = f.dir2[1] * S.speed;
+      const x0 = b.x, z0 = b.z, mx = b.vx * dt, mz = b.vz * dt;
       move(run, f, intent, dt, speedMul);
-      // Held up by a wall: bounce off it (the way it went missing tells
-      // which way the wall faces).
-      const mx = ux * S.speed * dt, mz = uz * S.speed * dt, rx = mx - (b.x - x0), rz = mz - (b.z - z0), rl = Math.hypot(rx, rz);
-      if (rl > Math.hypot(mx, mz) * 0.4 && f.t > 0.1) {
-        const nx = rx / rl, nz = rz / rl, d = f.dir2[0] * nx + f.dir2[1] * nz;
-        f.dir2 = [f.dir2[0] - 2 * d * nx, f.dir2[1] - 2 * d * nz];
-        f.bounces++;
-        run.events.push({ type: "topBounce", x: b.x, z: b.z });
-      }
+      // Held up by a wall: the way it went missing tells which way the wall faces.
+      const rx = mx - (b.x - x0), rz = mz - (b.z - z0), rl = Math.hypot(rx, rz);
+      if (rl > Math.hypot(mx, mz) * 0.5 && f.bounceT <= 0) bounce(rx / rl, rz / rl);
       if (!f.hitDone && touching(run, f, 0.2)) { f.hitDone = true; bonk(run, f, S.dmg, 7); }
       if (f.hitDone && !touching(run, f, 1)) f.hitDone = false;
       if (f.t > S.time || f.bounces > S.bounces) { AI.setState(f, "wobble"); run.events.push({ type: "dizzy", id: f.id, x: b.x, z: b.z, big: true }); }

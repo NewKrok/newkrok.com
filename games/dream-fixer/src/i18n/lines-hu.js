@@ -212,7 +212,7 @@ export const LINES_HU = {
   space_boss: ["margo", "A HOLDLÁMPA. Az éjjeli lámpája. Mióta harap ez?"],
   space_beam: ["margo", "Ki a fénykörből!"],
   space_tide: ["margo", "Magához húz! Kapaszkodj egy csillagba!"],
-  space_chain: ["margo", "A húzólánca! Lasszózd meg, és rántsd le!"],
+  space_chain: ["margo", "Elbóbiskol! Lasszózd meg a láncát, rántsd le!"],
   space_tethered: ["margo", "Lent van! Üsd, amíg világít!"],
   space_phase: ["margo", "Most aztán teljesen felébredt."],
   space_faint: ["margo", "Nyugi. Visszacsévéltelek, mielőtt elúsztál volna."],
@@ -295,5 +295,5 @@ export const NOTES_HU = {
   space_top: ["Búgócsigák", "Nehezek. Amelyik felpörög, rád lő, és visszapattan a falakról meg a peremekről: ugord át (itt fent könnyű). Utána billeg, kábult és puha. Messziről szikralegyezőt szór."],
   space_mobile: ["Bolygó-forgók", "Egy helyben állnak. Egyenként hozzád vágják a bolygóikat, közelről körbelendítik mindet (a gyűrűt ugord át), és új plüssrakéták válnak le róluk. A lasszó egy időre megállítja."],
   space_fix1: ["A Csillagjojó", "Sophie saját jojója. Kattintásra eldobod: megcsípi az első hibát, és a kicsit eléd rántja, szédülten (amíg szédül, többet sebződik). A jobb klikk a lasszó: alig sebez, de pár másodpercre gúzsba köti a hibát. A csillagos kapaszkodókon csak a lasszó akad meg: célozz rá egyre (felragyog), és a zsinór behúz. Ugrással korábban elengedheted."],
-  space_boss: ["A Holdlámpa", "Az éjjeli lámpája. A fényköre követ a padlón, aztán megáll: lépj ki belőle, mielőtt lezúdul a holdfény. Az árapálya magához húz, aztán gyűrűk futnak ki a padlón: ugord át őket, vagy lógj egy csillagos kapaszkodón. Holdköveket dob (gyűrűk mutatják, hová), és plüssrakétákat enged ki. A húzóláncát csak a lasszó éri el: ha lehúzod, pár másodpercig a padlónál marad, mindenütt világít, és sokkal többet sebződik."],
+  space_boss: ["A Holdlámpa", "Az éjjeli lámpája. A fényköre követ a padlón, aztán megáll: lépj ki belőle, mielőtt lezúdul a holdfény. Az árapálya magához húz, aztán gyűrűk futnak ki a padlón: ugord át őket, vagy lógj egy csillagos kapaszkodón. Holdköveket dob (gyűrűk mutatják, hová), és plüssrakétákat enged ki. Pár támadás után egy pillanatra elbóbiskol, és leengedi a húzóláncát: csak ilyenkor kapja el a lasszó. Ha lehúzod, pár másodpercig a padlónál marad, mindenütt világít, és többet sebződik."],
 };

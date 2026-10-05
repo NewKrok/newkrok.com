@@ -132,18 +132,14 @@ const DIRECTORS = {
     meet: [["robot", 12, "robot"], ["rocket", 16, "rocket"], ["top", 16, "top"], ["mobile", 18, "mobile"]],
     // At the east edge over the array's gap, or at the foot of the
     // observatory tower: Cog says what is in the way, or (with the yo-yo)
-    // what to do about it. In the fight: the pull-chain, if you have not
-    // pulled it down after a while.
+    // what to do about it.
     frame(D, run, dt, S, q) {
-      const B = run.boss;
-      S.bossT = B?.alive && !B.invulnerable ? (S.bossT || 0) + dt : 0;
-      if (S.bossT > 14 && !D.said.has("space_tethered") && q(2)) D.say("space_chain");
       if (!q(1.5)) return;
       const b = run.body, yo = run.tools.some((t) => t.id === "yoyo");
       if (b.x > 12 && b.x < 16.5 && Math.abs(b.z) < 5 && b.y < 1 && b.y > -0.5) D.say(yo ? "space_lasso" : "space_gap");
       else if (from(run, -16, -13) < 4.5 && b.y < 1) D.say(yo ? "space_climb" : "space_tower");
     },
-    on: { dizzy: "dizzy", bossRise: "boss", "bossAttack:beam": "beam", "bossAttack:tide": "tide", moonTethered: "tethered", bossPhase: "phase", bossPop: "win" },
+    on: { dizzy: "dizzy", bossRise: "boss", "bossAttack:beam": "beam", "bossAttack:tide": "tide", moonDoze: "chain", moonTethered: "tethered", bossPhase: "phase", bossPop: "win" },
   }),
   factory: {
     start(D, run, P) {

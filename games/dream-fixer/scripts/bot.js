@@ -30,7 +30,7 @@ const run = new Run(def, { seed, difficulty, aimAssist: 0.03, tools: def.tools ?
 const B = run.body;
 let minHp = 1e9, hurtTotal = 0, falls = 0, lastPos = [0, 0, 0];
 const origHurt = run.hurt.bind(run);
-run.hurt = (a, x, z) => { const before = run.hp; origHurt(a, x, z); hurtTotal += Math.max(0, before - run.hp); };
+run.hurt = (a, x, z, g) => { const before = run.hp; origHurt(a, x, z, g); hurtTotal += Math.max(0, before - run.hp); if (process.env.HURT && run.boss && before > run.hp) console.log("   hurt", (before - run.hp).toFixed(1), run.boss.state, new Error().stack.split("\n")[3].trim().slice(0, 70)); };
 
 // ── Looking and shooting ──
 let tgtRef = null, reactT = 0, wantTool = "stabilizer", wantT = 0, altT = 0, chainCd = 0;
@@ -362,7 +362,7 @@ if (def.boss) {
     // lift, then a gust at the key.
     if (S?.alive && S.kind === "bigclock" && S.state !== "unwound" && !S.invulnerable && keyTry(S)) continue;
     // The Moon Lamp's pull-chain: the lasso, now and then, from a few metres.
-    if (S?.alive && S.kind === "moon" && !S.tethered && !S.invulnerable && chainTry(S)) continue;
+    if (S?.alive && S.kind === "moon" && S.state === "doze" && chainTry(S)) continue;
     aimAndFire(intent);
     if (S?.alive) {
       const dx = B.x - S.x, dz = B.z - S.z, d = Math.hypot(dx, dz) || 1;

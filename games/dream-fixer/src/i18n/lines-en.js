@@ -215,7 +215,7 @@ export const LINES_EN = {
   space_boss: ["margo", "THE MOON LAMP. Her night-light. Since when does it bite?"],
   space_beam: ["margo", "Out of the spotlight!"],
   space_tide: ["margo", "It's pulling you in! Grab a star!"],
-  space_chain: ["margo", "Its pull-chain! Lasso it and pull it down!"],
+  space_chain: ["margo", "It's nodding off! Lasso the chain, pull it down!"],
   space_tethered: ["margo", "Got it down! Hit it while it's lit!"],
   space_phase: ["margo", "Now it's wide awake."],
   space_faint: ["margo", "Easy. I reeled you out before you floated off."],
@@ -300,5 +300,5 @@ export const NOTES_EN = {
   space_top: ["Spinning tops", "Heavy. One that spins up shoots off at you and bounces off walls and edges: jump it (easy up here). Then it wobbles, dazed and soft. From afar it flings a fan of sparks."],
   space_mobile: ["Planet mobiles", "Rooted. They throw their planets at you one by one, swing them all out in a ring when you come close (jump it), and new plush rockets come off them. The lasso stops one dead for a while."],
   space_fix1: ["The Star Yo-Yo", "Sophie's own. Click to throw it: it stings the first glitch it meets, and yanks a small one to you, dizzy (hits count more while it is). Right click is the lasso: it barely stings, but ties a glitch up for a few seconds. Only the lasso catches on the star handles: aim at one (it lights up) and the string reels you in. Jump to let go early."],
-  space_boss: ["The Moon Lamp", "Her night-light. Its spotlight follows you round the floor, then stops: get out of the circle before the moonlight comes down. Its tide pulls you in, then rings run out along the floor: jump them, or hang from a star handle. It lobs moon rocks (rings show where) and lets plush rockets loose. Only the lasso catches its pull-chain: pulled down, it is held at the floor for a few seconds, lit up all over, and takes far more damage."],
+  space_boss: ["The Moon Lamp", "Her night-light. Its spotlight follows you round the floor, then stops: get out of the circle before the moonlight comes down. Its tide pulls you in, then rings run out along the floor: jump them, or hang from a star handle. It lobs moon rocks (rings show where) and lets plush rockets loose. After a few attacks it nods off for a moment and lets its pull-chain down: only then can the lasso catch it. Pulled down, it is held at the floor for a few seconds, lit up all over, and takes more damage."],
 };

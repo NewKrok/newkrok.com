@@ -275,9 +275,14 @@ arany csillaggal.
 - **Holdkövek:** egy marék követ dob, ahol leesnek, szétpattannak
   (gyűrűk mutatják).
 - **Rakéták:** két plüssrakétát enged ki.
-- **A kulcs:** a húzóláncot csak a lasszó éri el (minden más
-  csak megkoccintja). Ha meghúzod, a hold leereszkedik a padlóig, pár
-  másodpercig ott marad, mindenütt világít, és sokkal többet sebződik.
+- **Szundi:** 2–3 támadás után (a második fázisban eggyel több után)
+  3 másodpercre elbóbiskol, és leengedi a húzóláncát; máskor a lánc fel
+  van húzva alá.
+- **A kulcs:** a húzóláncot csak a lasszó éri el, és csak szundi
+  közben (minden más csak megkoccintja). Ha meghúzod, a hold leereszkedik
+  a padlóig, 4 másodpercig ott marad, mindenütt világít, és kétszer
+  annyit sebződik. (Az első változatban a lánc mindig lógott, és
+  folyamatosan le lehetett rántani: túl könnyű volt.)
 
 ### Szerszámok (a „fegyverek”)
 
@@ -327,7 +332,8 @@ másodpercig pörög, és amíg pörög, fúj a hozzá kötött feláramlás. A
 főellenség kaphat `gusted` horgot.
 
 **A Csillagjojó részletei.** A dobás egyenesen megy a célkereszt felé
-(12 méterig), az első dolgon megáll, és visszajön a kezedbe; amíg kint
+(12 méterig, 1,5 sebzés, a visszaérés után 0,3 másodperccel dobható
+újra), az első dolgon megáll, és visszajön a kezedbe; amíg kint
 van, nem dobhatsz újra (nyomva tartva folyamatosan dobálsz). A kis
 hibákat (nem a nagyokat, nem a nehezeket, nem a gyökereseket) eléd
 rántja: a gyalogosok kis ívben repülnek, a repülők odasodródnak, és

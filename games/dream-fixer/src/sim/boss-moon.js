@@ -7,25 +7,29 @@
 //  beam     a spotlight on the floor follows you, stops, and a column of
 //           moonlight comes down in it: get out of the circle (two in
 //           phase two)
-//  tide     pulls you in under it for a moment, then rings run out along
-//           the floor (jump them, or hang from a star handle)
+//  tide     pulls you in towards it for a moment, flares up, then rings
+//           run out along the floor (jump them, or hang from a star handle)
 //  rocks    lobs a handful of moon rocks that burst where they land
 //           (rings show where)
 //  rockets  two plush rockets come off it
+//  doze     after every few attacks it nods off for a moment, and only
+//           then does its pull-chain hang down (the rest of the time it
+//           is drawn up under it)
 //
 // The Star Yo-Yo's lasso is the trick: only the lasso catches its
-// pull-chain (anything else just clinks off the bead). Pulled, the moon
-// is reeled down to the floor and held there for a few seconds, lit up
-// all over: it takes far more damage.
+// pull-chain, and only while it dozes (anything else just clinks off the
+// bead). Pulled, the moon is reeled down to the floor and held there for
+// a few seconds, lit up all over: it takes more damage.
 
 export const MOON = {
-  hp: 200, r: 2.1, hover: 6, low: 2.4, chain: 3.4,
+  hp: 170, r: 2.1, hover: 6, low: 2.4, chain: 1.3,   // chain: how far its bead hangs under it, let down
   speed: [2.2, 3],
   beam: { follow: 1.5, lock: 0.5, r: 2.2, dmg: 11, n: [1, 2] },
-  tide: { time: 2.2, pull: [3.4, 4.4], rings: [1, 2], gap: 0.5, dmg: 9, max: 12, speed: 8 },
+  tide: { time: 2.2, brace: 0.7, near: 3, pull: [3.4, 4.4], rings: [1, 2], gap: 0.5, dmg: 9, max: 12, speed: 8 },
   rocks: { wind: 0.8, n: [5, 7], gap: 0.12, dmg: 7, splash: 1.7 },
   rockets: { n: 2, max: 3 },
-  tether: { time: 5.5, mul: 2.4 },
+  doze: { every: [2, 3], time: 3.2, chainUp: 0.2 },   // attacks between naps; how long; the bead drawn up
+  tether: { time: 4, mul: 2 },
   faceMul: 1, shellMul: 0.5,
 };
 
@@ -49,10 +53,14 @@ export class MoonBoss {
     this.alive = true;
     this.lx = x; this.ly = this.y; this.lz = z;
     this.dir = 1;
+    this.attacks = 0;            // since its last nap
+    this.napAfter = 2;
+    this.chainLen = MOON.doze.chainUp;   // how far the chain hangs (the renderer follows it)
   }
 
   get invulnerable() { return this.state === "rise" || this.state === "roar" || this.state === "down"; }
   get tethered() { return this.state === "tethered"; }
+  get chainDown() { return this.state === "doze" || this.state === "tethered"; }
 
   set(s) { this.state = s; this.t = 0; }
 
@@ -61,7 +69,7 @@ export class MoonBoss {
   hitSpheres() {
     const M = MOON, fx = -Math.sin(this.yaw), fz = -Math.cos(this.yaw), k = this.tethered ? M.tether.mul : 1;
     return [
-      [this.x, this.y - M.chain, this.z, 0.5, 0, "chain"],
+      [this.x, this.y - M.r - this.chainLen, this.z, 0.5, 0, "chain"],
       [this.x + fx * 1.1, this.y, this.z + fz * 1.1, 1.4, M.faceMul * k, "face"],
       [this.x, this.y, this.z, M.r, M.shellMul * k, "shell"],
     ];
@@ -70,7 +78,7 @@ export class MoonBoss {
   damage(run, dmg, part) {
     if (this.invulnerable || !this.alive) return false;
     // A shot at the bead only clinks off it.
-    if (part === "chain") { if (!this.tethered) run.events.push({ type: "moonClink", x: this.x, y: this.y - MOON.chain, z: this.z }); return false; }
+    if (part === "chain") { if (!this.tethered) run.events.push({ type: "moonClink", x: this.x, y: this.y - MOON.r - this.chainLen, z: this.z }); return false; }
     this.hp -= dmg;
     this.flash = 1;
     run.events.push({ type: "bossHit", part: this.tethered ? "bag" : part, dmg });
@@ -91,10 +99,10 @@ export class MoonBoss {
 
   // The yo-yo's lasso on its chain: it is reeled down to the floor.
   tied(run, part) {
-    if (part !== "chain" || !this.alive || this.invulnerable || this.tethered) return;
+    if (part !== "chain" || !this.alive || this.invulnerable || this.state !== "doze") return;
     this.marks = [];
     this.set("tethered");
-    run.events.push({ type: "moonTethered", x: this.x, y: this.y - MOON.chain, z: this.z });
+    run.events.push({ type: "moonTethered", x: this.x, y: this.y - MOON.r - this.chainLen, z: this.z });
   }
 
   ballHit(run, g) {
@@ -160,15 +168,17 @@ export class MoonBoss {
         // Pulls you in under it, glowing; then the rings.
         const T = M.tide, n = T.rings[this.phase - 1];
         drift = 0; glow = 0.4 + 0.4 * Math.sin(this.t * 12);
+        const go = T.time + T.brace;
         if (this.t < T.time) {
           const pull = T.pull[this.phase - 1] * Math.min(1, this.t * 2);
-          if (dist > 1.5) { P.pushX -= dx / dist * pull; P.pushZ -= dz / dist * pull; }
-        } else if (this.rings < n && this.t > T.time + this.rings * T.gap) {
+          if (dist > T.near) { P.pushX -= dx / dist * pull; P.pushZ -= dz / dist * pull; }
+        } else if (this.t < go) glow = 1;          // the warning: it flares up
+        else if (this.rings < n && this.t > go + this.rings * T.gap) {
           this.rings++;
           run.shock(this.x, this.y0, this.z, { max: T.max, speed: T.speed, dmg: T.dmg, color: 0xc8d8ff });
           run.events.push({ type: "moonTideRing", x: this.x, z: this.z });
         }
-        if (this.t > T.time + n * T.gap + 0.6) { this.set("roam"); this.cd = 1.2 + run.rnd() * 0.8; }
+        if (this.t > go + n * T.gap + 0.6) { this.set("roam"); this.cd = 1.2 + run.rnd() * 0.8; }
         break;
       }
       case "rocks": {
@@ -192,6 +202,11 @@ export class MoonBoss {
           run.events.push({ type: "bossAttack", attack: "rocketsOut" });
         }
         if (this.t > 1.4) { this.set("roam"); this.cd = 1.6 + run.rnd(); }
+        break;
+      case "doze":
+        // Nodding off: drifting slowly, the chain let down.
+        drift = 0.25; wantY = this.y0 + M.hover - 0.6;
+        if (this.t > M.doze.time) { this.set("roam"); this.cd = 0.6; run.events.push({ type: "moonWake", x: this.x, z: this.z }); }
         break;
       case "tethered":
         // Reeled down on its own chain, lit up all over.
@@ -219,6 +234,9 @@ export class MoonBoss {
     if (this.state !== "rocks") this.thrown = 0;
     if (this.state !== "tide") this.rings = 0;
     this.glow += (glow - this.glow) * Math.min(1, dt * 6);
+    // The chain: let down while it dozes, drawn up again otherwise.
+    const len = this.chainDown ? M.chain : M.doze.chainUp;
+    this.chainLen += Math.max(-dt * 4, Math.min(dt * 3, len - this.chainLen));
 
     // Drifting round you at a few metres (the way round it keeps
     // changing), held over the arena.
@@ -242,6 +260,15 @@ export class MoonBoss {
   }
 
   pickAttack(run) {
+    // Worn out after a few: a nap, its chain down.
+    if (this.attacks >= this.napAfter) {
+      this.attacks = 0;
+      this.napAfter = MOON.doze.every[0] + Math.floor(run.rnd() * (MOON.doze.every[1] - MOON.doze.every[0] + 1)) + (this.phase === 2 ? 1 : 0);
+      this.set("doze");
+      run.events.push({ type: "moonDoze", x: this.x, z: this.z });
+      return;
+    }
+    this.attacks++;
     const minions = run.foes.filter((f) => f.alive && f.group === "boss").length;
     const r = run.rnd();
     const s = r < 0.32 ? "beam" : r < 0.58 ? "tide" : r < 0.86 || minions >= MOON.rockets.max ? "rocks" : "rockets";
