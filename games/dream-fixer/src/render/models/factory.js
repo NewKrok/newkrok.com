@@ -11,22 +11,53 @@ const RX = Math.PI / 2;
 const up = new T.Vector3(0, 1, 0);
 const dirQ = (x, y, z) => new T.Quaternion().setFromUnitVectors(up, new T.Vector3(x, y, z).normalize());
 
-// Cork job board on legs, with pinned cards (one per dreamer).
-export function jobBoard(b) {
+// Cork job board on legs, with pinned cards (one per dreamer): each open
+// job has its client's sign on it (a paw, a pencil, a chef's hat, an alarm
+// clock, a rocket), a job still to come only the blank card, and a fixed
+// one a green stamp. open / done: client ids.
+export function jobBoard(b, { open = ["park"], done = [] } = {}) {
   b.both((s) => b.add(SHAPE.box(0.08, 1.9, 0.08, 0.02), { p: [s * 0.95, 0.95, 0], c: C.woodD }));
   b.add(SHAPE.box(2.1, 1.3, 0.08, 0.03), { p: [0, 1.35, 0], c: C.wood });
   b.add(SHAPE.box(1.95, 1.15, 0.04), { p: [0, 1.35, -0.04], c: 0xc49a6c, facet: 0.12 });
   const rnd = rng(4);
-  const cards = [[-0.62, 1.6, 0xfaf4e4], [0.02, 1.62, 0xfff0c8], [0.62, 1.58, 0xe8f4ff], [-0.4, 1.08, 0xffe4ec], [0.3, 1.1, 0xeaffea]];
-  cards.forEach(([x, y, c], i) => {
-    b.add(SHAPE.box(0.44, 0.34, 0.01), { p: [x, y, -0.065], r: [0, 0, (rnd() - 0.5) * 0.14], c, facet: 0 });
-    b.add(SHAPE.box(0.3, 0.02, 0.005), { p: [x, y + 0.08, -0.072], c: 0x8a8a8a, facet: 0 });
-    b.add(SHAPE.box(0.2, 0.02, 0.005), { p: [x - 0.04, y + 0.02, -0.072], c: 0xaaaaaa, facet: 0 });
-    b.add(SHAPE.ball(0.025, 6, 4), { p: [x, y + 0.15, -0.08], c: [C.red, C.teal, C.brass, C.dreamPink, 0x4a7ad8][i], mat: i === 0 ? "glow" : "solid", glow: 1.2 });
+  const cards = [["park", 0.62, 1.6, 0xe8dcc4], ["school", -0.02, 1.62, 0xeadcb0], ["kitchen", -0.62, 1.58, 0xd4dce4], ["garden", 0.4, 1.08, 0xe8cfd4], ["space", -0.3, 1.1, 0xd4e4d0]];
+  const z = -0.075;
+  cards.forEach(([id, x, y, c], i) => {
+    const on = open.includes(id);
+    b.add(SHAPE.box(0.44, 0.34, 0.01), { p: [x, y, -0.065], r: [0, 0, (rnd() - 0.5) * 0.14], c: on ? c : 0xd8d0c0, facet: 0 });
+    b.add(SHAPE.box(0.3, 0.02, 0.005), { p: [x, y + 0.1, -0.072], c: 0x8a8a8a, facet: 0 });
+    b.add(SHAPE.ball(0.025, 6, 4), { p: [x, y + 0.15, -0.08], c: [C.red, C.teal, C.brass, C.dreamPink, 0x4a7ad8][i], mat: on && !done.includes(id) ? "glow" : "solid", glow: 1.2 });
+    if (!on) return;
+    // The sign, drawn at card size and scaled up onto it.
+    b.at([x, y - 0.04, z], [0, 0, 0], 1.7, () => {
+      if (id === "park") {
+        b.add(SHAPE.ball(0.05, 8, 6), { p: [0, -0.03, 0], s: [1, 1, 0.2], c: 0x6a4a3a });
+        for (let k = 0; k < 4; k++) b.add(SHAPE.ball(0.02, 6, 4), { p: [-0.06 + k * 0.04, 0.04 - Math.abs(k - 1.5) * 0.012, 0], s: [1, 1, 0.3], c: 0x6a4a3a });
+      } else if (id === "school") {
+        b.at([0, 0, 0], [0, 0, -0.75], 1, () => {
+          b.add(SHAPE.box(0.035, 0.16, 0.012), { c: 0xe0a020 });
+          b.add(SHAPE.box(0.035, 0.03, 0.012), { p: [0, 0.095, 0], c: 0xf07890 });
+          b.add(SHAPE.cone(0.018, 0.05, 6), { p: [0, -0.105, 0], r: [Math.PI, 0, 0], s: [1, 1, 0.35], c: 0xc89868 });
+        });
+      } else if (id === "kitchen") {
+        b.add(SHAPE.box(0.1, 0.035, 0.012), { p: [0, -0.05, 0], c: 0xd8302a });
+        for (const [dx, dy, r] of [[-0.035, 0, 0.035], [0.035, 0, 0.035], [0, 0.02, 0.042]]) b.add(SHAPE.ball(r, 8, 6), { p: [dx, dy, 0], s: [1, 1, 0.3], c: C.white });
+      } else if (id === "garden") {
+        b.add(SHAPE.cyl(0.055, 0.055, 0.015, 14), { p: [0, -0.01, 0], r: [Math.PI / 2, 0, 0], c: 0xd8a040 });
+        b.add(SHAPE.cyl(0.042, 0.042, 0.01, 14), { p: [0, -0.01, -0.006], r: [Math.PI / 2, 0, 0], c: C.cream });
+        b.both((k) => b.add(SHAPE.ball(0.02, 6, 4), { p: [k * 0.04, 0.05, 0], s: [1, 1, 0.4], c: 0x8a6424 }));
+        b.add(SHAPE.box(0.006, 0.03, 0.004), { p: [0, 0.003, -0.012], c: C.black });
+      } else if (id === "space") {
+        b.at([0, 0, 0], [0, 0, -0.6], 1, () => {
+          b.add(SHAPE.capsule(0.025, 0.08, 8, 2), { s: [1, 1, 0.4], c: 0xe8483a });
+          b.add(SHAPE.ball(0.012, 6, 4), { p: [0, 0.02, -0.01], c: 0x4a9ad8 });
+          b.both((k) => b.add(SHAPE.box(0.025, 0.03, 0.008), { p: [k * 0.03, -0.045, 0], c: 0x3a6ab8 }));
+        });
+      }
+    });
+    // Fixed: a green stamp in the corner.
+    if (done.includes(id)) b.add(SHAPE.torus(0.035, 0.008, 4, 14), { p: [x - 0.15, y - 0.1, z], c: 0x3aa04a });
   });
-  // The first card is Biscuit's: a paw print on it.
-  b.add(SHAPE.ball(0.05, 8, 6), { p: [-0.62, 1.55, -0.075], s: [1, 1, 0.2], c: 0x6a4a3a });
-  for (let i = 0; i < 4; i++) b.add(SHAPE.ball(0.02, 6, 4), { p: [-0.68 + i * 0.04, 1.62 + Math.abs(i - 1.5) * -0.01, -0.075], s: [1, 1, 0.3], c: 0x6a4a3a });
   // Header sign.
   b.add(SHAPE.box(1.2, 0.26, 0.05, 0.02), { p: [0, 2.12, -0.02], c: C.teal });
   b.add(SHAPE.box(0.9, 0.05, 0.02), { p: [0, 2.12, -0.05], c: C.brassL, mat: "metal" });

@@ -1,4 +1,5 @@
 import { rng } from "../rng.js";
+import { CLIENTS, isOpen } from "./index.js";
 
 // ── The Dream Factory (the hub) ──────────────────────────────────────────
 // The night-shift workshop, between dreams: the job board by the big
@@ -59,7 +60,7 @@ export const factory = {
     k.block(0, 0, 20, 0.35, H - 0.75, H - 0.4, BEAM);
 
     // ── Furniture ──
-    k.prop("jobBoard", -5.2, -5.9, { yaw: Math.PI, collide: { w: 2.1, d: 0.3, h: 2.2 } });
+    k.prop("jobBoard", -5.2, -5.9, { yaw: Math.PI, opts: { open: CLIENTS.filter((c) => isOpen(c, P)).map((c) => c.id), done: P.done }, collide: { w: 2.1, d: 0.3, h: 2.2 } });
     k.use("board", -5.2, -5.2, { r: 2.4, label: "useBoard" });
     k.prop("dock", -2.6, -5.8, { collide: { r: 0.3, h: 1.4 } });
     k.prop("workbench", 8.8, -1, { yaw: Math.PI / 2, collide: { w: 2.4, d: 1.1, h: 1.0 } });
