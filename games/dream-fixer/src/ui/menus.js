@@ -2,6 +2,7 @@ import { t, LANGS, getLang, memoryText, outroText, noteText, storyText } from ".
 import { UPGRADES, ITEMS, TABS, level, maxLevel, nextCost, pocketFor, lockOf } from "../data/upgrades.js";
 import { ACHIEVEMENTS, rankFor, rankProgress } from "../data/progression.js";
 import { ITEM_ICONS } from "./icons.js";
+import { padLabel } from "../input/gamepad.js";
 import { CLIENTS, MEMORY_OWNER, isOpen, memoriesOf } from "../levels/index.js";
 
 // ── Menus and panels ─────────────────────────────────────────────────────
@@ -218,7 +219,7 @@ export class Menus {
     if (cur.item) {
       const n = items[cur.id] || 0;
       meta = t("bench_have", { n, of: pocket });
-      stat = `<div class="stat"><span>${esc(t("bench_use"))}</span><b><kbd>${cur.key}</kbd> · <kbd>${cur.pad}</kbd></b></div>`;
+      stat = `<div class="stat"><span>${esc(t("bench_use"))}</span><b><kbd>${cur.key}</kbd> · <kbd>${padLabel(cur.pad)}</kbd></b></div>`;
       buy = lockOf(cur, progress) ? `<span class="tag soft">${esc(t("bench_rank", { n: cur.rank }))}</span>`
         : n >= pocket ? `<span class="tag soft">${esc(t("bench_full"))}</span>`
         : `<button class="btn ${progress.dust >= cur.cost ? "" : "disabled"}" data-a="buy" data-id="${cur.id}">${esc(t("bench_buy"))} · ${cur.cost} ✦</button>`;

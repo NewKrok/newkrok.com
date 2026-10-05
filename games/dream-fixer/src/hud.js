@@ -2,6 +2,7 @@ import { t } from "./i18n/index.js";
 import { ITEMS, ITEM } from "./data/upgrades.js";
 import { ITEM_ICONS } from "./ui/icons.js";
 import { rankFor, rankProgress } from "./data/progression.js";
+import { padLabel } from "./input/gamepad.js";
 
 // ── HUD ──────────────────────────────────────────────────────────────────
 // Kept small: a crosshair whose ring shows the tool's heat (and fills
@@ -180,10 +181,10 @@ export class Hud {
     // Kit you carry: one slot each, with the key that uses it (the touch
     // screen has its own buttons); the espresso's slot drains while it works.
     const boost = Math.ceil(run.boostT * 10) / 10 / ITEM.espresso.time;
-    const kitKey = ITEMS.map((it) => run.items[it.id] || 0).join(",") + `|${boost}|${this.touch}|${this.pad}`;
+    const kitKey = ITEMS.map((it) => run.items[it.id] || 0).join(",") + `|${boost}|${this.touch}|${this.pad}|${padLabel("B")}`;
     if (kitKey !== this.last.kit) {
       this.kitEl.innerHTML = this.touch ? "" : ITEMS.filter((it) => run.items[it.id] > 0 || (it.id === "espresso" && boost > 0)).map((it) =>
-        `<div class="slot ${it.id} ${this.kitFlash === it.id ? "used" : ""}">${it.id === "espresso" && boost > 0 ? `<s style="transform:scaleY(${boost.toFixed(3)})"></s>` : ""}${ITEM_ICONS[it.id]}<b>${run.items[it.id] || 0}</b><kbd>${this.pad ? it.pad : it.key}</kbd></div>`).join("");
+        `<div class="slot ${it.id} ${this.kitFlash === it.id ? "used" : ""}">${it.id === "espresso" && boost > 0 ? `<s style="transform:scaleY(${boost.toFixed(3)})"></s>` : ""}${ITEM_ICONS[it.id]}<b>${run.items[it.id] || 0}</b><kbd>${this.pad ? padLabel(it.pad) : it.key}</kbd></div>`).join("");
       this.kitFlash = null;
       this.last.kit = kitKey;
     }
@@ -200,8 +201,8 @@ export class Hud {
       this.tankEl.innerHTML = dots ? Array.from({ length: dots[1] }, (_, i) => `<i class="${i < dots[0] ? "f" : ""}"></i>`).join("") : "";
       this.last.tank = dk;
     }
-    const key = this.touch ? "🔧" : this.pad ? "(X)" : "[E]";
-    const pr = run.gaze ? t("gazeHint", { key }) : run.nearAnchor ? t("tunePrompt", { key }) : run.nearUse ? t("usePrompt", { key, label: t(run.nearUse.label) }) : tank ? t("tankFull", { key: this.touch ? "⟲" : this.pad ? "[LT]" : "[RMB]" }) : "";
+    const key = this.touch ? "🔧" : this.pad ? `(${padLabel("X")})` : "[E]";
+    const pr = run.gaze ? t("gazeHint", { key }) : run.nearAnchor ? t("tunePrompt", { key }) : run.nearUse ? t("usePrompt", { key, label: t(run.nearUse.label) }) : tank ? t("tankFull", { key: this.touch ? "⟲" : this.pad ? `[${padLabel("LT")}]` : "[RMB]" }) : "";
     if (pr !== this.last.prompt) { this.prompt.textContent = pr; this.prompt.classList.toggle("on", !!pr); this.last.prompt = pr; }
     const tu = run.tuning;
     this.tune.classList.toggle("on", !!tu);

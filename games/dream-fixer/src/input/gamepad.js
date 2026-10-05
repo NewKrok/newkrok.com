@@ -11,6 +11,14 @@
 
 export const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, BACK: 8, START: 9, L3: 10, R3: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 
+// What the buttons are called on the pad in hand: a PlayStation pad has
+// shapes (✕ ○ □ △) where an Xbox pad has letters. padLabel("X") gives the
+// name to show for a button, set from the last pad polled.
+const PS = /054c|dualsense|dualshock|playstation|wireless controller/i;
+const GLYPHS = { ps: { A: "✕", B: "○", X: "□", Y: "△", LB: "L1", RB: "R1", LT: "L2", RT: "R2", START: "Options" } };
+let padStyle = "xbox";
+export const padLabel = (name) => GLYPHS[padStyle]?.[name] ?? name;
+
 const DEAD = 0.2;
 const NINTENDO = /switch|pro controller|nintendo|joy-con|057e/i;
 const deadzone = (v) => (Math.abs(v) < DEAD ? 0 : Math.sign(v) * (Math.abs(v) - DEAD) / (1 - DEAD));
@@ -45,6 +53,7 @@ export class Gamepad {
     const now = [], axes = [0, 0, 0, 0];
     const push = (i, v) => { if (v > (now[i] ?? 0)) now[i] = v; };
     const stick = (i, v) => { v = deadzone(v); if (Math.abs(v) > Math.abs(axes[i])) axes[i] = v; };
+    padStyle = pads.some((p) => PS.test(p.id)) ? "ps" : "xbox";
     for (const p of pads) {
       const std = p.mapping === "standard";
       // A button or axis only counts once it has been seen at rest: a
