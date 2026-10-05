@@ -271,13 +271,22 @@ export function flowerPot(b, { seed = 1, big = false } = {}) {
   }
 }
 
-// An apple tree: the park's tree, with apples.
+// An apple tree: the park's tree, with apples set into the outer surface
+// of its canopy (half in the leaves, never inside another clump of them),
+// on the sides and underneath, none on top.
 export function appleTree(b, { seed = 1 } = {}) {
-  tree(b, { seed, h: 4 });
+  const balls = tree(b, { seed, h: 4 });
   const rnd = rng(seed + 50);
-  for (let i = 0; i < 14; i++) {
-    const a = rnd() * 6.28, u = rnd() * 1.0 - 0.45;
-    b.add(SHAPE.ball(0.15, 7, 5), { p: [Math.cos(a) * 1.75 * Math.cos(u), 2.9 + Math.sin(u) * 1.3, Math.sin(a) * 1.75 * Math.cos(u)], c: i % 4 ? 0xd8302a : 0xf0c040 });
+  // (The clumps are lumpy and squashed a little: count them as a bit smaller.)
+  const R = 0.9;
+  let n = 0;
+  for (let tries = 0; tries < 400 && n < 14; tries++) {
+    const [x, y, z, r] = balls[Math.floor(rnd() * balls.length)];
+    const a = rnd() * Math.PI * 2, u = rnd() * 1.1 - 0.75, cu = Math.cos(u);
+    const p = [x + Math.cos(a) * cu * r * R, y + Math.sin(u) * r * R, z + Math.sin(a) * cu * r * R];
+    if (balls.some(([bx, by, bz, br]) => Math.hypot(p[0] - bx, p[1] - by, p[2] - bz) < br * R - 0.02)) continue;
+    b.add(SHAPE.ball(0.15, 7, 5), { p, c: n % 4 ? 0xd8302a : 0xf0c040 });
+    n++;
   }
 }
 

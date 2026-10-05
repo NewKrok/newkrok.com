@@ -39,18 +39,22 @@ export function tree(b, { seed = 1, h = 4.2 } = {}) {
     const k = h / 4.2;
     b.add(SHAPE.cyl(0.03 * k, 0.13 * k, 0.55 * k, 5), { p: [Math.cos(a) * 0.3 * k, 0.1 * k, Math.sin(a) * 0.3 * k], r: dirQ(Math.cos(a), -0.45, Math.sin(a)), c: BARK[0] });
   }
-  // Canopy: a cluster of lumpy balls, darker underneath.
-  const top = p;
+  // Canopy: a cluster of lumpy balls, darker underneath. (Returned as
+  // [x, y, z, r], for things that hang on it.)
+  const top = p, balls = [];
   const n = 5 + Math.floor(rnd() * 3);
   for (let i = 0; i < n; i++) {
     const a = rnd() * Math.PI * 2, rr = i === 0 ? 0 : (0.35 + rnd() * 0.5) * h * 0.22;
     const s = (i === 0 ? 0.36 : 0.22 + rnd() * 0.1) * h;
+    const at = [top[0] + Math.cos(a) * rr, top[1] + (i === 0 ? 0.25 * h * 0.2 : (rnd() - 0.3) * h * 0.18), top[2] + Math.sin(a) * rr];
+    balls.push([...at, s]);
     b.add(SHAPE.blob(s, seed * 13 + i, 0.14), {
-      p: [top[0] + Math.cos(a) * rr, top[1] + (i === 0 ? 0.25 * h * 0.2 : (rnd() - 0.3) * h * 0.18), top[2] + Math.sin(a) * rr],
+      p: at,
       r: [rnd() * 3, rnd() * 3, 0], s: [1, 0.82, 1],
       grad: [LEAF[0], i === 0 ? LEAF[2] : LEAF[1]], facet: 0.09,
     });
   }
+  return balls;
 }
 
 export function bush(b, { seed = 1, s = 1 } = {}) {
