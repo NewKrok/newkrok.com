@@ -18,7 +18,7 @@ export const factory = {
   hub: true,
   killY: -20,
   song: "factory",
-  sky: { top: 0x0e1230, horizon: 0x3a2c5a, bottom: 0x1a1430, sunDir: [0.2, 0.4, -0.9], sunGlow: 0x6a5aa0 },
+  sky: { top: 0x0e1230, horizon: 0x3a2c5a, bottom: 0x1a1430, sunDir: [0.2, 0.4, -0.9], sunGlow: 0x6a5aa0, stars: 1, shooting: true },
   fog: { color: 0x2a2440, near: 30, far: 90 },
   sun: { color: 0xb8c0ff, intensity: 0.7, dir: [0.2, 0.9, -0.5], sky: 0xffe0b8, ground: 0x6a4a30, hemi: 1.5 },
   lamps: 5,
@@ -40,7 +40,8 @@ export const factory = {
     k.block(7, -7.2, 6, 0.4, 0, H, WALL);
     k.block(0, -7.2, 8, 0.4, 0, 1.0, WALL);
     k.block(0, -7.2, 8, 0.4, 4.6, H, WALL);
-    // The window can't be walked through.
+    // The window can't be walked through, but you can stand and gaze out of it.
+    k.use("window", 0, -6.3, { r: 2, label: "useWindow" });
     k.block(0, -7.2, 8, 0.3, 1.0, 4.6, null);
     // Window frame and mullions.
     const FR = { side: 0x6a3f24, sideD: 0x4a2c1a, bevel: 0.02 };

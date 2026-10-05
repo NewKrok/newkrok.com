@@ -18,6 +18,10 @@ export const LINES_EN = {
   hub_radio_6: ["margo", "If the board's empty, blame the sandman's union."],
   hub_radio_7: ["margo", "Testing, testing… yes, you can hear me. Back to work!"],
   hub_radio_8: ["margo", "Rule one of the night shift: never trust a happy vacuum cleaner."],
+  hub_window_1: ["margo", "That's Álmos out there. A hundred years old, and never a night off."],
+  hub_window_2: ["margo", "Make a wish. Cog wished for a second propeller."],
+  hub_window_3: ["margo", "Pretty, isn't it? Don't tell the dreams I said so."],
+  hub_window_4: ["margo", "Hear that hum? Álmos, snoring. Or trying to."],
   hub_bench: ["margo", "The workbench. Bring me dust and I'll make your tools purr."],
   // Biscuit's park.
   park_bunny: ["margo", "Dust bunnies. One zap each."],

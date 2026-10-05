@@ -92,7 +92,9 @@ async function startGame() {
   }
 
   // ── Screens ──
+  let menuAt = 0;
   const setState = (s) => {
+    if (s !== state) menuAt = performance.now();
     state = s;
     const playing = s === "play";
     hud.show(playing);
@@ -182,7 +184,9 @@ async function startGame() {
   app.addEventListener("pointerdown", () => audio.unlock());
 
   // ── Things used in the Factory ──
-  let lastRadio = null;
+  let lastRadio = null, lastWindow = null;
+  // Cog's beep when he loops round you to show the way.
+  view.companion.onPing = () => { if (state === "play") audio.play("ping"); };
   function interact(id) {
     if (id === "board") openMenu(() => menus.board(progress, {
       onTake: (level, hard) => { progress.picked = level; progress.pickedHard = hard; save(); run.guide = run.kit.marks.lift; dialog.say("hub_picked"); resume(); },
@@ -216,6 +220,16 @@ async function startGame() {
       openMenu(open);
     } else if (id === "journal") openMenu(() => menus.journal(progress, { onClose: resume }));
     else if (id === "trophies") openMenu(() => menus.achievements(progress, { onClose: resume }));
+    else if (id === "window") {
+      // Stand and gaze out at the night (and Álmos); Margo now and then has a word.
+      run.gaze = { t: 0 };
+      if (!dialog.busy && Math.random() < 0.6) {
+        const all = [];
+        for (let i = 1; hasLine(`hub_window_${i}`); i++) if (`hub_window_${i}` !== lastWindow) all.push(`hub_window_${i}`);
+        lastWindow = all[Math.floor(Math.random() * all.length)];
+        if (lastWindow) dialog.say(lastWindow, true);
+      }
+    }
     else if (id === "radio") {
       // Margo picks up with one of her lines, never the same one twice running.
       const all = ["hub_radio"];
@@ -306,6 +320,8 @@ async function startGame() {
     if (input.padOn && input.pad.any()) audio.unlock();
     const edges = input.pressed();
     if (state !== "play" && input.padOn) padNav.frame(input.pad, time);
+    // Esc in a menu: back, close or resume (not the moment a menu opens, nor on the title).
+    if (state !== "play" && edges.has("pause") && performance.now() - menuAt > 300 && menus.open !== "title") { padNav.press("[data-a=back], [data-a=close], [data-a=resume]"); edges.delete("pause"); }
     if (state === "play") {
       hud.touch = input.isTouch;
       hud.pad = input.usingPad;

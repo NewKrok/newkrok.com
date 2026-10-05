@@ -201,7 +201,7 @@ export class Hud {
       this.last.tank = dk;
     }
     const key = this.touch ? "🔧" : this.pad ? "(X)" : "[E]";
-    const pr = run.nearAnchor ? t("tunePrompt", { key }) : run.nearUse ? t("usePrompt", { key, label: t(run.nearUse.label) }) : tank ? t("tankFull", { key: this.touch ? "⟲" : this.pad ? "[LT]" : "[RMB]" }) : "";
+    const pr = run.gaze ? t("gazeHint", { key }) : run.nearAnchor ? t("tunePrompt", { key }) : run.nearUse ? t("usePrompt", { key, label: t(run.nearUse.label) }) : tank ? t("tankFull", { key: this.touch ? "⟲" : this.pad ? "[LT]" : "[RMB]" }) : "";
     if (pr !== this.last.prompt) { this.prompt.textContent = pr; this.prompt.classList.toggle("on", !!pr); this.last.prompt = pr; }
     const tu = run.tuning;
     this.tune.classList.toggle("on", !!tu);

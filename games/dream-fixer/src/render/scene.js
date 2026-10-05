@@ -18,6 +18,7 @@ import { BellView } from "./bell.js";
 import { UmbrellaView } from "./umbrella.js";
 import { YoyoView } from "./yoyo.js";
 import { TileView } from "./tiles.js";
+import { ShootingStars } from "./shootingstars.js";
 import { C } from "./palette.js";
 import { damp, lerp } from "../config.js";
 import { ARRIVE, arriveLift } from "../sim/run.js";
@@ -148,6 +149,8 @@ export class GameView {
     this.anchors = new AnchorView(g, kit.anchors);
     this.weather = new DreamSky(g, def, kit, { sky, fog: this.scene.fog, sun: this.sun });
     this.memories = new MemoryView(g, run.memories);
+    this.shooting = def.sky.shooting ? new ShootingStars(g) : null;
+    this.gazeK = 0;
     this.water = new WaterView(g, kit, this.fx);
     this.companion.placed = false;
     this.lampCount = Math.min(LAMP_LIGHTS, def.lamps ?? 3);
@@ -368,6 +371,12 @@ export class GameView {
     const A = run.arriveT > 0 ? Math.min(1, (run.arriveT - (1 - alpha) / 60) / ARRIVE) : 0;
     const lift = A > 0 ? arriveLift(A * ARRIVE) : 0;
     this.camera.position.set(x, y + 1.58 + this.eyeOff + bob + lift, z);
+    // Gazing out of the Factory's window: the view leans up to the glass.
+    this.gazeK = damp(this.gazeK || 0, run.gaze ? 1 : 0, 3.5, dt);
+    if (this.gazeK > 0.001) {
+      const e = this.gazeK * this.gazeK * (3 - 2 * this.gazeK);
+      this.camera.position.lerp(this._v.set(0, 2.05, -6.55), e);
+    }
     // Lean a hair into strafes.
     const sn = Math.sin(b.yaw), cs = Math.cos(b.yaw);
     const side = (b.vx * cs - b.vz * sn) / 6.4;
@@ -379,7 +388,7 @@ export class GameView {
     if (A > 0) this.arrival(run, x, y, z, lift, A, dt, t);
     // Running widens the view a touch (and the drop into a dream a lot).
     this.runK = damp(this.runK || 0, run.sprinting && b.speed2D > 7 ? 1 : 0, 6, dt);
-    const fov = this.baseFov + this.runK * 6 + ease * 22;
+    const fov = this.baseFov + this.runK * 6 + ease * 22 - this.gazeK * 12;
     if (Math.abs(fov - this.camera.fov) > 0.01) { this.camera.fov = fov; this.camera.updateProjectionMatrix(); }
     this.camera.updateMatrixWorld();
 
@@ -399,6 +408,7 @@ export class GameView {
 
     this.anchors.update(run, dt, t, this.fx);
     this.weather.update(run, dt, t);
+    this.shooting?.update(dt, !!run.gaze);
     this.water.update(run, dt, t);
     this.memories.update(dt, t, this.fx);
     this.companion.update(run, dt, t, this.talking);

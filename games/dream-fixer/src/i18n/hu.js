@@ -70,6 +70,8 @@ export const HU = {
   useBench: "Munkapad",
   useRadio: "Rádió",
   useJournal: "Napló",
+  useWindow: "Kibámulni az ablakon",
+  gazeHint: "{key} vagy egy lépés: vissza a munkához",
   journal: "Napló",
   j_factory: "Az Álomgyár",
   j_notes: "Jegyzetek",

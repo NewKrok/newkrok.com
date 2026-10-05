@@ -70,6 +70,8 @@ export const EN = {
   useBench: "Workbench",
   useRadio: "Radio",
   useJournal: "Journal",
+  useWindow: "Gaze out of the window",
+  gazeHint: "{key} or a step: back to work",
   journal: "Journal",
   j_factory: "The Dream Factory",
   j_notes: "Notes",

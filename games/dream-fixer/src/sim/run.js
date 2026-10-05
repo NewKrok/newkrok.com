@@ -81,6 +81,8 @@ export class Run {
     this.arriveT = o.arrive ? ARRIVE : 0;
     // The Factory: where Cog shows you the way to (the lift, once a job is taken).
     this.guide = null;
+    // The Factory: standing at the big window, looking out ({ t }), or null.
+    this.gaze = null;
     this.stamina = 1; this.winded = false; this.restT = 0; this.sprinting = false;
     // Kit from the bench, in your pockets (none in the Factory).
     this.items = levelDef.hub ? {} : { ...(o.items ?? {}) };
@@ -431,6 +433,22 @@ export class Run {
     if (this.arriveT > 0) {
       this.arriveT = Math.max(0, this.arriveT - dt);
       if (this.arriveT === 0) this.events.push({ type: "arrived", x: b.x, y: b.y, z: b.z });
+      intent = IDLE;
+    }
+    // Gazing out of the window: the view stays free, the feet stay put; a
+    // step, a jump or E again and you step back.
+    if (this.gaze) {
+      const G = this.gaze;
+      G.t += dt;
+      if (G.t > 0.5 && (intent.usePressed || intent.jumpPressed || Math.abs(intent.forward || 0) > 0.5 || Math.abs(intent.strafe || 0) > 0.5)) {
+        this.gaze = null;
+        this.events.push({ type: "gazeEnd" });
+      } else {
+        // Turned to the window at first, and kept looking out of it.
+        if (G.t < 0.8) { b.yaw += Math.atan2(Math.sin(-b.yaw), Math.cos(-b.yaw)) * Math.min(1, dt * 6); b.pitch += (0.32 - b.pitch) * Math.min(1, dt * 6); }
+        b.yaw = Math.max(-1, Math.min(1, Math.atan2(Math.sin(b.yaw), Math.cos(b.yaw))));
+        b.pitch = Math.max(-0.35, Math.min(0.9, b.pitch));
+      }
       intent = IDLE;
     }
     // Running: forward only, half as fast again, while the breath lasts.
