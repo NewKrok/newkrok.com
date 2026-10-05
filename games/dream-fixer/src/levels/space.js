@@ -73,7 +73,7 @@ export const space = {
 
   build(k) {
     const rnd = rng(53);
-    this.hub(k, rnd);
+    this.home(k, rnd);
     this.bunk(k, rnd);
     this.array(k, rnd);
     this.observatory(k, rnd);
@@ -100,7 +100,7 @@ export const space = {
   },
 
   // ── The docking port and the hub: her bedroom, grown into the station ──
-  hub(k, rnd) {
+  home(k, rnd) {
     deck(k, 0, 0, 32, 28, 0);
     deck(k, 0, 19, 12, 10, 0);
     // The airlock you come out of, at the dock's south end.
