@@ -2,6 +2,11 @@
 // No ammunition anywhere: every tool heats up as it works and cools down
 // by itself. Run it hot and it stops for a moment (overheated) until it
 // has cooled to `unlock`.
+//
+// The Stabilizer is the weapon; the rest are tools. Each dream hands you
+// one of them (after its first anchor) for the trick that dream needs:
+// they sting a little, but their worth is in what they do (catch, stick,
+// lull, glide, tie up), not in their damage.
 
 // The order tools sit in your hands (and on the number keys).
 export const TOOL_ORDER = ["stabilizer", "vacuum", "foam", "bell", "umbrella", "yoyo"];
@@ -13,11 +18,11 @@ export const TOOLS = {
     cool: 0.6,            // per second, after coolDelay without shooting
     coolDelay: 0.28,
     unlock: 0.35,
-    damage: 0.5,
+    damage: 0.6,
     range: 90,
     spread: 0.02,         // radians; grows as the tool runs hot (upgrades may tighten it)
     // Held second action: charge a bigger bolt, released to fire.
-    charge: { time: 0.75, heat: 0.32, damage: 2.5, min: 0.3 },
+    charge: { time: 0.75, heat: 0.32, damage: 3, min: 0.3 },
   },
   // Held: suck in dust, orbs and small glitches (a caught one sits in the
   // tank). Second action: shoot what is in the tank, or, when it is
@@ -28,11 +33,11 @@ export const TOOLS = {
     range: 8, cone: 0.42, // radians, half angle
     pull: 14,             // m/s² towards the nozzle
     catchAt: 1.6,
-    stream: 1.2,          // damage per second to everything in the stream
+    stream: 0.6,          // damage per second to everything in the stream
     worn: 0.5,            // a glitch is caught only once worn down to this share of its hp
     tankSize: 3,          // small glitches it can hold
-    launch: { speed: 24, damage: 5.5, splash: 2.6, heat: 0.12 },
-    blast: { range: 5.5, cone: 0.7, push: 9, damage: 1, heat: 0.28, interval: 0.5 },
+    launch: { speed: 24, damage: 3.5, splash: 2.6, heat: 0.12 },
+    blast: { range: 5.5, cone: 0.7, push: 9, damage: 0.4, heat: 0.28, interval: 0.5 },
   },
   // Held: sprays globs of foam in an arc. A glitch soaks it up and slows
   // down, and one full of foam is stuck fast for a moment. Second action:
@@ -54,7 +59,7 @@ export const TOOLS = {
   // out all round you: small glitches fall asleep, big ones get drowsy.
   bell: {
     interval: 0.42, heat: 0.2, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
-    range: 9, cone: 0.5, speed: 32, damage: 0.5, push: 8,
+    range: 9, cone: 0.5, speed: 32, damage: 0.25, push: 8,
     // r0…r1: the lullaby's reach, short hum to full; sleep / drowsy: seconds.
     lull: { time: 0.9, min: 0.3, heat: 0.55, r0: 4, r1: 7.5, speed: 11, sleep: 6, drowsy: 4 },
   },
@@ -67,7 +72,7 @@ export const TOOLS = {
   umbrella: {
     interval: 0.45, heat: 0.22, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
     range: 4.5, cone: 0.5,
-    damage: 2.4, far: 0.45, // at point blank; share of it left at the edge of the range
+    damage: 1, far: 0.45,   // at point blank; share of it left at the edge of the range
     push: 9,              // a flyer blown back: its drift (m/s, dies away; ~3 m)
     hop: 8,               // the gust at your feet in mid-air: take-off speed
     shield: { cone: 1.15, guard: 0.3, heat: 0.12 },   // half angle; share of a bonk you still feel
@@ -84,10 +89,10 @@ export const TOOLS = {
   yoyo: {
     interval: 0.3, heat: 0.15, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
     range: 12, speed: 36, back: 32,                  // m; out and back (m/s)
-    damage: 1.5, r: 0.2,                             // the yo-yo's own size, for hitting
+    damage: 0.7, r: 0.2,                             // the yo-yo's own size, for hitting
     yank: 2.2,                                       // a yanked glitch lands this far in front of you
     reel: { speed: 17, accel: 70, pop: 4.5, time: 3 }, // reeled in: top speed, how fast, a hop at the end, give up after
-    lasso: { tie: 3, big: 1.2, damage: 0.5, heat: 0.18 },  // tied up (s; big, heavy and rooted ones), a sting, heat per throw
+    lasso: { tie: 3, big: 1.2, damage: 0.3, heat: 0.18 },  // tied up (s; big, heavy and rooted ones), a sting, heat per throw
   },
 };
 

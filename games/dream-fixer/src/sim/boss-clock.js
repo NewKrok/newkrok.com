@@ -237,7 +237,7 @@ export class ClockBoss {
     if (b.y < this.y0 - 0.3 || b.fell) { b.place(this.lx, this.y0, this.lz, this.yaw); b.grounded = true; }
     // You cannot walk through it.
     const pd = Math.hypot(P.x - b.x, P.z - b.z), m = C.r + P.r;
-    if (pd < m && pd > 1e-3 && P.y < b.y + C.h && P.y + 1.6 > b.y) { P.x = b.x + (P.x - b.x) / pd * m; P.z = b.z + (P.z - b.z) / pd * m; }
+    if (this.alive && pd < m && pd > 1e-3 && P.y < b.y + C.h && P.y + 1.6 > b.y) { P.x = b.x + (P.x - b.x) / pd * m; P.z = b.z + (P.z - b.z) / pd * m; }
   }
 
   pickAttack(run, dist) {

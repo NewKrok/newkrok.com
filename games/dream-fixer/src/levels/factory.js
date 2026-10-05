@@ -4,6 +4,9 @@ import { rng } from "../rng.js";
 // The night-shift workshop, between dreams: the job board by the big
 // window (and Álmos, the great dream machine, dozing outside it), the
 // workbench, Margo's desk with the radio, and the lift down to the dreams.
+// The walls fill up as the week goes on (ctx: the player's progress): a
+// framed picture for every dream fixed, a trophy for every achievement,
+// the nights crossed off on the calendar.
 
 const WALL = { side: 0xd9b88a, sideD: 0xb08858, bevel: 0.04 };
 const WAINSCOT = { flat: { top: 0x6a3f24, side: 0x7a4a2a } };
@@ -20,8 +23,8 @@ export const factory = {
   sun: { color: 0xb8c0ff, intensity: 0.7, dir: [0.2, 0.9, -0.5], sky: 0xffe0b8, ground: 0x6a4a30, hemi: 1.5 },
   lamps: 5,
 
-  build(k) {
-    const rnd = rng(3);
+  build(k, ctx) {
+    const rnd = rng(3), P = ctx ?? { done: [], ach: {}, night: 0 };
     k.floorLimit = 3;
     // Floor: rows of planks.
     for (let i = 0; i < 14; i++) {
@@ -68,6 +71,7 @@ export const factory = {
     k.block(8.4, -6.35, 2.4, 0.1, 0, 3.2, null);
     k.block(8.4, -4.05, 2.4, 0.1, 0, 3.2, null);
     k.use("lift", 7.0, -5.2, { r: 2.2, label: "useLift" });
+    k.mark("lift", 7.0, -5.2);
     k.prop("dreamTank", -8.8, -5.9, { opts: { color: 0xff8fd0, seed: 2, h: 3 }, collide: { r: 0.8, h: 4.5 } });
     k.prop("dreamTank", 4.6, -6.1, { opts: { color: 0x7ff5e0, seed: 5, h: 2.6 }, collide: { r: 0.8, h: 4.2 } });
     k.prop("shelf", -9.6, -2.4, { yaw: -Math.PI / 2, collide: { w: 1.9, d: 0.5, h: 2.3 } });
@@ -90,6 +94,22 @@ export const factory = {
       k.light(x, H - 1.8, z, 0xffc880, 9, 11);
     }
     k.light(8.4, 2.8, -5.2, 0x7ff5e0, 5, 7);
+    // ── On the walls ──
+    // Behind you as you come in: a picture of every dream fixed (an empty
+    // frame for the ones to come), the clock over them, the trophy case.
+    ["park", "school", "kitchen", "garden", "space"].forEach((id, i) => k.prop("dreamFrame", 4 - i * 2, 6.9, { y: 2.5, s: 1.35, opts: { kind: id, on: P.done.includes(id) } }));
+    k.prop("wallClock", 0, 6.9, { y: 4.2 });
+    k.prop("trophyCase", -7.4, 6.9, { y: 2.1, opts: { n: Object.keys(P.ach ?? {}).length } });
+    k.block(-7.4, 6.7, 1.7, 0.45, 0, 2.9, null);
+    k.use("trophies", -7.4, 6.0, { r: 2.2, label: "useTrophies" });
+    k.light(-7.4, 3.4, 5.6, 0xffd27a, 1.2, 4);
+    // By Margo's desk: the cork board and Cog's "employee of the month".
+    k.prop("corkboard", -9.9, 4.6, { y: 2.2, yaw: -Math.PI / 2 });
+    k.prop("cogPoster", -9.9, -0.2, { y: 2.4, s: 1.3, yaw: -Math.PI / 2 });
+    // Over the workbench, gauges; by the lift, the week's calendar.
+    k.prop("gauges", 9.9, -1, { y: 3.4, yaw: Math.PI / 2 });
+    k.prop("calendar", 9.9, -3.1, { y: 2.1, yaw: Math.PI / 2, opts: { night: P.night ?? 0 } });
+
     // Outside the window: Álmos, dozing in the dark.
     k.prop("almos", 0, -26, { y: -6 });
     k.start(0, 4.5, 0);

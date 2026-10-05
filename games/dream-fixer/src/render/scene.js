@@ -20,6 +20,7 @@ import { YoyoView } from "./yoyo.js";
 import { TileView } from "./tiles.js";
 import { C } from "./palette.js";
 import { damp, lerp } from "../config.js";
+import { ARRIVE, arriveLift } from "../sim/run.js";
 
 // ── The first-person view ────────────────────────────────────────────────
 // World pass, then the tool in hand on top (depth cleared), then bloom.
@@ -56,7 +57,7 @@ export class GameView {
     const vmPass = new RenderPass(this.vm.scene, this.vm.camera);
     vmPass.clear = false; vmPass.clearDepth = true;
     this.composer.addPass(vmPass);
-    this.bloom = new UnrealBloomPass(new T.Vector2(256, 256), 0.55, 0.4, 1.0);
+    this.bloom = new UnrealBloomPass(new T.Vector2(256, 256), 0.3, 0.3, 1.0);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
 
@@ -254,8 +255,15 @@ export class GameView {
         }
         this.shake = Math.min(1, this.shake + 0.3);
       } else if (e.type === "cogZap") {
-        this.fx.bolt(e.from, e.to, C.dream, 0.018, 90);
-        this.fx.burst(e.to, [0, 1, 0], C.dream, 8, 3, 0.04);
+        // A forked lightning bolt from Cog to the glitch, a flash and a ring of sparks.
+        const p = this.companion.pos, from = [p.x, p.y, p.z];
+        for (let k = 0; k < 2; k++) this.lightning(from, e.to, k ? 0xffffff : 0x9ffff0, k ? 0.02 : 0.05);
+        this.fx.burst(e.to, [0, 1, 0], 0x9ffff0, 22, 5, 0.06);
+        this.fx.ring(e.to, [0, 1, 0], 0x9ffff0, 1.4, 0.35);
+        this.fx.ring(e.to, run.aimDir().map((v) => -v), 0xffffff, 0.8, 0.2);
+        this.companion.zapFlash = 1;
+      } else if (e.type === "cogCharge") {
+        this.companion.zapFlash = 0;
       } else if (e.type === "cogGrab") {
         this.fx.burst([e.x, e.y, e.z], [0, 1, 0], C.dreamGold, 10, 2.5, 0.04);
       } else if (e.type === "itemUse" && e.id === "espresso") {
@@ -265,6 +273,14 @@ export class GameView {
         this.fx.ring([e.x, e.y, e.z], [0, 1, 0], C.dreamGold, 2.4, 0.35);
         this.foes.onEvent({ type: "pop", kind: e.kind, x: e.x, y: e.y, z: e.z, big: false });
         this.shake = Math.min(1, this.shake + 0.2);
+      } else if (e.type === "arrived") {
+        // Touchdown: a ring of light, a burst of motes, a bump.
+        this.fx.ring([e.x, e.y + 0.06, e.z], [0, 1, 0], C.dream, 4, 0.6);
+        this.fx.ring([e.x, e.y + 0.06, e.z], [0, 1, 0], C.dreamPink, 2.4, 0.45);
+        this.ringBurst(run, C.dreamGold, 30);
+        this.fx.puff(e.x, e.y + 0.2, e.z, 1.6);
+        this.eyeOff -= 0.25;
+        this.shake = Math.min(1, this.shake + 0.35);
       } else if (e.type === "land") {
         this.eyeOff -= Math.min(0.22, (e.speed - 4) * 0.025);
       } else if (e.type === "respawn") {
@@ -272,6 +288,33 @@ export class GameView {
       }
     }
     events.length = 0;
+  }
+
+  // The drop into a dream: motes streaming up past you as you fall, and a
+  // ring of light on the ground where you are going to land.
+  arrival(run, x, y, z, lift, A, dt, t) {
+    const cy = y + 1.58 + lift;
+    for (let n = Math.round(dt * 160); n > 0; n--) {
+      const a = Math.random() * Math.PI * 2, r = 1.2 + Math.random() * 4;
+      this.fx.spark(x + Math.cos(a) * r, cy - 2 - Math.random() * 6, z + Math.sin(a) * r, 0, 10 + A * 14, 0, 0.5, 0.03 + Math.random() * 0.04, Math.random() < 0.35 ? C.dreamPink : Math.random() < 0.5 ? C.dreamGold : C.dream, 0);
+    }
+    this.arriveRingT = (this.arriveRingT || 0) - dt;
+    if (this.arriveRingT <= 0) {
+      this.arriveRingT = 0.22;
+      this.fx.ring([x, y + 0.06, z], [0, 1, 0], C.dream, 1.6 + (1 - A) * 1.2, 0.5);
+    }
+  }
+
+  // A jagged bolt: a few kinked segments from a to b.
+  lightning(a, b, color, width) {
+    const n = 5;
+    let prev = a;
+    for (let i = 1; i <= n; i++) {
+      const u = i / n, j = i === n ? 0 : 0.45;
+      const p = [a[0] + (b[0] - a[0]) * u + (Math.random() - 0.5) * j, a[1] + (b[1] - a[1]) * u + (Math.random() - 0.5) * j, a[2] + (b[2] - a[2]) * u + (Math.random() - 0.5) * j];
+      this.fx.bolt(prev, p, color, width, 400);
+      prev = p;
+    }
   }
 
   // Flecks bursting outwards in a ring round you, a metre or more off.
@@ -320,17 +363,23 @@ export class GameView {
     this.bobT += dt * (b.speed2D * 1.35);
     const bob = Math.sin(this.bobT * 2) * 0.03 * sp;
     const x = lerp(b.px, b.x, alpha), y = lerp(b.py, b.y, alpha), z = lerp(b.pz, b.z, alpha);
-    this.camera.position.set(x, y + 1.58 + this.eyeOff + bob, z);
+    // Arriving: you come down out of the dream's sky in a slow spiral,
+    // looking down at where you land, through a stream of dream motes.
+    const A = run.arriveT > 0 ? Math.min(1, (run.arriveT - (1 - alpha) / 60) / ARRIVE) : 0;
+    const lift = A > 0 ? arriveLift(A * ARRIVE) : 0;
+    this.camera.position.set(x, y + 1.58 + this.eyeOff + bob + lift, z);
     // Lean a hair into strafes.
     const sn = Math.sin(b.yaw), cs = Math.cos(b.yaw);
     const side = (b.vx * cs - b.vz * sn) / 6.4;
     this.roll = damp(this.roll, -side * 0.025, 8, dt);
     this.shake = damp(this.shake, 0, 7, dt);
     const sh = this.shake * this.shake * 0.05;
-    this.camera.rotation.set(b.pitch + Math.sin(t * 61) * sh, b.yaw + Math.sin(t * 47) * sh, this.roll + Math.sin(t * 53) * sh);
-    // Running widens the view a touch.
+    const ease = A * A * (3 - 2 * A);
+    this.camera.rotation.set(lerp(b.pitch, -1.05, ease) + Math.sin(t * 61) * sh, b.yaw + A * A * 2.4 + Math.sin(t * 47) * sh, this.roll + Math.sin(t * 53) * sh + Math.sin(A * 6) * 0.06 * A);
+    if (A > 0) this.arrival(run, x, y, z, lift, A, dt, t);
+    // Running widens the view a touch (and the drop into a dream a lot).
     this.runK = damp(this.runK || 0, run.sprinting && b.speed2D > 7 ? 1 : 0, 6, dt);
-    const fov = this.baseFov + this.runK * 6;
+    const fov = this.baseFov + this.runK * 6 + ease * 22;
     if (Math.abs(fov - this.camera.fov) > 0.01) { this.camera.fov = fov; this.camera.updateProjectionMatrix(); }
     this.camera.updateMatrixWorld();
 
@@ -353,6 +402,17 @@ export class GameView {
     this.water.update(run, dt, t);
     this.memories.update(dt, t, this.fx);
     this.companion.update(run, dt, t, this.talking);
+    // Cog winding up a spark: cyan flecks crackling into his antenna.
+    if (this.companion.charge > 0 && Math.random() < dt * 40) {
+      const p = this.companion.pos, a = Math.random() * Math.PI * 2, u = Math.random() * 2 - 1, r = 0.7, life = 0.18;
+      const s = Math.sqrt(1 - u * u), ox = Math.cos(a) * s * r, oy = u * r, oz = Math.sin(a) * s * r;
+      this.fx.spark(p.x + ox, p.y + 0.3 + oy, p.z + oz, -ox / life, -oy / life, -oz / life, life, 0.03, 0x9ffff0, 0);
+    }
+    // Cog showing the way: a trail of gold sparkles behind him.
+    if (this.companion.guiding && Math.random() < dt * 30) {
+      const p = this.companion.pos;
+      this.fx.spark(p.x + (Math.random() - 0.5) * 0.3, p.y - 0.25, p.z + (Math.random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.4, -0.3, (Math.random() - 0.5) * 0.4, 1.4, 0.04, Math.random() < 0.5 ? C.dreamGold : 0xffffff, 0.2);
+    }
     // Cog healing you: little pink motes drifting from him to you.
     if (run.cog?.healing && Math.random() < dt * 5) {
       const p = this.companion.pos, life = 0.7;
@@ -363,7 +423,7 @@ export class GameView {
     this.vm.update(dt, {
       look, speed: b.speed2D, grounded: b.grounded, t, tool: tool.id,
       heat: tool.heat, charge: tool.charge, overheated: tool.overheated,
-      shot: !!this.shotThisFrame, big: this.shotThisFrame || 0, hidden: run.opts.noTools,
+      shot: !!this.shotThisFrame, big: this.shotThisFrame || 0, hidden: run.opts.noTools || run.arriveT > 0,
       sucking: tool.sucking, tank: tool.tank, launched: this.launched, blasted: this.blasted,
       sprayed: this.sprayed, blobbed: this.blobbed, rang: this.rang, lulled: this.lulled,
       open: tool.open, gusted: this.gusted, gliding: tool.open && !b.grounded,

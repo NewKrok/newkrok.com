@@ -153,6 +153,10 @@ export class Audio {
       case "click": S(0.08, { type: "triangle", freq: 700, freqEnd: 1100, gain: 0.1 }); break;
       case "back": S(0.09, { type: "triangle", freq: 900, freqEnd: 560, gain: 0.09 }); break;
       case "buy": [72, 76, 79, 84].forEach((n, i) => at(i * 0.06, (tt) => this.#bell(d, tt, hz(n), 0.08))); break;
+      case "rankUp": [67, 72, 76, 79, 84, 88].forEach((n, i) => at(i * 0.08, (tt) => this.#bell(d, tt, hz(n), 0.08, 1.2, 0.5))); break;
+      case "achievement": [79, 84, 91].forEach((n, i) => at(i * 0.11, (tt) => this.#bell(d, tt, hz(n), 0.07, 1.4, 0.6))); break;
+      // Dropping into a dream: a long airy whoosh falling in pitch.
+      case "arrive": N(2.3, { type: "bandpass", freq: 2600, freqEnd: 350, q: 0.7, gain: 0.08, attack: 0.5, verb: 0.4 }); S(2.3, { type: "sine", freq: 990, freqEnd: 260, gain: 0.025, attack: 0.4, verb: 0.5 }); break;
       case "locked": S(0.14, { type: "square", freq: 160, gain: 0.05 }); break;
       // The Stabilizer.
       case "zap": S(0.09, { type: "square", freq: 1500 + Math.random() * 120, freqEnd: 520, gain: 0.035 }); S(0.07, { type: "sine", freq: 2400, freqEnd: 900, gain: 0.04 }); N(0.05, { type: "highpass", freq: 5000, gain: 0.03 }); break;
@@ -195,7 +199,8 @@ export class Audio {
       case "throw": N(0.28, { type: "bandpass", freq: 500, freqEnd: 1700, q: 0.9, gain: 0.12 }); break;
       case "pillowPop": N(0.6, { type: "lowpass", freq: 1800, freqEnd: 250, gain: 0.22, verb: 0.3 }); S(0.3, { freq: 180, freqEnd: 70, gain: 0.18 }); [0.08, 0.16, 0.26].forEach((dt) => at(dt, (tt) => this.#noise(d, tt, 0.25, { type: "bandpass", freq: 2400 + Math.random() * 1200, q: 2, gain: 0.04 }))); break;
       case "sip": N(0.35, { type: "bandpass", freq: 450, freqEnd: 1300, q: 3, gain: 0.08, attack: 0.05 }); [79, 84].forEach((n, i) => at(0.32 + i * 0.07, (tt) => this.#bell(d, tt, hz(n), 0.05))); break;
-      case "cogZap": S(0.07, { type: "square", freq: 2400, freqEnd: 900, gain: 0.022 }); N(0.05, { type: "highpass", freq: 6000, gain: 0.025 }); break;
+      case "cogZap": S(0.12, { type: "square", freq: 2600, freqEnd: 300, gain: 0.05 }); N(0.18, { type: "highpass", freq: 3500, freqEnd: 1200, gain: 0.09 }); S(0.15, { type: "sawtooth", freq: 120, freqEnd: 60, gain: 0.05 }); break;
+      case "cogCharge": S(0.5, { type: "sawtooth", freq: 400, freqEnd: 2200, gain: 0.025 }); N(0.5, { type: "bandpass", freq: 3000, freqEnd: 7000, q: 3, gain: 0.025 }); break;
       case "ping": [91, 96].forEach((n, i) => at(i * 0.09, (tt) => this.#bell(d, tt, hz(n), 0.045, 0.6, 0.4))); break;
       case "ballPop": S(0.25, { freq: 120, freqEnd: 50, gain: 0.25, verb: 0.2 }); N(0.3, { type: "lowpass", freq: 1500, freqEnd: 200, gain: 0.15 }); break;
       case "foamSpray": N(0.09, { type: "bandpass", freq: 1400 + Math.random() * 300, freqEnd: 700, q: 1.4, gain: 0.05 }); break;

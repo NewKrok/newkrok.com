@@ -36,6 +36,7 @@ export class Sfx {
         case "jump": A.play("jump"); break;
         case "land": A.play("land", e.speed); break;
         case "respawn": A.play("respawn"); break;
+        case "arrived": A.play("land", 14); A.play("respawn"); break;
         case "dust":
           this.dustCombo = this.dustT > 0 ? this.dustCombo + 1 : 0;
           this.dustT = 0.5;
@@ -83,6 +84,7 @@ export class Sfx {
         case "itemUse": A.play(e.id === "pillow" ? "throw" : "sip"); break;
         case "itemNo": A.play("locked"); break;
         case "cogZap": A.play("cogZap", 0, e.to[0], e.to[2]); break;
+        case "cogCharge": A.play("cogCharge"); break;
         case "cogPing": A.play("ping"); break;
         case "cogGrab": A.play("dust", 6); break;
         case "tuneStart": A.play("tuneStart"); break;

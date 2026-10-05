@@ -5,7 +5,7 @@ import { jelly, souffle, meatball, pepperShaker, rollingPin, meatGrinder, pressu
 import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./characters.js";
 import { anchor } from "./dream.js";
 import { vacuumBoss } from "./boss.js";
-import { jobBoard, workbench, desk, lift, dreamTank, pipe, almos, crate, shelf, rug, hangLamp, dock, lectern } from "./factory.js";
+import { jobBoard, workbench, desk, lift, dreamTank, pipe, almos, crate, shelf, rug, hangLamp, dock, lectern, dreamFrame, trophyCase, corkboard, calendar, cogPoster, gauges } from "./factory.js";
 import { memoryBubble } from "./dream.js";
 import { mugCoffee, mugCocoa, espresso, pillowBomb, vest, balloon, slipper, magnet, sieve, pouch } from "./kit.js";
 import { alarmClock, pencil, backpack, sharpener, redPen, lockers, schoolDesk, teacherDesk, chalkboard, bookshelf, readingTable, schoolBus, flagpole, hoop, wallClock, bellTower, acUnit, fountain } from "./school.js";
@@ -201,6 +201,12 @@ export const MODELS = {
   hangLamp: { build: hangLamp, frame: 2 },
   dock: { build: dock, frame: 1.8 },
   lectern: { build: lectern, frame: 1.8 },
+  dreamFrame: { build: dreamFrame, frame: 1.4 },
+  trophyCase: { build: trophyCase, frame: 2.4 },
+  corkboard: { build: corkboard, frame: 1.8 },
+  calendar: { build: calendar, frame: 1 },
+  cogPoster: { build: cogPoster, frame: 1.4 },
+  gauges: { build: gauges, frame: 1.8 },
   mugCoffee: { build: mugCoffee, frame: 0.4 },
   mugCocoa: { build: mugCocoa, frame: 0.4 },
   espresso: { build: espresso, frame: 0.3 },

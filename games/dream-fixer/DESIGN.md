@@ -289,13 +289,20 @@ arany csillaggal.
 Egyik szerszámnak sincs lőszere. A casual játék érdekében hő- vagy
 töltéskorlát van, ami magától visszaáll.
 
+**A Stabilizátor a fegyver, a többi eszköz.** Minden álomban csak a
+Stabilizátor van nálad, és az álom saját szerszáma (a táblázat „Mikor
+jön” oszlopa) az első horgony után érkezik meg, a `2`-es gombra; a
+korábbi álmok szerszámait nem viszed tovább. A mellékszerszámok csak
+csípnek (a sebzésük a Stabilizátoré alatt van), az értékük a trükkjükben
+van: fogás, hablépcső, altatás, siklás, lasszó, és a boss kulcsa.
+
 | Szerszám | Fő funkció | Másodlagos | Mikor jön |
 | --- | --- | --- | --- |
 | **Stabilizátor** | Gyors, pontos „kisimító” lövés | Feltöltött lövés | 1. fejezet |
 | **Kócszívó** | A sugara mindent koptat, amit ér; a kis hibákat (legfeljebb hármat) és az álomport beszívja | A beszívott hibát szétpukkanó fonalgombócként lövi vissza, üres tartállyal légfúvás | 1. fejezet |
 | **Habágyú** | Lelassító hab | Megszilárduló habplatform (puzzle és mozgás) | 2. fejezet |
 | **Altatócsengő** | Csengetés: kúpban szaladó hanghullám, ami hátralöki a hibákat (keveset sebez: irányító eszköz, nem fő fegyver), és a lövedékeiket visszaüti a dobójukra | Nyomva tartva altatódalt dúdol (minél tovább, annál messzebbre ér), elengedve körbefut: a kis hibák elalszanak, a nagyok csak elálmosodnak | 3. fejezet |
-| **Szélernyő** | Rövid széllökés kúpban: közelről erősebben sebez a Stabilizátornál, távolabb gyengül, 4,5 méter után semmi; a földön járókat nem löki el, csak a repülőket, a lövedékeket szétpukkasztja | Nyomva tartva kinyitod: pajzs elöl és felül, a levegőben siklasz, a feláramlás felvisz | 4. fejezet |
+| **Szélernyő** | Rövid széllökés kúpban: közelről csíp, távolabb gyengül, 4,5 méter után semmi; a földön járókat nem löki el, csak a repülőket, a lövedékeket szétpukkasztja | Nyomva tartva kinyitod: pajzs elöl és felül, a levegőben siklasz, a feláramlás felvisz | 4. fejezet |
 | **Csillagjojó** | Kattintásra előrevágod a zsinórján, és visszajön: az első hibát megcsípi, a kicsit eléd rántja (szédülten érkezik, és amíg szédül, többet sebződik), a golyókat útközben szétpukkasztja | Lasszó: alig sebez, de a hibát pár másodpercre gúzsba köti (a nagyokat rövidebben); csak a lasszó akad meg a csillagos kapaszkodókon, és húz be oda | 5. fejezet |
 | **Villáskulcs** | Közelharc és tárgyak megütése | — | Mindig nálad van |
 
@@ -392,8 +399,30 @@ Morzsa parkjában a Kóc bőre egy összegabalyodott, dühös **mókus**: a kuty
 - Az **éberség** (az életerő) pár másodperc nyugalom után visszatöltődik.
 - Sűrű horgonypontok, és aki kiesik, nem veszít semmit.
 - Célzássegítés: asztalon választható, mobilon alapból be van kapcsolva.
-- Három nehézségi szint (*Szunyókálás / Alvás / Mélyalvás*), bármikor
-  állítható.
+- Nincs nehézségi beállítás: minden álom elsőre normál (*Alvás*). Egy
+  megjavított álmot a táblán újra el lehet vállalni **mélyalvásban**
+  (nehéz: jobban fájnak a koppanások, kevesebb szív, másfélszeres
+  tapasztalat).
+
+### Rang, eredmények, napló
+
+- **Tapasztalat (XP) és rang:** kisimított hiba (kicsi 2, nagy 6),
+  hangolt horgony 25, legyőzött rémálom 120, emlék 15, megjavított álom
+  60. A rang (1–15) nyitja a munkapad fejlesztéseit, szintenként
+  (`ranks` az `upgrades.js`-ben), és a felszerelést (`rank`).
+- **Eredmények (achievementek):** `data/progression.js`; minden boss
+  trükkjére egy, gyűjtésre, rangra, mélyalvásra. Kártya ugrik fel, a
+  Gyár hátsó falán a vitrinben minden eredményért egy kupa áll, és a
+  vitrinnél (meg a szünet menüben) végig lehet nézni őket.
+- **Napló:** a történetet meséli el fejezetenként (érkezés, a szerszám,
+  a rémálom, a megjavítás; Margo egyre gyanakvóbb), alatta az emlékek és
+  egy lenyitható jegyzet a hogyanokról. A rádió szövegei nem kerülnek bele.
+- **A Gyár falai** a hét során telnek meg: minden megjavított álomról
+  bekeretezett kép, óra, parafatábla, Cog „a hónap dolgozója” plakátja,
+  mérőórák, és a naptár, amin az éjszakák ki vannak húzva.
+- **Megérkezés egy álomba:** spirálban ereszkedsz le az álom egéből, a
+  földön fénygyűrű mutatja, hová érkezel. Munka elvállalása után Cog
+  átrepül a lifthez, és ott vár.
 - Esésből nincs sebződés, és a leesés a pályáról csak visszarak a
   peremre.
 

@@ -279,7 +279,7 @@ export class PenBoss {
     b.x = Math.max(A.minX, Math.min(A.maxX, b.x)); b.z = Math.max(A.minZ, Math.min(A.maxZ, b.z));
     // You cannot walk through it (upright).
     const pd = Math.hypot(P.x - b.x, P.z - b.z), m = PEN.r + P.r;
-    if (this.tilt < 1 && pd < m && pd > 1e-3 && P.y < b.y + PEN.h) { P.x = b.x + (P.x - b.x) / pd * m; P.z = b.z + (P.z - b.z) / pd * m; }
+    if (this.alive && this.tilt < 1 && pd < m && pd > 1e-3 && P.y < b.y + PEN.h) { P.x = b.x + (P.x - b.x) / pd * m; P.z = b.z + (P.z - b.z) / pd * m; }
     this.pose();
   }
 

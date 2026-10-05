@@ -259,7 +259,7 @@ export class VacuumBoss {
     b.x = Math.max(A.minX, Math.min(A.maxX, b.x)); b.z = Math.max(A.minZ, Math.min(A.maxZ, b.z));
     // You cannot walk through it.
     const pd = Math.hypot(P.x - b.x, P.z - b.z), m = BOSS.r + P.r;
-    if (pd < m && pd > 1e-3 && P.y < b.y + BOSS.h) { P.x = b.x + (P.x - b.x) / pd * m; P.z = b.z + (P.z - b.z) / pd * m; }
+    if (this.alive && pd < m && pd > 1e-3 && P.y < b.y + BOSS.h) { P.x = b.x + (P.x - b.x) / pd * m; P.z = b.z + (P.z - b.z) / pd * m; }
     this.pose();
   }
 

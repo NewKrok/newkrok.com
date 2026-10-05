@@ -1,6 +1,7 @@
 import { t } from "./i18n/index.js";
 import { ITEMS, ITEM } from "./data/upgrades.js";
 import { ITEM_ICONS } from "./ui/icons.js";
+import { rankFor, rankProgress } from "./data/progression.js";
 
 // ── HUD ──────────────────────────────────────────────────────────────────
 // Kept small: a crosshair whose ring shows the tool's heat (and fills
@@ -32,6 +33,7 @@ export class Hud {
       <div class="tankdots"></div>
       <div class="bossbar"><div class="lbl"></div><div class="bar"><i class="lag"></i><i class="fill"></i></div></div>
       <div class="kit"></div>
+      <div class="rank"><span class="lbl"></span><div class="xpbar"><i></i></div><span class="xp"></span></div>
       <div class="dust"><svg viewBox="0 0 24 24"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></svg><b>0</b><span class="plus"></span></div>`;
     root.appendChild(el);
     this.heat = el.querySelector(".heat");
@@ -77,6 +79,19 @@ export class Hud {
   }
 
   show(on) { this.el.classList.toggle("hidden", !on); }
+  // Your rank under the purse, a bar for the way to the next, and a "+N XP"
+  // while experience comes in.
+  rank(xp, gained = 0) {
+    const el = this.el.querySelector(".rank"), [have, need] = rankProgress(xp);
+    el.querySelector(".lbl").textContent = t("rank", { n: rankFor(xp) });
+    el.querySelector(".xpbar i").style.transform = `scaleX(${need ? (have / need).toFixed(3) : 1})`;
+    if (!gained) return;
+    const x = el.querySelector(".xp");
+    this.xpSum = (this.xpT > 0 ? this.xpSum : 0) + gained;
+    this.xpT = 1.4;
+    x.textContent = `+${this.xpSum} XP`;
+    x.classList.add("on");
+  }
   // In the Factory: no tools, no wakefulness, just the prompt and the dust.
   hub(on) { this.el.classList.toggle("in-hub", on); }
   // Desktop play without the mouse grabbed (a lock the browser refused):
@@ -145,6 +160,7 @@ export class Hud {
       this.plusT -= dt;
       if (this.plusT <= 0) { this.plusEl.classList.remove("on"); this.plusSum = 0; }
     }
+    if (this.xpT > 0 && (this.xpT -= dt) <= 0) this.el.querySelector(".rank .xp").classList.remove("on");
     if (run.dust !== this.last.dust) {
       this.dustEl.textContent = run.dust;
       if (this.last.dust >= 0) { this.dustBox.classList.remove("tick"); void this.dustBox.offsetWidth; this.dustBox.classList.add("tick"); }

@@ -37,6 +37,10 @@ const HEAL = { amount: 6, life: 30, magnet: 5, chance: { fuzz: 0.2, bunny: 0.1, 
 const FALL_DMG = 12;
 
 export const MAX_HP = 50;
+// Dropping into a dream: seconds from high above to your feet on the ground.
+export const ARRIVE = 2.4;
+// How far above the ground the view still is, `left` seconds before you land.
+export const arriveLift = (left) => 22 * (left / ARRIVE) ** 2;
 // Breath for running: seconds of running on a full one, seconds to fill it
 // again (after a short rest), and how much back before you can run again.
 // (The bench's lungs stretch the first two.)
@@ -45,7 +49,7 @@ const STAMINA = { delay: 0.6, again: 0.35 };
 export class Run {
   constructor(levelDef, o = {}) {
     this.def = levelDef;
-    this.kit = buildLevel(levelDef);
+    this.kit = buildLevel(levelDef, o.progress);
     this.world = this.kit.world;
     this.rnd = rng(o.seed ?? 1);
     this.opts = { difficulty: "normal", aimAssist: 0, autoFire: false, upgrades: {}, tools: ["stabilizer"], noTools: false, ...o };
@@ -73,6 +77,10 @@ export class Run {
     this.time = 0;
     this.events = [];
     this.hp = this.maxHp; this.hurtT = 9; this.invuln = 0;
+    // Coming down into the dream: hands off until you land.
+    this.arriveT = o.arrive ? ARRIVE : 0;
+    // The Factory: where Cog shows you the way to (the lift, once a job is taken).
+    this.guide = null;
     this.stamina = 1; this.winded = false; this.restT = 0; this.sprinting = false;
     // Kit from the bench, in your pockets (none in the Factory).
     this.items = levelDef.hub ? {} : { ...(o.items ?? {}) };
@@ -420,6 +428,11 @@ export class Run {
   step(intent, dt = DT) {
     this.time += dt;
     const b = this.body;
+    if (this.arriveT > 0) {
+      this.arriveT = Math.max(0, this.arriveT - dt);
+      if (this.arriveT === 0) this.events.push({ type: "arrived", x: b.x, y: b.y, z: b.z });
+      intent = IDLE;
+    }
     // Running: forward only, half as fast again, while the breath lasts.
     // Run out and you are winded: no running until you have got some back.
     // An espresso: quicker on your feet, and running costs no breath.
@@ -877,6 +890,7 @@ export class Run {
 }
 
 const NO_TOOL = { fire: false, alt: false };
+const IDLE = { forward: 0, strafe: 0 };
 
 function raySphere(ox, oy, oz, dx, dy, dz, cx, cy, cz, r) {
   const lx = cx - ox, ly = cy - oy, lz = cz - oz;

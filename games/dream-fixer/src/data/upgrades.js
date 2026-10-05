@@ -1,4 +1,5 @@
 import { TOOLS } from "../sim/tools.js";
+import { rankFor } from "./progression.js";
 
 // ── The workbench ────────────────────────────────────────────────────────
 // Four pages: the tools, you (the fixer), Cog and the kit. Upgrades are
@@ -7,7 +8,8 @@ import { TOOLS } from "../sim/tools.js";
 // in your pockets and used up in a dream.
 //
 // progress.upgrades[id] is the level owned (an old save may say `true`:
-// that is level 1). `stat(l)` is what the upgrade changes at level l, for
+// that is level 1). `ranks` holds the rank (see progression.js) each
+// level needs; a piece of kit needs its `rank` once. `stat(l)` is what the upgrade changes at level l, for
 // the bench's "now → next" line; `model` is what its preview shows.
 
 export const TABS = ["tools", "me", "cog", "kit"];
@@ -17,55 +19,55 @@ const num = (v, d = 1) => String(Math.round(v * 10 ** d) / 10 ** d);
 
 export const UPGRADES = [
   // ── The Stabilizer ──
-  { id: "stab_fins", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [35, 70, 120], stat: (l) => pct(1 - 0.12 * l) },
-  { id: "stab_lens", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [50, 100, 160], stat: (l) => pct(1 + 0.15 * l) },
-  { id: "stab_trigger", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [70, 140], stat: (l) => num(1 / (TOOLS.stabilizer.interval * (1 - 0.12 * l))) },
-  { id: "stab_charge", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [45, 90, 150], stat: (l) => `${num(TOOLS.stabilizer.charge.time * (1 - 0.13 * l), 2)} s` },
+  { id: "stab_fins", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [35, 70, 120], ranks: [1, 3, 6], stat: (l) => pct(1 - 0.12 * l) },
+  { id: "stab_lens", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [50, 100, 160], ranks: [1, 4, 7], stat: (l) => pct(1 + 0.15 * l) },
+  { id: "stab_trigger", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [70, 140], ranks: [2, 5], stat: (l) => num(1 / (TOOLS.stabilizer.interval * (1 - 0.12 * l))) },
+  { id: "stab_charge", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [45, 90, 150], ranks: [2, 4, 8], stat: (l) => `${num(TOOLS.stabilizer.charge.time * (1 - 0.13 * l), 2)} s` },
   // ── The Fuzz Vacuum (once you have it) ──
-  { id: "vac_motor", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [40, 85, 140], stat: (l) => `${num(TOOLS.vacuum.range + 1.2 * l)} m` },
-  { id: "vac_throat", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [50, 110], stat: (l) => pct(1 + 0.3 * l) },
-  { id: "vac_tank", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [80, 160], stat: (l) => String(TOOLS.vacuum.tankSize + l) },
-  { id: "vac_bang", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [45, 90, 150], stat: (l) => `${num(TOOLS.vacuum.launch.splash * (1 + 0.2 * l))} m` },
+  { id: "vac_motor", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [40, 85, 140], ranks: [1, 3, 6], stat: (l) => `${num(TOOLS.vacuum.range + 1.2 * l)} m` },
+  { id: "vac_throat", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [50, 110], ranks: [2, 5], stat: (l) => pct(1 + 0.3 * l) },
+  { id: "vac_tank", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [80, 160], ranks: [2, 6], stat: (l) => String(TOOLS.vacuum.tankSize + l) },
+  { id: "vac_bang", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [45, 90, 150], ranks: [1, 4, 7], stat: (l) => `${num(TOOLS.vacuum.launch.splash * (1 + 0.2 * l))} m` },
   // ── The Foam Cannon (once you have it) ──
-  { id: "foam_nozzle", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [45, 90, 150], stat: (l) => pct(1 + 0.25 * l) },
-  { id: "foam_mix", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [50, 100, 160], stat: (l) => `${num(TOOLS.foam.hold + 0.7 * l)} s` },
-  { id: "foam_set", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [40, 85, 140], stat: (l) => `${TOOLS.foam.step.life + 5 * l} s` },
-  { id: "foam_tank", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [80, 160], stat: (l) => String(TOOLS.foam.step.max + l) },
+  { id: "foam_nozzle", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [45, 90, 150], ranks: [2, 4, 7], stat: (l) => pct(1 + 0.25 * l) },
+  { id: "foam_mix", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [50, 100, 160], ranks: [2, 5, 8], stat: (l) => `${num(TOOLS.foam.hold + 0.7 * l)} s` },
+  { id: "foam_set", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [40, 85, 140], ranks: [3, 5, 8], stat: (l) => `${TOOLS.foam.step.life + 5 * l} s` },
+  { id: "foam_tank", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [80, 160], ranks: [3, 6], stat: (l) => String(TOOLS.foam.step.max + l) },
   // ── The Lullaby Bell (once you have it) ──
-  { id: "bell_rim", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [45, 90, 150], stat: (l) => `${num(TOOLS.bell.range + 1.5 * l)} m` },
-  { id: "bell_clapper", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [50, 100, 160], stat: (l) => pct(1 + 0.25 * l) },
-  { id: "bell_lull", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [55, 110, 170], stat: (l) => `${num(TOOLS.bell.lull.sleep + 1.5 * l)} s` },
-  { id: "bell_box", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [60, 120], stat: (l) => `${num(TOOLS.bell.lull.r1 + 1.5 * l)} m` },
+  { id: "bell_rim", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [45, 90, 150], ranks: [3, 5, 8], stat: (l) => `${num(TOOLS.bell.range + 1.5 * l)} m` },
+  { id: "bell_clapper", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [50, 100, 160], ranks: [3, 6, 9], stat: (l) => pct(1 + 0.25 * l) },
+  { id: "bell_lull", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [55, 110, 170], ranks: [4, 6, 9], stat: (l) => `${num(TOOLS.bell.lull.sleep + 1.5 * l)} s` },
+  { id: "bell_box", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [60, 120], ranks: [4, 7], stat: (l) => `${num(TOOLS.bell.lull.r1 + 1.5 * l)} m` },
   // ── The Gust Umbrella (once you have it) ──
-  { id: "umb_canopy", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [45, 90, 150], stat: (l) => `${num(TOOLS.umbrella.glide.fall * (1 - 0.15 * l))} m/s` },
-  { id: "umb_ribs", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [50, 100, 160], stat: (l) => pct(1 + 0.2 * l) },
-  { id: "umb_spring", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [55, 110], stat: (l) => num(1 / (TOOLS.umbrella.interval * (1 - 0.15 * l))) },
-  { id: "umb_cloth", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [50, 100, 160], stat: (l) => pct(TOOLS.umbrella.shield.guard - 0.07 * l) },
+  { id: "umb_canopy", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [45, 90, 150], ranks: [4, 6, 9], stat: (l) => `${num(TOOLS.umbrella.glide.fall * (1 - 0.15 * l))} m/s` },
+  { id: "umb_ribs", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [50, 100, 160], ranks: [4, 7, 10], stat: (l) => pct(1 + 0.2 * l) },
+  { id: "umb_spring", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [55, 110], ranks: [5, 8], stat: (l) => num(1 / (TOOLS.umbrella.interval * (1 - 0.15 * l))) },
+  { id: "umb_cloth", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [50, 100, 160], ranks: [5, 7, 10], stat: (l) => pct(TOOLS.umbrella.shield.guard - 0.07 * l) },
   // ── The Star Yo-Yo (once you have it) ──
-  { id: "yoyo_string", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [45, 90, 150], stat: (l) => `${num(TOOLS.yoyo.range + 2 * l)} m` },
-  { id: "yoyo_weight", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [50, 100, 160], stat: (l) => pct(1 + 0.25 * l) },
-  { id: "yoyo_bearing", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [55, 110], stat: (l) => `${num(TOOLS.yoyo.speed * (1 + 0.15 * l))} m/s` },
-  { id: "yoyo_knot", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [50, 100, 160], stat: (l) => `${num(TOOLS.yoyo.lasso.tie + l)} s` },
+  { id: "yoyo_string", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [45, 90, 150], ranks: [5, 7, 10], stat: (l) => `${num(TOOLS.yoyo.range + 2 * l)} m` },
+  { id: "yoyo_weight", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [50, 100, 160], ranks: [5, 8, 11], stat: (l) => pct(1 + 0.25 * l) },
+  { id: "yoyo_bearing", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [55, 110], ranks: [6, 9], stat: (l) => `${num(TOOLS.yoyo.speed * (1 + 0.15 * l))} m/s` },
+  { id: "yoyo_knot", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [50, 100, 160], ranks: [6, 8, 11], stat: (l) => `${num(TOOLS.yoyo.lasso.tie + l)} s` },
   // ── You ──
-  { id: "wake_coffee", tab: "me", model: "mugCoffee", costs: [45, 90, 150], stat: (l) => String(maxHpFor({ wake_coffee: l })) },
-  { id: "wake_pad", tab: "me", model: "vest", costs: [55, 110, 180], stat: (l) => pct(1 - 0.1 * l) },
-  { id: "wake_lungs", tab: "me", model: "balloon", costs: [30, 65, 110], stat: (l) => `${num(perksFor({ wake_lungs: l }).stamina.run)} s` },
-  { id: "wake_shoes", tab: "me", model: "slipper", costs: [50, 110], stat: (l) => `${num(6.4 * (1 + 0.06 * l))} m/s` },
-  { id: "wake_magnet", tab: "me", model: "magnet", costs: [30, 70], stat: (l) => `${num(magnetFor({ wake_magnet: l }))} m` },
-  { id: "wake_sieve", tab: "me", model: "sieve", costs: [90, 180], stat: (l) => pct(0.25 * l) },
-  { id: "wake_pocket", tab: "me", model: "pouch", costs: [50, 110], stat: (l) => String(pocketFor({ wake_pocket: l })) },
+  { id: "wake_coffee", tab: "me", model: "mugCoffee", costs: [45, 90, 150], ranks: [1, 3, 6], stat: (l) => String(maxHpFor({ wake_coffee: l })) },
+  { id: "wake_pad", tab: "me", model: "vest", costs: [55, 110, 180], ranks: [2, 5, 8], stat: (l) => pct(1 - 0.1 * l) },
+  { id: "wake_lungs", tab: "me", model: "balloon", costs: [30, 65, 110], ranks: [1, 3, 5], stat: (l) => `${num(perksFor({ wake_lungs: l }).stamina.run)} s` },
+  { id: "wake_shoes", tab: "me", model: "slipper", costs: [50, 110], ranks: [3, 7], stat: (l) => `${num(6.4 * (1 + 0.06 * l))} m/s` },
+  { id: "wake_magnet", tab: "me", model: "magnet", costs: [30, 70], ranks: [1, 4], stat: (l) => `${num(magnetFor({ wake_magnet: l }))} m` },
+  { id: "wake_sieve", tab: "me", model: "sieve", costs: [90, 180], ranks: [5, 9], stat: (l) => pct(0.25 * l) },
+  { id: "wake_pocket", tab: "me", model: "pouch", costs: [50, 110], ranks: [3, 7], stat: (l) => String(pocketFor({ wake_pocket: l })) },
   // ── Cog ──
-  { id: "cog_fetch", tab: "cog", model: "csavar", glow: 0xffd27a, costs: [60, 130], stat: (l) => (l ? `${perksFor({ cog_fetch: l }).cog.fetch} m` : "—") },
-  { id: "cog_heal", tab: "cog", model: "csavar", glow: 0xff7aa0, costs: [70, 130, 200], stat: (l) => (l ? `${num(perksFor({ cog_heal: l }).cog.heal)}/s` : "—") },
-  { id: "cog_zap", tab: "cog", model: "csavar", glow: 0x7ff5e0, costs: [80, 150, 220], stat: (l) => (l ? `${num(perksFor({ cog_zap: l }).cog.zap.every)} s` : "—") },
-  { id: "cog_scout", tab: "cog", model: "csavar", glow: 0xffe7a8, costs: [50], stat: (l) => (l ? "✓" : "—") },
+  { id: "cog_fetch", tab: "cog", model: "csavar", glow: 0xffd27a, costs: [60, 130], ranks: [2, 6], stat: (l) => (l ? `${perksFor({ cog_fetch: l }).cog.fetch} m` : "—") },
+  { id: "cog_heal", tab: "cog", model: "csavar", glow: 0xff7aa0, costs: [70, 130, 200], ranks: [3, 6, 10], stat: (l) => (l ? `${num(perksFor({ cog_heal: l }).cog.heal)}/s` : "—") },
+  { id: "cog_zap", tab: "cog", model: "csavar", glow: 0x7ff5e0, costs: [80, 150, 220], ranks: [2, 5, 9], stat: (l) => (l ? `${num(perksFor({ cog_zap: l }).cog.zap.every)} s` : "—") },
+  { id: "cog_scout", tab: "cog", model: "csavar", glow: 0xffe7a8, costs: [50], ranks: [4], stat: (l) => (l ? "✓" : "—") },
 ];
 
 // Kit: used up in a dream. key / pad: the key and the pad button that use it.
 export const ITEMS = [
-  { id: "pillow", cost: 20, key: "G", pad: "B", model: "pillowBomb" },
-  { id: "espresso", cost: 15, key: "C", pad: "↑", model: "espresso" },
-  { id: "cocoa", cost: 15, key: "V", pad: "↓", model: "mugCocoa" },
+  { id: "pillow", cost: 20, rank: 3, key: "G", pad: "B", model: "pillowBomb" },
+  { id: "espresso", cost: 15, rank: 2, key: "C", pad: "↑", model: "espresso" },
+  { id: "cocoa", cost: 15, rank: 1, key: "V", pad: "↓", model: "mugCocoa" },
 ];
 // What each piece does.
 export const ITEM = {
@@ -74,8 +76,14 @@ export const ITEM = {
   cocoa: { heal: 25 },
 };
 
-// Not on sale yet: a tool's upgrades wait until you have the tool.
-export const isLocked = (u, progress) => !!u.needs && !progress.tools.includes(u.needs);
+// Not on sale yet: a tool's upgrades wait until you have the tool, and
+// every level (every piece of kit) for your rank. Why: { tool } or { rank }.
+export function lockOf(u, progress) {
+  if (u.needs && !progress.tools.includes(u.needs)) return { tool: u.needs };
+  const need = u.ranks ? u.ranks[level(progress.upgrades, u.id)] : u.rank;
+  return need && rankFor(progress.xp) < need ? { rank: need } : null;
+}
+export const isLocked = (u, progress) => !!lockOf(u, progress);
 
 export const level = (owned = {}, id) => (owned[id] === true ? 1 : Number(owned[id]) || 0);
 export const maxLevel = (u) => u.costs.length;

@@ -1,7 +1,7 @@
 import { World } from "../sim/world.js";
 
 // ── Level kit ────────────────────────────────────────────────────────────
-// A level is a build(k) function over this kit. Every call adds the solid
+// A level is a build(k, ctx) function over this kit. Every call adds the solid
 // part to the sim's World and records what to draw; the renderer turns the
 // records into meshes later, so levels load headless too (bots, checks).
 
@@ -146,9 +146,10 @@ const RINGABLE = {
   souffle: { r: 1.2, h: 2.6, low: 0.35, color: 0xf2c46a },
 };
 
-export function buildLevel(def) {
+// ctx: the player's progress, for a level that shows it (the Factory).
+export function buildLevel(def, ctx) {
   const k = new Kit();
-  def.build(k);
+  def.build(k, ctx);
   // The memories are listed in the level's data (the board counts them).
   for (const [id, x, z, y] of def.memories ?? []) k.memory(id, x, z, y);
   k.world.killY = def.killY ?? -30;

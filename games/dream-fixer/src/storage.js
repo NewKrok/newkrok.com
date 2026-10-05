@@ -1,3 +1,5 @@
+import { blankStats, XP } from "./data/progression.js";
+
 // ── Progress and settings ────────────────────────────────────────────────
 // localStorage, guarded for private mode / blocked storage (the game still
 // runs, it just forgets).
@@ -13,7 +15,7 @@ export const DEFAULT_SETTINGS = {
   lang: null, master: 0.8, sfx: 0.85, music: 0.5, voice: true, voiceVol: 0.9,
   quality: coarse ? "low" : "high",
   sensitivity: 1, touchSensitivity: 1, padSensitivity: 1, invertY: false,
-  aimAssist: true, autoFire: coarse, difficulty: "normal", shake: true,
+  aimAssist: true, autoFire: coarse, shake: true,
 };
 export function loadSettings() { return { ...DEFAULT_SETTINGS, ...(read(KEY_SETTINGS) ?? {}) }; }
 export function saveSettings(s) { write(KEY_SETTINGS, s); }
@@ -21,8 +23,10 @@ export function saveSettings(s) { write(KEY_SETTINGS, s); }
 // log: the radio lines heard so far, in order (for the journal).
 // upgrades: level per bench upgrade; items: kit in your pockets.
 // tools: the tools you have earned (the Stabilizer from the start).
-const VERSION = 2;
-const blank = () => ({ version: VERSION, dust: 0, done: [], memories: [], upgrades: {}, items: {}, tools: ["stabilizer"], night: 0, picked: null, introSeen: false, log: [] });
+// hard: dreams fixed in deep sleep (hard); pickedHard: the job taken is one.
+// xp, ach, stats: rank and achievements (see data/progression.js).
+const VERSION = 3;
+const blank = () => ({ version: VERSION, dust: 0, done: [], hard: [], memories: [], upgrades: {}, items: {}, tools: ["stabilizer"], night: 0, picked: null, pickedHard: false, introSeen: false, log: [], xp: 0, ach: {}, stats: blankStats() });
 
 // An older save brought up to date, step by step.
 function migrate(p) {
@@ -32,6 +36,12 @@ function migrate(p) {
     delete p.vacuum;
     p.version = 2;
   }
+  if (p.version === 2) {
+    // v2 had no rank: what the dreams already fixed would have earned, roughly.
+    p.xp = (p.done?.length ?? 0) * 400 + (p.memories?.length ?? 0) * XP.memory;
+    p.version = 3;
+  }
+  p.stats = { ...blankStats(), ...(p.stats ?? {}) };
   return p;
 }
 export function loadProgress() { const saved = read(KEY_PROGRESS); return { ...blank(), ...(saved ? migrate(saved) : {}) }; }

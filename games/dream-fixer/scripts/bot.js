@@ -13,7 +13,7 @@
 //   node scripts/bot.js [seed] [difficulty] [skill] [level]
 //   skill: casual (slower, wobbly aim, reacts late) or sharp
 import { Run } from "../src/sim/run.js";
-import { LEVELS, CLIENTS } from "../src/levels/index.js";
+import { LEVELS } from "../src/levels/index.js";
 import { World } from "../src/sim/world.js";
 import { DT } from "../src/config.js";
 import { TOOLS } from "../src/sim/tools.js";
@@ -24,9 +24,8 @@ if (!def?.botRoutes) { console.log("no bot routes for that level"); process.exit
 const SKILL = { sharp: { turn: 0.12, pitch: 0.08, react: 0, wobble: 0 }, casual: { turn: 0.08, pitch: 0.05, react: 0.25, wobble: 0.03 } }[skill];
 const SMALL = new Set(["fuzz", "bunny", "buzzer", "clock", "pencil", "meatball", "pepper", "gnome", "can", "rocket", "robot"]), BIG = new Set(["tub", "knot", "backpack", "sharpener", "rollingpin", "grinder", "mower", "sunflower", "top", "mobile"]);
 
-// The tools a player brings: whatever the dreams before this one handed out.
-const before = CLIENTS.slice(0, Math.max(0, CLIENTS.findIndex((c) => c.level === def.id))).map((c) => LEVELS[c.level]?.unlockTool?.id).filter(Boolean);
-const run = new Run(def, { seed, difficulty, aimAssist: 0.03, tools: def.tools ?? ["stabilizer", ...before] });
+// A dream starts with the Stabilizer only; its own tool comes after the first anchor.
+const run = new Run(def, { seed, difficulty, aimAssist: 0.03, tools: def.tools ?? ["stabilizer"] });
 const B = run.body;
 let minHp = 1e9, hurtTotal = 0, falls = 0, lastPos = [0, 0, 0];
 const origHurt = run.hurt.bind(run);

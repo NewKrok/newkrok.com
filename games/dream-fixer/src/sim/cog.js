@@ -14,6 +14,7 @@ const SPEED = 10;          // m/s out and back
 const GRAB = 2.2;          // takes everything this close to what he went for
 const QUIET = 4;           // seconds without a bonk before he starts healing
 const SCOUT = 24;          // metres
+const CHARGE = 0.5;        // seconds his antenna glows before a spark goes
 
 export class Cog {
   constructor(run) {
@@ -24,6 +25,7 @@ export class Cog {
     this.target = null;    // the mote / drop he is flying to
     this.load = [];        // what he carries
     this.zapT = 1.5;
+    this.charging = null;  // { f, t }: a spark building up for a glitch
     this.healing = false;
     this.scout = null;     // the memory he points at
   }
@@ -51,6 +53,10 @@ export class Cog {
       }
     } else if (this.task === "back") {
       if (this.fly(b.x, b.y + 1.3, b.z, dt) < 1.4) this.drop(run);
+    } else if (this.charging) {
+      // Winding up a spark: he darts out between you and the glitch.
+      const f = this.charging.f;
+      this.fly(b.x + (f.px - b.x) * 0.35, Math.max(b.y + 1.6, f.cy + 1.2), b.z + (f.pz - b.z) * 0.35, dt, 6);
     } else this.fly(hx, hy, hz, dt, 3);
     this.load.forEach((o, i) => {
       const a = i * 2.4 + run.time * 4;
@@ -62,13 +68,23 @@ export class Cog {
     if (this.healing) run.hp = Math.min(run.maxHp, run.hp + P.heal * dt);
 
     // ── Zapping ──
-    if (P.zap && (this.zapT -= dt) <= 0) {
+    // The antenna glows and crackles for a moment first (so you see it
+    // coming), then the spark jumps to the glitch and jolts it.
+    if (this.charging) {
+      const c = this.charging, f = c.f;
+      if (!f.alive) { this.charging = null; this.zapT = 0.3; }
+      else if ((c.t -= dt) <= 0) {
+        this.charging = null;
+        const dx = f.px - this.x, dz = f.pz - this.z, l = Math.hypot(dx, dz) || 1;
+        run.events.push({ type: "cogZap", from: [this.x, this.y, this.z], to: [f.px, f.cy, f.pz], id: f.id });
+        if (damageFoe(run, f, P.zap.damage, dx / l * 2, dz / l * 2, true)) run.stats.popped++;
+        this.zapT = P.zap.every;
+      }
+    } else if (P.zap && !this.task && (this.zapT -= dt) <= 0) {
       const f = this.zapTarget(run, P.zap.range);
       if (f) {
-        const dx = f.px - this.x, dz = f.pz - this.z, l = Math.hypot(dx, dz) || 1;
-        run.events.push({ type: "cogZap", from: [this.x, this.y, this.z], to: [f.px, f.cy, f.pz] });
-        if (damageFoe(run, f, P.zap.damage, dx / l, dz / l, false)) run.stats.popped++;
-        this.zapT = P.zap.every;
+        this.charging = { f, t: CHARGE };
+        run.events.push({ type: "cogCharge", id: f.id, x: f.px, y: f.cy, z: f.pz });
       } else this.zapT = 0.3;
     }
 

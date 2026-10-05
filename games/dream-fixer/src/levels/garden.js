@@ -41,7 +41,7 @@ export const garden = {
   unlockTool: { id: "umbrella", anchors: 1 },
   boss: { kind: "bigclock", x: 6, z: -43, arena: { minX: -4, maxX: 16, minZ: -49.5, maxZ: -36.5 }, seal: { minX: -9, maxX: 21, minZ: -53, maxZ: -33 } },
   skins: {},
-  // [id, x, z, y]: on the shed roof (a foam step), on the potting bench in
+  // [id, x, z, y]: on the shed roof (up a stack of crates), on the potting bench in
   // the greenhouse, under an apple tree at the back of the orchard, by the
   // signal box, on the little rock under it.
   memories: [["watch", 13, -9.2, 3.3], ["seeds", -36.5, -1.6, 1], ["hat", 46.5, 14.5, -3], ["ticket", -28.2, -24.6, 9], ["cutting", -34, -16, 4]],
@@ -110,8 +110,12 @@ export const garden = {
     for (const [x, z, w, d] of [[0, 9, 2.6, 16], [3, 0.5, 8, 2.6], [6, -9, 2.6, 17]]) deco(k, x, z, w, d, -0.2, 0.04, PATH);
     // Vegetable beds (low enough to step onto).
     for (const [x, z, seed] of [[-9, -5, 1], [-9, 1, 2], [-9, 7, 3], [-3, -5, 4], [-3, -11, 5]]) k.prop("raisedBed", x, z, { opts: { seed }, collide: { w: 4, d: 2.4, h: 0.4 } });
-    // The shed, its roof a foam step up (a memory waits there).
+    // The shed, its roof up a stack of crates (a memory waits there).
     k.prop("shed", 13, -9, { yaw: -Math.PI / 2, collide: { w: 4, d: 3.4, h: 3.2 } });
+    const CR = { w: 1.08, d: 1.08, h: 1.08 };
+    k.prop("crate", 9.5, -11.1, { yaw: 0.1, opts: { seed: 7, s: 1.35 }, collide: CR });
+    k.prop("crate", 10.6, -10.0, { yaw: -0.05, opts: { seed: 8, s: 1.35 }, collide: CR });
+    k.prop("crate", 10.6, -10.0, { y: 1.08, yaw: 0.2, opts: { seed: 9, s: 1.35 }, collide: CR });
     k.prop("wateringPot", 10.4, -7.2, {});
     // Roses along the south edge, a bench, a lamp or two.
     for (const [x, z, seed] of [[-6, 15, 1], [-10, 14, 2], [6, 15, 3], [10, 14.5, 4], [-16, 11, 5], [16, 11, 6]]) k.prop("roseBush", x, z, { opts: { seed }, collide: { r: 0.6, h: 1 } });

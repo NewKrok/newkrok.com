@@ -1,6 +1,6 @@
 import { DT } from "./config.js";
 import { loadSettings, saveSettings, loadProgress, saveProgress, resetProgress } from "./storage.js";
-import { setLang, detectLang, hasLine } from "./i18n/index.js";
+import { setLang, detectLang, hasLine, t } from "./i18n/index.js";
 import { Input } from "./input/index.js";
 import { Hud } from "./hud.js";
 import { Run } from "./sim/run.js";
@@ -14,6 +14,7 @@ import { Director } from "./story/director.js";
 import { Menus } from "./ui/menus.js";
 import { PadNav } from "./ui/padnav.js";
 import { UPGRADES, ITEMS, level, nextCost, pocketFor, isLocked } from "./data/upgrades.js";
+import { XP, rankFor, checkAchievements } from "./data/progression.js";
 import { track } from "./analytics.js";
 
 // ── Boot ─────────────────────────────────────────────────────────────────
@@ -47,16 +48,22 @@ async function startGame() {
   const padNav = new PadNav(app, audio);
 
   const save = () => saveProgress(progress);
-  const runOpts = (def) => ({
-    difficulty: settings.difficulty,
+  // A dream is played normal, or (once fixed) in deep sleep: hard.
+  const runOpts = (def, hard = false) => ({
+    difficulty: hard ? "hard" : "normal",
     aimAssist: settings.aimAssist ? (input.isTouch ? 0.045 : input.usingPad ? 0.035 : 0.015) : 0,
     autoFire: settings.autoFire && input.isTouch,
     upgrades: progress.upgrades,
     items: progress.items,
     memoriesFound: progress.memories,
     noTools: !!def.hub,
-    // The tools you have earned (a test level brings its own).
-    tools: def.hub ? ["stabilizer"] : [...(def.tools ?? progress.tools)].sort((a, b) => TOOL_ORDER.indexOf(a) - TOOL_ORDER.indexOf(b)),
+    // A dream starts with the Stabilizer only: its own tool comes down
+    // after the first anchor (a test level brings its own).
+    tools: [...(def.tools ?? ["stabilizer"])].sort((a, b) => TOOL_ORDER.indexOf(a) - TOOL_ORDER.indexOf(b)),
+    // The Factory hangs up what you have done (fixed dreams, trophies).
+    progress,
+    // Dropping into a dream: the arrival.
+    arrive: !def.hub,
   });
 
   let run = null;
@@ -64,9 +71,11 @@ async function startGame() {
   let expectUnlock = false;
   const inDream = () => run && !run.def.hub;
 
-  function startLevel(id) {
+  let runXp = 0;
+  function startLevel(id, hard = false) {
     const def = LEVELS[id];
-    run = new Run(def, runOpts(def));
+    run = new Run(def, runOpts(def, hard));
+    runXp = 0;
     view.load(run);
     director.begin(run, progress);
     progress.justBack = false;
@@ -74,8 +83,12 @@ async function startGame() {
     hud.clear();
     input.touch.ui.classList.toggle("hub", !!def.hub);
     if (def.hub) run.dust = progress.dust;      // the purse, shown in the HUD
+    // A job taken: Cog flies over to the lift to show the way.
+    if (def.hub && progress.picked) run.guide = run.kit.marks.lift;
+    hud.rank(progress.xp);
     audio.setSong(def.song ?? id);
-    if (!def.hub && !def.dev) track("dream_start", { dream: id });
+    if (!def.hub) audio.play("arrive");
+    if (!def.hub && !def.dev) track("dream_start", { dream: id, hard });
   }
 
   // ── Screens ──
@@ -111,29 +124,48 @@ async function startGame() {
     });
   };
 
-  const liveOpts = () => ({ difficulty: settings.difficulty, aimAssist: runOpts(run.def).aimAssist, autoFire: runOpts(run.def).autoFire });
+  const liveOpts = () => ({ aimAssist: runOpts(run.def).aimAssist, autoFire: runOpts(run.def).autoFire });
   const showSettings = (back) => menus.settings(settings, {
     onChange: (k, v) => {
       settings[k] = v;
       saveSettings(settings);
-      if (k === "lang") { setLang(v); hud.destroy(); hud = new Hud(app); hud.hub(!!run?.def.hub); showSettings(back); }
+      if (k === "lang") { setLang(v); hud.destroy(); hud = new Hud(app); hud.hub(!!run?.def.hub); hud.rank(progress.xp); showSettings(back); }
       if (k === "master" || k === "sfx" || k === "music") audio.setVolumes(settings);
       if (k === "voiceVol" || k === "master") dialog.voice.setVolume();
       if (k === "voice" && !v) dialog.voice.stop();
       if (k === "quality") view.setQuality(v);
-      if (k === "difficulty" || k === "aimAssist" || k === "autoFire") Object.assign(run.opts, liveOpts());
+      if (k === "aimAssist" || k === "autoFire") Object.assign(run.opts, liveOpts());
     },
     onBack: back,
     onReset: () => { resetProgress(progress); startLevel("factory"); showTitle(); },
   });
 
   // Dust gathered in a dream is kept even if you leave early (not from a test level).
-  const bankDust = () => { if (inDream() && !run.def.dev && !run.banked) { progress.dust += run.dust; run.banked = true; save(); } };
+  const bankDust = () => { if (inDream() && !run.def.dev && !run.banked) { progress.dust += run.dust; progress.stats.dust += run.dust; run.banked = true; achieve(); save(); } };
+
+  // ── Rank and achievements ──
+  // Experience is counted as it comes (not from a test level); a rank up
+  // says so at once, and so does an achievement.
+  const counts = () => inDream() && !run.def.dev;
+  function gainXp(n) {
+    if (!counts()) return;
+    n = Math.round(n * (run.opts.difficulty === "hard" ? XP.hard : 1));
+    const before = rankFor(progress.xp);
+    progress.xp += n; runXp += n;
+    hud.rank(progress.xp, n);
+    if (rankFor(progress.xp) > before) { hud.banner(t("rankUp", { n: rankFor(progress.xp) }), true); audio.play("rankUp"); achieve(); save(); }
+  }
+  function achieve(ctx) {
+    const got = checkAchievements(progress, ctx);
+    for (const id of got) { menus.achievement(id); audio.play("achievement"); track("achievement", { id }); }
+    if (got.length) save();
+  }
 
   const showPause = () => menus.pause({
     inDream: inDream(),
     onResume: resume,
     onJournal: () => menus.journal(progress, { onClose: showPause }),
+    onAchievements: () => menus.achievements(progress, { onClose: showPause }),
     onSettings: () => showSettings(showPause),
     onFactory: () => { bankDust(); menus.close(); menus.fade(() => startLevel("factory")); resume(); },
     onMain: () => { bankDust(); startLevel("factory"); showTitle(); },
@@ -153,7 +185,7 @@ async function startGame() {
   let lastRadio = null;
   function interact(id) {
     if (id === "board") openMenu(() => menus.board(progress, {
-      onTake: (level) => { progress.picked = level; save(); dialog.say("hub_picked"); resume(); },
+      onTake: (level, hard) => { progress.picked = level; progress.pickedHard = hard; save(); run.guide = run.kit.marks.lift; dialog.say("hub_picked"); resume(); },
       onClose: resume,
     }));
     else if (id === "bench") {
@@ -164,8 +196,8 @@ async function startGame() {
           const u = UPGRADES.find((x) => x.id === id), it = ITEMS.find((x) => x.id === id);
           const cost = u ? nextCost(u, progress.upgrades) : it?.cost;
           if (cost == null || progress.dust < cost) return;
+          if (isLocked(u ?? it, progress)) return;
           if (u) {
-            if (isLocked(u, progress)) return;
             progress.upgrades[id] = level(progress.upgrades, id) + 1;
           } else {
             const n = progress.items[id] || 0;
@@ -176,34 +208,50 @@ async function startGame() {
           run.dust = progress.dust;
           audio.play("buy");
           track(u ? "upgrade" : "kit_buy", { id, level: u ? progress.upgrades[id] : undefined });
+          achieve();
           open();
         },
         onClose: resume,
       });
       openMenu(open);
     } else if (id === "journal") openMenu(() => menus.journal(progress, { onClose: resume }));
+    else if (id === "trophies") openMenu(() => menus.achievements(progress, { onClose: resume }));
     else if (id === "radio") {
       // Margo picks up with one of her lines, never the same one twice running.
       const all = ["hub_radio"];
       for (let i = 2; hasLine(`hub_radio_${i}`); i++) all.push(`hub_radio_${i}`);
       const pool = all.filter((x) => x !== lastRadio);
       lastRadio = pool[Math.floor(Math.random() * pool.length)];
-      if (!dialog.busy) dialog.say(lastRadio, true);
+      if (!dialog.busy) { dialog.say(lastRadio, true); progress.stats.radio++; achieve(); save(); }
     }
     else if (id === "lift") {
       if (!progress.picked) { dialog.say("hub_nojob", true); return; }
-      const lvl = progress.picked;
-      menus.fade(() => startLevel(lvl), 400);
+      const lvl = progress.picked, hard = !!progress.pickedHard;
+      menus.fade(() => startLevel(lvl, hard), 400);
     }
   }
 
   function onEvents(events) {
     for (const e of events) {
       hud.onEvent(e);
+      // Experience, lifetime counters, achievements.
+      if (counts()) {
+        const S = progress.stats;
+        if ((e.type === "pop" && !e.calm) || e.type === "catch") { S.popped++; gainXp(e.big ? XP.big : XP.small); }
+        else if (e.type === "anchorFixed") { S.anchors++; gainXp(XP.anchor); save(); }
+        else if (e.type === "bossPop") { S.bosses++; gainXp(XP.boss); }
+        else if (e.type === "memory") gainXp(XP.memory);
+        else if (e.type === "cogZap") S.zaps++;
+        else if (e.type === "itemUse") S.kit++;
+        else if (e.type === "faint") S.faints++;
+        else if (e.type === "respawn" && !e.pulled) S.falls++;
+        if (["pop", "catch", "cogZap", "itemUse", "respawn", "anchorFixed", "bossPop", "bossClog", "penBlot", "cookerLid", "bigclockUnwound", "moonTethered"].includes(e.type)) achieve({ event: e });
+      }
       if (e.type === "interact") interact(e.id);
       else if (e.type === "memory") {
         menus.memory(e.id);
         if (!progress.memories.includes(e.id)) { progress.memories.push(e.id); save(); }
+        if (counts()) achieve();
       } else if (e.type === "toolUnlocked" && !run.def.dev && !progress.tools.includes(e.tool)) { progress.tools.push(e.tool); save(); }
       else if (e.type === "itemUse" && !run.def.dev) {
         progress.items[e.id] = Math.max(0, (progress.items[e.id] || 0) - 1); save();
@@ -211,19 +259,23 @@ async function startGame() {
       }
       else if (e.type === "dreamFixed") {
         const id = run.def.id;
+        if (!run.def.dev) gainXp(XP.fixed);
         bankDust();
         if (!progress.done.includes(id)) progress.done.push(id);
+        if (run.opts.difficulty === "hard" && !progress.hard.includes(id)) progress.hard.push(id);
+        if (!run.def.dev) achieve({ fixed: run });
         progress.picked = null; progress.night = (progress.night || 0) + 1;
         save();
         track("dream_fixed", { dream: id, time: Math.round(run.time), faints: run.faints });
-        const done = run;
+        const done = run, xp = runXp, hard = run.opts.difficulty === "hard";
         setTimeout(() => openMenu(() => menus.result(done, {
+          xp,
           onFactory: () => {
             menus.close();
             menus.fade(() => { startLevel("factory"); progress.justBack = true; director.begin(run, progress); progress.justBack = false; });
             resume();
           },
-          onAgain: () => { menus.close(); menus.fade(() => startLevel(id)); resume(); },
+          onAgain: () => { menus.close(); menus.fade(() => startLevel(id, hard)); resume(); },
         })), 1500);
       }
     }

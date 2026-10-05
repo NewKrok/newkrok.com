@@ -1,5 +1,6 @@
-import { t, LANGS, getLang, memoryText, outroText, line, noteText } from "../i18n/index.js";
-import { UPGRADES, ITEMS, TABS, level, maxLevel, nextCost, pocketFor, isLocked } from "../data/upgrades.js";
+import { t, LANGS, getLang, memoryText, outroText, noteText, storyText } from "../i18n/index.js";
+import { UPGRADES, ITEMS, TABS, level, maxLevel, nextCost, pocketFor, lockOf } from "../data/upgrades.js";
+import { ACHIEVEMENTS, rankFor, rankProgress } from "../data/progression.js";
 import { ITEM_ICONS } from "./icons.js";
 import { CLIENTS, MEMORY_OWNER, isOpen, memoriesOf } from "../levels/index.js";
 
@@ -66,14 +67,15 @@ export class Menus {
     this.show("howto", `<div class="panel wide prose"><h2>${esc(t("howto"))}</h2>${t("howto_text")}<div class="actions"><button class="btn" data-a="back">${esc(t("back"))}</button></div></div>`, { back: onBack }, "dim");
   }
 
-  pause({ inDream, onResume, onJournal, onSettings, onFactory, onMain }) {
+  pause({ inDream, onResume, onJournal, onAchievements, onSettings, onFactory, onMain }) {
     this.show("pause", `<div class="panel narrow"><h2>${esc(t("paused"))}</h2><div class="menu-buttons">
       <button class="btn big" data-a="resume">${esc(t("resume"))}</button>
       <button class="btn ghost" data-a="journal">${esc(t("journal"))}</button>
+      <button class="btn ghost" data-a="achievements">${esc(t("achievements"))}</button>
       <button class="btn ghost" data-a="settings">${esc(t("settings"))}</button>
       ${inDream ? `<button class="btn ghost" data-a="factory">${esc(t("toFactory"))}</button>` : ""}
       <button class="btn ghost" data-a="main">${esc(t("mainMenu"))}</button></div></div>`,
-    { resume: onResume, journal: onJournal, settings: onSettings, factory: onFactory, main: onMain }, "dim");
+    { resume: onResume, journal: onJournal, achievements: onAchievements, settings: onSettings, factory: onFactory, main: onMain }, "dim");
   }
 
   settings(S, { onChange, onBack, onReset }) {
@@ -96,7 +98,6 @@ export class Menus {
       <label class="row"><span>${esc(t("set_assist"))}</span>${check("aimAssist")}</label>
       <label class="row"><span>${esc(t("set_auto"))}</span>${check("autoFire")}</label>
       <h3>${esc(t("set_game"))}</h3>
-      <div class="row"><span>${esc(t("set_diff"))}</span>${seg("difficulty", [["easy", t("d_easy")], ["normal", t("d_normal")], ["hard", t("d_hard")]])}</div>
       <div class="row"><span>${esc(t("set_quality"))}</span>${seg("quality", [["high", t("q_high")], ["low", t("q_low")]])}</div>
       <label class="row"><span>${esc(t("set_shake"))}</span>${check("shake")}</label>
       <h3>${esc(t("set_progress"))}</h3>
@@ -114,44 +115,61 @@ export class Menus {
     for (const i of el.querySelectorAll("input[data-set]")) i.addEventListener("input", () => onChange(i.dataset.set, i.type === "checkbox" ? i.checked : Number(i.value)));
   }
 
-  // The journal: every radio line heard so far, chapter by chapter (the
-  // Factory, then each dream), and the memories found, to read at leisure.
+  // The journal: the story so far, chapter by chapter (the Factory, then
+  // each dream), a paragraph for each step you have got to; under it the
+  // memories found and the notes (the how-tos the radio leaves out).
   journal(progress, { onClose }) {
+    const P = progress, heard = (id) => P.log.includes(id);
     const chapters = [["hub", t("j_factory")], ...CLIENTS.filter((c) => c.level).map((c) => [c.id, t(`c_${c.id}`)[0]])];
-    const who = (w) => t(w === "csavar" ? "csavar" : "margo");
-    const sections = chapters.map(([pre, title]) => {
-      const lines = progress.log.filter((id) => id.startsWith(pre + "_"));
-      const mems = memoriesOf(pre);
-      if (!lines.length && !mems.some((m) => progress.memories.includes(m))) return "";
-      const talk = lines.map((id) => { const [w, text] = line(id); return `<p class="jl ${w}"><b>${esc(who(w))}</b> ${esc(text)}</p>`; }).join("");
+    const sections = chapters.map(([id, title]) => {
+      const beats = id === "hub" ? [["first", heard("hub_intro1") || P.done.length > 0]]
+        : [["arrive", heard(`${id}_in1`) || P.done.includes(id)], ["tool", heard(`${id}_fix1`) || P.done.includes(id)], ["boss", heard(`${id}_boss`) || P.done.includes(id)], ["fixed", P.done.includes(id)]];
+      const story = beats.filter(([, on]) => on).map(([b]) => `<p class="js">${esc(storyText(`${id}_${b}`))}</p>`).join("");
+      if (!story) return "";
+      const mems = memoriesOf(id);
       const found = mems.map((m) => {
-        if (!progress.memories.includes(m)) return `<li class="missing"><b>???</b></li>`;
+        if (!P.memories.includes(m)) return `<li class="missing"><b>???</b></li>`;
         const [ti, tx] = memoryText(m);
         return `<li><b>${esc(ti)}</b> ${esc(tx)}</li>`;
       }).join("");
-      // Notes: the how-tos the radio leaves out, unlocked by its lines.
-      const notes = lines.map((id) => noteText(id)).filter(Boolean).map(([ti, tx]) => `<li><b>${esc(ti)}</b> ${esc(tx)}</li>`).join("");
-      return `<section class="jch"><h3>${esc(title)}</h3>${talk}${notes ? `<h4>${esc(t("j_notes"))}</h4><ul class="jnotes">${notes}</ul>` : ""}${mems.length ? `<h4>${esc(t("memories"))} ${mems.filter((m) => progress.memories.includes(m)).length}/${mems.length}</h4><ul class="jmem">${found}</ul>` : ""}</section>`;
+      const notes = P.log.filter((l) => l.startsWith(id + "_")).map((l) => noteText(l)).filter(Boolean).map(([ti, tx]) => `<li><b>${esc(ti)}</b> ${esc(tx)}</li>`).join("");
+      const more = id !== "hub" && !P.done.includes(id) ? `<p class="jmore">${esc(t("j_more"))}</p>` : "";
+      return `<section class="jch"><h3>${esc(title)}</h3>${story}${more}${mems.length ? `<h4>${esc(t("memories"))} ${mems.filter((m) => P.memories.includes(m)).length}/${mems.length}</h4><ul class="jmem">${found}</ul>` : ""}${notes ? `<details class="jnotes"><summary>${esc(t("j_notes"))}</summary><ul>${notes}</ul></details>` : ""}</section>`;
     }).join("");
     const el = this.show("journal", `<div class="panel wide journal"><h2>${esc(t("journal"))}</h2><div class="jbody">${sections || `<p class="intro">${esc(t("j_empty"))}</p>`}</div>
       <div class="actions"><button class="btn" data-a="close">${esc(t("close"))}</button></div></div>`, { close: onClose }, "dim");
-    // Open at the latest page.
-    const body = el.querySelector(".jbody");
-    if (body) body.scrollTop = body.scrollHeight;
+    // Open at the latest chapter.
+    const body = el.querySelector(".jbody"), last = body?.querySelector(".jch:last-of-type");
+    if (body && last) body.scrollTop = last.offsetTop - body.offsetTop;
   }
 
+  // The achievements: earned ones lit, the rest greyed out with what they ask.
+  achievements(progress, { onClose }) {
+    const got = ACHIEVEMENTS.filter((a) => progress.ach[a.id]).length;
+    const rows = ACHIEVEMENTS.map((a) => {
+      const [name, desc] = t(`a_${a.id}`), on = !!progress.ach[a.id];
+      return `<li class="ach ${on ? "on" : ""}"><i>${on ? a.icon : "?"}</i><div><b>${esc(name)}</b><p>${esc(desc)}</p></div></li>`;
+    }).join("");
+    this.show("achievements", `<div class="panel wide achs"><div class="bhead"><h2>${esc(t("achievements"))}</h2><div class="purse">${esc(t("ach_count", { n: got, of: ACHIEVEMENTS.length }))}</div></div>
+      <ul class="achlist">${rows}</ul><div class="actions"><button class="btn" data-a="close">${esc(t("close"))}</button></div></div>`, { close: onClose }, "dim");
+  }
+
+  // The job board. A dream fixed once can be taken again, as it was or in
+  // deep sleep (hard).
   board(progress, { onTake, onClose }) {
     const cards = CLIENTS.map((c) => {
       const [name, desc] = t(`c_${c.id}`);
       if (!isOpen(c, progress)) return `<div class="client locked"><div class="photo q">?</div><div class="info"><b>${esc(name)}</b><p>${esc(desc)}</p><span class="tag">${esc(t("board_next"))}</span></div></div>`;
-      const done = progress.done.includes(c.id), found = progress.memories.filter((m) => MEMORY_OWNER[m] === c.id).length;
-      const taken = progress.picked === c.level;
+      const done = progress.done.includes(c.id), hard = progress.hard?.includes(c.id), found = progress.memories.filter((m) => MEMORY_OWNER[m] === c.id).length;
+      const taken = progress.picked === c.level, takenHard = taken && progress.pickedHard;
+      const btn = `<button class="btn ${taken && !takenHard ? "ghost" : ""}" data-a="take" data-level="${c.level}">${esc(taken && !takenHard ? t("board_taken") : done ? t("board_again") : t("board_take"))}</button>`;
+      const hardBtn = done ? `<button class="btn hard ${takenHard ? "ghost" : ""}" data-a="hard" data-level="${c.level}" title="${esc(t("board_hardTip"))}">${esc(takenHard ? t("board_hardTaken") : t("board_hard"))}</button>` : "";
       return `<div class="client ${done ? "done" : "new"}"><div class="photo ${c.id === "park" ? "paw" : c.id}"></div><div class="info"><b>${esc(name)}</b><p>${esc(desc)}</p>
-        <span class="tag">${esc(done ? t("board_fixed") : t("board_new"))}</span> <span class="tag soft">${esc(t("memories"))} ${found}/${memoriesOf(c.level).length}</span></div>
-        <button class="btn ${taken ? "ghost" : ""}" data-a="take" data-level="${c.level}">${esc(taken ? t("board_taken") : done ? t("board_again") : t("board_take"))}</button></div>`;
+        <span class="tag">${esc(done ? t("board_fixed") : t("board_new"))}</span> ${hard ? `<span class="tag hard">${esc(t("board_hardDone"))}</span> ` : ""}<span class="tag soft">${esc(t("memories"))} ${found}/${memoriesOf(c.level).length}</span>${done ? `<p class="hardtip">${esc(t("board_hardTip"))}</p>` : ""}</div>
+        <div class="takes">${btn}${hardBtn}</div></div>`;
     }).join("");
     this.show("board", `<div class="panel wide board"><h2>${esc(t("board_title"))}</h2><div class="clients">${cards}</div><div class="actions"><button class="btn ghost" data-a="close">${esc(t("close"))}</button></div></div>`,
-      { take: (b) => onTake(b.dataset.level), close: onClose }, "dim");
+      { take: (b) => onTake(b.dataset.level, false), hard: (b) => onTake(b.dataset.level, true), close: onClose }, "dim");
   }
 
   // The workbench: a page per tab, the goods on the left, the one picked
@@ -159,6 +177,9 @@ export class Menus {
   // and the buy button. Redrawn after every pick and purchase.
   bench(progress, { onBuy, onClose }) {
     const st = this.benchState ??= { tab: "tools", sel: null };
+    // A redraw keeps the list (and the panel) scrolled where it was.
+    const old = this.open === "bench" ? this.el.querySelector(".tiles") : null, keep = old ? [old.scrollTop, this.el.querySelector(".bench")?.scrollTop ?? 0, st.tab] : null;
+    const rank = rankFor(progress.xp), [have, need] = rankProgress(progress.xp);
     const own = progress.upgrades, items = progress.items ?? {}, pocket = pocketFor(own);
     const entries = st.tab === "kit" ? ITEMS.map((it) => ({ ...it, item: true })) : UPGRADES.filter((u) => u.tab === st.tab);
     const cur = entries.find((e) => e.id === st.sel) ?? entries[0];
@@ -178,12 +199,15 @@ export class Menus {
         const n = items[e.id] || 0;
         right = `<span class="cnt">${n}/${pocket}</span><span class="pr">${e.cost} ✦</span>`;
         if (n >= pocket) cls = "full";
+        if (lockOf(e, progress)) { cls = "locked"; right = `<span class="pr rk">${esc(t("rank", { n: e.rank }))}</span>`; }
       } else {
         const l = level(own, e.id), max = maxLevel(e), cost = nextCost(e, own);
         const pips = Array.from({ length: max }, (_, i) => `<i class="${i < l ? "on" : ""}"></i>`).join("");
         right = `<span class="pips">${pips}</span><span class="pr">${cost === null ? esc(t("bench_max")) : `${cost} ✦`}</span>`;
         if (cost === null) cls = "maxed";
-        if (isLocked(e, progress)) cls = "locked";
+        const lock = cost === null ? null : lockOf(e, progress);
+        if (lock) cls = "locked";
+        if (lock?.rank) right = `<span class="pips">${pips}</span><span class="pr rk">${esc(t("rank", { n: lock.rank }))}</span>`;
       }
       const ico = e.item ? `<i class="ico kit">${ITEM_ICONS[e.id]}</i>` : `<i class="ico ${e.group ?? e.tab}"></i>`;
       return `${head}<button class="tile ${cls} ${e.id === cur.id ? "sel" : ""}" data-a="pick" data-id="${e.id}">${ico}<span class="nm">${esc(name)}</span>${right}</button>`;
@@ -195,19 +219,21 @@ export class Menus {
       const n = items[cur.id] || 0;
       meta = t("bench_have", { n, of: pocket });
       stat = `<div class="stat"><span>${esc(t("bench_use"))}</span><b><kbd>${cur.key}</kbd> · <kbd>${cur.pad}</kbd></b></div>`;
-      buy = n >= pocket ? `<span class="tag soft">${esc(t("bench_full"))}</span>`
+      buy = lockOf(cur, progress) ? `<span class="tag soft">${esc(t("bench_rank", { n: cur.rank }))}</span>`
+        : n >= pocket ? `<span class="tag soft">${esc(t("bench_full"))}</span>`
         : `<button class="btn ${progress.dust >= cur.cost ? "" : "disabled"}" data-a="buy" data-id="${cur.id}">${esc(t("bench_buy"))} · ${cur.cost} ✦</button>`;
     } else {
-      const l = level(own, cur.id), max = maxLevel(cur), cost = nextCost(cur, own), locked = isLocked(cur, progress);
+      const l = level(own, cur.id), max = maxLevel(cur), cost = nextCost(cur, own), lock = cost === null ? null : lockOf(cur, progress);
       meta = t("bench_level", { n: l, of: max });
       const now = cur.stat(l), next = cost === null ? null : cur.stat(l + 1);
       stat = `<div class="stat"><span>${esc(t(`st_${cur.id}`))}</span><b>${esc(now)}${next === null ? "" : ` <em>→ ${esc(next)}</em>`}</b></div>`;
-      buy = locked ? `<span class="tag soft">${esc(t(`bench_locked_${cur.needs}`))}</span>`
+      buy = lock?.tool ? `<span class="tag soft">${esc(t(`bench_locked_${cur.needs}`))}</span>`
+        : lock?.rank ? `<span class="tag soft">${esc(t("bench_rank", { n: lock.rank }))}</span>`
         : cost === null ? `<span class="tag">${esc(t("bench_max"))}</span>`
         : `<button class="btn ${progress.dust >= cost ? "" : "disabled"}" data-a="buy" data-id="${cur.id}">${esc(t(l ? "bench_upgrade" : "bench_buy"))} · ${cost} ✦</button>`;
     }
     const el = this.show("bench", `<div class="panel wide bench">
-      <div class="bhead"><h2>${esc(t("bench_title"))}</h2><div class="purse">✦ <b>${progress.dust}</b></div></div>
+      <div class="bhead"><h2>${esc(t("bench_title"))}</h2><div class="rankbox"><b>${esc(t("rank", { n: rank }))}</b><div class="xpbar"><i style="transform:scaleX(${need ? (have / need).toFixed(3) : 1})"></i></div><small>${esc(need ? t("xpLine", { have, need }) : t("xpMax"))}</small></div><div class="purse">✦ <b>${progress.dust}</b></div></div>
       <p class="intro">${esc(t("bench_intro"))}</p>
       <div class="seg tabs">${tabs}</div>
       <div class="bgrid"><div class="tiles">${tiles}</div>
@@ -219,6 +245,7 @@ export class Menus {
       buy: (b) => onBuy(b.dataset.id),
       close: onClose,
     }, "dim");
+    if (keep && keep[2] === st.tab) { el.querySelector(".tiles").scrollTop = keep[0]; el.querySelector(".bench").scrollTop = keep[1]; }
     if (this.preview) {
       this.preview.mount(el.querySelector(".pv"));
       this.preview.show(cur.model, cur.glow);
@@ -229,13 +256,14 @@ export class Menus {
     }
   }
 
-  result(run, { onFactory, onAgain }) {
+  result(run, { onFactory, onAgain, xp = 0 }) {
     const s = run.stats, m = Math.floor(run.time / 60), sec = String(Math.floor(run.time % 60)).padStart(2, "0");
     const mems = run.memories.filter((x) => x.got).length;
-    this.show("result", `<div class="panel narrow result-card"><h2>${esc(t("dreamFixed"))}</h2><p>${esc(t(`dreamFixedSub_${run.def.id}`) === `dreamFixedSub_${run.def.id}` ? t("dreamFixedSub") : t(`dreamFixedSub_${run.def.id}`))}</p><p class="outro">${esc(outroText(run.def.id))}</p><table>
+    this.show("result", `<div class="panel narrow result-card"><h2>${esc(t("dreamFixed"))}</h2>${run.opts.difficulty === "hard" ? `<span class="tag hard">${esc(t("hardTag"))}</span>` : ""}<p>${esc(t(`dreamFixedSub_${run.def.id}`) === `dreamFixedSub_${run.def.id}` ? t("dreamFixedSub") : t(`dreamFixedSub_${run.def.id}`))}</p><p class="outro">${esc(outroText(run.def.id))}</p><table>
       <tr><td>${esc(t("r_time"))}</td><td>${m}:${sec}</td></tr><tr><td>${esc(t("r_dust"))}</td><td>+${run.dust} ✦</td></tr>
       <tr><td>${esc(t("memories"))}</td><td>${mems}/${run.memories.length}</td></tr>
-      <tr><td>${esc(t("r_popped"))}</td><td>${s.popped}</td></tr><tr><td>${esc(t("r_faints"))}</td><td>${run.faints}</td></tr></table>
+      <tr><td>${esc(t("r_popped"))}</td><td>${s.popped}</td></tr><tr><td>${esc(t("r_faints"))}</td><td>${run.faints}</td></tr>
+      <tr><td>${esc(t("r_xp"))}</td><td>+${xp}</td></tr></table>
       <div class="menu-buttons"><button class="btn big" data-a="factory">${esc(t("toFactory"))}</button><button class="btn ghost" data-a="again">${esc(t("again"))}</button></div></div>`,
     { factory: onFactory, again: onAgain }, "dim");
   }
@@ -249,6 +277,17 @@ export class Menus {
     this.cards.appendChild(c);
     setTimeout(() => c.classList.add("out"), 7000);
     setTimeout(() => c.remove(), 7800);
+  }
+
+  // An achievement earned: a gold card slides in like a memory.
+  achievement(id) {
+    const a = ACHIEVEMENTS.find((x) => x.id === id), [name, desc] = t(`a_${id}`);
+    const c = document.createElement("div");
+    c.className = "memcard achcard";
+    c.innerHTML = `<div class="k">${esc(t("achGot"))}</div><b><i>${a?.icon ?? "★"}</i> ${esc(name)}</b><p>${esc(desc)}</p>`;
+    this.cards.appendChild(c);
+    setTimeout(() => c.classList.add("out"), 5500);
+    setTimeout(() => c.remove(), 6300);
   }
 
   // Fade to dark, run fn, fade back.
