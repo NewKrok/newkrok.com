@@ -42,6 +42,9 @@ const key = (o) => (o ? o.id ?? (o.orb ? "orb" : o.nozzle ? "nozzle" : "boss") :
 function pickTarget() {
   const s = run.spits.find((o) => !o.harmless && Math.hypot(o.x - B.x, o.z - B.z) < 6);
   if (s) return { px: s.x, cy: s.y, pz: s.z, orb: true };
+  // The Pressure Cooker's lid loose: that, before anything else.
+  const C = run.boss;
+  if (C?.alive && C.kind === "cooker" && C.state === "loose" && Math.hypot(C.x - B.x, C.z - B.z) < 12) { const [x, y, z] = C.hitSpheres()[1]; return { px: x, cy: y, pz: z, boss: true }; }
   let best = null, bd = 1e9, stone = null;
   for (const o of run.foes) {
     if (!o.alive || o.state === "spawn") continue;
@@ -59,7 +62,7 @@ function pickTarget() {
     if (S.state === "suck" && vac?.tank.length) return { px: S.nozzle[0], cy: S.nozzle[1], pz: S.nozzle[2], boss: true, nozzle: true };
     // The Red Pen: foam on its nib till it is blotted, then shoot.
     const foam = run.tools[toolIndex("foam")];
-    if (S.kind === "pen" && S.state !== "blotted" && !(S.guardT > 0) && foam && !foam.overheated && Math.hypot(S.x - B.x, S.z - B.z) < 11) { const [x, y, z] = S.hitSpheres()[0]; return { px: x, cy: y, pz: z, boss: true, nib: true }; }
+    if (S.kind === "pen" && S.state === "tired" && foam && !foam.overheated && Math.hypot(S.x - B.x, S.z - B.z) < 11) { const [x, y, z] = S.hitSpheres()[0]; return { px: x, cy: y, pz: z, boss: true, nib: true }; }
     // Its weakest spot (the highest damage multiplier).
     const [x, y, z] = S.hitSpheres().reduce((a, b) => (b[4] > a[4] ? b : a));
     return { px: x, cy: y, pz: z, boss: true };
@@ -73,7 +76,7 @@ function pickTarget() {
 function toolFor(tgt) {
   // The Pressure Cooker: ring its lid off with the bell, then shoot inside.
   const S = run.boss;
-  if (tgt?.boss && S?.kind === "cooker" && !S.lidOff && !(S.clampT > 0) && toolIndex("bell") >= 0 && !run.tools[toolIndex("bell")].overheated && Math.hypot(S.x - B.x, S.z - B.z) < 9) return "bell";
+  if (tgt?.boss && S?.kind === "cooker" && S.state === "loose" && toolIndex("bell") >= 0 && !run.tools[toolIndex("bell")].overheated && Math.hypot(S.x - B.x, S.z - B.z) < 9) return "bell";
   if (tgt?.nib) return "foam";
   // Something right in your face (not a flyer): the umbrella's gust.
   const umb = run.tools[toolIndex("umbrella")];
@@ -363,7 +366,7 @@ if (def.boss) {
     const S = run.boss, intent = {};
     // The Big Alarm Clock's key: close by, jump, a gust at your feet for a
     // lift, then a gust at the key.
-    if (S?.alive && S.kind === "bigclock" && S.state !== "unwound" && !(S.woundT > 0) && !S.invulnerable && keyTry(S)) continue;
+    if (S?.alive && S.kind === "bigclock" && S.state === "loose" && keyTry(S)) continue;
     // The Moon Lamp's pull-chain: the lasso, now and then, from a few metres.
     if (S?.alive && S.kind === "moon" && S.state === "doze" && chainTry(S)) continue;
     aimAndFire(intent);
@@ -372,11 +375,15 @@ if (def.boss) {
       // Back off while it sucks, circle otherwise; hop over the cord.
       let away = S.state === "suck" ? 1 : d < 6 ? 0.6 : d > 11 ? -0.6 : 0;
       // The Big Alarm Clock: close in for a go at its key (not while its hands sweep).
-      if (S.kind === "bigclock" && toolIndex("umbrella") >= 0 && S.state !== "sweep" && S.state !== "unwound") away = d < 2.4 ? 0.6 : d > 3.4 ? -0.9 : 0;
+      if (S.kind === "bigclock" && toolIndex("umbrella") >= 0 && S.state === "loose") away = d < 2.4 ? 0.6 : d > 3.4 ? -0.9 : 0;
+      // The Pressure Cooker's lid loose: in, within the bell's reach.
+      if (S.kind === "cooker" && S.state === "loose") away = d > 5 ? -1 : 0;
       // A strike lining up on you: step sideways out of its track.
       const side = S.state === "aim" ? 2 : 0.7;
       move(intent, dx / d * away + (-dz / d) * side, dz / d * away + (dx / d) * side);
       if (S.ring && Math.abs(d - S.ring.r) < 1.6 && B.grounded) { intent.jumpPressed = true; intent.jump = true; }
+      // Any ring running along the floor about to reach you: jump it.
+      if (B.grounded && run.shocks.some((r) => !r.hit && Math.hypot(B.x - r.x, B.z - r.z) - r.r < 1.4 && Math.hypot(B.x - r.x, B.z - r.z) > r.r)) { intent.jumpPressed = true; intent.jump = true; }
       // A steam jet sweeping round at you: jump it.
       if (S.jets?.some((a) => Math.abs(Math.atan2(Math.sin(Math.atan2(-(B.x - S.x), -(B.z - S.z)) - a), Math.cos(Math.atan2(-(B.x - S.x), -(B.z - S.z)) - a))) < 0.45) && d < 11 && B.grounded) { intent.jumpPressed = true; intent.jump = true; }
       // A spotlight on you: out of the circle.

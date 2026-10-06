@@ -20,18 +20,20 @@ import { Body } from "./player.js";
 // The Gust Umbrella is the trick: the winding key on top is out of reach
 // of anything but a gust from close by, so ride an updraft and come at it
 // from above. A gust on the key unwinds it: it stops dead for a few
-// seconds, its glass swings open, and its face takes far more damage
-// (wound up again, the key is stiff for a while).
+// seconds, its glass swings open, and its face takes far more damage.
+// Only while its key is loose, though: every few attacks it winds down a
+// little and stands, glass ajar; the rest of the time the key is stiff.
 // Anything else only clinks off the key.
 
 export const BIGCLOCK = {
-  hp: 190, r: 1.7, h: 5.4, key: 7,
+  hp: 160, r: 1.7, h: 5.4, key: 7,
   speed: [2.2, 2.9],
   ring: { wind: 1.4, rings: [3, 4], gap: 0.45, dmg: 9, max: 13, speed: 9, pulse: { max: 15, speed: 9, slow: 2.5 } },
   sweep: { wind: 0.9, turn: 1.9, len: 9.5, h: 1.1, dmg: 9, every: 0.5 },
   tiles: { warn: 1.5, down: 4, n: [3, 5], near: 8 },
   snooze: { n: 2, minions: 3 },
-  unwound: { time: 5.5, mul: 2.6, wound: 4 },
+  unwound: { time: 5.5, mul: 2.6 },
+  loose: { every: [3, 4], time: 6 },    // attacks between; how long the key stays loose
   faceMul: 1, bodyMul: 0.55,
 };
 
@@ -50,7 +52,8 @@ export class ClockBoss {
     this.yaw = 0;
     this.rise = 0;
     this.flash = 0;
-    this.woundT = 0;             // just wound up again: the key is stiff
+    this.attacks = 0;            // since its key was last loose
+    this.looseAfter = BIGCLOCK.loose.every[0];
     this.cd = 2;
     this.jets = [];              // the hands sweeping: angles round it
     this.bells = 0;              // how hard the bells shake (for the look)
@@ -103,8 +106,8 @@ export class ClockBoss {
   // The umbrella's gust: on the key, it unwinds.
   gusted(run, ax, az, part) {
     if (part !== "key" || !this.alive || this.invulnerable || this.state === "unwound") return;
-    // Just wound up again: the key is stiff for a while.
-    if (this.woundT > 0) { run.events.push({ type: "lockClink", x: this.x, y: this.y + BIGCLOCK.key, z: this.z }); return; }
+    // Stiff, unless it has worked loose.
+    if (this.state !== "loose") { run.events.push({ type: "lockClink", x: this.x, y: this.y + BIGCLOCK.key, z: this.z }); return; }
     this.jets = [];
     this.set("unwound");
     run.events.push({ type: "bigclockUnwound", x: this.x, y: this.y + BIGCLOCK.key, z: this.z });
@@ -129,7 +132,6 @@ export class ClockBoss {
     this.t += dt;
     this.flash = Math.max(0, this.flash - dt * 6);
     this.cd -= dt;
-    this.woundT = Math.max(0, this.woundT - dt);
     this.bells = Math.max(0, this.bells - dt * 2);
     const dx = P.x - b.x, dz = P.z - b.z, dist = Math.hypot(dx, dz) || 0.01;
     const toYou = Math.atan2(-dx, -dz);
@@ -209,10 +211,16 @@ export class ClockBoss {
         }
         if (this.t > 1.3) { this.set("roam"); this.cd = 1.6 + run.rnd(); }
         break;
+      case "loose":
+        // Winding down: it stands, glass ajar, its key loose.
+        turn(toYou, 0.8);
+        open = 0.3;
+        if (this.t > C.loose.time) { this.set("roam"); this.cd = 0.6; }
+        break;
       case "unwound":
         // Run down: stock still, the glass swung open.
         open = 1;
-        if (this.t > C.unwound.time) { this.woundT = C.unwound.wound; this.set("roam"); this.cd = 0.8; run.events.push({ type: "bigclockWound", x: b.x, z: b.z }); }
+        if (this.t > C.unwound.time) { this.set("roam"); this.cd = 0.8; run.events.push({ type: "bigclockWound", x: b.x, z: b.z }); }
         break;
       case "roar":
         this.bells = 1;
@@ -246,6 +254,15 @@ export class ClockBoss {
   }
 
   pickAttack(run, dist) {
+    // Every few attacks its key works loose.
+    if (this.attacks >= this.looseAfter) {
+      this.attacks = 0;
+      this.looseAfter = BIGCLOCK.loose.every[0] + Math.floor(run.rnd() * (BIGCLOCK.loose.every[1] - BIGCLOCK.loose.every[0] + 1));
+      this.set("loose");
+      run.events.push({ type: "bossWeak", kind: this.kind, x: this.x, z: this.z });
+      return;
+    }
+    this.attacks++;
     const minions = run.foes.filter((f) => f.alive && f.group === "boss").length;
     const r = run.rnd();
     let s = r < 0.27 ? "ring" : r < 0.52 ? "sweep" : r < 0.82 || minions >= BIGCLOCK.snooze.minions ? "timesup" : "snooze";

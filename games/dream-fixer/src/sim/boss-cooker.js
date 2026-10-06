@@ -12,25 +12,28 @@ import { Body } from "./player.js";
 //            where): don't be under it, and jump the ring it sends out
 //  beans     lifts its lid and lobs hot beans that splash where they land
 //  serve     two meatballs hop out from under the lid
+//  loose     after every few attacks the clamp slips: it stands rattling,
+//            the lid loose for a moment (the only time a ring shakes it)
 //  whistle   the gauge is in the red: it shakes and whistles, then blows,
 //            rings of steam running out all round
 //  (phase two, below half) faster, the pressure rises sooner, two jets
 //            at once, and a hop comes twice
 //
-// The Lullaby Bell is the trick: every ring rattles the lid (more so the
-// higher the pressure), and rattled enough the lid flies off. Open, it
-// lets off its pressure and takes far more damage, inside most of all,
-// until it gets its lid back on (clamped down hard then: for a while
-// rings only clink off it). The lullaby calms it: the pressure
+// The Lullaby Bell is the trick: while the lid is loose every ring rattles
+// it (more so the higher the pressure), and rattled enough the lid flies
+// off; clamped down, rings only clink off it. Open, it lets off its
+// pressure and takes far more damage, inside most of all, until it gets
+// its lid back on. The lullaby calms it: the pressure
 // halves and it goes slow for a moment.
 
 export const COOKER = {
-  hp: 170, r: 1.5, h: 2.6,
+  hp: 135, r: 1.5, h: 2.6,
   speed: [2.2, 3],
-  pressure: { rate: [1 / 13, 1 / 9], whistle: 2.2, rings: 2, gap: 0.5, dmg: 11, max: 16 },
+  pressure: { rate: [1 / 20, 1 / 14], whistle: 2.2, rings: 2, gap: 0.5, dmg: 9, max: 16 },
   rattle: { ring: 0.28, high: 0.4, dry: 0.14 },
-  open: { time: 4.5, mul: 2.2, clamp: 4 },
-  steam: { wind: 0.8, turn: 1.8, len: 11, h: 1.0, dmg: 8, every: 0.5 },
+  open: { time: 4.5, mul: 2.2 },
+  loose: { every: [3, 4], time: 5 },    // attacks between slips; how long the lid stays loose
+  steam: { wind: 0.8, turn: 1.8, len: 11, h: 1.0, dmg: 7, every: 0.5 },
   hop: { wind: 0.55, T: 0.95, ring: 9, dmg: 9, crush: 12 },
   beans: { n: 4, dmg: 7, splash: 1.6 },
   serve: { n: 2, minions: 3 },
@@ -58,7 +61,8 @@ export class CookerBoss {
     this.lidOff = false;
     this.lidUp = 0;              // lifted a little (beans, serve)
     this.slowT = 0;              // lulled
-    this.clampT = 0;             // lid back on: clamped down, rings only clink
+    this.attacks = 0;            // since the lid last slipped
+    this.looseAfter = COOKER.loose.every[0];
     this.jets = [];              // steam jets: angles round it
     this.mark = null;            // where a hop comes down
     this.hopY = 0;
@@ -104,7 +108,7 @@ export class CookerBoss {
   // The bell's ring: it rattles the lid (harder the higher the pressure).
   rung(run) {
     if (!this.alive || this.invulnerable || this.lidOff) return;
-    if (this.clampT > 0) { run.events.push({ type: "lockClink", x: this.x, y: this.y + 2.6, z: this.z }); return; }
+    if (this.state !== "loose") { run.events.push({ type: "lockClink", x: this.x, y: this.y + 2.6, z: this.z }); return; }
     const R = COOKER.rattle;
     this.rattle += R.ring + R.high * this.pressure;
     run.events.push({ type: "cookerRattle", x: this.x, y: this.y + 2.6, z: this.z, k: Math.min(1, this.rattle) });
@@ -143,7 +147,6 @@ export class CookerBoss {
     const b = this.body, P = run.body, C = COOKER;
     this.lx = b.x; this.ly = b.y + this.hopY; this.lz = b.z;
     this.slowT = Math.max(0, this.slowT - dt0);
-    this.clampT = Math.max(0, this.clampT - dt0);
     const dt = dt0 * (this.slowT > 0 ? 0.55 : 1);
     this.t += dt;
     this.flash = Math.max(0, this.flash - dt0 * 6);
@@ -249,6 +252,12 @@ export class CookerBoss {
         }
         if (this.t > 1.2) { this.set("roam"); this.cd = 1.6 + run.rnd(); }
         break;
+      case "loose":
+        // The clamp slipped: it stands rattling, the lid loose.
+        turn(toYou, 1);
+        lid = 0.25 + Math.abs(Math.sin(this.t * 17)) * 0.2;
+        if (this.t > C.loose.time) { this.rattle = 0; this.set("roam"); this.cd = 0.6; }
+        break;
       case "whistle":
         // In the red: it shakes and whistles. Then it blows.
         if (this.t > C.pressure.whistle) { this.set("blow"); this.rings = 0; }
@@ -265,7 +274,7 @@ export class CookerBoss {
       }
       case "open":
         // Lid off: steam pouring out, wide open. Then the lid goes back on.
-        if (this.t > C.open.time) { this.lidOff = false; this.clampT = C.open.clamp; this.rattle = 0; this.set("roam"); this.cd = 1; run.events.push({ type: "cookerLid", x: b.x, y: b.y + 2.6, z: b.z, off: false }); }
+        if (this.t > C.open.time) { this.lidOff = false; this.set("roam"); this.cd = 1; run.events.push({ type: "cookerLid", x: b.x, y: b.y + 2.6, z: b.z, off: false }); }
         break;
       case "roar":
         if (this.t > 0.5 && !this.fired) {
@@ -298,6 +307,15 @@ export class CookerBoss {
   }
 
   pickAttack(run, dist) {
+    // Every few attacks the clamp slips (not while the pressure blows).
+    if (this.attacks >= this.looseAfter) {
+      this.attacks = 0;
+      this.looseAfter = COOKER.loose.every[0] + Math.floor(run.rnd() * (COOKER.loose.every[1] - COOKER.loose.every[0] + 1));
+      this.set("loose");
+      run.events.push({ type: "bossWeak", kind: this.kind, x: this.x, z: this.z });
+      return;
+    }
+    this.attacks++;
     const minions = run.foes.filter((f) => f.alive && f.group === "boss").length;
     const r = run.rnd();
     let s = r < 0.3 ? "steam" : r < 0.55 ? "hop" : r < 0.8 || minions >= COOKER.serve.minions ? "beans" : "serve";
