@@ -3,13 +3,13 @@
 // to one and press use to start tuning it; the tuning runs while you stay
 // inside its ring, and the glitches it shakes loose come at you in waves.
 // Once it is tuned it holds until you have beaten what its waves brought
-// (inside the ring or out); then it sends out a calm pulse that smooths
+// and stand inside its ring again; then it sends out a calm pulse that smooths
 // out any straggler and becomes your checkpoint.
 
 export const USE_RANGE = 2.6;
 // Tuned, waiting for its waves to be beaten: glitches farther out than this
-// past the ring do not count (stuck somewhere), and after `hold` seconds it
-// gives up waiting.
+// past the ring do not count (stuck somewhere), and after `time` seconds
+// (in the ring) it gives up waiting.
 const HOLD = { reach: 25, time: 45 };
 
 export class Anchor {
@@ -51,8 +51,8 @@ export function stepAnchors(run, dt) {
     }
     if (a.progress < 1) continue;
     a.left = run.foes.filter((f) => f.alive && f.group === a.id && Math.hypot(f.px - a.x, f.pz - a.z) < a.ring + HOLD.reach).length;
-    if (!a.left || (a.holdT += dt) > HOLD.time) fix(run, a);
-    else if (a.holdT === dt) run.events.push({ type: "anchorHold", anchor: a.id });
+    if (a.inside && (!a.left || (a.holdT += dt) > HOLD.time)) fix(run, a);
+    else if (a.left && !a.held && (a.held = true)) run.events.push({ type: "anchorHold", anchor: a.id });
   }
 }
 
