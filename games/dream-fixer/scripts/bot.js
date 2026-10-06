@@ -59,7 +59,7 @@ function pickTarget() {
     if (S.state === "suck" && vac?.tank.length) return { px: S.nozzle[0], cy: S.nozzle[1], pz: S.nozzle[2], boss: true, nozzle: true };
     // The Red Pen: foam on its nib till it is blotted, then shoot.
     const foam = run.tools[toolIndex("foam")];
-    if (S.kind === "pen" && S.state !== "blotted" && foam && !foam.overheated && Math.hypot(S.x - B.x, S.z - B.z) < 11) { const [x, y, z] = S.hitSpheres()[0]; return { px: x, cy: y, pz: z, boss: true, nib: true }; }
+    if (S.kind === "pen" && S.state !== "blotted" && !(S.guardT > 0) && foam && !foam.overheated && Math.hypot(S.x - B.x, S.z - B.z) < 11) { const [x, y, z] = S.hitSpheres()[0]; return { px: x, cy: y, pz: z, boss: true, nib: true }; }
     // Its weakest spot (the highest damage multiplier).
     const [x, y, z] = S.hitSpheres().reduce((a, b) => (b[4] > a[4] ? b : a));
     return { px: x, cy: y, pz: z, boss: true };
@@ -73,7 +73,7 @@ function pickTarget() {
 function toolFor(tgt) {
   // The Pressure Cooker: ring its lid off with the bell, then shoot inside.
   const S = run.boss;
-  if (tgt?.boss && S?.kind === "cooker" && !S.lidOff && toolIndex("bell") >= 0 && !run.tools[toolIndex("bell")].overheated && Math.hypot(S.x - B.x, S.z - B.z) < 9) return "bell";
+  if (tgt?.boss && S?.kind === "cooker" && !S.lidOff && !(S.clampT > 0) && toolIndex("bell") >= 0 && !run.tools[toolIndex("bell")].overheated && Math.hypot(S.x - B.x, S.z - B.z) < 9) return "bell";
   if (tgt?.nib) return "foam";
   // Something right in your face (not a flyer): the umbrella's gust.
   const umb = run.tools[toolIndex("umbrella")];
@@ -363,7 +363,7 @@ if (def.boss) {
     const S = run.boss, intent = {};
     // The Big Alarm Clock's key: close by, jump, a gust at your feet for a
     // lift, then a gust at the key.
-    if (S?.alive && S.kind === "bigclock" && S.state !== "unwound" && !S.invulnerable && keyTry(S)) continue;
+    if (S?.alive && S.kind === "bigclock" && S.state !== "unwound" && !(S.woundT > 0) && !S.invulnerable && keyTry(S)) continue;
     // The Moon Lamp's pull-chain: the lasso, now and then, from a few metres.
     if (S?.alive && S.kind === "moon" && S.state === "doze" && chainTry(S)) continue;
     aimAndFire(intent);

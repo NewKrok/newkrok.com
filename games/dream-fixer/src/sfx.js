@@ -61,6 +61,8 @@ export class Sfx {
         case "bigclockRing": case "bigclockSweep": case "bigclockTimesup": case "bigclockClink": case "bigclockUnwound": case "bigclockWound":
           A.play(e.type, 0, e.x, e.z); break;
         case "sneeze": case "steamBurn": A.play(e.type); break;
+        // A boss's trick that will not work just now (lid clamped, nib dry, key stiff).
+        case "lockClink": A.play("bigclockClink", 0, e.x, e.z); break;
         case "cookerLid": A.play(e.type, e.off ? 1 : 0, e.x, e.z); break;
         case "meatWind": case "meatRoll": case "meatSplit": case "pepperShake": case "pepperWind": case "pepperBurst": case "pepperDodge": case "cloudBlown":
         case "pinRock": case "pinRoll": case "pinRise": case "grindWind": case "grindPop":

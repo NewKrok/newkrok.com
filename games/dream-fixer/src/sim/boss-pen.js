@@ -17,7 +17,8 @@ import { Body } from "./player.js";
 //
 // Foam on its nib gums it up: enough of it and the pen is blotted, falls
 // over and lies there for a while, taking more from everything (the cap
-// end most of all). Shots anywhere hurt it.
+// end most of all). Back up, its nib is dry and hard for a while: foam
+// does not stick. Shots anywhere hurt it.
 
 export const PEN = {
   hp: 110, r: 0.7, h: 3.2, len: 3.1,
@@ -26,7 +27,7 @@ export const PEN = {
   grade: { n: [3, 5], spread: 0.22, speed: 10, dmg: 6 },
   correct: { n: 3, T: 1.3, r: 1.3, dmg: 8, minions: 3 },
   scribble: { rings: 2, gap: 0.7, dmg: 9 },
-  blot: { need: 1, dry: 0.12, time: 5, mul: 2.5 },
+  blot: { need: 1, dry: 0.12, time: 5, mul: 2.5, guard: 4 },
   capMul: 1.8, nibMul: 1.2,
 };
 
@@ -47,6 +48,7 @@ export class PenBoss {
     this.flash = 0;
     this.cd = 2;
     this.ink = 0;                // foam on the nib
+    this.guardT = 0;             // just up from a blot: foam does not stick
     this.lines = [];             // ink on the floor: { x0, z0, x1, z1, y, t, life, hitT }
     this.circles = [];           // corrections closing: { x, y, z, t, T, kind }
     this.guide = null;           // where a strike is about to run
@@ -103,6 +105,7 @@ export class PenBoss {
   // Foam from the Foam Cannon: on the nib it gums it up.
   foamed(run, amount, part) {
     if (!this.alive || this.invulnerable || this.state === "blotted") return;
+    if (this.guardT > 0) { if (part === "nib") run.events.push({ type: "lockClink", x: this.x, y: this.y + 0.5, z: this.z }); return; }
     if (part !== "nib") { this.soggy = Math.min(1, (this.soggy || 0) + amount * 0.3); return; }
     this.ink += amount;
     if (this.ink >= PEN.blot.need) {
@@ -132,6 +135,7 @@ export class PenBoss {
     this.flash = Math.max(0, this.flash - dt * 6);
     this.cd -= dt;
     this.ink = Math.max(0, this.ink - PEN.blot.dry * dt);
+    this.guardT = Math.max(0, this.guardT - dt);
     this.soggy = Math.max(0, (this.soggy || 0) - dt * 0.1);
     const dx = P.x - b.x, dz = P.z - b.z, dist = Math.hypot(dx, dz) || 0.01;
     const toYou = Math.atan2(-dx, -dz);
@@ -236,7 +240,7 @@ export class PenBoss {
         // Gummed up with foam: down on the floor, wide open.
         tilt = Math.min(Math.PI / 2, this.t * 6);
         speedMul = 0;
-        if (this.t > PEN.blot.time) { this.set("roam"); this.cd = 1; run.events.push({ type: "penUnblot" }); }
+        if (this.t > PEN.blot.time) { this.guardT = PEN.blot.guard; this.set("roam"); this.cd = 1; run.events.push({ type: "penUnblot" }); }
         break;
       case "down":
         tilt = Math.min(Math.PI / 2, this.t * 1.5);

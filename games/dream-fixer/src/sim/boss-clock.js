@@ -20,7 +20,8 @@ import { Body } from "./player.js";
 // The Gust Umbrella is the trick: the winding key on top is out of reach
 // of anything but a gust from close by, so ride an updraft and come at it
 // from above. A gust on the key unwinds it: it stops dead for a few
-// seconds, its glass swings open, and its face takes far more damage.
+// seconds, its glass swings open, and its face takes far more damage
+// (wound up again, the key is stiff for a while).
 // Anything else only clinks off the key.
 
 export const BIGCLOCK = {
@@ -30,7 +31,7 @@ export const BIGCLOCK = {
   sweep: { wind: 0.9, turn: 1.9, len: 9.5, h: 1.1, dmg: 9, every: 0.5 },
   tiles: { warn: 1.5, down: 4, n: [3, 5], near: 8 },
   snooze: { n: 2, minions: 3 },
-  unwound: { time: 5.5, mul: 2.6 },
+  unwound: { time: 5.5, mul: 2.6, wound: 4 },
   faceMul: 1, bodyMul: 0.55,
 };
 
@@ -49,6 +50,7 @@ export class ClockBoss {
     this.yaw = 0;
     this.rise = 0;
     this.flash = 0;
+    this.woundT = 0;             // just wound up again: the key is stiff
     this.cd = 2;
     this.jets = [];              // the hands sweeping: angles round it
     this.bells = 0;              // how hard the bells shake (for the look)
@@ -101,6 +103,8 @@ export class ClockBoss {
   // The umbrella's gust: on the key, it unwinds.
   gusted(run, ax, az, part) {
     if (part !== "key" || !this.alive || this.invulnerable || this.state === "unwound") return;
+    // Just wound up again: the key is stiff for a while.
+    if (this.woundT > 0) { run.events.push({ type: "lockClink", x: this.x, y: this.y + BIGCLOCK.key, z: this.z }); return; }
     this.jets = [];
     this.set("unwound");
     run.events.push({ type: "bigclockUnwound", x: this.x, y: this.y + BIGCLOCK.key, z: this.z });
@@ -125,6 +129,7 @@ export class ClockBoss {
     this.t += dt;
     this.flash = Math.max(0, this.flash - dt * 6);
     this.cd -= dt;
+    this.woundT = Math.max(0, this.woundT - dt);
     this.bells = Math.max(0, this.bells - dt * 2);
     const dx = P.x - b.x, dz = P.z - b.z, dist = Math.hypot(dx, dz) || 0.01;
     const toYou = Math.atan2(-dx, -dz);
@@ -207,7 +212,7 @@ export class ClockBoss {
       case "unwound":
         // Run down: stock still, the glass swung open.
         open = 1;
-        if (this.t > C.unwound.time) { this.set("roam"); this.cd = 0.8; run.events.push({ type: "bigclockWound", x: b.x, z: b.z }); }
+        if (this.t > C.unwound.time) { this.woundT = C.unwound.wound; this.set("roam"); this.cd = 0.8; run.events.push({ type: "bigclockWound", x: b.x, z: b.z }); }
         break;
       case "roar":
         this.bells = 1;

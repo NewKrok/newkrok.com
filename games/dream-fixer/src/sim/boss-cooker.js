@@ -20,7 +20,8 @@ import { Body } from "./player.js";
 // The Lullaby Bell is the trick: every ring rattles the lid (more so the
 // higher the pressure), and rattled enough the lid flies off. Open, it
 // lets off its pressure and takes far more damage, inside most of all,
-// until it gets its lid back on. The lullaby calms it: the pressure
+// until it gets its lid back on (clamped down hard then: for a while
+// rings only clink off it). The lullaby calms it: the pressure
 // halves and it goes slow for a moment.
 
 export const COOKER = {
@@ -28,7 +29,7 @@ export const COOKER = {
   speed: [2.2, 3],
   pressure: { rate: [1 / 13, 1 / 9], whistle: 2.2, rings: 2, gap: 0.5, dmg: 11, max: 16 },
   rattle: { ring: 0.28, high: 0.4, dry: 0.14 },
-  open: { time: 4.5, mul: 2.2 },
+  open: { time: 4.5, mul: 2.2, clamp: 4 },
   steam: { wind: 0.8, turn: 1.8, len: 11, h: 1.0, dmg: 8, every: 0.5 },
   hop: { wind: 0.55, T: 0.95, ring: 9, dmg: 9, crush: 12 },
   beans: { n: 4, dmg: 7, splash: 1.6 },
@@ -57,6 +58,7 @@ export class CookerBoss {
     this.lidOff = false;
     this.lidUp = 0;              // lifted a little (beans, serve)
     this.slowT = 0;              // lulled
+    this.clampT = 0;             // lid back on: clamped down, rings only clink
     this.jets = [];              // steam jets: angles round it
     this.mark = null;            // where a hop comes down
     this.hopY = 0;
@@ -102,6 +104,7 @@ export class CookerBoss {
   // The bell's ring: it rattles the lid (harder the higher the pressure).
   rung(run) {
     if (!this.alive || this.invulnerable || this.lidOff) return;
+    if (this.clampT > 0) { run.events.push({ type: "lockClink", x: this.x, y: this.y + 2.6, z: this.z }); return; }
     const R = COOKER.rattle;
     this.rattle += R.ring + R.high * this.pressure;
     run.events.push({ type: "cookerRattle", x: this.x, y: this.y + 2.6, z: this.z, k: Math.min(1, this.rattle) });
@@ -140,6 +143,7 @@ export class CookerBoss {
     const b = this.body, P = run.body, C = COOKER;
     this.lx = b.x; this.ly = b.y + this.hopY; this.lz = b.z;
     this.slowT = Math.max(0, this.slowT - dt0);
+    this.clampT = Math.max(0, this.clampT - dt0);
     const dt = dt0 * (this.slowT > 0 ? 0.55 : 1);
     this.t += dt;
     this.flash = Math.max(0, this.flash - dt0 * 6);
@@ -261,7 +265,7 @@ export class CookerBoss {
       }
       case "open":
         // Lid off: steam pouring out, wide open. Then the lid goes back on.
-        if (this.t > C.open.time) { this.lidOff = false; this.set("roam"); this.cd = 1; run.events.push({ type: "cookerLid", x: b.x, y: b.y + 2.6, z: b.z, off: false }); }
+        if (this.t > C.open.time) { this.lidOff = false; this.clampT = C.open.clamp; this.rattle = 0; this.set("roam"); this.cd = 1; run.events.push({ type: "cookerLid", x: b.x, y: b.y + 2.6, z: b.z, off: false }); }
         break;
       case "roar":
         if (this.t > 0.5 && !this.fired) {
