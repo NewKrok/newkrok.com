@@ -360,7 +360,8 @@ function yanked(run, f, dt) {
 // (crowded, sliding along the edge) is put back where it stood.
 function keepOn(run, b, wasGrounded) {
   if (!wasGrounded || b.grounded || b.vy > 0) return;
-  if (floorBelow(run.world, b.x, b.z, b.y) >= b.y - DROP) return;
+  const fl = floorBelow(run.world, b.x, b.z, b.y);
+  if (fl >= b.y - DROP || dropTo(run, b.y, fl)) return;
   b.x = b.px; b.z = b.pz; b.y = b.py;
   b.vx = 0; b.vz = 0; b.vy = 0; b.grounded = true;
 }
@@ -448,7 +449,8 @@ function floorBelow(world, x, z, y) {
 }
 
 // Would walking this way take the body off a ledge? Walkers look a step
-// ahead and stop at the brink instead of wandering off the island.
+// ahead and stop at the brink instead of wandering off the island (but
+// jump down to you, `dropTo`).
 function brink(run, b, intent) {
   let f = intent.forward || 0, s = intent.strafe || 0;
   const len = Math.hypot(f, s);
@@ -460,9 +462,17 @@ function brink(run, b, intent) {
   const ref = b.grounded ? b.y : Math.min(b.y, floorBelow(run.world, b.x, b.z, b.y));
   if (ref === -Infinity) return false;
   for (const k of [b.r + 0.3]) {
-    if (floorBelow(run.world, b.x + wx * k, b.z + wz * k, b.y) < ref - DROP) return true;
+    const fl = floorBelow(run.world, b.x + wx * k, b.z + wz * k, b.y);
+    if (fl < ref - DROP && !dropTo(run, ref, fl)) return true;
   }
   return false;
+}
+
+// A drop it will take after all: down onto solid floor (not the void),
+// with you down there too, no lower than your feet.
+function dropTo(run, from, fl) {
+  const y = run.body.y;
+  return fl > -Infinity && y < from - 1 && fl > y - 1;
 }
 
 function fuzz(run, f, dt, px, pz) {

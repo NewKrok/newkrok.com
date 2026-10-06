@@ -70,8 +70,16 @@ export class Input {
       this.dx += e.movementX; this.dy += e.movementY;
       if (Math.abs(e.movementX) + Math.abs(e.movementY) > 2) this.usingPad = false;
     });
+    // One flick of the wheel sends a burst of events (smooth scrolling, a
+    // trackpad's glide): one tool step per burst, a new one after a pause
+    // (or a long steady scroll).
+    let wheelLast = 0, wheelStep = 0;
     addEventListener("wheel", (e) => {
-      if (!this.locked) return;
+      if (!this.locked || !e.deltaY) return;
+      const now = performance.now(), fresh = now - wheelLast > 120 || now - wheelStep > 400;
+      wheelLast = now;
+      if (!fresh) return;
+      wheelStep = now;
       this.edges.add(e.deltaY > 0 ? "toolNext" : "toolPrev");
     }, { passive: true });
     document.addEventListener("pointerlockchange", () => {
