@@ -44,9 +44,9 @@ export const park = {
   // couple of squirrels), the second brings the bathtub and buzzers, the
   // last one the knot. [progress, [kind, n], …]
   tiers: [
-    [[0, ["bunny", 3]], [0.35, ["fuzz", 2]], [0.65, ["bunny", 4], ["fuzz", 1]]],
-    [[0, ["fuzz", 2], ["bunny", 3]], [0.3, ["tub", 1]], [0.55, ["buzzer", 1], ["fuzz", 2]], [0.8, ["bunny", 4], ["buzzer", 1]]],
-    [[0, ["buzzer", 2], ["fuzz", 1]], [0.3, ["knot", 1]], [0.55, ["bunny", 3]], [0.8, ["fuzz", 2], ["buzzer", 1]]],
+    [[0, ["bunny", 3]], [0.35, ["fuzz", 2]], [0.65, ["bunny", 4], ["fuzz", 2]]],
+    [[0, ["fuzz", 2], ["bunny", 3]], [0.3, ["tub", 1]], [0.55, ["buzzer", 1], ["fuzz", 3]], [0.8, ["bunny", 5], ["buzzer", 1], ["fuzz", 1]]],
+    [[0, ["buzzer", 2], ["fuzz", 2]], [0.3, ["knot", 1]], [0.55, ["bunny", 4], ["fuzz", 1]], [0.8, ["fuzz", 3], ["buzzer", 2]]],
   ],
 
   // Routes for the headless bot: waypoints to each anchor ([x, z, jump]).

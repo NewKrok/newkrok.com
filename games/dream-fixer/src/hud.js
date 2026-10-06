@@ -60,7 +60,7 @@ export class Hud {
     this.prompt = el.querySelector(".prompt");
     this.tune = el.querySelector(".tune");
     this.tuneFill = el.querySelector(".tune .bar i");
-    el.querySelector(".tune .lbl").textContent = t("tuning");
+    this.tuneLbl = el.querySelector(".tune .lbl");
     this.warn = el.querySelector(".tune .warn");
     this.warn.textContent = t("stayInRing");
     this.bannerEl = el.querySelector(".banner");
@@ -208,7 +208,10 @@ export class Hud {
     this.tune.classList.toggle("on", !!tu);
     if (tu) {
       this.tuneFill.style.transform = `scaleX(${tu.progress.toFixed(3)})`;
-      this.tune.classList.toggle("out", !tu.inside);
+      const hold = tu.progress >= 1 && tu.left;
+      this.tune.classList.toggle("out", !tu.inside && !hold);
+      const lbl = hold ? t("clearRest", { n: tu.left }) : t("tuning");
+      if (lbl !== this.last.tuneLbl) { this.tuneLbl.textContent = lbl; this.last.tuneLbl = lbl; }
     }
     // Boss bar.
     const B = run.boss;

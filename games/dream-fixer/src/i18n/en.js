@@ -10,6 +10,7 @@ export const EN = {
   wakefulness: "Wakefulness",
   tunePrompt: "{key} Tune the anchor",
   tuning: "Tuning the anchor",
+  clearRest: "Tuned! Beat the rest: {n} left",
   stayInRing: "Get back inside the ring!",
   tasks: "Tasks",
   obj_anchors: "Fix the dream anchors",

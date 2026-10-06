@@ -10,6 +10,7 @@ export const HU = {
   wakefulness: "Éberség",
   tunePrompt: "{key} Horgony hangolása",
   tuning: "Horgony hangolása",
+  clearRest: "Behangolva! Verd le a maradékot: még {n}",
   stayInRing: "Állj vissza a körbe!",
   tasks: "Feladatok",
   obj_anchors: "Javítsd meg az álomhorgonyokat",
