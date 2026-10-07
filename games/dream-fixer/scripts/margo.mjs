@@ -103,7 +103,7 @@ export const ACTED = {
   park_fight_7: "[alert] Don't let them corner you!",
   park_fight_8: "[softly] Somewhere, Biscuit's tail is wagging in his sleep.",
   park_bossfight_1: "[encouraging] Keep circling! [amused] It hates that.",
-  park_bossfight_2: "[wryly] I've seen bigger. [deadpan] Not many, but some.",
+  park_bossfight_2: "[wryly] That thing ate three socks last week. [teasing] Don't be the fourth!",
   park_bossfight_3: "[alert] Mind the nozzle!",
   park_bossfight_4: "[curious] It's slowing down. [wryly] I think.",
   park_bossfight_5: "[dryly] Who leaves a vacuum running all night, anyway?",

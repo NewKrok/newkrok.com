@@ -73,7 +73,7 @@ export const LINES_HU = {
   park_fight_7: ["margo", "Ne hagyd, hogy sarokba szorítsanak."],
   park_fight_8: ["margo", "Biscuit valahol most csóválja a farkát álmában."],
   park_bossfight_1: ["margo", "Csak körözz körülötte. Utálja."],
-  park_bossfight_2: ["margo", "Láttam már nagyobbat. Nem sokat, de párat."],
+  park_bossfight_2: ["margo", "Ez a dög múlt héten megevett három zoknit. Ne te legyél a negyedik."],
   park_bossfight_3: ["margo", "Vigyázz a szívócsőre."],
   park_bossfight_4: ["margo", "Lassul. Azt hiszem."],
   park_bossfight_5: ["margo", "Ki hagy egész éjjel bekapcsolva egy porszívót?"],

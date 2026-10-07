@@ -233,9 +233,6 @@
  "park_bossfight_1": {
   "hash": "db48a8cc7cf3"
  },
- "park_bossfight_2": {
-  "hash": "f1954f595781"
- },
  "park_bossfight_3": {
   "hash": "3a92e45a4df4"
  },
@@ -247,5 +244,8 @@
  },
  "park_bossfight_6": {
   "hash": "4edf37d2f70a"
+ },
+ "park_bossfight_2": {
+  "hash": "3fd30f1827e5"
  }
 }

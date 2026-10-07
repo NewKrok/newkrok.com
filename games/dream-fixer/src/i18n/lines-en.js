@@ -76,7 +76,7 @@ export const LINES_EN = {
   park_fight_7: ["margo", "Don't let them corner you."],
   park_fight_8: ["margo", "Somewhere, Biscuit's tail is wagging in his sleep."],
   park_bossfight_1: ["margo", "Keep circling. It hates that."],
-  park_bossfight_2: ["margo", "I've seen bigger. Not many, but some."],
+  park_bossfight_2: ["margo", "That thing ate three socks last week. Don't be the fourth."],
   park_bossfight_3: ["margo", "Mind the nozzle."],
   park_bossfight_4: ["margo", "It's slowing down. I think."],
   park_bossfight_5: ["margo", "Who leaves a vacuum running all night, anyway?"],
