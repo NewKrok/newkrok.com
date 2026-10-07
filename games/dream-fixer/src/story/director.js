@@ -165,7 +165,8 @@ const DIRECTORS = {
   factory: {
     start(D, run, P) {
       // The finale's night: the lamps low, the window open, Old Hum awake.
-      if (run.kit.marks.hatch) { D.say("hub_finale1"); D.say("hub_finale2"); return; }
+      // (Back from an old dream that night: he is still awake out there.)
+      if (run.kit.marks.hatch) { if (P.justBack && P.log.includes("hub_finale2")) D.say("hub_finale_back"); else { D.say("hub_finale1"); D.say("hub_finale2"); } return; }
       // Back from Old Hum's dream, the first time: coffee, and his snoring.
       if (P.ending) { P.ending = false; D.say("hub_end1"); D.say("hub_end2"); D.say("hub_end3"); return; }
       // First time in: the welcome. Back from a dream: how it went. Any
@@ -179,7 +180,7 @@ const DIRECTORS = {
       const q = (s) => S.quiet > s;
       // The finale's night: Cog at the open window, Margo once you are out on the gangway.
       if (run.kit.marks.hatch) {
-        if (D.said.has("hub_finale2") && q(2) && (from(run, 0, -6) < 4.5 || S.time > 25)) D.say("hub_finale3");
+        if ((D.said.has("hub_finale2") || D.said.has("hub_finale_back")) && q(2) && (from(run, 0, -6) < 4.5 || S.time > 25)) D.say("hub_finale3");
         if (run.body.z < -9 && q(1)) D.say("hub_finale4");
         return;
       }

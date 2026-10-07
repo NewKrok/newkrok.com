@@ -88,8 +88,7 @@ async function startGame() {
     // A job taken: Cog flies over to the lift to show the way.
     if (def.hub && progress.picked) run.guide = run.kit.marks.lift;
     // The finale's night: he shows you out of the window, to Old Hum's hatch.
-    // (A job taken before it is dropped: tonight is Old Hum's.)
-    if (def.hub && run.kit.marks.hatch) { progress.picked = null; progress.pickedHard = false; run.guide = run.kit.marks.hatch; }
+    if (def.hub && run.kit.marks.hatch && !progress.picked) run.guide = run.kit.marks.hatch;
     hud.rank(progress.xp);
     audio.setSong(def.song ?? id);
     if (!def.hub && !def.walkIn) audio.play("arrive");
@@ -191,8 +190,8 @@ async function startGame() {
   // Cog's beep when he loops round you to show the way.
   view.companion.onPing = () => { if (state === "play") audio.play("ping"); };
   function interact(id) {
-    // The finale's night: no jobs, the way is out of the window.
-    if (id === "board" && run.kit.marks.hatch) { dialog.say("hub_noboard", true); return; }
+    // The finale's night the old dreams can still be taken (Old Hum waits).
+    if (id === "board" && run.kit.marks.hatch) dialog.say("hub_finale_board");
     if (id === "board") openMenu(() => menus.board(progress, {
       onTake: (level, hard) => { progress.picked = level; progress.pickedHard = hard; save(); run.guide = run.kit.marks.lift; dialog.say("hub_picked"); resume(); },
       onClose: resume,
@@ -235,7 +234,7 @@ async function startGame() {
         if (lastWindow) dialog.say(lastWindow, true);
       }
     }
-    else if (id === "radio" && run.kit.marks.hatch) { if (!dialog.busy) dialog.say("hub_finale4", true); }
+    else if (id === "radio" && run.kit.marks.hatch) { if (!dialog.busy) dialog.say("hub_finale_radio", true); }
     else if (id === "radio") {
       // Margo picks up with one of her lines, never the same one twice running.
       const all = ["hub_radio"];
@@ -250,7 +249,6 @@ async function startGame() {
       menus.fade(() => startLevel("oldhum"), 400);
     }
     else if (id === "lift") {
-      if (run.kit.marks.hatch) { dialog.say("hub_liftdead", true); return; }
       if (!progress.picked) { dialog.say("hub_nojob", true); return; }
       const lvl = progress.picked, hard = !!progress.pickedHard;
       menus.fade(() => startLevel(lvl, hard), 400);

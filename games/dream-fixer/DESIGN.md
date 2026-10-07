@@ -295,8 +295,9 @@ arany csillaggal.
 
 Old Hum a Gyár százéves álomgépe; egész héten belőle szivárogtak a hibák.
 A finálé **nem a liftről indul**: amikor az ötödik álomból visszaérsz, a
-Gyárban kialszanak a lámpák (pirosan izzanak), a lift halott, a munkatábla
-üres, a nagy ablak kitárul, és egy pallón kisétálsz Old Humhoz. A
+Gyárban kialszanak a lámpák, a lift a piros tartaléklámpáján megy (a
+táblán a régi álmok továbbra is elvállalhatók: aki elakad, előbb
+erősödhet; Margó szól is), a nagy ablak kitárul, és egy pallón kisétálsz Old Humhoz. A
 gömb oldalán egy szervizajtó (`E`) visz be; nincs zuhanó érkezés
 (`walkIn`), a landolón kezdesz, a bezárt ajtó mögötted. A munkatáblán
 csak a megjavítása után jelenik meg (`door: true` a `CLIENTS`-ben), onnan

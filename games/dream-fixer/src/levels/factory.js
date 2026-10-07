@@ -11,9 +11,10 @@ import { OLD_HUM_RODS } from "../render/models/factory.js";
 // the nights crossed off on the calendar.
 //
 // The night of the finale (the week's five dreams fixed, Old Hum's not
-// yet) it is different: the lamps burn low, the lift is dead, and the big
-// window stands open onto a gangway out to Old Hum, wide awake, and a
-// service hatch in his side.
+// yet) it is different: the lamps are out, the lift runs on its red
+// backup lamp (the old dreams can still be taken again, to grow
+// stronger first), and the big window stands open onto a gangway out to
+// Old Hum, wide awake, and a service hatch in his side.
 
 const WALL = { side: 0xd9b88a, sideD: 0xb08858, bevel: 0.04 };
 const WAINSCOT = { flat: { top: 0x6a3f24, side: 0x7a4a2a } };
@@ -70,21 +71,20 @@ export const factory = {
 
     // ── Furniture ──
     k.prop("jobBoard", -5.2, -5.9, { yaw: Math.PI, opts: { open: CLIENTS.filter((c) => isOpen(c, P)).map((c) => c.id), done: P.done }, collide: { w: 2.1, d: 0.3, h: 2.2 } });
-    k.use("board", -5.2, -5.2, { r: 2.4, label: finale ? "useBoardDark" : "useBoard" });
+    k.use("board", -5.2, -5.2, { r: 2.4, label: "useBoard" });
     k.prop("dock", -2.6, -5.8, { collide: { r: 0.3, h: 1.4 } });
     k.prop("workbench", 8.8, -1, { yaw: Math.PI / 2, collide: { w: 2.4, d: 1.1, h: 1.0 } });
     k.use("bench", 7.8, -1, { r: 2.3, label: "useBench" });
     // Margo's mugs pile up: one more every night of the week.
     k.prop("desk", -8.4, 1.8, { yaw: -Math.PI / 2, opts: { mugs: Math.min(9, 2 + (P.night ?? 0)) }, collide: { w: 1.8, d: 0.9, h: 0.9 } });
     k.use("radio", -7.6, 1.8, { r: 2.2, label: "useRadio" });
-    k.prop("lift", 8.4, -5.2, { yaw: Math.PI / 2, opts: { dead: finale } });
-    // The finale's night its gate is shut fast.
-    if (finale) k.block(7.22, -5.2, 0.1, 2.4, 0, 3.2, null);
+    // (The finale's night it runs on the red backup lamp.)
+    k.prop("lift", 8.4, -5.2, { yaw: Math.PI / 2, opts: { backup: finale } });
     // The lift is solid on three sides; you step up to its gate.
     k.block(9.55, -5.2, 0.1, 2.4, 0, 3.2, null);
     k.block(8.4, -6.35, 2.4, 0.1, 0, 3.2, null);
     k.block(8.4, -4.05, 2.4, 0.1, 0, 3.2, null);
-    k.use("lift", 7.0, -5.2, { r: 2.2, label: finale ? "useLiftDead" : "useLift" });
+    k.use("lift", 7.0, -5.2, { r: 2.2, label: "useLift" });
     k.mark("lift", 7.0, -5.2);
     k.prop("dreamTank", -8.8, -5.9, { opts: { color: 0xff8fd0, seed: 2, h: 3 }, collide: { r: 0.8, h: 4.5 } });
     k.prop("dreamTank", 4.6, -6.1, { opts: { color: 0x7ff5e0, seed: 5, h: 2.6 }, collide: { r: 0.8, h: 4.2 } });
