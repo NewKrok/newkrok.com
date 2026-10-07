@@ -245,6 +245,7 @@ export const LINES_EN = {
   hub_finale3: ["csavar", "Bip-bip! (The window! Follow me!)"],
   hub_finale4: ["margo", "All week, the glitches leaked out of him. Go and fix his dream."],
   hub_liftdead: ["margo", "The lift's dead. Everything's dead. Except him."],
+  hub_noboard: ["margo", "No jobs tonight. Look out of the window."],
   oldhum_in1: ["margo", "You're in. Nobody's ever been inside Old Hum. Not even me."],
   oldhum_in2: ["margo", "Three anchors, same as always. Tonight the dreamer is the Factory."],
   oldhum_gate_west: ["csavar", "Bip-bip! (This way! I know this way.)"],

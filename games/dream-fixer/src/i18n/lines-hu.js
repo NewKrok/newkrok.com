@@ -242,6 +242,7 @@ export const LINES_HU = {
   hub_finale3: ["csavar", "Bip-bip! (Az ablak! Gyere utánam!)"],
   hub_finale4: ["margo", "Egész héten belőle szivárogtak a hibák. Menj, javítsd meg az álmát."],
   hub_liftdead: ["margo", "A lift halott. Minden halott. Csak ő nem."],
+  hub_noboard: ["margo", "Ma éjjel nincs munka. Nézz ki az ablakon."],
   oldhum_in1: ["margo", "Bent vagy. Old Humban még senki sem járt. Még én sem."],
   oldhum_in2: ["margo", "Három horgony, mint mindig. Csak ma éjjel a Gyár az álmodó."],
   oldhum_gate_west: ["csavar", "Bip-bip! (Erre! Ismerem az utat.)"],

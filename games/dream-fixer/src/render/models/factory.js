@@ -118,7 +118,7 @@ export function desk(b, { mugs = 3 } = {}) {
 }
 
 // The dream lift: a brass cage with a folding gate and a dial above.
-export function lift(b) {
+export function lift(b, { dead = false } = {}) {
   b.add(SHAPE.box(2.4, 0.12, 2.4, 0.03), { p: [0, 0.06, 0], c: C.brassD, mat: "metal" });
   b.add(SHAPE.box(2.4, 0.16, 2.4, 0.04), { p: [0, 3.2, 0], c: C.brassD, mat: "metal" });
   for (const [x, z] of [[-1.15, -1.15], [1.15, -1.15], [-1.15, 1.15], [1.15, 1.15]]) b.add(SHAPE.box(0.1, 3.1, 0.1, 0.02), { p: [x, 1.6, z], c: C.brass, mat: "metal" });
@@ -140,7 +140,9 @@ export function lift(b) {
   b.add(SHAPE.cyl(0.4, 0.4, 0.06, 16), { p: [0, 3.55, -1.16], r: [RX, 0, 0], c: C.brass, mat: "metal" });
   b.add(SHAPE.cyl(0.33, 0.33, 0.02, 16), { p: [0, 3.55, -1.2], r: [RX, 0, 0], c: C.cream });
   b.add(SHAPE.box(0.03, 0.25, 0.01), { p: [0.05, 3.58, -1.22], r: [0, 0, -0.5], c: C.red });
-  b.add(SHAPE.ball(0.1, 10, 7), { p: [0, 3.1, -1.1], c: C.dream, mat: "glow", glow: 2 });
+  // (Dead, the finale's night: the lamp out.)
+  if (dead) b.add(SHAPE.ball(0.1, 10, 7), { p: [0, 3.1, -1.1], c: 0x4a5450, mat: "glass" });
+  else b.add(SHAPE.ball(0.1, 10, 7), { p: [0, 3.1, -1.1], c: C.dream, mat: "glow", glow: 2 });
   b.add(SHAPE.box(0.9, 0.9, 0.06), { p: [0.9, 1.3, 1.08], c: C.tealD });
   b.add(SHAPE.cyl(0.07, 0.07, 0.04, 10), { p: [0.9, 1.5, 1.04], r: [RX, 0, 0], c: C.red, mat: "glow", glow: 1.4 });
 }
