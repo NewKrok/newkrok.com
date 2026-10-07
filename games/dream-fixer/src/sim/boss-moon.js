@@ -11,7 +11,7 @@
 //           run out along the floor (jump them, or hang from a star handle)
 //  rocks    lobs a handful of moon rocks that burst where they land
 //           (rings show where)
-//  rockets  two plush rockets come off it
+//  rockets  a flight of plush rockets comes off it (more below half)
 //  doze     after every few attacks it nods off for a moment, and only
 //           then does its pull-chain hang down (the rest of the time it
 //           is drawn up under it)
@@ -27,7 +27,7 @@ export const MOON = {
   beam: { follow: 1.5, lock: 0.5, r: 2.2, dmg: 13, n: [1, 2] },
   tide: { time: 2.2, brace: 0.7, near: 3, pull: [3.4, 4.4], rings: [1, 2], gap: 0.5, dmg: 11, max: 12, speed: 8 },
   rocks: { wind: 0.8, n: [5, 7], gap: 0.12, dmg: 9, splash: 1.7 },
-  rockets: { n: 2, max: 3 },
+  rockets: { n: [3, 4], max: 6 },
   doze: { every: [2, 3], time: 3.2, chainUp: 0.2 },   // attacks between naps; how long; the bead drawn up
   tether: { time: 4, mul: 2 },
   faceMul: 1, shellMul: 0.5,
@@ -198,7 +198,8 @@ export class MoonBoss {
         glow = 0.5;
         if (this.t > 0.6 && !this.fired) {
           this.fired = true;
-          for (let i = 0; i < M.rockets.n; i++) run.spawn("rocket", this.x + (i ? 2 : -2), this.z, { group: "boss", y: this.y - 2 });
+          const n = M.rockets.n[this.phase - 1];
+          for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2; run.spawn("rocket", this.x + Math.cos(a) * 2, this.z + Math.sin(a) * 2, { group: "boss", y: this.y - 2 }); }
           run.events.push({ type: "bossAttack", attack: "rocketsOut" });
         }
         if (this.t > 1.4) { this.set("roam"); this.cd = 1.6 + run.rnd(); }
@@ -271,7 +272,7 @@ export class MoonBoss {
     this.attacks++;
     const minions = run.foes.filter((f) => f.alive && f.group === "boss").length;
     const r = run.rnd();
-    const s = r < 0.32 ? "beam" : r < 0.58 ? "tide" : r < 0.86 || minions >= MOON.rockets.max ? "rocks" : "rockets";
+    const s = r < 0.28 ? "beam" : r < 0.52 ? "tide" : r < 0.76 || minions >= MOON.rockets.max ? "rocks" : "rockets";
     this.set(s);
     run.events.push({ type: "bossAttack", attack: s });
   }
