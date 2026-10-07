@@ -213,6 +213,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; border-radius: 
 .ico.bell { background: linear-gradient(135deg, #c8b0ff, #8f6424); }
 .ico.umbrella { background: linear-gradient(135deg, #a8f0c0, #7a2a3a); }
 .ico.yoyo { background: linear-gradient(135deg, #ffe27a, #2a3a8a); }
+.ico.sand { background: linear-gradient(135deg, #ffe8b0, #5a3a8a); }
 .ico.me { background: linear-gradient(135deg, #ffb3d9, #c0394f); }
 .ico.cog { background: linear-gradient(135deg, #b8f0ff, #3d5e8f); }
 .ico.kit { background: linear-gradient(135deg, #fff2c8, #e3b35c); }

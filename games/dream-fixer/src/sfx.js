@@ -48,6 +48,8 @@ export class Sfx {
         case "gust": case "gustHop": case "umbrellaBlock": A.play(e.type); break;
         case "pinwheel": A.play(e.type, 0, e.x, e.z); break;
         case "yoyoThrow": case "yoyoCatch": case "yoyoLetGo": A.play(e.type); break;
+        case "sandPinch": case "sandPath": case "sandFizzle": A.play(e.type); break;
+        case "sandGone": A.play(e.type, 0, e.x, e.z); break;
         case "rocketAim": case "rocketDash": case "rocketSputter": case "rocketPuff": case "robotWind": case "robotClap": case "robotCrank": case "robotZap": case "robotDown": case "robotUp":
         case "topWind": case "topGo": case "topBounce": case "topFan": case "mobileThrow": case "mobileSpin": case "mobilePop":
         case "moonBeamOn": case "moonBeam": case "moonTideRing": case "moonRock": case "moonClink":

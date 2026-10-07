@@ -61,6 +61,13 @@ Margó egyre idegesebb, mert „ennyi hibás álom nem szokott lenni”.
    Gyár nagy gépe száz éve nem aludt, mert mindig mások álmait gyártja. Az
    utolsó küldetésben nem legyőzöd, hanem **elaltatod**: megjavítod a saját
    álmát. A zárójelenetben Margó kávét hoz neked, Álmos pedig horkol.
+   Az álma az öt álom **egyvelege**: Álmos gépezetének belsejében (fogaskerekek,
+   csövek, futószalagok) lebegnek a hét álmainak darabjai, a horgonyok
+   ezeknél vannak, és visszajönnek a régi hibák is. Nálad csak a
+   Stabilizátor van, és az első horgony után az **Álomhomok-zsák**, a
+   Homokember zsákja. A főellenség Álmos **álmatlansága**: nincs
+   életerő-csíkja, csak egy álmosság-mérője, amit a homok tölt, és a végén
+   elalszik.
 
 A történet három csatornán jut el a játékoshoz:
 - **Margó rádióüzenetei** a pálya közben. Rövidek, és sosem veszik el az
@@ -304,6 +311,7 @@ van: fogás, hablépcső, altatás, siklás, lasszó, és a boss kulcsa.
 | **Altatócsengő** | Csengetés: kúpban szaladó hanghullám, ami hátralöki a hibákat (keveset sebez: irányító eszköz, nem fő fegyver), és a lövedékeiket visszaüti a dobójukra | Nyomva tartva altatódalt dúdol (minél tovább, annál messzebbre ér), elengedve körbefut: a kis hibák elalszanak, a nagyok csak elálmosodnak | 3. fejezet |
 | **Szélernyő** | Rövid széllökés kúpban: közelről csíp, távolabb gyengül, 4,5 méter után semmi; a földön járókat nem löki el, csak a repülőket, a lövedékeket szétpukkasztja | Nyomva tartva kinyitod: pajzs elöl és felül, a levegőben siklasz, a feláramlás felvisz | 4. fejezet |
 | **Csillagjojó** | Kattintásra előrevágod a zsinórján, és visszajön: az első hibát megcsípi, a kicsit eléd rántja (szédülten érkezik, és amíg szédül, többet sebződik), a golyókat útközben szétpukkasztja | Lasszó: alig sebez, de a hibát pár másodpercre gúzsba köti (a nagyokat rövidebben); csak a lasszó akad meg a csillagos kapaszkodókon, és húz be oda | 5. fejezet |
+| **Álomhomok-zsák** | Nyomva tartva marékszám szórja az álomhomokot egy rövid kúpban: aki elég homokot kap, elalszik (a nagyok csak elálmosodnak); alig csíp, az alvót nem kelti fel | Homokút: a lábad elől a nézés irányába önt egy 7,5 méteres járható dűnét, fel- vagy lefelé döntve (legfeljebb 3 métert emelkedik); 8 másodpercig tart, aztán szétpereg | 6. fejezet |
 | **Villáskulcs** | Közelharc és tárgyak megütése | — | Mindig nálad van |
 
 **Az Altatócsengő részletei.** Az alvó hiba lefekszik, „Z”-k szállnak
@@ -356,6 +364,20 @@ hibát 3 másodpercre gúzsba köti (a nagyokat, nehezeket, gyökereseket
 `tied` horgot. A kapaszkodókra csak a lasszó akad. (Előtte volt
 nyomva tartott körbepörgetés és pattogó trükkdobás is, de egyik sem
 vált el eléggé a sima dobástól.) A főellenség kaphat `yanked` horgot.
+
+**Az Álomhomok-zsák részletei.** A szórás (nyomva tartva) 7 méteres,
+szűk kúpban megy, falon nem megy át. Minden marék a hibára egy ötödnyi
+álmosságot tesz (`f.sand`, magától lepereg róla), és ha megtelt, az
+Altatócsengő altatódalának szabályai szerint elalszik: a kicsi lefekszik
+5 másodpercre (az első találat duplán számít), a nagy 3 másodpercig
+álmos. Az alvóra szórt homok nem kelti fel, csak tovább alszik. A
+**homokút** (jobb gomb) a lábad mögül fél méterrel indul, és a nézés
+irányába fut ki (ha fal van előtte, rövidebb, 1,5 méter alatt el sem
+indul); a nézés dönti meg, fel legfeljebb 3, le kb. 2 métert. Csak szilárd
+talajról lehet önteni, **homokútról nem** (homok homokon nem tart), így
+egy réshez egy út kell, a nagyobbakhoz út és ugrás. Egyszerre kettő
+lehet kint, az utolsó 2 másodpercében villog és pereg. A főellenség
+kaphat `sanded` horgot.
 
 **Alacsony gravitáció.** A pálya adatában `gravity` (pl. 0,5) minden
 testre hat: a játékos és a gyalogos hibák lassabban esnek, magasabbra
@@ -490,8 +512,11 @@ délnyugaton szélforgós feláramlás egy oszlopszigetre), a `yoyolab` a
 Csillagjojóé (alacsony gravitációjú állomásfedélzetek: nyugaton kis
 hibák a megrántáshoz, északon 18 méteres rés két kapaszkodóval a
 túlsó fedélzetig, ott repülők és nagyok; keleten egy torony,
-amelynek a tetejére csak a pereme fölötti kapaszkodó visz), mind
-minden szerszámmal.
+amelynek a tetejére csak a pereme fölötti kapaszkodó visz), a
+`sandlab` az Álomhomok-zsáké (fa-réz fedélzetek: nyugaton altatnivaló
+kis hibák és egy nagy, északon egy 6 és egy 10 méteres rés, keleten egy
+2,8 méter magas párkány, délkeleten 3 méterrel lejjebb egy fedélzet),
+mind minden szerszámmal.
 
 **Modellminőség:** lesz egy fejlesztői modellnéző (`?model=<id>`), ami egy
 modellt forgatva mutat. A headless screenshotokon így minden modellt

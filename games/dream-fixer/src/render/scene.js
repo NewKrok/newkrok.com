@@ -17,6 +17,7 @@ import { FoamView } from "./foam.js";
 import { BellView } from "./bell.js";
 import { UmbrellaView } from "./umbrella.js";
 import { YoyoView } from "./yoyo.js";
+import { SandView } from "./sand.js";
 import { TileView } from "./tiles.js";
 import { ShootingStars } from "./shootingstars.js";
 import { C } from "./palette.js";
@@ -48,6 +49,7 @@ export class GameView {
     this.bellView = new BellView(this.scene, this.fx);
     this.umbrellaView = new UmbrellaView(this.scene, this.fx);
     this.yoyoView = new YoyoView(this.scene, this.fx);
+    this.sandView = new SandView(this.scene, this.fx);
     this.tileView = new TileView(this.scene, this.fx);
     this.companion = new Companion(this.scene);
     this.talking = false;
@@ -131,6 +133,7 @@ export class GameView {
       this.foes.clear();
       this.bossView.clear();
       this.foamView.clear();
+      this.sandView.clear();
     }
     this.bellView.load(run);
     this.umbrellaView.load(run);
@@ -185,6 +188,10 @@ export class GameView {
         this.yoyoView.onEvent(e);
         if (e.type === "yoyoThrow") this.thrown = true;
         if (e.type === "yoyoHook") this.shake = Math.min(1, this.shake + 0.1);
+      } else if (e.type.startsWith("sand") || e.type === "foeSandy") {
+        this.sandView.onEvent(e, run, this.muzzleWorld());
+        if (e.type === "sandPinch") this.pinched = true;
+        if (e.type === "sandPath") { this.poured = true; this.shake = Math.min(1, this.shake + 0.08); }
       } else if (e.type === "shot") {
         const end = [e.o[0] + e.d[0] * e.t, e.o[1] + e.d[1] * e.t, e.o[2] + e.d[2] * e.t];
         const from = this.muzzleWorld();
@@ -438,8 +445,9 @@ export class GameView {
       sprayed: this.sprayed, blobbed: this.blobbed, rang: this.rang, lulled: this.lulled,
       open: tool.open, gusted: this.gusted, gliding: tool.open && !b.grounded,
       thrown: this.thrown, yoyoOut: !!run.yoyo.ball,
+      pinched: this.pinched, poured: this.poured,
     });
-    this.thrown = false;
+    this.thrown = false; this.pinched = false; this.poured = false;
     this.shotThisFrame = 0; this.launched = false; this.blasted = false; this.sprayed = false; this.blobbed = false; this.rang = false; this.lulled = false; this.gusted = false;
     // The vacuum's stream: flecks rushing into the nozzle.
     if (tool.sucking) this.suckStream(run, dt);
@@ -454,6 +462,7 @@ export class GameView {
     this.bellView.update(run, dt, t);
     this.umbrellaView.update(run, dt, t);
     this.yoyoView.update(run, dt, t, m);
+    this.sandView.update(run, dt, t);
     this.tileView.update(run, dt, t);
     this.fx.update(dt);
     this.adapt(dt);

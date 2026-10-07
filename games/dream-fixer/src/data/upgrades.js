@@ -48,6 +48,11 @@ export const UPGRADES = [
   { id: "yoyo_weight", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [20, 35, 55], ranks: [5, 8, 15], stat: (l) => pct(1 + 0.25 * l) },
   { id: "yoyo_bearing", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [20, 40], ranks: [6, 14], stat: (l) => `${num(TOOLS.yoyo.speed * (1 + 0.15 * l))} m/s` },
   { id: "yoyo_knot", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [20, 35, 55], ranks: [6, 8, 15], stat: (l) => `${num(TOOLS.yoyo.lasso.tie + l)} s` },
+  // ── The Dream Sand sack (once you have it) ──
+  { id: "sand_fine", tab: "tools", group: "sand", model: "sand", needs: "sand", costs: [15, 30, 50], ranks: [6, 9, 14], stat: (l) => pct(1 + 0.25 * l) },
+  { id: "sand_deep", tab: "tools", group: "sand", model: "sand", needs: "sand", costs: [20, 35, 55], ranks: [6, 9, 15], stat: (l) => `${num(TOOLS.sand.sleep + 1.5 * l)} s` },
+  { id: "sand_reach", tab: "tools", group: "sand", model: "sand", needs: "sand", costs: [20, 40], ranks: [7, 14], stat: (l) => `${num(TOOLS.sand.path.len + 1.5 * l)} m` },
+  { id: "sand_dune", tab: "tools", group: "sand", model: "sand", needs: "sand", costs: [20, 35, 55], ranks: [7, 9, 15], stat: (l) => `${num(TOOLS.sand.path.life + 3 * l)} s` },
   // ── You ──
   { id: "wake_coffee", tab: "me", model: "mugCoffee", costs: [15, 30, 50], ranks: [1, 3, 12], stat: (l) => String(maxHpFor({ wake_coffee: l })) },
   { id: "wake_pad", tab: "me", model: "vest", costs: [20, 40, 65], ranks: [2, 5, 13], stat: (l) => pct(1 - 0.1 * l) },
@@ -123,6 +128,12 @@ export function toolDef(id, owned = {}) {
     d.damage *= 1 + 0.25 * w;
     d.speed *= 1 + 0.15 * br; d.back *= 1 + 0.15 * br; d.heat *= 1 - 0.12 * br;
     d.lasso.tie += kn; d.lasso.big += 0.4 * kn;
+  } else if (id === "sand") {
+    const f = L("sand_fine"), dp = L("sand_deep"), r = L("sand_reach"), du = L("sand_dune");
+    d.drowse *= 1 + 0.25 * f; d.heat *= 1 - 0.1 * f;
+    d.sleep += 1.5 * dp; d.drowsy += 1 * dp;
+    d.range += 1 * r; d.path.len += 1.5 * r;
+    d.path.life += 3 * du;
   } else if (id === "umbrella") {
     const c = L("umb_canopy"), r = L("umb_ribs"), s = L("umb_spring"), w = L("umb_cloth");
     d.glide.fall *= 1 - 0.15 * c; d.glide.air *= 1 + 0.1 * c; d.shield.cone *= 1 + 0.06 * c;

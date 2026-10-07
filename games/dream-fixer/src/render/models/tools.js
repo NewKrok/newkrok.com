@@ -381,3 +381,44 @@ export function starYoyo(b, { hand = true } = {}) {
 export function yoyoBall(b, { r = 0.16 } = {}) {
   b.node("spin", [0, 0, 0], [0, 0, 0], (n) => yoyoHalves(n, r));
 }
+
+// The Dream Sand sack: the Sandman's own, a plump indigo velvet sack
+// with gold stars stitched on. Its round bottom sits in your glove, it
+// leans forward, and its neck, a gold drawstring with two tassels tied
+// round it, opens in a frill over a heap of sand that glows. Nodes:
+// "sack" (squeezed on every pinch), "sand" (the heap in its mouth: sinks
+// as it runs hot, puffs on a pinch), "glow" (the drawstring, flares).
+export const SAND_MUZZLE = [0, 0.105, -0.1];
+const SAND_GLOW = 0xffe0a0, SACK_A = 0x5a3aa8;
+
+export function sandSack(b, { hand = true } = {}) {
+  const K = 0.72, TOP = 0.2;
+  // The profile from the round bottom up to the frill: [radius, height].
+  const prof = [[0.001, 0], [0.032, 0.008], [0.056, 0.03], [0.07, 0.068], [0.071, 0.108], [0.06, 0.146], [0.044, 0.172], [0.05, 0.188], [0.062, TOP]];
+  b.node("sack", [0, -0.01, -0.03], [1.05, 0, 0], (n) => {
+    n.at([0, 0, 0], [-RX, 0, 0], K, () => {
+      n.add(SHAPE.lathe(prof, 12), { grad: [shade(SACK_A, 0.55), SACK_A], facet: 0.05 });
+      // Gold stars stitched on its front and sides, a few gold dots.
+      n.add(SHAPE.extrude(starOutline(0.02), 0.003), { p: [0, 0.095, 0.07], c: SAND_GLOW, mat: "glow", glow: 1.4 });
+      n.add(SHAPE.extrude(starOutline(0.013), 0.003), { p: [0.066, 0.07, 0.02], r: [0, RX - 0.3, 0], c: SAND_GLOW, mat: "glow", glow: 1.4 });
+      n.add(SHAPE.extrude(starOutline(0.013), 0.003), { p: [-0.066, 0.12, 0.02], r: [0, -RX + 0.3, 0], c: SAND_GLOW, mat: "glow", glow: 1.4 });
+      for (const [x, y, z] of [[0.035, 0.05, 0.058], [-0.042, 0.075, 0.054], [0.04, 0.13, 0.05], [-0.02, 0.14, 0.055]])
+        n.add(SHAPE.ball(0.0035, 5, 4), { p: [x, y, z], c: SAND_GLOW, mat: "glow", glow: 1.2 });
+      // Two tassels hanging off the knot in front.
+      for (const [x, l] of [[0.012, 0.045], [-0.01, 0.034]]) {
+        n.add(SHAPE.cyl(0.002, 0.002, l, 4), { p: [x, 0.172 - l / 2, 0.05], c: C.brass });
+        n.add(SHAPE.cone(0.008, 0.018, 6), { p: [x, 0.168 - l, 0.05], r: [Math.PI, 0, 0], c: C.brassL, mat: "metal" });
+      }
+    });
+    // The drawstring round its neck.
+    n.node("glow", [0, 0, -0.172 * K], [0, 0, 0], (m) => m.add(SHAPE.torus(0.046 * K, 0.006, 5, 14), { c: C.brassL, mat: "glow", glow: 1.2 }));
+    // The sand heaped in its mouth.
+    n.node("sand", [0, 0, -0.19 * K], [0, 0, 0], (m) => m.add(SHAPE.ball(0.056 * K, 10, 6), { s: [1, 1, 0.55], c: SAND_GLOW, mat: "glow", glow: 1.6 }));
+  });
+  if (hand) glovedHand(b);
+}
+
+// A pinch of sand on its way (bench preview, and the trickle).
+export function sandHeap(b) {
+  b.add(SHAPE.ball(0.2, 10, 6), { s: [1, 0.5, 1], c: SAND_GLOW, mat: "glow", glow: 1.4 });
+}

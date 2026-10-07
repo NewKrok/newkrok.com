@@ -1,4 +1,4 @@
-import { stabilizer, fuzzVacuum, foamCannon, lullabyBell, gustUmbrella, starYoyo, yoyoBall } from "./tools.js";
+import { stabilizer, fuzzVacuum, foamCannon, lullabyBell, gustUmbrella, starYoyo, yoyoBall, sandSack } from "./tools.js";
 import { starHook, plushRocket, windupRobot, spinTop, planetMobile, moonLamp, airlock, kidBed, kidDesk, toyChest, bookcase, stationConsole, spaceLamp, glowStar, porchLight, porthole, bunkBed, wardrobe, dollhouse, dish, telescope, starChart, cupolaFrame, asteroid } from "./space.js";
 import { pinwheel, windWell, gnome, slingerGnome, trainTicket, wateringCan, wateringPot, lawnMower, sunflower, bigAlarmClock, raisedBed, shed, roseBush, greenhouse, flowerPot, appleTree, signalBox, stationHouse } from "./garden.js";
 import { jelly, souffle, meatball, pepperShaker, rollingPin, meatGrinder, pressureCooker, kitchenWindow, panRail, knob, faucet, burner, kettle, jar, cuttingBoard, breadLoaf, fridge, flourSack, tableCloth, mug, tomato, bucket, spoon, pea } from "./kitchen.js";
@@ -24,6 +24,7 @@ export const MODELS = {
   bell: { build: lullabyBell, frame: 0.55, anim: (o, t) => { const N = o.userData.nodes; N.hammer.rotation.x = -0.5 + Math.abs(Math.sin(t * 2)) * 0.5; N.crank.rotation.x = t * 3; N.clapper.rotation.x = Math.sin(t * 4) * 0.15; } },
   umbrella: { build: gustUmbrella, frame: 0.8, anim: (o, t) => { const k = 0.1 + 0.9 * Math.min(1, Math.max(0, Math.sin(t * 1.2) * 1.4 + 0.4)); o.userData.nodes.canopy.scale.set(k, k, 1 + (1 - k) * 0.6); } },
   yoyo: { build: starYoyo, frame: 0.55 },
+  sand: { build: sandSack, frame: 0.6, anim: (o, t) => { const N = o.userData.nodes; const k = 1 + Math.max(0, Math.sin(t * 3)) * 0.12; N.sack.scale.set(1 / k, 1 / k, k); N.sand.scale.setScalar(0.9 + Math.sin(t * 5) * 0.1); } },
   yoyoBall: { build: yoyoBall, frame: 0.9, anim: spin("spin", "x", 6) },
   starHook: { build: starHook, frame: 2.4, anim: spin("star", "y", 1) },
   rocket: { build: plushRocket, frame: 2, anim: (o, t) => { const N = o.userData.nodes; N.body.rotation.z = Math.sin(t * 2) * 0.2; N.flame.scale.setScalar(0.8 + Math.abs(Math.sin(t * 9)) * 0.4); } },

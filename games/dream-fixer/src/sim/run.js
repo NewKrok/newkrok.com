@@ -14,6 +14,7 @@ import { Foam } from "./foam.js";
 import { Bell, backHit } from "./bell.js";
 import { Umbrella } from "./umbrella.js";
 import { YoYo } from "./yoyo.js";
+import { Sand } from "./sand.js";
 import { SNEEZE } from "./foes-kitchen.js";
 import { CAN } from "./foes-garden.js";
 
@@ -74,6 +75,8 @@ export class Run {
     this.umbrella = new Umbrella(this.kit);
     // The yo-yo on its string, and the star handles it catches on.
     this.yoyo = new YoYo(this.kit);
+    // The sand sack's paths (and the sand on glitches).
+    this.sand = new Sand();
     this.time = 0;
     this.events = [];
     this.hp = this.maxHp; this.hurtT = 9; this.invuln = 0;
@@ -226,6 +229,7 @@ export class Run {
     }
     // Foam steps outside the curtain melt.
     for (const p of [...this.foam.steps]) if (p.x < S.minX || p.x > S.maxX || p.z < S.minZ || p.z > S.maxZ) this.foam.melt(this, p);
+    for (const p of [...this.sand.paths]) if (p.x < S.minX || p.x > S.maxX || p.z < S.minZ || p.z > S.maxZ) this.sand.crumble(this, p);
     this.events.push({ type: "sealed" });
   }
   // Are you inside the nightmare's arena (its curtain's square)?
@@ -527,6 +531,8 @@ export class Run {
       else if (shot.lull !== undefined) this.bell.lull(this, tool, shot.lull);
       else if (shot.gust) this.umbrella.gust(this, tool);
       else if (shot.throw) this.yoyo.throw(this, tool, !!shot.lasso);
+      else if (shot.pinch) this.sand.pinch(this, tool);
+      else if (shot.pour) { if (this.sand.pour(this, tool)) tool.addHeat(tool.def.path.heat); }
       else this.fire(tool, shot);
     }
     this.stepBalls(dt);
@@ -535,6 +541,7 @@ export class Run {
     this.bell.stepRingables(this, dt);
     this.umbrella.step(this, dt);
     this.yoyo.step(this, dt);
+    this.sand.step(this, dt, this.tools.find((t) => t.id === "sand"));
     if (intent.item) this.useItem(intent.item);
 
     stepAnchors(this, dt);

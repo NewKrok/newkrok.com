@@ -9,7 +9,7 @@
 // lull, glide, tie up), not in their damage.
 
 // The order tools sit in your hands (and on the number keys).
-export const TOOL_ORDER = ["stabilizer", "vacuum", "foam", "bell", "umbrella", "yoyo"];
+export const TOOL_ORDER = ["stabilizer", "vacuum", "foam", "bell", "umbrella", "yoyo", "sand"];
 
 export const TOOLS = {
   stabilizer: {
@@ -94,6 +94,16 @@ export const TOOLS = {
     reel: { speed: 17, accel: 70, pop: 4.5, time: 3 }, // reeled in: top speed, how fast, a hop at the end, give up after
     lasso: { tie: 3, big: 1.2, damage: 0.3, heat: 0.18 },  // tied up (s; big, heavy and rooted ones), a sting, heat per throw
   },
+  // Held: pinches of dream sand in a short cone ahead. A glitch full of
+  // it (`drowse` per pinch, 1 = full) falls asleep (a big one goes
+  // drowsy); it sifts off by `fade` a second. Pressed second action: a
+  // sand path from your feet the way you look (see sim/sand.js).
+  sand: {
+    interval: 0.13, heat: 0.05, cool: 0.6, coolDelay: 0.3, unlock: 0.35,
+    range: 7, cone: 0.36, damage: 0.12,
+    drowse: 0.2, fade: 0.3, sleep: 5, drowsy: 3,
+    path: { len: 7.5, w: 1.8, thick: 0.4, rise: 3, life: 8, warn: 2, max: 2, heat: 0.38, interval: 0.6 },
+  },
 };
 
 export class ToolState {
@@ -121,6 +131,7 @@ export class ToolState {
     if (this.id === "bell") return this.stepBell(intent, dt, out);
     if (this.id === "umbrella") return this.stepUmbrella(intent, dt, out);
     if (this.id === "yoyo") return this.stepYoyo(intent, dt, out);
+    if (this.id === "sand") return this.stepSand(intent, dt, out);
     const d = this.def;
     this.cd -= dt;
     this.sinceShot += dt;
@@ -263,6 +274,27 @@ export class ToolState {
       this.addHeat(d.lasso.heat);
     } else if (intent.fire) {
       out.push({ throw: true });
+      this.cd = d.interval;
+      this.addHeat(d.heat);
+    }
+    return out;
+  }
+
+  // The sand sack reports { pinch } while held and { pour } on a press.
+  stepSand(intent, dt, out) {
+    const d = this.def;
+    this.cd -= dt;
+    this.sinceShot += dt;
+    if (this.sinceShot > d.coolDelay) this.heat = Math.max(0, this.heat - d.cool * dt);
+    if (this.overheated && this.heat <= d.unlock) this.overheated = false;
+    const pour = !!intent.alt && !this.altHeld;
+    this.altHeld = !!intent.alt;
+    if (this.overheated || this.cd > 0) return out;
+    if (pour) {
+      out.push({ pour: true });
+      this.cd = d.path.interval;
+    } else if (intent.fire) {
+      out.push({ pinch: true });
       this.cd = d.interval;
       this.addHeat(d.heat);
     }
