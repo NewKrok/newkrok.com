@@ -26,10 +26,10 @@ export const HEART = {
   speed: [2.4, 3.2],
   gain: 1.85, yawnMul: 3, dazedMul: 1.5,            // sleepiness per unit of sand (a pinch is ~0.2)
   wake: { after: 1.6, rate: [0.6, 0.95] },          // wakes back up without sand (per second, by phase)
-  alarm: { brace: 0.9, rings: [2, 3], gap: 0.55, dmg: 9, max: 13, speed: 9 },
-  slam: { follow: 1.3, lock: 0.5, r: 2.3, dmg: 15, ring: 11, daze: 1.6 },
-  beans: { wind: 0.7, n: [6, 8], gap: 0.1, dmg: 7, splash: 1.6 },
-  wakeUp: { n: [3, 4], max: 6, kinds: ["fuzz", "pencil", "meatball", "gnome", "robot", "bunny"] },
+  alarm: { brace: 0.9, rings: [2, 3], gap: 0.55, dmg: 7.6, max: 13, speed: 9 },
+  slam: { follow: 1.3, lock: 0.5, r: 2.3, dmg: 12.8, ring: 11, daze: 1.6 },
+  beans: { wind: 0.7, n: [6, 8], gap: 0.1, dmg: 6, splash: 1.6 },
+  wakeUp: { n: [2, 3], max: 4, kinds: ["fuzz", "pencil", "meatball", "gnome", "robot", "bunny"] },
   yawn: { every: [2, 3], time: 3.6 },
   sleep: { cog: 1.8, done: 4.2 },                  // Cog's last pinch; asleep
 };
