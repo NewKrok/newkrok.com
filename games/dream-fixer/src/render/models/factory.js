@@ -164,9 +164,9 @@ export function pipe(b, { a = [0, 0, 0], d = [0, 3, 0], r = 0.12, c = C.copper }
   for (const t of [0, 1]) b.add(SHAPE.cyl(r * 1.35, r * 1.35, 0.08, 8), { p: [a[0] + d[0] * t, a[1] + d[1] * t, a[2] + d[2] * t], r: dirQ(...d), c: C.brassD, mat: "metal" });
 }
 
-// Álmos: the great old dream machine, seen through the big window. A huge
+// Old Hum: the great old dream machine, seen through the big window. A huge
 // brass sphere with a sleepy lens, far bigger than the room.
-export function almos(b) {
+export function oldHum(b) {
   b.add(SHAPE.ball(6, 22, 16), { p: [0, 7, 0], grad: [C.brassD, C.brass], mat: "metal", facet: 0.03 });
   for (let i = 0; i < 3; i++) b.add(SHAPE.torus(6.05, 0.18, 5, 40), { p: [0, 7, 0], r: [RX + i * 0.4 - 0.4, 0, 0], c: C.copper, mat: "metal" });
   // The big sleepy lens, half-lidded.

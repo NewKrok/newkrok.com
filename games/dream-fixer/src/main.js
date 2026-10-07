@@ -221,7 +221,7 @@ async function startGame() {
     } else if (id === "journal") openMenu(() => menus.journal(progress, { onClose: resume }));
     else if (id === "trophies") openMenu(() => menus.achievements(progress, { onClose: resume }));
     else if (id === "window") {
-      // Stand and gaze out at the night (and Álmos); Margo now and then has a word.
+      // Stand and gaze out at the night (and Old Hum); Margo now and then has a word.
       run.gaze = { t: 0 };
       if (!dialog.busy && Math.random() < 0.6) {
         const all = [];

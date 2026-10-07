@@ -16,10 +16,10 @@ export const LINES_HU = {
   hub_radio_6: ["margo", "Ha üres a tábla, a homokemberek szakszervezete a hibás."],
   hub_radio_7: ["margo", "Próba, próba… igen, hallasz. Irány dolgozni!"],
   hub_radio_8: ["margo", "Az éjszakás műszak első szabálya: sose bízz egy vidám porszívóban."],
-  hub_window_1: ["margo", "Az ott kint Álmos. Százéves, és egyetlen szabad éjszakája se volt."],
+  hub_window_1: ["margo", "Az ott kint Old Hum. Százéves, és egyetlen szabad éjszakája se volt."],
   hub_window_2: ["margo", "Kívánj valamit. Cog egy második propellert kívánt."],
   hub_window_3: ["margo", "Szép, ugye? Az álmoknak ne mondd el, hogy ezt mondtam."],
-  hub_window_4: ["margo", "Hallod ezt a dünnyögést? Álmos horkol. Vagy próbál."],
+  hub_window_4: ["margo", "Hallod ezt a dünnyögést? Old Hum horkol. Vagy próbál."],
   hub_bench: ["margo", "A munkapad. Hozz álomport, és a szerszámaid dorombolni fognak."],
   park_bunny: ["margo", "Porcicák. Egy lövés mindegyiknek."],
   park_tub: ["margo", "Az ott… egy fürdőkád?"],
@@ -307,7 +307,7 @@ export const NOTES_HU = {
 };
 // A napló története: fejezetenként pár sor, ahogy odaérsz.
 export const STORY_HU = {
-  hub_first: "Az első éjszakás műszakod az Álomgyárban. Margo viszi a rádiót és a kávét; Cog, a kis műhelyrobot, veled jön le az álmokba. A nagy ablakon túl Álmos, a Gyár ősi álomgépe, dünnyög álmában. Vagy legalábbis próbál.",
+  hub_first: "Az első éjszakás műszakod az Álomgyárban. Margo viszi a rádiót és a kávét; Cog, a kis műhelyrobot, veled jön le az álmokba. A nagy ablakon túl Old Hum, a Gyár ősi álomgépe, dünnyög álmában. Vagy legalábbis próbál.",
   park_arrive: "Biscuit, a kutya, egyedül van ezen a héten: Dora, a gazdája, elutazott. Az álmában a park lebegő szigetekre esett szét, és a mókusok, akiket egész nap kerget, most őt kergetik.",
   park_tool: "Az első horgony után a Gyár leküldte a Kócszívót. Illik egy porszívós álomhoz.",
   park_boss: "A gyep alatt az várt, amitől Biscuit a legjobban fél: a Porszívó, ami a szekrényben lakik, és üvöltve jön elő.",
@@ -323,7 +323,7 @@ export const STORY_HU = {
   garden_arrive: "Joe nagypapa a millbrooki állomás főnöke volt. Holnap elköltözik a házból, aminek a kertjét ötven évig gondozta May-jel. Az álmában a kert szigetekre tört, és a szigetek lassan sodródnak szét.",
   garden_tool: "Amikor az első horgony megállt, Joe régi esernyője leereszkedett az égből: széllökés, pajzs, és vele át lehet siklani szigetről szigetre.",
   garden_boss: "A régi állomáson a Nagy Ébresztőóra várt, és kőlapról kőlapra csengette ki alóla az időt.",
-  garden_fixed: "Joe May-ről álmodik a kertben, az ő szalmakalapjában. A Gyárban egész éjjel zörögtek a csövek, és az ablakon túl Álmos a másik oldalára fordult álmában. Margo sokáig nézte.",
+  garden_fixed: "Joe May-ről álmodik a kertben, az ő szalmakalapjában. A Gyárban egész éjjel zörögtek a csövek, és az ablakon túl Old Hum a másik oldalára fordult álmában. Margo sokáig nézte.",
   space_arrive: "Sophie fél éve van az űrállomáson, holnap lesz az első űrsétája. Ma éjjel honvágya van, és az álmában az állomás tele van a gyerekszobájával. Itt fent minden könnyű.",
   space_tool: "Az első horgony után lelebegett Sophie régi jojója: dobás, lasszó, és egy zsinór, ami megakad a csillagokon.",
   space_boss: "A kupolában felébredt az éjjeli lámpája: a Holdlámpa, ami alatt kislányként elaludt, csak most nagyon rosszul.",

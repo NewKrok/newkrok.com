@@ -3,7 +3,7 @@ import { CLIENTS, isOpen } from "./index.js";
 
 // ── The Dream Factory (the hub) ──────────────────────────────────────────
 // The night-shift workshop, between dreams: the job board by the big
-// window (and Álmos, the great dream machine, dozing outside it), the
+// window (and Old Hum, the great dream machine, dozing outside it), the
 // workbench, Margo's desk with the radio, and the lift down to the dreams.
 // The walls fill up as the week goes on (ctx: the player's progress): a
 // framed picture for every dream fixed, a trophy for every achievement,
@@ -112,8 +112,8 @@ export const factory = {
     k.prop("gauges", 9.9, -1, { y: 3.4, yaw: Math.PI / 2 });
     k.prop("calendar", 9.9, -3.1, { y: 2.1, yaw: Math.PI / 2, opts: { night: P.night ?? 0 } });
 
-    // Outside the window: Álmos, dozing in the dark.
-    k.prop("almos", 0, -26, { y: -6 });
+    // Outside the window: Old Hum, dozing in the dark.
+    k.prop("oldHum", 0, -26, { y: -6 });
     k.start(0, 4.5, 0);
   },
 };

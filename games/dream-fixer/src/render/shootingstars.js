@@ -3,7 +3,7 @@ import * as T from "three";
 // ── Shooting stars ───────────────────────────────────────────────────────
 // Now and then a streak of light falls across the night outside (the
 // Factory's window); more often while you stand and gaze out of it.
-// A few pooled streaks, past the fog, high over Álmos.
+// A few pooled streaks, past the fog, high over Old Hum.
 
 const POOL = 5;
 

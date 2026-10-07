@@ -5,7 +5,7 @@ import { jelly, souffle, meatball, pepperShaker, rollingPin, meatGrinder, pressu
 import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./characters.js";
 import { anchor } from "./dream.js";
 import { vacuumBoss } from "./boss.js";
-import { jobBoard, workbench, desk, lift, dreamTank, pipe, almos, crate, shelf, rug, hangLamp, dock, lectern, dreamFrame, trophyCase, corkboard, calendar, cogPoster, gauges } from "./factory.js";
+import { jobBoard, workbench, desk, lift, dreamTank, pipe, oldHum, crate, shelf, rug, hangLamp, dock, lectern, dreamFrame, trophyCase, corkboard, calendar, cogPoster, gauges } from "./factory.js";
 import { memoryBubble } from "./dream.js";
 import { mugCoffee, mugCocoa, espresso, pillowBomb, vest, balloon, slipper, magnet, sieve, pouch } from "./kit.js";
 import { alarmClock, pencil, backpack, sharpener, redPen, lockers, schoolDesk, teacherDesk, chalkboard, bookshelf, readingTable, schoolBus, flagpole, hoop, wallClock, bellTower, acUnit, fountain } from "./school.js";
@@ -197,7 +197,7 @@ export const MODELS = {
   lift: { build: lift, frame: 4.5 },
   dreamTank: { build: dreamTank, frame: 4.5 },
   pipe: { build: pipe, frame: 3 },
-  almos: { build: almos, frame: 16 },
+  oldHum: { build: oldHum, frame: 16 },
   crate: { build: crate, frame: 1.4 },
   shelf: { build: shelf, frame: 2.8 },
   rug: { build: rug, frame: 4 },

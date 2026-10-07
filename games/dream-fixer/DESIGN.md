@@ -35,7 +35,7 @@ világban.
 | **Te, az újonc** | Néma főhős, az első heted az Álomgyárban. Csak a kezed és a szerszámaid látszanak. |
 | **Margó** | Az éjszakás diszpécser, a rádióhang. Kicsit fáradt, nagyon kávéfüggő, és titokban szereti az újoncokat. Ő viszi a sztorit és a humort. |
 | **Csavar** | Kis lebegő műhelyrobot, aki elkísér az álmokba. Ő mutatja az utat és a horgonyokat, és ő a tutorial-hang. Szótlanul, csipogva kommunikál. |
-| **Álmos** | A Gyár ősi, hatalmas álomgépe. Csak a végén derül ki, hogy ő a fő szereplő (lásd a sztorinál). |
+| **Old Hum** | A Gyár ősi, hatalmas álomgépe. Csak a végén derül ki, hogy ő a fő szereplő (lásd a sztorinál). |
 | **Az ügyfelek** | Minden fejezetnek van egy ügyfele, akinek az álmában jársz. |
 
 ## 3. Sztoriív
@@ -57,15 +57,15 @@ Margó egyre idegesebb, mert „ennyi hibás álom nem szokott lenni”.
    gyerekkori szobája darabjaival. Az egész állomáson alacsony a
    gravitáció (magas, lassú ugrások). Itt jön a **Csillagjojó**, Sophie
    gyerekkori jojója.
-6. **Finálé, Álmos álma:** kiderül, hogy a hibák onnan szivárognak, hogy a
+6. **Finálé, Old Hum álma:** kiderül, hogy a hibák onnan szivárognak, hogy a
    Gyár nagy gépe száz éve nem aludt, mert mindig mások álmait gyártja. Az
    utolsó küldetésben nem legyőzöd, hanem **elaltatod**: megjavítod a saját
-   álmát. A zárójelenetben Margó kávét hoz neked, Álmos pedig horkol.
-   Az álma az öt álom **egyvelege**: Álmos gépezetének belsejében (fogaskerekek,
+   álmát. A zárójelenetben Margó kávét hoz neked, Old Hum pedig horkol.
+   Az álma az öt álom **egyvelege**: Old Hum gépezetének belsejében (fogaskerekek,
    csövek, futószalagok) lebegnek a hét álmainak darabjai, a horgonyok
    ezeknél vannak, és visszajönnek a régi hibák is. Nálad csak a
    Stabilizátor van, és az első horgony után az **Álomhomok-zsák**, a
-   Homokember zsákja. A főellenség Álmos **álmatlansága**: nincs
+   Homokember zsákja. A főellenség Old Hum **álmatlansága**: nincs
    életerő-csíkja, csak egy álmosság-mérője, amit a homok tölt, és a végén
    elalszik.
 

@@ -18,10 +18,10 @@ export const LINES_EN = {
   hub_radio_6: ["margo", "If the board's empty, blame the sandman's union."],
   hub_radio_7: ["margo", "Testing, testing… yes, you can hear me. Back to work!"],
   hub_radio_8: ["margo", "Rule one of the night shift: never trust a happy vacuum cleaner."],
-  hub_window_1: ["margo", "That's Álmos out there. A hundred years old, and never a night off."],
+  hub_window_1: ["margo", "That's Old Hum out there. A hundred years old, and never a night off."],
   hub_window_2: ["margo", "Make a wish. Cog wished for a second propeller."],
   hub_window_3: ["margo", "Pretty, isn't it? Don't tell the dreams I said so."],
-  hub_window_4: ["margo", "Hear that hum? Álmos, snoring. Or trying to."],
+  hub_window_4: ["margo", "Hear that hum? Old Hum, snoring. Or trying to."],
   hub_bench: ["margo", "The workbench. Bring me dust and I'll make your tools purr."],
   // Biscuit's park.
   park_bunny: ["margo", "Dust bunnies. One zap each."],
@@ -313,7 +313,7 @@ export const NOTES_EN = {
 // The journal's story: a few lines per chapter, each unlocked as you get
 // there (see STORY_BEATS in ui/menus.js).
 export const STORY_EN = {
-  hub_first: "Your first night shift at the Dream Factory. Margo runs the radio and the coffee; Cog, a little workshop robot, comes down into the dreams with you. Out of the big window, Álmos, the Factory's ancient dream machine, hums in his sleep. Or tries to.",
+  hub_first: "Your first night shift at the Dream Factory. Margo runs the radio and the coffee; Cog, a little workshop robot, comes down into the dreams with you. Out of the big window, Old Hum, the Factory's ancient dream machine, hums in his sleep. Or tries to.",
   park_arrive: "Biscuit the dog is alone this week: Dora, his person, is away. In his dream the park has come apart into floating islands, and the squirrels he chases all day are chasing him.",
   park_tool: "With the first anchor tuned, the Factory sent down the Fuzz Vacuum. Fitting, in a dream about a vacuum cleaner.",
   park_boss: "Under the lawn waited the thing Biscuit fears most: the Vacuum Cleaner, the one that lives in the cupboard and comes out roaring.",
@@ -329,7 +329,7 @@ export const STORY_EN = {
   garden_arrive: "Grandpa Joe was the station master at Millbrook. Tomorrow he leaves the house where he and May kept a garden for fifty years. In his dream the garden has broken into islands, slowly drifting apart.",
   garden_tool: "When the first anchor held, Joe's old umbrella floated down out of the sky: a gust, a shield, and a way to glide from island to island.",
   garden_boss: "At the old station the Big Alarm Clock was waiting, ringing the time out from under him, slab by slab.",
-  garden_fixed: "Joe dreams of May in the garden, her straw hat on his head. Back at the Factory the pipes rattled all night, and outside the window Álmos turned over in his sleep. Margo watched him for a long time.",
+  garden_fixed: "Joe dreams of May in the garden, her straw hat on his head. Back at the Factory the pipes rattled all night, and outside the window Old Hum turned over in his sleep. Margo watched him for a long time.",
   space_arrive: "Sophie has been on the station for six months, and tomorrow is her first spacewalk. Tonight she is homesick, and in her dream the station is full of her childhood room. Everything is light up here.",
   space_tool: "After the first anchor, Sophie's old yo-yo came floating down: a throw, a lasso, and a string that catches on stars.",
   space_boss: "In the cupola her night-light woke up: the Moon Lamp she fell asleep under as a girl, gone very wrong.",
