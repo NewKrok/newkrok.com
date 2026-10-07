@@ -64,8 +64,8 @@ async function startGame() {
     tools: [...(def.tools ?? ["stabilizer"])].sort((a, b) => TOOL_ORDER.indexOf(a) - TOOL_ORDER.indexOf(b)),
     // The Factory hangs up what you have done (fixed dreams, trophies).
     progress,
-    // Dropping into a dream: the arrival.
-    arrive: !def.hub,
+    // Dropping into a dream: the arrival (not where you walk in).
+    arrive: !def.hub && !def.walkIn,
   });
 
   let run = null;
@@ -87,9 +87,11 @@ async function startGame() {
     if (def.hub) run.dust = progress.dust;      // the purse, shown in the HUD
     // A job taken: Cog flies over to the lift to show the way.
     if (def.hub && progress.picked) run.guide = run.kit.marks.lift;
+    // The finale's night: he shows you out of the window, to Old Hum's hatch.
+    if (def.hub && run.kit.marks.hatch) run.guide = run.kit.marks.hatch;
     hud.rank(progress.xp);
     audio.setSong(def.song ?? id);
-    if (!def.hub) audio.play("arrive");
+    if (!def.hub && !def.walkIn) audio.play("arrive");
     if (!def.hub && !def.dev) track("dream_start", { dream: id, hard });
   }
 
@@ -238,7 +240,13 @@ async function startGame() {
       lastRadio = pool[Math.floor(Math.random() * pool.length)];
       if (!dialog.busy) { dialog.say(lastRadio, true); progress.stats.radio++; achieve(); save(); }
     }
+    else if (id === "hatch") {
+      // Into Old Hum, the first time: through his hatch, not the lift.
+      progress.picked = "oldhum"; progress.pickedHard = false; save();
+      menus.fade(() => startLevel("oldhum"), 400);
+    }
     else if (id === "lift") {
+      if (run.kit.marks.hatch) { dialog.say("hub_liftdead", true); return; }
       if (!progress.picked) { dialog.say("hub_nojob", true); return; }
       const lvl = progress.picked, hard = !!progress.pickedHard;
       menus.fade(() => startLevel(lvl, hard), 400);

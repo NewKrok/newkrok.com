@@ -105,6 +105,9 @@ export class Run {
     this.soakT = 0;               // how close the next sting is (under one)
     // Paving that can fall away (a nightmare's trick) and float back.
     this.tiles = this.kit.tiles.map((p) => ({ ...p, state: "set", t: 0, dy: 0 }));
+    // Locks Cog opens: closed till you come near with enough anchors fixed
+    // (`called`), then he flies to the panel at the side and works it.
+    this.gates = this.kit.gates.map((g) => ({ ...g, called: false, open: false, t: 0 }));
     this.stats = { popped: 0, shots: 0, hits: 0 };
     this.anchors = this.kit.anchors.map((a) => new Anchor(a));
     this.nearAnchor = null;
@@ -370,6 +373,28 @@ export class Run {
     }
   }
 
+  // A lock you have come up to (and may pass): Cog is called over to it.
+  stepGates() {
+    const b = this.body;
+    for (const g of this.gates) {
+      if (g.called || g.open || this.fixedCount < g.after || !this.cog) continue;
+      if (Math.hypot(b.x - g.x, b.z - g.z) > 10 || Math.abs(b.y - g.y) > 4) continue;
+      g.called = true;
+      this.events.push({ type: "gateCall", id: g.id, x: g.x, y: g.y, z: g.z });
+    }
+  }
+  // Where Cog works a lock: the panel at its right-hand post.
+  gatePanel(g) {
+    const k = g.w / 2 + 0.55;
+    return [g.x + Math.cos(g.yaw) * k, g.y + 1.7, g.z - Math.sin(g.yaw) * k];
+  }
+  openGate(g) {
+    if (g.open) return;
+    g.open = true;
+    this.world.remove(g.c);
+    this.events.push({ type: "gateOpen", id: g.id, x: g.x, y: g.y, z: g.z });
+  }
+
   stepShocks(dt) {
     const b = this.body;
     for (const s of this.shocks) {
@@ -611,6 +636,7 @@ export class Run {
     this.stepClouds(dt);
     this.stepRains(dt);
     this.stepTiles(dt);
+    this.stepGates();
     this.foes = this.foes.filter((f) => f.alive || f.age < 0.1);
   }
 

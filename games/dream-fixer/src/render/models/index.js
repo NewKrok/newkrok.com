@@ -4,6 +4,7 @@ import { pinwheel, windWell, gnome, slingerGnome, trainTicket, wateringCan, wate
 import { jelly, souffle, meatball, pepperShaker, rollingPin, meatGrinder, pressureCooker, kitchenWindow, panRail, knob, faucet, burner, kettle, jar, cuttingBoard, breadLoaf, fridge, flourSack, tableCloth, mug, tomato, bucket, spoon, pea } from "./kitchen.js";
 import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./characters.js";
 import { anchor } from "./dream.js";
+import { gear, wallGear, gearBit, lockGate, hatch, dreamColumn } from "./oldhum.js";
 import { vacuumBoss } from "./boss.js";
 import { jobBoard, workbench, desk, lift, dreamTank, pipe, oldHum, crate, shelf, rug, hangLamp, dock, lectern, dreamFrame, trophyCase, corkboard, calendar, cogPoster, gauges } from "./factory.js";
 import { memoryBubble } from "./dream.js";
@@ -198,6 +199,12 @@ export const MODELS = {
   dreamTank: { build: dreamTank, frame: 4.5 },
   pipe: { build: pipe, frame: 3 },
   oldHum: { build: oldHum, frame: 16 },
+  gear: { build: gear, frame: 8, anim: spin("spin", "y", 0.3) },
+  wallGear: { build: wallGear, frame: 8 },
+  gearBit: { build: gearBit, frame: 4 },
+  lockGate: { build: lockGate, frame: 7, anim: (o, t) => { const N = o.userData.nodes, k = Math.max(0, Math.sin(t * 0.8)) * 1.9; N.left.position.x = -1 - k; N.right.position.x = 1 + k; } },
+  hatch: { build: hatch, frame: 4.5 },
+  dreamColumn: { build: dreamColumn, frame: 8 },
   crate: { build: crate, frame: 1.4 },
   shelf: { build: shelf, frame: 2.8 },
   rug: { build: rug, frame: 4 },

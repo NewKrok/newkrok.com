@@ -166,12 +166,15 @@ export function pipe(b, { a = [0, 0, 0], d = [0, 3, 0], r = 0.12, c = C.copper }
 
 // Old Hum: the great old dream machine, seen through the big window. A huge
 // brass sphere with a sleepy lens, far bigger than the room.
-export function oldHum(b) {
+export function oldHum(b, { awake = false } = {}) {
   b.add(SHAPE.ball(6, 22, 16), { p: [0, 7, 0], grad: [C.brassD, C.brass], mat: "metal", facet: 0.03 });
+  // The night he cannot sleep at all: a red glow in his seams, his back
+  // (the side to the Factory) lit up round the hatch.
+  if (awake) for (let i = 0; i < 3; i++) b.add(SHAPE.torus(6.12, 0.06, 4, 40), { p: [0, 7, 0], r: [RX + i * 0.4 - 0.4, 0.15, 0], c: 0xff6a40, mat: "glow", glow: 1.4 });
   for (let i = 0; i < 3; i++) b.add(SHAPE.torus(6.05, 0.18, 5, 40), { p: [0, 7, 0], r: [RX + i * 0.4 - 0.4, 0, 0], c: C.copper, mat: "metal" });
   // The big sleepy lens, half-lidded.
   b.add(SHAPE.cyl(2.4, 2.6, 0.6, 24, 0.1), { p: [0, 7.5, -5.7], r: [RX, 0, 0], c: C.iron, mat: "metal" });
-  b.add(SHAPE.cyl(2.0, 2.0, 0.2, 24), { p: [0, 7.5, -6.0], r: [RX, 0, 0], c: C.dreamGold, mat: "glow", glow: 0.9 });
+  b.add(SHAPE.cyl(2.0, 2.0, 0.2, 24), { p: [0, 7.5, -6.0], r: [RX, 0, 0], c: awake ? 0xff7050 : C.dreamGold, mat: "glow", glow: awake ? 1.6 : 0.9 });
   b.add(SHAPE.cyl(0.9, 0.9, 0.22, 20), { p: [0, 7.3, -6.05], r: [RX, 0, 0], c: C.black });
   b.add(SHAPE.torus(2.5, 0.35, 5, 24, Math.PI), { p: [0, 7.7, -5.95], c: C.brassD, mat: "metal" });
   b.add(SHAPE.box(5.2, 1.4, 0.5, 0.2), { p: [0, 9.1, -5.85], c: C.brassD, mat: "metal" });

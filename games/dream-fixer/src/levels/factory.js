@@ -1,5 +1,5 @@
 import { rng } from "../rng.js";
-import { CLIENTS, isOpen } from "./index.js";
+import { CLIENTS, isOpen, finaleNight } from "./index.js";
 
 // ── The Dream Factory (the hub) ──────────────────────────────────────────
 // The night-shift workshop, between dreams: the job board by the big
@@ -8,6 +8,11 @@ import { CLIENTS, isOpen } from "./index.js";
 // The walls fill up as the week goes on (ctx: the player's progress): a
 // framed picture for every dream fixed, a trophy for every achievement,
 // the nights crossed off on the calendar.
+//
+// The night of the finale (the week's five dreams fixed, Old Hum's not
+// yet) it is different: the lamps burn low, the lift is dead, and the big
+// window stands open onto a gangway out to Old Hum, wide awake, and a
+// service hatch in his side.
 
 const WALL = { side: 0xd9b88a, sideD: 0xb08858, bevel: 0.04 };
 const WAINSCOT = { flat: { top: 0x6a3f24, side: 0x7a4a2a } };
@@ -25,7 +30,7 @@ export const factory = {
   lamps: 5,
 
   build(k, ctx) {
-    const rnd = rng(3), P = ctx ?? { done: [], ach: {}, night: 0 };
+    const rnd = rng(3), P = ctx ?? { done: [], ach: {}, night: 0 }, finale = finaleNight(P);
     k.floorLimit = 3;
     // Floor: rows of planks.
     for (let i = 0; i < 14; i++) {
@@ -41,15 +46,18 @@ export const factory = {
     k.block(7, -7.2, 6, 0.4, 0, H, WALL);
     k.block(0, -7.2, 8, 0.4, 0, 1.0, WALL);
     k.block(0, -7.2, 8, 0.4, 4.6, H, WALL);
-    // The window can't be walked through, but you can stand and gaze out of it.
-    k.use("window", 0, -6.3, { r: 2, label: "useWindow" });
-    k.block(0, -7.2, 8, 0.3, 1.0, 4.6, null);
+    // The window can't be walked through, but you can stand and gaze out
+    // of it. (The finale's night it stands open: a step up to the sill.)
+    if (!finale) {
+      k.use("window", 0, -6.3, { r: 2, label: "useWindow" });
+      k.block(0, -7.2, 8, 0.3, 1.0, 4.6, null);
+    } else k.block(0, -6.55, 3, 0.9, 0, 0.5, { flat: { top: 0xa8703f, side: 0x7a4a2a } });
     // Window frame and mullions.
     const FR = { side: 0x6a3f24, sideD: 0x4a2c1a, bevel: 0.02 };
     k.block(0, -6.95, 8.2, 0.2, 0.9, 1.05, FR);
     k.block(0, -6.95, 8.2, 0.2, 4.55, 4.7, FR);
-    for (const x of [-4.05, -1.35, 1.35, 4.05]) k.block(x, -6.95, 0.14, 0.2, 1, 4.6, FR);
-    k.block(0, -6.95, 8, 0.12, 2.75, 2.85, FR);
+    for (const x of finale ? [-4.05, 4.05] : [-4.05, -1.35, 1.35, 4.05]) k.block(x, -6.95, 0.14, 0.2, 1, 4.6, FR);
+    if (!finale) k.block(0, -6.95, 8, 0.12, 2.75, 2.85, FR);
     // Wainscot along the walls.
     k.block(-9.95, 0, 0.1, 14.2, 0, 1.1, WAINSCOT);
     k.block(9.95, 0, 0.1, 14.2, 0, 1.1, WAINSCOT);
@@ -93,9 +101,10 @@ export const factory = {
     // Hanging lamps (and the lights they give).
     for (const [x, z] of [[0, 1.8], [-5.5, -3], [5.5, -2.5], [-5.5, 4], [5, 4.5]]) {
       k.prop("hangLamp", x, z, { y: H - 0.4, opts: { cord: 1.1 } });
-      k.light(x, H - 1.8, z, 0xffc880, 9, 11);
+      // (The finale's night they burn low and red.)
+      k.light(x, H - 1.8, z, finale ? 0xff8a50 : 0xffc880, finale ? 3 : 9, 11);
     }
-    k.light(8.4, 2.8, -5.2, 0x7ff5e0, 5, 7);
+    if (!finale) k.light(8.4, 2.8, -5.2, 0x7ff5e0, 5, 7);
     // ── On the walls ──
     // Behind you as you come in: a picture of every dream fixed (an empty
     // frame for the ones to come), the clock over them, the trophy case.
@@ -112,8 +121,18 @@ export const factory = {
     k.prop("gauges", 9.9, -1, { y: 3.4, yaw: Math.PI / 2 });
     k.prop("calendar", 9.9, -3.1, { y: 2.1, yaw: Math.PI / 2, opts: { night: P.night ?? 0 } });
 
-    // Outside the window: Old Hum, dozing in the dark.
-    k.prop("oldHum", 0, -26, { y: -6 });
+    // Outside the window: Old Hum, dozing in the dark (wide awake, the
+    // finale's night, a gangway out to the hatch in his side).
+    k.prop("oldHum", 0, -26, { y: -6, opts: { awake: finale } });
+    if (finale) {
+      const PL = { top: 0x9a7a52, side: 0x6a4a2a, sideD: 0x2a1a0e, bevel: 0.05 }, RL = { top: 0xe0b860, side: 0xa07a30, bevel: 0.03 };
+      k.block(0, -13.6, 2.6, 12.6, 0.6, 1.0, PL);
+      for (const x of [-1.35, 1.35]) k.block(x, -13.6, 0.1, 12.6, 1.0, 2.05, RL);
+      k.prop("hatch", 0, -20.1, { y: 1.0, yaw: Math.PI, collide: { w: 3.6, d: 0.6, h: 3.4 } });
+      k.light(0, 3.5, -18, 0xffc070, 5, 9);
+      k.use("hatch", 0, -18.6, { r: 2.2, label: "useHatch" });
+      k.mark("hatch", 0, -18.6);
+    }
     k.start(0, 4.5, 0);
   },
 };

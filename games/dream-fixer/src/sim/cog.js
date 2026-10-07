@@ -15,6 +15,7 @@ const GRAB = 2.2;          // takes everything this close to what he went for
 const QUIET = 4;           // seconds without a bonk before he starts healing
 const SCOUT = 24;          // metres
 const CHARGE = 0.5;        // seconds his antenna glows before a spark goes
+const GATE = 1.4;          // seconds he works a lock's panel before it opens
 
 export class Cog {
   constructor(run) {
@@ -37,9 +38,20 @@ export class Cog {
     const sn = Math.sin(b.yaw), cs = Math.cos(b.yaw);
     const hx = b.x - sn * 1.6 - cs * 1.1, hy = b.y + 1.9, hz = b.z - cs * 1.6 + sn * 1.1;
 
+    // ── Locks ──
+    // A lock he has been called to comes first: over to its panel, a
+    // moment's work, and it opens.
+    const g = run.gates?.find((o) => o.called && !o.open);
     // ── Fetching ──
-    if (!this.task && P.fetch) this.pick(run);
-    if (this.task === "go") {
+    if (!g && !this.task && P.fetch) this.pick(run);
+    if (g) {
+      const [px, py, pz] = run.gatePanel(g);
+      if (this.fly(px, py, pz, dt) < 0.3) {
+        if (g.t === 0) run.events.push({ type: "gateWork", id: g.id, x: px, y: py, z: pz });
+        g.t += dt;
+        if (g.t > GATE) run.openGate(g);
+      }
+    } else if (this.task === "go") {
       const m = this.target;
       if (m.got || m.carry || m.pull) { this.task = null; this.target = null; }
       else if (this.fly(m.x, m.y, m.z, dt) < 0.6) {

@@ -206,8 +206,13 @@ function clearAround(maxT = 25) {
 // (a fall or a faint): the route has to start over from there.
 function walk(route) {
   const f0 = falls, n0 = run.faints;
-  for (const [x, z, jump] of route) {
+  for (const p of route) {
+    const [x, z, jump] = p;
     if (falls !== f0 || run.faints !== n0) return false;
+    // The sand sack: face (x, z), tip the view, pour a path.
+    if (x === "sand") { sandPath(p[1], p[2], p[3]); continue; }
+    // A lock Cog opens: wait for him (fighting what comes meanwhile).
+    if (x === "gate") { const g = run.gates.find((o) => o.id === z); for (let i = 0; i < 60 * 12 && g && !g.open; i++) { const it = {}; aimAndFire(it); step(it); } continue; }
     // A foam step to climb: set where a well-aimed blob would land, on
     // whatever is there (the floor, or a step already standing).
     if (x === "foam") { foamStep(z, jump); continue; }
@@ -233,7 +238,7 @@ function walk(route) {
       if (j) jumped = true;
       step({ forward: 1, jump: jumped && B.vy > 0, jumpPressed: j, toolTo: toolIndex("stabilizer") });
       B.yaw = Math.atan2(-(x - B.x), -(z - B.z));
-      if (process.env.DEBUG && i === 899) console.log("   stuck walking to", x, z, "at", B.x.toFixed(1), B.y.toFixed(1), B.z.toFixed(1));
+      if (process.env.DEBUG && i === 899) console.log("   stuck walking to", x, z, "at", B.x.toFixed(1), B.y.toFixed(1), B.z.toFixed(1), run.world.query(B.x, B.z, 0.6).map((c) => `${c.kind}/${c.tag}@${c.x.toFixed(1)},${c.z.toFixed(1)} y${c.y0}-${c.y1.toFixed(2)}`).join(" "));
     }
   }
   return true;
@@ -306,6 +311,17 @@ function draft(id) {
     step({ alt: true });
     if (B.y > d.top - 1.8 && Math.abs(B.vy) < 1.5) break;
   }
+}
+
+function sandPath(x, z, pitch) {
+  const si = toolIndex("sand");
+  if (si < 0) return;
+  if (run.tool !== si) { step({ toolTo: si }); for (let i = 0; i < 19; i++) step({}); }
+  for (let i = 0; i < 120 && run.activeTool.overheated; i++) step({});
+  B.yaw = Math.atan2(-(x - B.x), -(z - B.z)); B.pitch = pitch;
+  step({ alt: true });
+  step({});
+  B.pitch = 0;
 }
 
 function foamStep(x, z) {

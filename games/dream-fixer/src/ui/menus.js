@@ -160,7 +160,7 @@ export class Menus {
   // The job board. A dream fixed once can be taken again, as it was or in
   // deep sleep (hard).
   board(progress, { onTake, onClose }) {
-    const cards = CLIENTS.map((c) => {
+    const cards = CLIENTS.filter((c) => !c.door || isOpen(c, progress)).map((c) => {
       const [name, desc] = t(`c_${c.id}`);
       if (!isOpen(c, progress)) return `<div class="client locked"><div class="photo q">?</div><div class="info"><b>${esc(name)}</b><p>${esc(desc)}</p><span class="tag">${esc(t("board_next"))}</span></div></div>`;
       const done = progress.done.includes(c.id), hard = progress.hard?.includes(c.id), found = progress.memories.filter((m) => MEMORY_OWNER[m] === c.id).length;

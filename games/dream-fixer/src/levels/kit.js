@@ -22,6 +22,8 @@ export class Kit {
     this.pinwheels = [];       // a gust sets them spinning (and their updraft blowing)
     this.tiles = [];           // paving that can fall away (drawn and moved by the renderer)
     this.hooks = [];           // star handles the yo-yo catches on (and reels you in to)
+    this.gates = [];           // locks Cog opens (drawn and moved by the renderer)
+    this.spinners = [];        // turning machinery, drawn only (no collider)
     this.floorLimit = 50;      // indoors: below the ceiling
   }
 
@@ -136,6 +138,17 @@ export class Kit {
   // A star handle hanging in the air at (x, y, z): the yo-yo's string
   // catches on it and reels you in. o: { r (how near the yo-yo must pass) }.
   hook(id, x, y, z, o = {}) { this.hooks.push({ id, x, y, z, r: o.r ?? 0.7 }); }
+  // A lock across the way at (x, z): a brass shutter `w` wide and `h`
+  // high, turned by yaw (its width runs along the turned x). Cog opens it
+  // when you come near, once `after` anchors hold. o: { w, h, y, yaw, after }.
+  gate(id, x, z, o = {}) {
+    const w = o.w ?? 4, h = o.h ?? 4.2, y = o.y ?? 0, yaw = o.yaw ?? 0;
+    const c = this.world.box({ x, z, y0: y - 0.5, y1: y + h, hx: w / 2, hz: 0.3, yaw, tag: "gate" });
+    this.gates.push({ id, x, z, y, w, h, yaw, after: o.after ?? 0, c });
+  }
+  // Something that keeps turning (its model's "spin" node), drawn by the
+  // renderer: a big gear in the works. o: { y, yaw, rx (tipped over), opts, speed }.
+  spinner(model, x, z, o = {}) { this.spinners.push({ model, x, y: o.y ?? 0, z, yaw: o.yaw ?? 0, rx: o.rx ?? 0, opts: o.opts ?? {}, speed: o.speed ?? 0.2 }); }
   mark(name, x, z, y) { this.marks[name] = { x, y: y ?? this.floorAt(x, z), z }; }
   light(x, y, z, color, intensity = 6, dist = 9) { this.lights.push({ x, y, z, color, intensity, dist }); }
 }

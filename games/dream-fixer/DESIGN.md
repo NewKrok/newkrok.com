@@ -291,6 +291,43 @@ arany csillaggal.
   annyit sebződik. (Az első változatban a lánc mindig lógott, és
   folyamatosan le lehetett rántani: túl könnyű volt.)
 
+### Old Hum álma (6. fejezet, finálé)
+
+Old Hum a Gyár százéves álomgépe; egész héten belőle szivárogtak a hibák.
+A finálé **nem a liftről indul**: amikor az ötödik álomból visszaérsz, a
+Gyárban kialszanak a lámpák (pirosan izzanak), a lift halott, a munkatábla
+üres, a nagy ablak kitárul, és egy pallón kisétálsz Old Humhoz. A
+gömb oldalán egy szervizajtó (`E`) visz be; nincs zuhanó érkezés
+(`walkIn`), a landolón kezdesz, a bezárt ajtó mögötted. A munkatáblán
+csak a megjavítása után jelenik meg (`door: true` a `CLIENTS`-ben), onnan
+újra elvállalható.
+
+**Csavar csavarja:** Csavart Old Hum egyik alkatrészéből építették, ezért
+bent ismeri az utat. A darabok között **zsilipek** (`kit.gate`) vannak:
+ha odamész, Csavar a kapcsolótáblához repül, és kinyitja (a lámpa
+pirosból borostyánon át mentazöldre vált). A nyugati rögtön nyílik, a
+keleti az első horgony után, a szívé mind a három után. A második
+horgony után Csavar el is mondja, mi ő.
+
+- **A landoló és a palló** (délen).
+- **A gépház** (középen): kerek rézpadló korláttal, közepén forgó
+  óriás fogaskerékkel (`kit.spinner`), álomoszlopok. Délkeleten egy
+  2,8 m magas ládarakás (homokrámpával), mögötte még magasabban Sophie
+  állomásának egy fedélzete (emlék: rámpa a ládákról).
+- **Nyugat:** Biscuit parkja (1. horgony), az északi szélére állítva
+  Ethan iskolafolyosója 2,8 m magasan (2. horgony, homokrámpa).
+- **Kelet:** a palló elszakad, 6 m-es rés (homokút), mögötte Rosie
+  konyhája (3. horgony) az óriásbögrével (emlék rámpával).
+- **Északkelet, 3 m-rel lejjebb:** Joe kertje (7 m-es rés, lejtő),
+  lépcső vissza a gépház mellé.
+- **Észak:** az utolsó zsilip mögött Old Hum szíve, a boss arénája (a
+  főellenség, az álmatlanság és az álmosság-mérő a következő lépés).
+
+Hibák: minden darabban a saját álmáé (mókusok, ceruzák, gombócok,
+törpék, robotok), a hullámokban az egész hét keverve. Emlékek: az első
+tervrajz, az első álom, Margó első bögréje, egy üres foglalat (Csavaré),
+egy zenedoboz-henger.
+
 ### Szerszámok (a „fegyverek”)
 
 Egyik szerszámnak sincs lőszere. A casual játék érdekében hő- vagy

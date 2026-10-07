@@ -285,6 +285,8 @@ export class Audio {
       case "yoyoHit": S(0.09, { type: "triangle", freq: 420, freqEnd: 160, gain: 0.12 }); N(0.05, { type: "bandpass", freq: 1800, q: 2, gain: 0.08 }); break;
       case "yoyoClack": S(0.05, { type: "square", freq: 1300, freqEnd: 900, gain: 0.03 }); N(0.03, { type: "highpass", freq: 2500, gain: 0.05 }); break;
       case "yoyoHook": this.#bell(d, t, hz(88), 0.07, 0.8, 0.3); this.#bell(d, t + 0.05, hz(95), 0.05, 0.6, 0.3); N(0.08, { type: "highpass", freq: 4000, gain: 0.05 }); break;
+      case "gateWork": [81, 86, 83, 88].forEach((n, i) => at(i * 0.12, (tt) => this.#bell(d, tt, hz(n), 0.035, 0.25, 0.1))); N(0.3, { type: "highpass", freq: 3500, gain: 0.04 }); break;
+      case "gateOpen": S(0.9, { type: "sawtooth", freq: 70, freqEnd: 110, gain: 0.07 }); N(1.0, { type: "bandpass", freq: 500, freqEnd: 900, q: 1.2, gain: 0.12, attack: 0.05 }); this.#bell(d, t + 0.8, hz(79), 0.05, 1, 0.4); break;
       case "sandPinch": N(0.14, { type: "highpass", freq: 3800 + Math.random() * 800, freqEnd: 5200, gain: 0.035, attack: 0.02 }); if (Math.random() < 0.35) this.#bell(d, t + 0.03, hz(96 + Math.floor(Math.random() * 5)), 0.012, 0.3, 0.2); break;
       case "sandPath": N(0.5, { type: "bandpass", freq: 2400, freqEnd: 600, q: 0.9, gain: 0.1, attack: 0.03 }); S(0.3, { freq: 180, freqEnd: 90, gain: 0.08 }); this.#bell(d, t + 0.05, hz(84), 0.03, 0.8, 0.3); break;
       case "sandGone": N(0.7, { type: "highpass", freq: 2600, freqEnd: 1200, gain: 0.05, attack: 0.05 }); break;

@@ -18,6 +18,7 @@ import { BellView } from "./bell.js";
 import { UmbrellaView } from "./umbrella.js";
 import { YoyoView } from "./yoyo.js";
 import { SandView } from "./sand.js";
+import { WorksView } from "./works.js";
 import { TileView } from "./tiles.js";
 import { ShootingStars } from "./shootingstars.js";
 import { C } from "./palette.js";
@@ -50,6 +51,7 @@ export class GameView {
     this.umbrellaView = new UmbrellaView(this.scene, this.fx);
     this.yoyoView = new YoyoView(this.scene, this.fx);
     this.sandView = new SandView(this.scene, this.fx);
+    this.worksView = new WorksView(this.scene, this.fx);
     this.tileView = new TileView(this.scene, this.fx);
     this.companion = new Companion(this.scene);
     this.talking = false;
@@ -139,6 +141,7 @@ export class GameView {
     this.umbrellaView.load(run);
     this.yoyoView.load(run);
     this.tileView.load(run);
+    this.worksView.load(run);
     const def = run.def, kit = run.kit;
     this.foes.setSkins(def.skins);
     const g = this.level = new T.Group();
@@ -188,6 +191,9 @@ export class GameView {
         this.yoyoView.onEvent(e);
         if (e.type === "yoyoThrow") this.thrown = true;
         if (e.type === "yoyoHook") this.shake = Math.min(1, this.shake + 0.1);
+      } else if (e.type === "gateWork" || e.type === "gateOpen") {
+        this.worksView.onEvent(e);
+        if (e.type === "gateOpen" && Math.hypot(e.x - run.body.x, e.z - run.body.z) < 12) this.shake = Math.min(1, this.shake + 0.15);
       } else if (e.type.startsWith("sand") || e.type === "foeSandy") {
         this.sandView.onEvent(e, run, this.muzzleWorld());
         if (e.type === "sandPinch") this.pinched = true;
@@ -463,6 +469,7 @@ export class GameView {
     this.umbrellaView.update(run, dt, t);
     this.yoyoView.update(run, dt, t, m);
     this.sandView.update(run, dt, t);
+    this.worksView.update(run, dt, t);
     this.tileView.update(run, dt, t);
     this.fx.update(dt);
     this.adapt(dt);

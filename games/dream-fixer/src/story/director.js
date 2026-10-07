@@ -141,8 +141,29 @@ const DIRECTORS = {
     },
     on: { dizzy: "dizzy", bossRise: "boss", "bossAttack:beam": "beam", "bossAttack:tide": "tide", moonDoze: "chain", moonTethered: "tethered", bossPhase: "phase", bossPop: "win" },
   }),
+  oldhum: dreamDirector("oldhum", {
+    meet: [["fuzz", 14, "fuzz"], ["pencil", 14, "pencil"], ["meatball", 14, "meatball"], ["gnome", 14, "gnome"], ["robot", 12, "robot"]],
+    events(D, run, e) {
+      // Cog at his locks; after the second anchor, what he really is.
+      if (e.type === "gateCall") sayIf(D, `oldhum_gate_${e.id}`);
+      if (e.type === "gateOpen" && e.id === "west") D.say("oldhum_gate_west2");
+      if (e.type === "anchorFixed" && e.left === 1) { D.say("oldhum_cog"); D.say("oldhum_cog2"); }
+    },
+    // Under the school corridor, or where the catwalk to the kitchen
+    // breaks off: Cog says what is in the way, or (with the sand) what to
+    // do about it.
+    frame(D, run, dt, S, q) {
+      if (!q(1.5)) return;
+      const b = run.body, sand = run.tools.some((t) => t.id === "sand");
+      if (b.x > -37 && b.x < -23 && b.z < -3 && b.z > -8 && b.y < 1) D.say(sand ? "oldhum_ramp" : "oldhum_high");
+      else if (b.x > 18 && b.x < 21 && Math.abs(b.z) < 1.6 && b.y > -0.5 && b.y < 1) D.say(sand ? "oldhum_bridge" : "oldhum_gap");
+    },
+    on: { dizzy: "dizzy", bossRise: "boss", bossPhase: "phase", bossPop: "win" },
+  }),
   factory: {
     start(D, run, P) {
+      // The finale's night: the lamps low, the window open, Old Hum awake.
+      if (run.kit.marks.hatch) { D.say("hub_finale1"); D.say("hub_finale2"); return; }
       // First time in: the welcome. Back from a dream: how it went. Any
       // other time: one of a handful of greetings, at random.
       if (P.justBack) D.say("hub_back1");
@@ -152,6 +173,12 @@ const DIRECTORS = {
     events() {},
     frame(D, run, dt, S) {
       const q = (s) => S.quiet > s;
+      // The finale's night: Cog at the open window, Margo once you are out on the gangway.
+      if (run.kit.marks.hatch) {
+        if (D.said.has("hub_finale2") && q(2) && (from(run, 0, -6) < 4.5 || S.time > 25)) D.say("hub_finale3");
+        if (run.body.z < -9 && q(1)) D.say("hub_finale4");
+        return;
+      }
       if (D.said.has("hub_intro2") && q(4)) D.say("hub_intro3");
       if (D.said.has("hub_back1") && q(3)) D.say("hub_back2");
       // The journal when you wander over to it (or a while later).
