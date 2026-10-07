@@ -1,5 +1,6 @@
 import { rng } from "../rng.js";
 import { CLIENTS, isOpen, finaleNight } from "./index.js";
+import { OLD_HUM_RODS } from "../render/models/factory.js";
 
 // ── The Dream Factory (the hub) ──────────────────────────────────────────
 // The night-shift workshop, between dreams: the job board by the big
@@ -130,6 +131,13 @@ export const factory = {
       for (const x of [-1.35, 1.35]) k.block(x, -13.6, 0.1, 12.6, 1.0, 2.05, RL);
       k.prop("hatch", 0, -20.1, { y: 1.0, yaw: Math.PI, collide: { w: 3.6, d: 0.6, h: 3.4 } });
       k.light(0, 3.5, -18, 0xffc070, 5, 9);
+      // He is solid: his sphere (centre 1 m up, 6 m round) in slices a
+      // metre thick, and the rods out of his sides.
+      for (let y = -5; y < 7; y++) {
+        const off = y >= 1 ? y - 1 : y + 1 <= 1 ? -y : 0;
+        k.world.cyl({ x: 0, z: -26, r: Math.sqrt(36 - off * off), y0: y, y1: y + 1 });
+      }
+      for (const [x, y, z, a] of OLD_HUM_RODS) k.world.box({ x, z: z - 26, y0: 1 + y - 0.3, y1: 1 + y + 0.3, hx: 2, hz: 0.3, yaw: -a });
       k.use("hatch", 0, -18.6, { r: 2.2, label: "useHatch" });
       k.mark("hatch", 0, -18.6);
     }

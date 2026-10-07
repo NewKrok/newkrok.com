@@ -143,7 +143,8 @@ export class Kit {
   // when you come near, once `after` anchors hold. o: { w, h, y, yaw, after }.
   gate(id, x, z, o = {}) {
     const w = o.w ?? 4, h = o.h ?? 4.2, y = o.y ?? 0, yaw = o.yaw ?? 0;
-    const c = this.world.box({ x, z, y0: y - 0.5, y1: y + h, hx: w / 2, hz: 0.3, yaw, tag: "gate" });
+    // (Solid well over its top: no ramp of sand gets over a lock.)
+    const c = this.world.box({ x, z, y0: y - 0.5, y1: y + h + 6, hx: w / 2, hz: 0.3, yaw, tag: "gate" });
     this.gates.push({ id, x, z, y, w, h, yaw, after: o.after ?? 0, c });
   }
   // Something that keeps turning (its model's "spin" node), drawn by the

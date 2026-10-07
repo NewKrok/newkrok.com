@@ -178,11 +178,15 @@ export function oldHum(b, { awake = false } = {}) {
   b.add(SHAPE.cyl(0.9, 0.9, 0.22, 20), { p: [0, 7.3, -6.05], r: [RX, 0, 0], c: C.black });
   b.add(SHAPE.torus(2.5, 0.35, 5, 24, Math.PI), { p: [0, 7.7, -5.95], c: C.brassD, mat: "metal" });
   b.add(SHAPE.box(5.2, 1.4, 0.5, 0.2), { p: [0, 9.1, -5.85], c: C.brassD, mat: "metal" });
-  for (let i = 0; i < 8; i++) {
-    const a = i / 8 * Math.PI * 2;
-    b.add(SHAPE.cyl(0.3, 0.3, 4, 8), { p: [Math.cos(a) * 6.6, 7 + Math.sin(a) * 2, Math.sin(a) * 6.6], r: [0, -a, RX], c: C.copper, mat: "metal" });
-  }
+  for (const [x, y, z, a] of OLD_HUM_RODS) b.add(SHAPE.cyl(0.3, 0.3, 4, 8), { p: [x, 7 + y, z], r: [0, -a, RX], c: C.copper, mat: "metal" });
 }
+// The copper rods sticking out of his sides: [x, y, z, angle] from his
+// centre (7 m up the model), shared with the Factory, which makes them
+// solid. (None straight over the hatch on his back.)
+export const OLD_HUM_RODS = Array.from({ length: 8 }, (_, i) => {
+  const a = (i + 0.5) / 8 * Math.PI * 2;
+  return [Math.cos(a) * 6.6, Math.sin(a) * 2, Math.sin(a) * 6.6, a];
+});
 
 export function crate(b, { seed = 1, s = 1 } = {}) {
   const rnd = rng(seed);

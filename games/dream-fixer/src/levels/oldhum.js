@@ -85,6 +85,7 @@ export const oldhum = {
     this.stationPiece(k, rnd);
     this.heart(k);
     this.machinery(k);
+    this.walls(k);
 
     // ── Anchors ──
     k.anchor("park", -30, 1, { duration: 24, ring: 5, spawns: [[-36, -5], [-24, -5], [-36, 6], [-24, 6]] });
@@ -134,7 +135,10 @@ export const oldhum = {
     k.world.cyl({ x: 0, z: 0, r: 5.3, y0: -0.2, y1: 0.25 });
     // Dream columns round it; pipes up out of the floor.
     for (const [x, z, color, seed] of [[-11, -11, 0x7ff5e0, 1], [11, -11, 0xff8fd0, 2], [-11, 11, 0xffd27a, 3]]) k.prop("dreamColumn", x, z, { opts: { h: 5 + rnd() * 2, color, seed }, collide: { r: 0.95, h: 7 } });
-    for (const [x, z] of [[-13, -4], [13, 5], [-4, 13]]) k.prop("pipe", 0, 0, { opts: { a: [x, 0, z], d: [0, 9, 0], r: 0.3 } });
+    for (const [x, z] of [[-13, -4], [13, 5], [-4, 13]]) {
+      k.prop("pipe", 0, 0, { opts: { a: [x, 0, z], d: [0, 9, 0], r: 0.3 } });
+      k.world.cyl({ x, z, r: 0.35, y0: -1, y1: 9 });
+    }
     // Off the south-east corner: a stack of crates 2.8 m up (a sand ramp gets you up).
     k.block(9, 6, 6, 6, 0, 2.8, PLATE);
     for (const [x, z, s] of [[7.5, 4.5, 1], [10.5, 7.6, 0.8]]) k.prop("crate", x, z, { y: 2.8, opts: { seed: x * 7, s }, collide: { w: 0.8 * s, d: 0.8 * s, h: 0.8 * s } });
@@ -226,6 +230,27 @@ export const oldhum = {
     k.light(0, 7, -37, 0xff9a70, 8, 24);
   },
 
+  // Unseen walls round the works, the north-east landing and the heart,
+  // so the locks are the way through: no sand path round one, no ramp
+  // over one. Open at the catwalks, the stairs, and (low enough for a path
+  // from the crates) where the station deck is.
+  walls(k) {
+    const H = 9, wall = (x, z, w, d, h = H) => k.block(x, z, w, d, -1, h, null);
+    // The works: west and east (but the locks), north (but the heart's lock), south (but the catwalk).
+    wall(-14.2, -8, 0.3, 12); wall(-14.2, 8, 0.3, 12);
+    wall(14.2, -6.9, 0.3, 9.8); wall(14.2, 8, 0.3, 12);   // (the landing joins the east side north of these)
+    wall(-8, -14.2, 12, 0.3); wall(8, -14.2, 12, 0.3);
+    wall(-7.75, 14.2, 12.5, 0.3); wall(3.75, 14.2, 4.5, 0.3); wall(9, 14.2, 6, 0.3, 2.8); wall(13, 14.2, 2, 0.3);
+    // The north-east landing: north, south and west (the stairs down to the garden stay open).
+    wall(17.5, -19.2, 7.4, 0.3); wall(17.5, -11.8, 7.4, 0.3);
+    wall(21.2, -18.4, 0.3, 1.6); wall(21.2, -13.4, 0.3, 3);
+    // The heart: all round but its catwalk.
+    wall(-13.2, -37, 0.3, 24.4); wall(13.2, -37, 0.3, 24.4); wall(0, -49.2, 26.4, 0.3);
+    wall(-7.6, -24.8, 11.2, 0.3); wall(7.6, -24.8, 11.2, 0.3);
+    // The heart's catwalk.
+    for (const x of [-2.2, 2.2]) wall(x, -19.5, 0.3, 10);
+  },
+
   // Far off all round: the walls of the works, gears standing on edge.
   machinery(k) {
     for (const [x, y, z, r, yaw, speed, c] of [
@@ -234,7 +259,5 @@ export const oldhum = {
     ]) k.spinner("gear", x, z, { y, yaw, rx: Math.PI / 2, opts: { r, th: 1.2, seed: Math.round(r), c }, speed });
     // Long pipes running between the pieces, overhead.
     k.prop("pipe", 0, 0, { opts: { a: [-30, 9, 0], d: [64, 0, 0], r: 0.35 } });
-    k.prop("pipe", 0, 0, { opts: { a: [-30, 9, 0], d: [0, -12, 0], r: 0.35 } });
-    k.prop("pipe", 0, 0, { opts: { a: [34, 9, 0], d: [0, -12, -20], r: 0.35 } });
   },
 };
