@@ -43,6 +43,7 @@ function dreamDirector(dream, o = {}) {
       if (e.type === "faint") sayIf(D, L("faint"));
       if (e.type === "heal") sayIf(D, L("heart"));
       if (e.type === "bossReset") sayIf(D, L("retry"), true);
+      if (e.type === "pop" && !e.calm) (S.pops ||= []).push(S.time);
       // Falling off now and then: a dig from Margo (on the 2nd, 4th, 7th…).
       if (e.type === "respawn" && !e.pulled) {
         S.falls = (S.falls || 0) + 1;
@@ -66,13 +67,20 @@ function dreamDirector(dream, o = {}) {
       if (run.nearAnchor && q(1)) sayIf(D, L("anchor"));
       // Where the nightmare waits, once the anchors hold (and you have not gone in yet).
       if (run.coreOpen && !run.boss && D.said.has(L("all")) && q(1.5)) sayIf(D, L("core"));
-      // In between: a quip when a crowd is after you, a warning when you
-      // are fading, a bit of chatter after a long quiet.
+      // In between: a quip when a crowd is after you or you smooth out a
+      // string of glitches, a warning when you are fading, a running
+      // comment through a long fight (the boss's too), a bit of chatter
+      // after a long quiet.
       S.cool = Math.max(0, (S.cool || 0) - dt);
-      if (S.cool <= 0 && !run.boss) {
+      S.pops = (S.pops || []).filter((t) => S.time - t < 10);
+      if (S.cool <= 0 && run.boss?.alive) {
+        if (!run.boss.invulnerable && q(15) && sayOne(D, L("bossfight"))) S.cool = 25;
+      } else if (S.cool <= 0 && !run.boss) {
         const chasing = run.foes.filter((f) => f.alive && (f.aware || f.group) && Math.hypot(f.px - run.body.x, f.pz - run.body.z) < 12).length;
         if (run.hp < run.maxHp * 0.3 && q(3) && sayOne(D, L("low"))) S.cool = 30;
+        else if (S.pops.length >= 5 && q(4) && sayOne(D, L("streak"))) { S.cool = 30; S.pops = []; }
         else if (chasing >= 4 && q(20) && sayOne(D, L("swarm"))) S.cool = 40;
+        else if ((chasing >= 2 || run.tuning) && q(18) && sayOne(D, L("fight"))) S.cool = 30;
         else if (q(55) && !run.tuning && sayOne(D, L("idle"))) S.cool = 30;
       }
       const tu = run.tuning;
