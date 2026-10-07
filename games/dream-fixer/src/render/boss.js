@@ -433,7 +433,9 @@ class ClockBossView {
     N.hour.rotation.z -= dt * (0.05 + (st === "timesup" ? 1 : 0)) * run2;
     N.bells.rotation.z = B.bells > 0 ? Math.sin(t * 60) * 0.06 * B.bells : 0;
     N.hammer.rotation.z = B.bells > 0 ? Math.sin(t * 70) * 0.5 * B.bells : 0;
-    N.key.rotation.y += dt * (st === "unwound" ? 0 : 0.8);
+    N.key.rotation.y += dt * (st === "unwound" ? 0 : st === "loose" ? 4 : 0.8);
+    // Its key loose: it spins fast and sparkles (the moment to gust it).
+    if (st === "loose" && Math.random() < dt * 25) this.fx.spark(x + (Math.random() - 0.5) * 1.4, y + 7 + (Math.random() - 0.5) * 0.8, z + (Math.random() - 0.5) * 1.4, 0, 0.8, 0, 0.5, 0.1, 0xffe27a, -0.3);
     N.key.position.y = 7 + (st === "unwound" ? -0.25 : Math.sin(t * 2) * 0.05);
     N.glass.rotation.y = -B.open * 1.9;
     if (st === "unwound" && Math.random() < dt * 20) this.fx.spark(x - Math.sin(B.yaw) * 1, y + 3 + (Math.random() - 0.5) * 2, z - Math.cos(B.yaw) * 1, 0, 1.5, 0, 0.6, 0.08, C.dreamPink, -0.5);

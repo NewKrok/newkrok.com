@@ -37,7 +37,7 @@ export const EN = {
   bossTether: "Pulled down! Hit it now!",
   bossWeak_pen: "Out of breath: foam its nib now!",
   bossWeak_cooker: "The lid's loose: ring it now!",
-  bossWeak_bigclock: "Its key is loose: gust it now!",
+  bossWeak_bigclock: "Its key is loose! Open the umbrella, ride the wind up and gust the key!",
   bossBlot: "Blotted! Hit it while it's down!",
   bossClog: "Clogged! Hit the dust bag on its back!",
   toolGot_vacuum: "Fuzz Vacuum [2]: hold to suck, right click to shoot back",

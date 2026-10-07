@@ -37,7 +37,7 @@ export const HU = {
   bossTether: "Lehúzva! Most üsd!",
   bossWeak_pen: "Kifulladt: most habozd be a hegyét!",
   bossWeak_cooker: "Lötyög a fedő: most csengess!",
-  bossWeak_bigclock: "Meglazult a kulcsa: most fújd meg!",
+  bossWeak_bigclock: "Meglazult a kulcsa! Nyisd ki az ernyőt, szállj fel a széllel, és fújd meg a kulcsot!",
   bossBlot: "Bepacázott! Üsd, amíg fekszik!",
   bossClog: "Eldugult! Lődd a porzsákot a hátán!",
   toolGot_vacuum: "Kócszívó [2]: tartsd a szíváshoz, jobb klikk a kilövéshez",
