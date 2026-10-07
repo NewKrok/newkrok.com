@@ -20,7 +20,7 @@ export const LINES_HU = {
   hub_window_2: ["margo", "Kívánj valamit. Cog egy második propellert kívánt."],
   hub_window_3: ["margo", "Szép, ugye? Az álmoknak ne mondd el, hogy ezt mondtam."],
   hub_window_4: ["margo", "Hallod ezt a dünnyögést? Old Hum horkol. Vagy próbál."],
-  hub_bench: ["margo", "A munkapad. Hozz álomport, és a szerszámaid dorombolni fognak."],
+  hub_bench: ["margo", "A munkapad. Hozz álomport, és a szerszámaid jobbak lesznek, mint újkorukban."],
   park_bunny: ["margo", "Porcicák. Egy lövés mindegyiknek."],
   park_tub: ["margo", "Az ott… egy fürdőkád?"],
   park_nut: ["margo", "Vigyázz, makk."],

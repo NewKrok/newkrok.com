@@ -56,9 +56,6 @@
  "hub_window_4": {
   "hash": "1ecf46b0e67c"
  },
- "hub_bench": {
-  "hash": "e713e933e220"
- },
  "park_bunny": {
   "hash": "60838f1f6fb0"
  },
@@ -193,5 +190,8 @@
  },
  "hub_newjob4": {
   "hash": "b6be684e2779"
+ },
+ "hub_bench": {
+  "hash": "01b533a26df7"
  }
 }
