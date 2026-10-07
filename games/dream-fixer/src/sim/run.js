@@ -243,12 +243,20 @@ export class Run {
   }
 
   // Where a faint or a fall puts you back: the last anchor, or inside the
-  // curtain (as near that as it gets) while it is up.
+  // curtain (as near that as it gets) while it is up; on slabs that fall,
+  // onto the nearest one still set (not one about to drop you again).
   respawnAt() {
     const c = this.checkpoint, S = this.sealed;
     if (!S) return c;
-    const m = 1.5, x = Math.max(S.minX + m, Math.min(S.maxX - m, c.x)), z = Math.max(S.minZ + m, Math.min(S.maxZ - m, c.z));
+    const m = 1.5;
+    let x = Math.max(S.minX + m, Math.min(S.maxX - m, c.x)), z = Math.max(S.minZ + m, Math.min(S.maxZ - m, c.z));
     if (x === c.x && z === c.z) return c;
+    const on = (p) => Math.abs(x - p.x) < p.w / 2 && Math.abs(z - p.z) < p.d / 2;
+    const under = this.tiles.find(on), floor = this.kit.floorAt(x, z, 20);
+    if (this.tiles.length && (under ? under.state !== "set" : !(floor > (this.def.killY ?? -30)))) {
+      const safe = this.tiles.filter((p) => p.state === "set").sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z))[0];
+      if (safe) { x = safe.x; z = safe.z; }
+    }
     return { x, y: this.kit.floorAt(x, z, 20), z, yaw: c.yaw };
   }
   unseal() {
