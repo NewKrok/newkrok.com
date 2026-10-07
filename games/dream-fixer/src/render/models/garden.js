@@ -63,23 +63,53 @@ function eyes(n, { x = 0.09, y = 0, z = 0, r = 0.06, brow = 0x2a1a10, tilt = 0.4
 // in its right hand. Node "body" (pivot at its feet) waddles; "shovel"
 // (pivot at the hand) swings up to bonk.
 export function gnome(b) {
+  gnomeBody(b, { hat: [0xb02a22, 0xe8423a], coat: [0x24487e, 0x3a6ab8] }, (h) => {
+    h.add(SHAPE.cyl(0.015, 0.015, 0.55, 5), { p: [0, 0.05, 0], c: C.woodL });
+    h.add(SHAPE.box(0.13, 0.17, 0.02, 0.01), { p: [0, -0.28, 0], c: C.steel, mat: "metal" });
+  });
+}
+
+// The slingshot gnome: green hat, brown coat, a forked slingshot with a
+// pebble in its sling instead of the shovel (the same "shovel" node, so
+// it draws the same way).
+export function slingerGnome(b) {
+  gnomeBody(b, { hat: [0x2a7a3a, 0x4aa85a], coat: [0x6a4424, 0x8a5a32] }, (h) => {
+    h.add(SHAPE.cyl(0.018, 0.018, 0.22, 5), { p: [0, -0.02, 0], c: C.woodD });
+    h.both((s) => h.add(SHAPE.cyl(0.014, 0.014, 0.14, 5), { p: [s * 0.045, 0.14, 0], r: [0, 0, -s * 0.35], c: C.woodD }));
+    h.add(SHAPE.box(0.12, 0.012, 0.012, 0.004), { p: [0, 0.2, 0.02], c: 0x3a2a20 });
+    h.add(SHAPE.ball(0.035, 6, 4), { p: [0, 0.2, 0.04], c: 0x8a867a });
+  });
+}
+
+function gnomeBody(b, { hat, coat }, hand) {
   b.node("body", [0, 0, 0], [0, 0, 0], (n) => {
     n.both((s) => n.add(SHAPE.box(0.11, 0.1, 0.18, 0.03), { p: [s * 0.09, 0.05, -0.02], c: 0x4a2e1a }));
-    n.add(SHAPE.lathe([[0.2, 0], [0.23, 0.1], [0.21, 0.3], [0.15, 0.42], [0, 0.44]], 12), { p: [0, 0.08, 0], grad: [0x24487e, 0x3a6ab8], facet: 0.06 });
+    n.add(SHAPE.lathe([[0.2, 0], [0.23, 0.1], [0.21, 0.3], [0.15, 0.42], [0, 0.44]], 12), { p: [0, 0.08, 0], grad: coat, facet: 0.06 });
     n.add(SHAPE.cyl(0.215, 0.225, 0.05, 12), { p: [0, 0.2, 0], c: 0x2a1a10 });
     n.add(SHAPE.box(0.07, 0.06, 0.02, 0.01), { p: [0, 0.2, -0.225], c: C.brass, mat: "metal" });
-    n.both((s) => n.add(SHAPE.capsule(0.05, 0.12, 6, 2), { p: [s * 0.22, 0.32, -0.04], r: [0.5, 0, s * 0.5], c: 0x3a6ab8 }));
+    n.both((s) => n.add(SHAPE.capsule(0.05, 0.12, 6, 2), { p: [s * 0.22, 0.32, -0.04], r: [0.5, 0, s * 0.5], c: coat[1] }));
     n.add(SHAPE.ball(0.15, 10, 8), { p: [0, 0.58, 0], c: 0xf0c0a0 });
     n.add(SHAPE.ball(0.05, 8, 6), { p: [0, 0.56, -0.15], c: 0xf09a8a });
     n.add(SHAPE.cone(0.15, 0.3, 8), { p: [0, 0.4, -0.08], r: [Math.PI - 0.15, 0, 0], c: 0xf4f2ea, facet: 0.08 });
     eyes(n, { x: 0.06, y: 0.63, z: -0.12, r: 0.035, brow: 0xf4f2ea, tilt: 0.5 });
-    n.add(SHAPE.cone(0.17, 0.44, 10), { p: [0, 0.9, 0.02], r: [0.15, 0, 0], grad: [0xb02a22, 0xe8423a], facet: 0.05 });
-    n.add(SHAPE.torus(0.155, 0.025, 4, 14), { p: [0, 0.69, 0], r: [RX, 0, 0], c: 0xb02a22 });
+    n.add(SHAPE.cone(0.17, 0.44, 10), { p: [0, 0.9, 0.02], r: [0.15, 0, 0], grad: hat, facet: 0.05 });
+    n.add(SHAPE.torus(0.155, 0.025, 4, 14), { p: [0, 0.69, 0], r: [RX, 0, 0], c: hat[0] });
     n.add(SHAPE.torus(0.25, 0.012, 3, 20), { p: [0, 0.3, 0], r: [RX, 0, 0], c: C.dreamPink, mat: "glow", glow: 1.4 });
-    n.node("shovel", [0.26, 0.26, -0.1], [0, 0, 0], (h) => {
-      h.add(SHAPE.cyl(0.015, 0.015, 0.55, 5), { p: [0, 0.05, 0], c: C.woodL });
-      h.add(SHAPE.box(0.13, 0.17, 0.02, 0.01), { p: [0, -0.28, 0], c: C.steel, mat: "metal" });
-    });
+    n.node("shovel", [0.26, 0.26, -0.1], [0, 0, 0], hand);
+  });
+}
+
+// A punched train ticket, flying flat: a cream card with a red band, the
+// station's name in little grey lines, a hole punched through, and a
+// cross face. Node "body" (pivot at its middle) flutters.
+export function trainTicket(b) {
+  b.node("body", [0, 0, 0], [0, 0, 0], (n) => {
+    n.add(SHAPE.box(0.62, 0.34, 0.025, 0.02), { c: 0xf4ead0 });
+    n.add(SHAPE.box(0.62, 0.07, 0.03, 0.01), { p: [0, 0.11, 0], c: 0xc8302a });
+    for (const y of [-0.04, -0.1]) n.add(SHAPE.box(0.3, 0.018, 0.03, 0.005), { p: [0.1, y, 0], c: 0x8a8478 });
+    n.add(SHAPE.cyl(0.04, 0.04, 0.035, 8), { p: [-0.22, -0.06, 0], r: [RX, 0, 0], c: 0x2a2420 });
+    eyes(n, { x: 0.07, y: 0.02, z: -0.02, r: 0.035, brow: 0x3a2a20, tilt: 0.5 });
+    n.add(SHAPE.torus(0.38, 0.012, 3, 20), { p: [0, 0, 0], r: [0, 0, 0], c: C.dreamPink, mat: "glow", glow: 1.4 });
   });
 }
 

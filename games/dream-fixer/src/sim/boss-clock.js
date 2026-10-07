@@ -15,7 +15,7 @@ import { Body } from "./player.js";
 //  timesup  the slabs round you blink and fall away, and float back a few
 //           seconds later: get off them, or open the umbrella and glide
 //           to one that holds
-//  snooze   two little alarm clocks come out of its door
+//  snooze   punched train tickets flutter out of its door
 //
 // The Gust Umbrella is the trick: the winding key on top is out of reach
 // of anything but a gust from close by, so ride an updraft and come at it
@@ -31,7 +31,7 @@ export const BIGCLOCK = {
   ring: { wind: 1.4, rings: [3, 4], gap: 0.45, dmg: 9, max: 13, speed: 9, pulse: { max: 15, speed: 9, slow: 2.5 } },
   sweep: { wind: 0.9, turn: 1.9, len: 9.5, h: 1.1, dmg: 9, every: 0.5 },
   tiles: { warn: 1.5, down: 4, n: [3, 5], near: 8 },
-  snooze: { n: 2, minions: 3 },
+  snooze: { n: 3, minions: 4 },
   unwound: { time: 5.5, mul: 2.6 },
   loose: { every: [3, 4], time: 6 },    // attacks between; how long the key stays loose
   faceMul: 1, bodyMul: 0.55,
@@ -206,7 +206,7 @@ export class ClockBoss {
         if (this.t > 0.5 && !this.fired) {
           this.fired = true;
           const fx = -Math.sin(this.yaw), fz = -Math.cos(this.yaw);
-          for (let i = 0; i < C.snooze.n; i++) run.spawn("clock", b.x + fx * 2.6 + (i ? 1.2 : -1.2), b.z + fz * 2.6, { group: "boss", y: b.y + 1.5 });
+          for (let i = 0; i < C.snooze.n; i++) run.spawn("ticket", b.x + fx * 2.6 + (i - 1) * 1.2, b.z + fz * 2.6, { group: "boss", y: b.y + 1.5 });
           run.events.push({ type: "bossAttack", attack: "snoozeOut" });
         }
         if (this.t > 1.3) { this.set("roam"); this.cd = 1.6 + run.rnd(); }
@@ -226,7 +226,7 @@ export class ClockBoss {
         this.bells = 1;
         if (this.t > 0.5 && !this.fired) {
           this.fired = true;
-          for (let i = 0; i < 2; i++) run.spawn("clock", b.x + (i ? 3 : -3), b.z, { group: "boss", y: b.y + 1.5 });
+          for (let i = 0; i < 2; i++) run.spawn("ticket", b.x + (i ? 3 : -3), b.z, { group: "boss", y: b.y + 1.5 });
         }
         if (this.t > 2) { this.set("roam"); this.cd = 1; }
         break;

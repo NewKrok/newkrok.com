@@ -1,5 +1,6 @@
 import { AI } from "./foes.js";
 import { WALKER } from "./foes-school.js";
+import { FLYER } from "./foes-space.js";
 
 // ── Grandpa Joe's garden: glitches of its own ───────────────────────────
 // Like the school's and the kitchen's, each picks its move by how far you
@@ -7,10 +8,13 @@ import { WALKER } from "./foes-school.js";
 //
 //  gnome       (Kerti törpe) a garden gnome. Look at it and a moment later
 //              it turns to stone: it cannot move, and hits barely scratch
-//              it. Look away and it runs at you, bonks you with its shovel
-//              up close, or throws a pebble from a few metres off. The
-//              trick: look away, let it come, turn and hit it before it
-//              sets.
+//              it. Look away and it runs at you and bonks you with its
+//              shovel. The trick: look away, let it come, turn and hit it
+//              before it sets.
+//  slinger     (Csúzlis törpe) a gnome with a slingshot, green hat. Sets to
+//              stone just the same, but keeps its distance and shoots
+//              pebbles, only while you are not looking: it gets you in the
+//              back. Find it and stare it down, or catch it as it draws.
 //  can         (Locsolókanna) a watering can flying about. Floats over you,
 //              tips and pours a shower: stand under it and you get soaked
 //              (it stings), unless an open umbrella is over your head.
@@ -22,6 +26,10 @@ import { WALKER } from "./foes-school.js";
 //  sunflower   (Napraforgó) rooted, its face following you. Fires seeds in
 //              a quick string, shakes a ring of petals off when you come
 //              close (jump it), and the seeds it drops grow into gnomes.
+//  ticket      (Menetjegy) a punched train ticket fluttering about the old
+//              station (the Big Alarm Clock lets them out). It circles,
+//              hangs shivering a moment, then swoops through where you
+//              were with a paper cut; after a swoop it flutters, soft.
 
 const TAU = Math.PI * 2;
 const { move, touching, bonk, busy, potter, rr } = WALKER;
@@ -33,7 +41,15 @@ export const GNOME = {
   rush: 1.7,                 // its speed when you are not
   cd: [1.6, 2.8], busy: 2,
   bonk: { near: 1.5, wind: 0.35, dmg: 6, cd: 1.3 },
-  pebble: { min: 5, max: 13, wind: 0.45, speed: 13, dmg: 4 },
+};
+export const SLINGER = {
+  keep: [8, 14],             // the distance it keeps
+  cd: [2, 3.2],
+  pebble: { wind: 0.5, speed: 16, dmg: 4 },
+};
+export const TICKET = {
+  orbit: [4, 7], speed: 4.2, cd: [1.6, 2.8], busy: 2,
+  swoop: { near: 11, aim: 0.55, speed: 14, time: 0.8, dmg: 4, flutter: 1 },
 };
 export const CAN = {
   orbit: [5, 8], speed: 3.4, cd: [2.2, 3.6], busy: 2,
@@ -86,7 +102,6 @@ function gnome(run, f, dt, px, pcy, pz) {
       speedMul = G.rush;
       if (f.cd > 0 || Math.abs(P.y - b.y) > 1.5) break;
       if (dist < G.bonk.near) { AI.setState(f, "wind"); run.events.push({ type: "gnomeWind", x: b.x, z: b.z }); }
-      else if (dist > G.pebble.min && dist < G.pebble.max && run.rnd() < 0.35 && busy(run, "gnome", ["throw"]) < G.busy && run.canSee(b.x, b.y + 0.6, b.z)) AI.setState(f, "throw");
       else f.cd = 0.4;
       break;
     }
@@ -102,14 +117,59 @@ function gnome(run, f, dt, px, pcy, pz) {
         AI.setState(f, "chase"); f.cd = G.bonk.cd;
       }
       break;
-    case "throw":
+    case "stun":
+      if (f.t > 0.35) AI.setState(f, "chase");
+      break;
+    case "sucked":
+      b.vx *= 1 - 2 * dt; b.vz *= 1 - 2 * dt;
+      if (f.t > 0.15) AI.setState(f, "chase");
+      break;
+  }
+  move(run, f, intent, dt, speedMul, f.state === "sucked" || f.state === "stun");
+}
+
+// ── The slingshot gnome ──
+function slinger(run, f, dt, px, pcy, pz) {
+  const b = f.body, P = run.body, G = GNOME, S = SLINGER;
+  const dx = px - b.x, dz = pz - b.z, dist = Math.hypot(dx, dz);
+  f.cd -= dt;
+  f.guard = 1;
+  const intent = { forward: 0, strafe: 0 };
+  let speedMul = 1;
+  const on = AI.aware(run, f, dist);
+  const seen = on && watched(run, f, G.look);
+  f.seenT = seen ? (f.seenT || 0) + dt : 0;
+  if (f.seenT > G.set && f.state !== "stone" && f.state !== "sucked") {
+    AI.setState(f, "stone");
+    run.events.push({ type: "gnomeStone", id: f.id, x: b.x, z: b.z });
+  }
+  switch (f.state) {
+    case "idle":
+    case "chase": {
+      if (!on) { potter(f, b, dt, intent); break; }
+      // Keeps its distance: in when too far (or out of sight), back when too close.
+      const sees = run.canSee(b.x, b.y + 0.6, b.z);
+      const [wx, wz] = AI.wayTo(run, b, px, pz, dist);
+      f.yaw = AI.angTo(b.x, b.z, wx, wz);
+      intent.forward = dist > S.keep[1] || !sees ? 1 : dist < S.keep[0] ? -0.8 : 0;
+      intent.strafe = intent.forward ? 0 : Math.sin(f.age * 0.8 + f.phase) * 0.6;
+      if (intent.forward < 0) f.yaw = AI.angTo(b.x, b.z, px, pz);
+      // Draws only while you are not looking.
+      if (f.cd <= 0 && sees && !seen && dist < S.keep[1] + 4) { AI.setState(f, "draw"); run.events.push({ type: "gnomeWind", x: b.x, z: b.z }); }
+      break;
+    }
+    case "stone":
+      speedMul = 0; f.guard = G.stone;
+      if (!seen && f.t > 0.12) { AI.setState(f, "chase"); run.events.push({ type: "gnomeGo", id: f.id, x: b.x, z: b.z }); }
+      break;
+    case "draw":
       speedMul = 0; f.yaw = AI.angTo(b.x, b.z, px, pz);
-      if (f.t > G.pebble.wind) {
-        const S = G.pebble, sx = b.x, sy = b.y + 0.7, sz = b.z, T = dist / S.speed;
-        const tx = P.x + P.vx * T * 0.5, ty = P.y + 1, tz = P.z + P.vz * T * 0.5, l = Math.hypot(tx - sx, ty - sy, tz - sz) || 1;
-        run.spit({ x: sx, y: sy, z: sz, vx: (tx - sx) / l * S.speed, vy: (ty - sy) / l * S.speed + 1, vz: (tz - sz) / l * S.speed, g: 2.5, dmg: S.dmg, kind: "pebble", owner: f.id, life: 2 });
+      if (f.t > S.pebble.wind) {
+        const Q = S.pebble, sx = b.x, sy = b.y + 0.7, sz = b.z, T = dist / Q.speed;
+        const tx = P.x + P.vx * T * 0.6, ty = P.y + 1, tz = P.z + P.vz * T * 0.6, l = Math.hypot(tx - sx, ty - sy, tz - sz) || 1;
+        run.spit({ x: sx, y: sy, z: sz, vx: (tx - sx) / l * Q.speed, vy: (ty - sy) / l * Q.speed + 1, vz: (tz - sz) / l * Q.speed, g: 2.5, dmg: Q.dmg, kind: "pebble", owner: f.id, life: 2 });
         run.events.push({ type: "nut", x: sx, z: sz });
-        AI.setState(f, "chase"); f.cd = rr(run, G.cd);
+        AI.setState(f, "chase"); f.cd = rr(run, S.cd);
       }
       break;
     case "stun":
@@ -121,6 +181,63 @@ function gnome(run, f, dt, px, pcy, pz) {
       break;
   }
   move(run, f, intent, dt, speedMul, f.state === "sucked" || f.state === "stun");
+}
+
+// ── The train ticket ──
+function ticket(run, f, dt, px, pcy, pz) {
+  const P = run.body, R = TICKET;
+  f.cd -= dt;
+  f.guard = 1;
+  f.home ??= [f.x, f.y, f.z];
+  const dist = Math.hypot(f.x - px, f.z - pz) || 0.01;
+  const on = AI.aware(run, f, dist);
+  const floor = run.kit.floorAt(f.x, f.z, f.y + 1);
+  const cx = on ? px : f.home[0], cz = on ? pz : f.home[2];
+  const want = on ? R.orbit[0] + (R.orbit[1] - R.orbit[0]) * (0.5 + 0.5 * Math.sin(f.age * 0.6 + f.phase)) : 2;
+  const a = Math.atan2(f.z - cz, f.x - cx) + f.dir * dt * (on ? 0.9 : 0.3);
+  let tx = cx + Math.cos(a) * want, tz = cz + Math.sin(a) * want, steer = 1.4, max = R.speed;
+  let ty = (on ? Math.max(pcy + 1, floor + 1.4) : f.home[1]) + Math.sin(f.age * 3 + f.phase) * 0.35;
+  switch (f.state) {
+    case "idle":
+      if (!on || f.cd > 0 || !run.canSee(f.x, f.y, f.z)) break;
+      if (dist < R.swoop.near && busy(run, "ticket", ["aim", "swoop"]) < R.busy) { AI.setState(f, "aim"); run.events.push({ type: "rocketAim", x: f.x, z: f.z }); }
+      else f.cd = 0.5;
+      break;
+    case "aim":
+      // Hangs shivering, edge on to you; then it swoops.
+      tx = f.x; ty = f.y; tz = f.z; steer = 0.3;
+      if (f.t > R.swoop.aim) {
+        const ex = P.x - f.x, ey = P.y + 1 - f.y, ez = P.z - f.z, l = Math.hypot(ex, ey, ez) || 1;
+        f.dash = [ex / l * R.swoop.speed, ey / l * R.swoop.speed, ez / l * R.swoop.speed];
+        f.hitDone = false;
+        AI.setState(f, "swoop");
+      }
+      break;
+    case "swoop": {
+      const [vx, vy, vz] = f.dash;
+      f.x += vx * dt; f.y += vy * dt; f.z += vz * dt;
+      f.vx = vx; f.vy = vy; f.vz = vz;
+      f.yaw = Math.atan2(-vx, -vz);
+      const wall = FLYER.unstick(run, f);
+      if (!f.hitDone && Math.hypot(P.x - f.x, P.y + 1 - f.y, P.z - f.z) < f.def.r + 0.6) { f.hitDone = true; bonk(run, f, R.swoop.dmg, 2); }
+      if (wall || f.t > R.swoop.time) AI.setState(f, "flutter");
+      return;
+    }
+    case "flutter":
+      // Fluttering down after a swoop, soft.
+      f.guard = 1.5; tx = f.x; tz = f.z; ty = f.y - 0.4; steer = 0.2;
+      if (f.t > R.swoop.flutter) { AI.setState(f, "idle"); f.cd = rr(run, R.cd); }
+      break;
+    case "stun":
+      if (f.t > 0.3) AI.setState(f, "idle");
+      break;
+    case "sucked":
+      f.vx *= 1 - 2 * dt; f.vy *= 1 - 2 * dt; f.vz *= 1 - 2 * dt;
+      f.x += f.vx * dt; f.y += f.vy * dt; f.z += f.vz * dt;
+      if (f.t > 0.15) AI.setState(f, "idle");
+      return;
+  }
+  FLYER.fly(run, f, dt, tx, ty, tz, steer, max, px, pz);
 }
 
 // ── The watering can ──
@@ -311,4 +428,4 @@ function sunflower(run, f, dt, px, pcy, pz) {
   run.events.push({ type: "sunSprout", x: f.x, z: f.z });
 }
 
-export const GARDEN = { gnome, can, mower, sunflower };
+export const GARDEN = { gnome, slinger, can, mower, sunflower, ticket };

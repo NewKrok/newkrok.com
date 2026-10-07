@@ -22,7 +22,7 @@ const seed = Number(process.argv[2] || 1), difficulty = process.argv[3] || "norm
 const def = LEVELS[process.argv[5] || "park"];
 if (!def?.botRoutes) { console.log("no bot routes for that level"); process.exit(1); }
 const SKILL = { sharp: { turn: 0.12, pitch: 0.08, react: 0, wobble: 0 }, casual: { turn: 0.08, pitch: 0.05, react: 0.25, wobble: 0.03 } }[skill];
-const SMALL = new Set(["fuzz", "bunny", "buzzer", "clock", "pencil", "meatball", "pepper", "gnome", "can", "rocket", "robot"]), BIG = new Set(["tub", "knot", "backpack", "sharpener", "rollingpin", "grinder", "mower", "sunflower", "top", "mobile"]);
+const SMALL = new Set(["fuzz", "bunny", "buzzer", "clock", "pencil", "meatball", "pepper", "gnome", "slinger", "ticket", "can", "rocket", "robot"]), BIG = new Set(["tub", "knot", "backpack", "sharpener", "rollingpin", "grinder", "mower", "sunflower", "top", "mobile"]);
 
 // A dream starts with the Stabilizer only; its own tool comes after the first anchor.
 const run = new Run(def, { seed, difficulty, aimAssist: 0.03, tools: def.tools ?? ["stabilizer"] });

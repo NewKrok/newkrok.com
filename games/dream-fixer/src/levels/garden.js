@@ -52,12 +52,13 @@ export const garden = {
   clouds: { count: 40, rMin: 20, rMax: 95, yMin: -35, yMax: 40 },
   shards: 90,
 
-  // Waves by how far along you are: gnomes and watering cans first, then
-  // the lawnmower, the last one with a sunflower.
+  // Waves by how far along you are: gnomes (a slingshot one among them)
+  // and watering cans first, then the lawnmower, the last one with a
+  // sunflower.
   tiers: [
-    [[0, ["gnome", 2]], [0.35, ["can", 1]], [0.65, ["gnome", 2], ["can", 1]]],
-    [[0, ["gnome", 2], ["can", 1]], [0.3, ["mower", 1]], [0.55, ["gnome", 2], ["can", 1]], [0.8, ["can", 2], ["gnome", 1]]],
-    [[0, ["can", 2], ["gnome", 1]], [0.3, ["sunflower", 1]], [0.55, ["gnome", 3], ["can", 1]], [0.8, ["can", 1], ["gnome", 2]]],
+    [[0, ["gnome", 2], ["slinger", 1]], [0.35, ["can", 1], ["gnome", 1]], [0.65, ["gnome", 2], ["can", 1], ["slinger", 1]]],
+    [[0, ["gnome", 2], ["can", 1]], [0.3, ["mower", 1], ["slinger", 1]], [0.55, ["gnome", 2], ["can", 1]], [0.8, ["can", 2], ["gnome", 1], ["slinger", 1]]],
+    [[0, ["can", 2], ["gnome", 1], ["slinger", 1]], [0.3, ["sunflower", 1]], [0.55, ["gnome", 3], ["can", 1], ["slinger", 1]], [0.8, ["can", 1], ["gnome", 2], ["slinger", 1]]],
   ],
 
   // Routes for the headless bot, from the garden path. ("glide", x, z):
@@ -93,10 +94,10 @@ export const garden = {
     // lawnmower, gnomes and a sunflower in the orchard, a can up by the
     // signal box.
     for (const [kind, x, z] of [
-      ["gnome", -6, -6], ["gnome", -10, -1], ["gnome", -3, 3],
+      ["gnome", -6, -6], ["gnome", -10, -1], ["gnome", -3, 3], ["slinger", -8, -5],
       ["can", 10, 1], ["can", 15, -5],
-      ["gnome", -39, 9], ["can", -30, -4],
-      ["mower", 44, 2], ["gnome", 36, 12], ["gnome", 44, 11], ["sunflower", 47, -1.5],
+      ["gnome", -39, 9], ["slinger", -37, 10], ["can", -30, -4],
+      ["mower", 44, 2], ["gnome", 36, 12], ["gnome", 44, 11], ["slinger", 40, 12], ["sunflower", 47, -1.5],
       ["can", -20, -31],
     ]) k.foe(kind, x, z);
 

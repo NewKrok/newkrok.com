@@ -32,7 +32,7 @@ export const DIFFICULTY = {
 
 // Wakefulness does not come back by itself: popped glitches now and then
 // leave a dream drop behind (chance per kind; better when you are low).
-const HEAL = { amount: 6, life: 30, magnet: 5, chance: { fuzz: 0.2, bunny: 0.1, buzzer: 0.25, tub: 0.6, knot: 0.6, clock: 0.25, pencil: 0.2, backpack: 0.6, sharpener: 0.6, meatball: 0.12, pepper: 0.25, rollingpin: 0.6, grinder: 0.6, gnome: 0.15, can: 0.25, mower: 0.6, sunflower: 0.6, rocket: 0.25, robot: 0.15, top: 0.6, mobile: 0.6 } };
+const HEAL = { amount: 6, life: 30, magnet: 5, chance: { fuzz: 0.2, bunny: 0.1, buzzer: 0.25, tub: 0.6, knot: 0.6, clock: 0.25, pencil: 0.2, backpack: 0.6, sharpener: 0.6, meatball: 0.12, pepper: 0.25, rollingpin: 0.6, grinder: 0.6, gnome: 0.15, slinger: 0.2, ticket: 0.15, can: 0.25, mower: 0.6, sunflower: 0.6, rocket: 0.25, robot: 0.15, top: 0.6, mobile: 0.6 } };
 // Falling off the dream costs a bit too.
 const FALL_DMG = 12;
 

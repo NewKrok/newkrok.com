@@ -74,6 +74,9 @@ function unstick(run, f) {
   return hit;
 }
 
+// (For other dreams' flyers too.)
+export const FLYER = { fly, unstick };
+
 // ── The plush rocket ──
 function rocket(run, f, dt, px, pcy, pz) {
   const P = run.body, R = ROCKET;

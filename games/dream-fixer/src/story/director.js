@@ -117,7 +117,7 @@ const DIRECTORS = {
     on: { "spawn:grinder": "grinder", meatSplit: "split", sneeze: "sneeze", dizzy: "dizzy", bossRise: "boss", cookerWhistle: "whistle", cookerLid: "lid", bossPhase: "phase", bossPop: "win" },
   }),
   garden: dreamDirector("garden", {
-    meet: [["gnome", 12, "gnome"], ["can", 16, "can"], ["mower", 16, "mower"], ["sunflower", 16, "sunflower"]],
+    meet: [["gnome", 12, "gnome"], ["slinger", 16, "slinger"], ["ticket", 14, "ticket"], ["can", 16, "can"], ["mower", 16, "mower"], ["sunflower", 16, "sunflower"]],
     // At the edge facing the orchard, or by the pinwheel: Cog says what is
     // in the way, or (with the umbrella) what to do about it.
     frame(D, run, dt, S, q) {

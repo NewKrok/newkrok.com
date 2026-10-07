@@ -1,6 +1,6 @@
 import { stabilizer, fuzzVacuum, foamCannon, lullabyBell, gustUmbrella, starYoyo, yoyoBall } from "./tools.js";
 import { starHook, plushRocket, windupRobot, spinTop, planetMobile, moonLamp, airlock, kidBed, kidDesk, toyChest, bookcase, stationConsole, spaceLamp, glowStar, porchLight, porthole, bunkBed, wardrobe, dollhouse, dish, telescope, starChart, cupolaFrame, asteroid } from "./space.js";
-import { pinwheel, windWell, gnome, wateringCan, wateringPot, lawnMower, sunflower, bigAlarmClock, raisedBed, shed, roseBush, greenhouse, flowerPot, appleTree, signalBox, stationHouse } from "./garden.js";
+import { pinwheel, windWell, gnome, slingerGnome, trainTicket, wateringCan, wateringPot, lawnMower, sunflower, bigAlarmClock, raisedBed, shed, roseBush, greenhouse, flowerPot, appleTree, signalBox, stationHouse } from "./garden.js";
 import { jelly, souffle, meatball, pepperShaker, rollingPin, meatGrinder, pressureCooker, kitchenWindow, panRail, knob, faucet, burner, kettle, jar, cuttingBoard, breadLoaf, fridge, flourSack, tableCloth, mug, tomato, bucket, spoon, pea } from "./kitchen.js";
 import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./characters.js";
 import { anchor } from "./dream.js";
@@ -52,6 +52,8 @@ export const MODELS = {
   pinwheel: { build: pinwheel, frame: 3, anim: spin("wheel", "z", 4) },
   windWell: { build: windWell, frame: 4.5 },
   gnome: { build: gnome, frame: 1.6, anim: (o, t) => { const N = o.userData.nodes; N.body.rotation.z = Math.sin(t * 6) * 0.08; N.shovel.rotation.x = -Math.abs(Math.sin(t * 2)) * 1.2; } },
+  slinger: { build: slingerGnome, frame: 1.6, anim: (o, t) => { const N = o.userData.nodes; N.body.rotation.z = Math.sin(t * 6) * 0.08; N.shovel.rotation.x = -Math.abs(Math.sin(t * 2)) * 1.2; } },
+  ticket: { build: trainTicket, frame: 1.2, anim: (o, t) => { o.userData.nodes.body.rotation.x = Math.sin(t * 9) * 0.4; } },
   can: { build: wateringCan, frame: 2, anim: (o, t) => { o.userData.nodes.body.rotation.x = -Math.max(0, Math.sin(t)) * 0.9; } },
   mower: { build: lawnMower, frame: 3.4, anim: (o, t) => { const N = o.userData.nodes; N.blades.rotation.y = t * 20; N.body.rotation.z = Math.sin(t * 30) * 0.01; } },
   sunflower: { build: sunflower, frame: 4.5, anim: (o, t) => { const N = o.userData.nodes; N.head.rotation.y = Math.sin(t * 0.7) * 0.6; N.core.scale.setScalar(1 + Math.max(0, Math.sin(t * 3)) * 0.08); } },

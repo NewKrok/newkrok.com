@@ -13,14 +13,14 @@ import { lerp } from "../config.js";
 
 // The looks a dream gives each kind (model ids), unless its level says
 // otherwise. A skin keeps the nodes its kind's animation moves.
-const SKINS = { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub", clock: "clock", pencil: "pencil", backpack: "backpack", sharpener: "sharpener", meatball: "meatball", pepper: "pepper", rollingpin: "rollingpin", grinder: "grinder", gnome: "gnome", can: "can", mower: "mower", sunflower: "sunflower", rocket: "rocket", robot: "robot", top: "top", mobile: "mobile" };
+const SKINS = { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub", clock: "clock", pencil: "pencil", backpack: "backpack", sharpener: "sharpener", meatball: "meatball", pepper: "pepper", rollingpin: "rollingpin", grinder: "grinder", gnome: "gnome", slinger: "slinger", ticket: "ticket", can: "can", mower: "mower", sunflower: "sunflower", rocket: "rocket", robot: "robot", top: "top", mobile: "mobile" };
 const FLASH = new T.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
 // A gnome you are looking at: stone grey all over.
 const STONE = new T.MeshStandardMaterial({ color: 0x9a968c, roughness: 0.95, flatShading: true });
 const POP_COLORS = { bunny: [0xc4c0cc, 0x7a7684, C.dream, 0xffffff], tub: [0xffffff, 0x8fd0f0, C.dream, 0xffd23a], fuzz: [0xe8a060, 0xc8743a, C.dream, 0xffffff], buzzer: [0xf2c14e, 0x5a3620, C.dream, 0xffffff], knot: [0xe8a060, C.dreamPink, C.dream, 0xffffff], pillow: [0xffffff, 0xf4eaff, 0xd8c8ff, C.dreamPink],
   clock: [0xe8423a, 0xfaf6e8, C.brass, C.dream], pencil: [0xffd040, 0xe8c898, 0xf07890, C.dream], backpack: [0xd84a48, 0x2a3a6a, 0xffd23a, C.dream], sharpener: [0xb8c2cc, 0xe8c898, C.dreamPink, C.dream],
   meatball: [0x8a4a2a, 0xc8302a, 0x3a8a2a, C.dream], pepper: [0x2a2420, 0xd8e0e8, C.dreamPink, C.dream], rollingpin: [0xd8a870, 0xf4f0e8, C.dreamPink, C.dream], grinder: [0x4a505a, 0xc8302a, C.dreamPink, C.dream],
-  gnome: [0xe8423a, 0x3a6ab8, 0xf4f2ea, C.dream], can: [0x5ab06a, 0x9fe0ff, C.brass, C.dream], mower: [0xd8483a, 0x3a3e46, 0x7ab85a, C.dream], sunflower: [0xffd84a, 0x4a2e1a, 0x5aa04a, C.dream],
+  gnome: [0xe8423a, 0x3a6ab8, 0xf4f2ea, C.dream], slinger: [0x4aa85a, 0x8a5a32, 0xf4f2ea, C.dream], ticket: [0xf4ead0, 0xc8302a, 0x8a8478, C.dream], can: [0x5ab06a, 0x9fe0ff, C.brass, C.dream], mower: [0xd8483a, 0x3a3e46, 0x7ab85a, C.dream], sunflower: [0xffd84a, 0x4a2e1a, 0x5aa04a, C.dream],
   rocket: [0xe8483a, 0xf3e6c8, 0x3a6ab8, C.dream], robot: [0x9aa8c0, 0xe8423a, 0xffd23a, C.dream], top: [0xd8343a, 0x2a4aa0, 0xf3e6c8, C.dream], mobile: [0xe8a050, 0x5a9ae8, 0xb88ae8, C.dream] };
 // What school glitches throw: [size x, y, z, colour] for a tumbling chunk.
 const CHUNKS = { hand: [0.06, 0.4, 0.04, 0x2a2440], book: [0.42, 0.1, 0.32, 0x3a7fae], shaving: [0.16, 0.03, 0.1, 0xe8c898], eraser: [0.26, 0.14, 0.16, 0xf07890], grade: [0.34, 0.42, 0.06, 0xe02a30],
@@ -185,7 +185,8 @@ export class FoeView {
       else if (f.kind === "pepper") animPepper(f, N, t, grow);
       else if (f.kind === "rollingpin") animPin(f, N, t, grow, dt);
       else if (f.kind === "grinder") animGrinder(f, N, t, grow);
-      else if (f.kind === "gnome") animGnome(f, N, t, grow);
+      else if (f.kind === "gnome" || f.kind === "slinger") animGnome(f, N, t, grow);
+      else if (f.kind === "ticket") animTicket(f, N, t, grow);
       else if (f.kind === "can") animCan(f, N, t, grow);
       else if (f.kind === "mower") animMower(f, N, t, grow, dt);
       else if (f.kind === "sunflower") animSunflower(f, N, t, grow);
@@ -622,8 +623,16 @@ function animGnome(f, N, t, grow) {
   N.body.position.y = Math.abs(Math.sin(t * 14 + f.phase)) * 0.05 * run;
   N.body.scale.setScalar(grow);
   // The shovel goes up on a wind-up and comes down on the bonk.
-  const up = f.state === "wind" ? Math.min(1, f.t / 0.3) : f.state === "throw" ? Math.min(1, f.t / 0.4) * 0.6 : 0;
+  const up = f.state === "wind" ? Math.min(1, f.t / 0.3) : f.state === "draw" ? Math.min(1, f.t / 0.4) * 0.6 : 0;
   N.shovel.rotation.x = -up * 2.2 + Math.sin(t * 7 + f.phase) * 0.15 * run;
+}
+
+function animTicket(f, N, t, grow) {
+  // Flutters; shivers while it aims; edge-on and still in a swoop; tumbles
+  // as it flutters down after.
+  const aim = f.state === "aim", swoop = f.state === "swoop", down = f.state === "flutter";
+  N.body.rotation.set(swoop ? 0 : Math.sin(t * 9 + f.phase) * 0.4, swoop ? Math.PI / 2 : 0, down ? t * 6 : aim ? Math.sin(t * 60) * 0.1 : Math.sin(t * 4 + f.phase) * 0.2);
+  N.body.scale.setScalar(grow);
 }
 
 function animCan(f, N, t, grow) {
