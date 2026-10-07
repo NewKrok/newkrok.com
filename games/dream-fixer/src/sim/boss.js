@@ -3,6 +3,7 @@ import { PenBoss } from "./boss-pen.js";
 import { CookerBoss } from "./boss-cooker.js";
 import { ClockBoss } from "./boss-clock.js";
 import { MoonBoss } from "./boss-moon.js";
+import { HeartBoss } from "./boss-heart.js";
 
 // ── The Vacuum Cleaner (Biscuit's nightmare) ──────────────────────────────
 // Comes up out of the lawn once all three anchors hold.
@@ -281,4 +282,4 @@ export class VacuumBoss {
 // damage(run, dmg, part) and step(run, dt). It may offer ballHit(run, g),
 // splash(run, g), blasted(run, ax, az, def) and foamed(run, amount, part)
 // for what the tools throw at it.
-export const BOSSES = { vacuum: VacuumBoss, pen: PenBoss, cooker: CookerBoss, bigclock: ClockBoss, moon: MoonBoss };
+export const BOSSES = { vacuum: VacuumBoss, pen: PenBoss, cooker: CookerBoss, bigclock: ClockBoss, moon: MoonBoss, insomnia: HeartBoss };

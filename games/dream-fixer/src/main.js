@@ -283,6 +283,8 @@ async function startGame() {
         const id = run.def.id;
         if (!run.def.dev) gainXp(XP.fixed);
         bankDust();
+        // The finale, the first time: the Factory's closing scene comes next.
+        if (id === "oldhum" && !progress.done.includes(id)) progress.ending = true;
         if (!progress.done.includes(id)) progress.done.push(id);
         if (run.opts.difficulty === "hard" && !progress.hard.includes(id)) progress.hard.push(id);
         if (!run.def.dev) achieve({ fixed: run });
@@ -294,7 +296,7 @@ async function startGame() {
           xp,
           onFactory: () => {
             menus.close();
-            menus.fade(() => { startLevel("factory"); progress.justBack = true; director.begin(run, progress); progress.justBack = false; });
+            menus.fade(() => { progress.justBack = true; startLevel("factory"); });
             resume();
           },
           onAgain: () => { menus.close(); menus.fade(() => startLevel(id, hard)); resume(); },
@@ -315,7 +317,7 @@ async function startGame() {
   if (import.meta.env.DEV && LEVELS[q.get("level")]) startLevel(q.get("level"));
 
   // ── Loop ──
-  let last = performance.now(), acc = 0, time = 0;
+  let last = performance.now(), acc = 0, time = 0, snoreT = 3;
   const loop = (now) => {
     requestAnimationFrame(loop);
     // (A frame stamp can be older than `last` after a long level build.)
@@ -360,6 +362,8 @@ async function startGame() {
       view.consume(run.events);
       run.events.length = 0;
       director.frame(run, dt);
+      // Old Hum asleep at last: through the window, now and then, a snore.
+      if (run.def.hub && progress.done.includes("oldhum") && (snoreT -= dt) <= 0) { snoreT = 6 + Math.random() * 3; audio.play("snore"); }
       hud.update(run, dt);
     } else {
       input.look();

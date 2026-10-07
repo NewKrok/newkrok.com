@@ -26,7 +26,7 @@ const POP_COLORS = { bunny: [0xc4c0cc, 0x7a7684, C.dream, 0xffffff], tub: [0xfff
 const CHUNKS = { hand: [0.06, 0.4, 0.04, 0x2a2440], book: [0.42, 0.1, 0.32, 0x3a7fae], shaving: [0.16, 0.03, 0.1, 0xe8c898], eraser: [0.26, 0.14, 0.16, 0xf07890], grade: [0.34, 0.42, 0.06, 0xe02a30],
   peppercorn: [0.1, 0.1, 0.1, 0x2a2420], mince: [0.16, 0.07, 0.12, 0xb0503a], sauce: [0.34, 0.22, 0.34, 0xd8302a], bean: [0.26, 0.16, 0.18, 0xd06a2a],
   pebble: [0.16, 0.12, 0.14, 0x8a867a], drop: [0.12, 0.18, 0.12, 0x6ac0f0], clipping: [0.2, 0.03, 0.06, 0x5aa04a], seed: [0.12, 0.05, 0.08, 0x2a1a0e],
-  moonrock: [0.42, 0.34, 0.38, 0xb8b0a0] };
+  moonrock: [0.42, 0.34, 0.38, 0xb8b0a0], coffeebean: [0.26, 0.16, 0.2, 0x4a2a14] };
 // Orbs of other colours than the dream pink (Sophie's toys' stars, zaps, sparks, planets).
 const ORB = { bubble: 0x9fe0ff, yarn: 0xf0a050, star: 0xffe27a, zap: 0x9fe0ff, spark: 0xffa040, planet: 0xa8b8ff };
 const BOOKS = [0xd84a48, 0x3a7fae, 0x2a8a3a, 0xe0a020, 0x7a4aa0];

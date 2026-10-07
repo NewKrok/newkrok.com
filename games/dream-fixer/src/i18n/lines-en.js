@@ -285,6 +285,17 @@ export const LINES_EN = {
   oldhum_idle_2: ["margo", "Smells like warm brass in here. And cocoa, somehow."],
   oldhum_idle_3: ["margo", "Listen. Under the hum there's a lullaby. A very old one."],
   oldhum_idle_4: ["margo", "Cog's never this quiet. He's home, I think."],
+  oldhum_boss: ["margo", "That's his heart. Racing. A hundred years of it."],
+  oldhum_clink: ["margo", "Don't shoot him! Sand, rookie. Sand!"],
+  oldhum_yawn: ["margo", "He's yawning! Now, all the sand you've got!"],
+  oldhum_phase: ["margo", "He's fighting it. Keep going."],
+  oldhum_asleep: ["margo", "Shh. He's nodding off…"],
+  oldhum_last: ["csavar", "Bip. (Goodnight, old friend.)"],
+  oldhum_win: ["margo", "He's asleep. Old Hum is asleep."],
+  oldhum_retry: ["margo", "He's racing again. Catch your breath."],
+  hub_end1: ["margo", "Here. Coffee. For real this time."],
+  hub_end2: ["margo", "Hear that? He's snoring. First time in a hundred years."],
+  hub_end3: ["csavar", "Bip-bip… (Zzz.)"],
 };
 
 // Biscuit's memories: [title, text].
@@ -320,7 +331,7 @@ export const MEMORIES_EN = {
   socket: ["An empty socket", "A brass plate with a hole the shape of a little cog. Whatever sat here left a long time ago, and grew a propeller."],
   musicroll: ["A music box roll", "The lullaby the Factory was built to. Old Hum hums it every night, for everybody else."],
 };
-export const OUTRO_EN = { park: "Biscuit dreams of the lake now. Dora comes home on Sunday.", school: "Ethan dreams of Peanut now, and of a big red A+. The test is at nine.", kitchen: "Rosie dreams of a full diner now, and of Grandma June tasting the meatballs. The doors open at seven.", garden: "Joe dreams of May in the garden now, her straw hat on his head. The van comes at nine; the rose cutting rides up front.", space: "Sophie dreams of the porch light now, and of fireflies over the lawn. The spacewalk is at six; Ohio will pass under her twice before lunch." };
+export const OUTRO_EN = { park: "Biscuit dreams of the lake now. Dora comes home on Sunday.", school: "Ethan dreams of Peanut now, and of a big red A+. The test is at nine.", kitchen: "Rosie dreams of a full diner now, and of Grandma June tasting the meatballs. The doors open at seven.", garden: "Joe dreams of May in the garden now, her straw hat on his head. The van comes at nine; the rose cutting rides up front.", space: "Sophie dreams of the porch light now, and of fireflies over the lawn. The spacewalk is at six; Ohio will pass under her twice before lunch.", oldhum: "Old Hum dreams now: of a girl with a kite over a hayfield, the very first dream he ever made. The night shift will be quieter. Margo has promised to let him rest on Sundays." };
 // What the radio leaves out, kept as notes in the journal (unlocked by the line).
 export const NOTES_EN = {
   park_in2: ["Anchors", "Three dream anchors hold a dream together. Look for the pink wisps and the dark patches on the ground, press E by one and stay inside its ring while it tunes: glitches come at you in waves."],
@@ -361,6 +372,7 @@ export const NOTES_EN = {
   space_boss: ["The Moon Lamp", "Her night-light. Its spotlight follows you round the floor, then stops: get out of the circle before the moonlight comes down. Its tide pulls you in, then rings run out along the floor: jump them, or hang from a star handle. It lobs moon rocks (rings show where) and lets plush rockets loose. After a few attacks it nods off for a moment and lets its pull-chain down: only then can the lasso catch it. Pulled down, it is held at the floor for a few seconds, lit up all over, and takes more damage."],
   oldhum_fix1: ["The Dream Sand sack", "Old Hum's own. Hold click to sprinkle dream sand: a small glitch that gets enough falls asleep (the first hit wakes it and counts double), a big one goes drowsy. It barely stings, and never wakes a sleeper. Right click pours a sand path from your feet the way you look: tip the view up for a ramp (3 m at most), down for a slope. It holds a few seconds, then crumbles. Sand doesn't hold on sand: pour from solid ground."],
   oldhum_gate_west: ["Cog's locks", "Cog was made from a part of Old Hum, and knows his way round inside. Walk up to a lock and he opens it, when it's time: the east one once an anchor holds, the heart's once all three do."],
+  oldhum_boss: ["Old Hum's insomnia", "His heart, racing. It can't be beaten, only put to sleep: shots clink off it, only the Dream Sand fills its sleepiness meter, and left alone for a moment it wakes back up. Its bells shake before rings run along the floor (jump them). It rises over you and slams down where its ring stops. It lobs coffee beans, and calls the week's glitches out. After a few attacks it yawns: sand counts three times over. Just after a slam it sits dazed on the floor: sand counts more then too."],
 };
 // The journal's story: a few lines per chapter, each unlocked as you get
 // there (see STORY_BEATS in ui/menus.js).
@@ -388,4 +400,6 @@ export const STORY_EN = {
   space_fixed: "Sophie dreams of the porch light and fireflies over the lawn. Five broken dreams in five nights. Margo thinks she knows now where the glitches leak from. She won't say yet. She just keeps looking out of the window.",
   oldhum_arrive: "On the sixth night the lamps went out, the lift died, and the big window swung open. Old Hum was wide awake. The week's glitches had been leaking out of him: a hundred years of other people's dreams, and not one night's sleep of his own. You walked out along a gangway and climbed in through his hatch.",
   oldhum_tool: "When the first anchor held, a sack came tumbling out of the works: Old Hum's own dream sand. A pinch puts a glitch to sleep; poured out, it makes a path.",
+  oldhum_boss: "Behind the last lock his heart was racing, a hundred years without a rest. It could not be beaten, only put to sleep, a pinch at a time.",
+  oldhum_fixed: "Old Hum sleeps. Cog brought him the last pinch of sand himself, and stayed a moment, humming. Back at the Factory Margo poured two coffees and handed you one, and out of the big window, for the first time in a hundred years, the old machine snored.",
 };

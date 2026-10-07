@@ -219,11 +219,13 @@ export class Hud {
     this.bossEl.classList.toggle("on", !!B && B.alive && B.state !== "rise" || !!B && B.state === "rise" && B.t > 1);
     if (B) {
       if (B.kind !== this.bossKind) { this.bossKind = B.kind; this.bossLbl.textContent = t(`boss_${B.kind}`); }
-      const f = B.hp / B.maxHp;
-      this.bossLagHp = f > this.bossLagHp ? f : Math.max(f, this.bossLagHp - dt * 0.3);
+      // (Old Hum's insomnia: a sleepiness meter that fills up instead.)
+      const sleepy = B.sleepy !== undefined, f = sleepy ? B.sleepy : B.hp / B.maxHp;
+      this.bossLagHp = sleepy || f > this.bossLagHp ? f : Math.max(f, this.bossLagHp - dt * 0.3);
       this.bossFill.style.transform = `scaleX(${f.toFixed(3)})`;
       this.bossLag.style.transform = `scaleX(${this.bossLagHp.toFixed(3)})`;
-      this.bossEl.classList.toggle("clog", B.state === "clogged" || B.state === "blotted");
+      this.bossEl.classList.toggle("sleepy", sleepy);
+      this.bossEl.classList.toggle("clog", B.state === "clogged" || B.state === "blotted" || B.state === "yawn");
     }
     const tool = run.activeTool;
     const h = Math.round(tool.heat * 100) / 100, c = Math.round(tool.charge * 100) / 100;

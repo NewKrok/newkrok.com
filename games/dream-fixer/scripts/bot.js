@@ -56,7 +56,9 @@ function pickTarget() {
   }
   if (!best && stone && dist(stone) < 18) return { away: stone, px: stone.px, cy: stone.cy, pz: stone.pz, id: "away" };
   const S = run.boss;
-  if ((!best || bd > 12) && S?.alive && !S.invulnerable) {
+  // Old Hum's insomnia: sand on it whenever it is in reach (and nothing is on top of you).
+  if (S?.alive && S.kind === "insomnia" && !S.invulnerable && Math.hypot(S.x - B.x, S.z - B.z) < 8 && (!best || bd > 3.5)) return { px: S.x, cy: S.y, pz: S.z, boss: true, sand: true };
+  if ((!best || bd > 12) && S?.alive && !S.invulnerable && S.kind !== "insomnia") {
     // Its nozzle while it sucks and the tank holds something to clog it with.
     const vac = run.tools[toolIndex("vacuum")];
     if (S.state === "suck" && vac?.tank.length) return { px: S.nozzle[0], cy: S.nozzle[1], pz: S.nozzle[2], boss: true, nozzle: true };
@@ -78,6 +80,7 @@ function toolFor(tgt) {
   const S = run.boss;
   if (tgt?.boss && S?.kind === "cooker" && S.state === "loose" && toolIndex("bell") >= 0 && !run.tools[toolIndex("bell")].overheated && Math.hypot(S.x - B.x, S.z - B.z) < 9) return "bell";
   if (tgt?.nib) return "foam";
+  if (tgt?.sand) return "sand";
   // Something right in your face (not a flyer): the umbrella's gust.
   const umb = run.tools[toolIndex("umbrella")];
   if (umb && !umb.overheated && tgt && !tgt.orb && !tgt.boss && !tgt.def?.fly && dist(tgt) < 3.8) return "umbrella";
@@ -121,7 +124,7 @@ function aimAndFire(intent) {
   B.yaw += Math.max(-SKILL.turn, Math.min(SKILL.turn, d));
   B.pitch += Math.max(-SKILL.pitch, Math.min(SKILL.pitch, pitch - B.pitch));
   const tool = run.activeTool, on = Math.abs(d) < 0.2;
-  if (tool.id === "bell" || tool.id === "umbrella") intent.fire = on && !tool.overheated;
+  if (tool.id === "bell" || tool.id === "umbrella" || tool.id === "sand") intent.fire = (tool.id !== "sand" || !!tgt.sand) && on && !tool.overheated;
   else if (tool.id === "vacuum") {
     // Shoot the catch back at a big one (a press: alt down for a step, then
     // up), or at anything once the tank is full.
@@ -392,6 +395,8 @@ if (def.boss) {
       let away = S.state === "suck" ? 1 : d < 6 ? 0.6 : d > 11 ? -0.6 : 0;
       // The Big Alarm Clock: close in for a go at its key (not while its hands sweep).
       if (S.kind === "bigclock" && toolIndex("umbrella") >= 0 && S.state === "loose") away = d < 2.4 ? 0.6 : d > 3.4 ? -0.9 : 0;
+      // Old Hum's heart: close enough for the sand to reach it.
+      if (S.kind === "insomnia") away = d < 3.5 ? 0.7 : d > 6 ? -0.9 : 0;
       // The Pressure Cooker's lid loose: in, within the bell's reach.
       if (S.kind === "cooker" && S.state === "loose") away = d > 5 ? -1 : 0;
       // A strike lining up on you: step sideways out of its track.

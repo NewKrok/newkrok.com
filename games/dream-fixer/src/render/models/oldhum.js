@@ -143,3 +143,42 @@ export function humMemory(n, item) {
   }
   return false;
 }
+
+// Old Hum's insomnia: his heart, a hundred years without sleep. A brass
+// heart-shaped engine with a glowing red core behind a grille, one wide
+// open eye with dark rings under it, two alarm bells on top, and three
+// copper rings spinning round it like a gyroscope. Nodes: "heart" (pumps),
+// "core" (the glow; opens on a yawn), "lid" (the eyelid, scaled down to
+// open), "bells" (shake), "ringA", "ringB", "ringC" (spin).
+export function sleeplessHeart(b) {
+  const R = 1.25;
+  b.node("heart", [0, 0, 0], [0, 0, 0], (n) => {
+    // Two lobes and a point: the heart of brass.
+    n.both((s) => n.add(SHAPE.ball(R * 0.72, 14, 10), { p: [s * R * 0.42, R * 0.25, 0], s: [1, 1, 0.8], grad: [C.brassD, C.brass], mat: "metal", facet: 0.02 }));
+    n.add(SHAPE.cone(R * 0.95, R * 1.3, 14), { p: [0, -R * 0.55, 0], r: [Math.PI, 0, 0], s: [1, 1, 0.72], grad: [C.brassD, C.brass], mat: "metal", facet: 0.02 });
+    // Rivets down its seam, a grille over the core at the front.
+    for (let i = 0; i < 6; i++) n.add(SHAPE.ball(0.05, 6, 4), { p: [0, R * 0.7 - i * R * 0.3, -R * 0.62 + Math.abs(i - 2) * 0.03], c: C.brassL, mat: "metal" });
+    for (let i = -2; i <= 2; i++) n.add(SHAPE.box(0.06, R * 0.9, 0.06), { p: [i * 0.17, -R * 0.2, -R * 0.7], c: C.iron, mat: "metal" });
+    // The eye, high on the left lobe: white, a red iris, dark rings under it.
+    n.add(SHAPE.ball(0.36, 12, 8), { p: [-R * 0.42, R * 0.45, -R * 0.5], s: [1, 1, 0.5], c: C.white, facet: 0.02 });
+    n.add(SHAPE.ball(0.17, 10, 7), { p: [-R * 0.42, R * 0.45, -R * 0.68], s: [1, 1, 0.4], c: 0xd8302a, mat: "glow", glow: 1.4 });
+    n.add(SHAPE.ball(0.07, 8, 6), { p: [-R * 0.42, R * 0.45, -R * 0.74], c: C.black });
+    for (let i = 0; i < 2; i++) n.add(SHAPE.torus(0.3 - i * 0.06, 0.03, 4, 12, Math.PI), { p: [-R * 0.42, R * 0.42 - i * 0.06, -R * 0.62], r: [0, 0, Math.PI], c: 0x5a2a4a });
+    n.node("lid", [-R * 0.42, R * 0.45 + 0.36, -R * 0.62], [0, 0, 0], (l) => l.add(SHAPE.box(0.8, 0.72, 0.2, 0.08), { p: [0, -0.36, 0], c: C.brassD, mat: "metal" }));
+    // The bells on top, and the hammer between them.
+    n.node("bells", [0, R * 0.95, 0], [0, 0, 0], (m) => {
+      m.both((s) => m.add(SHAPE.lathe([[0.02, 0], [0.3, 0.02], [0.36, 0.2], [0.24, 0.42], [0.02, 0.46]], 12), { p: [s * 0.55, 0.05, 0], r: [0, 0, -s * 0.35], c: C.copper, mat: "metal" }));
+      m.add(SHAPE.cyl(0.04, 0.04, 0.5, 6), { p: [0, 0.3, 0], c: C.iron, mat: "metal" });
+      m.add(SHAPE.ball(0.1, 8, 6), { p: [0, 0.55, 0], c: C.brassL, mat: "metal" });
+    });
+  });
+  b.node("core", [0, -R * 0.15, -R * 0.2], [0, 0, 0], (n) => n.add(SHAPE.ball(R * 0.55, 12, 8), { c: 0xff5a40, mat: "glow", glow: 1.8 }));
+  // The rings, each turning on its own axis.
+  const ring = (name, rr, tilt) => b.node(name, [0, 0, 0], tilt, (n) => {
+    n.add(SHAPE.torus(rr, 0.07, 6, 40), { c: C.copper, mat: "metal" });
+    for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; n.add(SHAPE.ball(0.11, 6, 4), { p: [Math.cos(a) * rr, Math.sin(a) * rr, 0], c: C.brassL, mat: "metal" }); }
+  });
+  ring("ringA", R * 1.65, [0, 0, 0]);
+  ring("ringB", R * 1.8, [Math.PI / 2, 0, 0.4]);
+  ring("ringC", R * 1.95, [0.6, Math.PI / 2, 0]);
+}

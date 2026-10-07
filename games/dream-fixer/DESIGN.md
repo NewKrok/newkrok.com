@@ -320,8 +320,34 @@ horgony után Csavar el is mondja, mi ő.
   konyhája (3. horgony) az óriásbögrével (emlék rámpával).
 - **Északkelet, 3 m-rel lejjebb:** Joe kertje (7 m-es rés, lejtő),
   lépcső vissza a gépház mellé.
-- **Észak:** az utolsó zsilip mögött Old Hum szíve, a boss arénája (a
-  főellenség, az álmatlanság és az álmosság-mérő a következő lépés).
+- **Észak:** az utolsó zsilip mögött Old Hum szíve, a boss arénája.
+
+A darabokat és a gépházat láthatatlan falak veszik körül (a zsilipeknél
+is magasabbak, mint amilyennek látszanak), így homokúttal sem lehet
+megkerülni egy zsilipet.
+
+**Old Hum álmatlansága** (`sim/boss-heart.js`, kind `insomnia`): a szíve,
+egy lebegő rézszív három forgó rézgyűrűben, vörösen izzó maggal, egy
+tágra nyílt szemmel és két vekkercsengővel. Nem győzöd le, hanem
+elaltatod: életerő helyett **álmosság-mérője** van (lila, ásításkor
+arany), és csak az álomhomok tölti; minden más lepattan róla (az első
+lövésnél Margó szól: „Homok, újonc!”). Ha egy ideig nem kap homokot,
+lassan visszaébred.
+- **Vekker:** rázkódnak a csengői, aztán gyűrűk futnak a padlón (2, a
+  második fázisban 3).
+- **Lecsapás:** föléd emelkedik, a fénykör követ, megáll, és lecsap;
+  gyűrű fut ki a helyéről, utána kábán ül a padlón (a homok 1,5×).
+- **Kávészemek:** zápor köréd (gyűrűk mutatják, hová esnek).
+- **Ébresztő:** előhívja a hét hibáit (mókus, ceruza, gombóc, törpe,
+  robot, nyuszi).
+- **Ásítás:** 2–3 támadásonként ásít, a szeme lecsukódik, a magja
+  kinyílik: a homok háromszorosan számít.
+- Ha megtelt, leereszkedik és bóbiskol; Cog odarepül, és beleszórja az
+  utolsó marék homokot. Old Hum elalszik.
+
+**Zárójelenet:** a Gyárba visszaérve Margó kávét ad, és a nagy ablakon
+túl Old Hum horkol (a Gyárban ettől kezdve hallani).
+
 
 Hibák: minden darabban a saját álmáé (mókusok, ceruzák, gombócok,
 törpék, robotok), a hullámokban az egész hét keverve. Emlékek: az első

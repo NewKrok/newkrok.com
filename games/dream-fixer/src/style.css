@@ -103,6 +103,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1b2436; col
 .hud .bossbar i { position: absolute; inset: 0; transform-origin: left center; }
 .hud .bossbar .lag { background: #ffe0a0; }
 .hud .bossbar .fill { background: linear-gradient(#ff7a92, #c0394f); }
+.hud .bossbar.sleepy .fill { background: linear-gradient(#c8b8ff, #6a5ab8); }
+.hud .bossbar.sleepy .lbl { color: #d8ccff; text-shadow: 0 2px 0 #2a1a4a; }
+.hud .bossbar.sleepy.clog .fill { background: linear-gradient(#fff0c0, #ffd27a); }
 .hud .bossbar.clog .fill { background: linear-gradient(#ffd0e0, #ff8fd0); animation: pulse 0.4s ease-in-out infinite; }
 
 .btn { font: inherit; font-weight: 800; font-size: 17px; padding: 11px 24px; border-radius: 999px; border: 0; cursor: pointer; background: var(--mint); color: #173a38; box-shadow: 0 4px 0 #3aa593; }

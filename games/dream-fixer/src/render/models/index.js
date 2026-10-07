@@ -4,7 +4,7 @@ import { pinwheel, windWell, gnome, slingerGnome, trainTicket, wateringCan, wate
 import { jelly, souffle, meatball, pepperShaker, rollingPin, meatGrinder, pressureCooker, kitchenWindow, panRail, knob, faucet, burner, kettle, jar, cuttingBoard, breadLoaf, fridge, flourSack, tableCloth, mug, tomato, bucket, spoon, pea } from "./kitchen.js";
 import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./characters.js";
 import { anchor } from "./dream.js";
-import { gear, wallGear, gearBit, lockGate, hatch, dreamColumn } from "./oldhum.js";
+import { gear, wallGear, gearBit, lockGate, hatch, dreamColumn, sleeplessHeart } from "./oldhum.js";
 import { vacuumBoss } from "./boss.js";
 import { jobBoard, workbench, desk, lift, dreamTank, pipe, oldHum, crate, shelf, rug, hangLamp, dock, lectern, dreamFrame, trophyCase, corkboard, calendar, cogPoster, gauges } from "./factory.js";
 import { memoryBubble } from "./dream.js";
@@ -205,6 +205,7 @@ export const MODELS = {
   lockGate: { build: lockGate, frame: 7, anim: (o, t) => { const N = o.userData.nodes, k = Math.max(0, Math.sin(t * 0.8)) * 1.9; N.left.position.x = -1 - k; N.right.position.x = 1 + k; } },
   hatch: { build: hatch, frame: 4.5 },
   dreamColumn: { build: dreamColumn, frame: 8 },
+  insomnia: { build: sleeplessHeart, frame: 8, anim: (o, t) => { const N = o.userData.nodes; N.ringA.rotation.z = t * 1.4; N.ringB.rotation.y = t * 1.1; N.ringC.rotation.x = t * 0.9; N.heart.scale.setScalar(1 + Math.max(0, Math.sin(t * 7)) * 0.06); N.lid.scale.y = 0.1 + Math.max(0, Math.sin(t * 0.7)) * 0.9; } },
   crate: { build: crate, frame: 1.4 },
   shelf: { build: shelf, frame: 2.8 },
   rug: { build: rug, frame: 4 },

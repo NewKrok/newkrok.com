@@ -43,6 +43,7 @@ export const oldhum = {
   song: "factory",
   lamps: 5,
   unlockTool: { id: "sand", anchors: 1 },
+  boss: { kind: "insomnia", x: 0, z: -37, arena: { minX: -9, maxX: 9, minZ: -45, maxZ: -29 }, seal: { minX: -12.8, maxX: 12.8, minZ: -48.8, maxZ: -25.2 } },
   skins: { fuzz: "koc", buzzer: "buzzer", knot: "knot", bunny: "bunny", tub: "tub" },
   // [id, x, z, y]: in the park's grass, up in the school corridor, on the
   // giant mug in the kitchen, by the roses in the garden, on the station deck.
@@ -68,6 +69,7 @@ export const oldhum = {
     school: [[0, 20], [0, 4], [-10, 0], ["gate", "west"], [-18, 0], [-26, 0], [-30, -1], ["sand", -30, -10, 0.5], [-30, -9], [-30, -12], [-30, -15]],
     kitchen: [[0, 20], [0, 4], [10, 0], ["gate", "east"], [19.4, 0], ["sand", 30, 0, -0.05], [26, 0], [30, 0], [34, 1]],
   },
+  botBoss: [[0, 4], [0, -10], [0, -20], [0, -28]],
   botBack: {
     park: [[-26, 0], [-18, 0], [-10, 0], [0, 4]],
     school: [[-30, -10], [-30, -3], [-26, 0], [-18, 0], [-10, 0], [0, 4]],

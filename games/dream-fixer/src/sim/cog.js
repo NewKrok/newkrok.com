@@ -42,9 +42,12 @@ export class Cog {
     // A lock he has been called to comes first: over to its panel, a
     // moment's work, and it opens.
     const g = run.gates?.find((o) => o.called && !o.open);
+    // Old Hum asleep at last: Cog flies in with the last pinch of sand.
+    const hb = run.boss?.kind === "insomnia" && run.boss.state === "sleep" ? run.boss : null;
     // ── Fetching ──
-    if (!g && !this.task && P.fetch) this.pick(run);
-    if (g) {
+    if (!g && !hb && !this.task && P.fetch) this.pick(run);
+    if (hb) this.fly(hb.x, hb.y + 0.4, hb.z, dt);
+    else if (g) {
       const [px, py, pz] = run.gatePanel(g);
       if (this.fly(px, py, pz, dt) < 0.3) {
         if (g.t === 0) run.events.push({ type: "gateWork", id: g.id, x: px, y: py, z: pz });

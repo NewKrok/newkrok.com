@@ -5,6 +5,7 @@ import { redPen } from "./models/school.js";
 import { pressureCooker } from "./models/kitchen.js";
 import { bigAlarmClock } from "./models/garden.js";
 import { moonLamp } from "./models/space.js";
+import { sleeplessHeart } from "./models/oldhum.js";
 import { C } from "./palette.js";
 import { lerp, damp } from "../config.js";
 
@@ -555,9 +556,104 @@ class MoonBossView {
   }
 }
 
+// ── Old Hum's insomnia on screen ──
+// The brass heart pumps with its racing beat, its rings spinning faster
+// the more awake it is; its eyelid droops as it gets sleepy, shuts on a
+// yawn. The slam's ring follows you over the floor. Sand on it glitters
+// gold; a yawn breathes out Zs; asleep, it sinks down and Cog's last
+// pinch goes into its core in a shower of gold.
+class HeartBossView {
+  constructor(scene, fx) {
+    this.scene = scene; this.fx = fx;
+    this.o = null;
+    this.spot = new T.Mesh(new T.RingGeometry(0.86, 1, 40).rotateX(-Math.PI / 2), new T.MeshBasicMaterial({ color: 0xff7050, transparent: true, depthWrite: false, toneMapped: false, side: T.DoubleSide }));
+    this.spot.visible = false; this.spot.renderOrder = 4; scene.add(this.spot);
+    this.flashing = false;
+    this.spin = [0, 0, 0];
+  }
+
+  clear() {
+    if (this.o) { this.scene.remove(this.o); this.o = null; }
+    this.spot.visible = false;
+  }
+
+  onEvent(e, run) {
+    const fx = this.fx;
+    if (e.type === "bossRise") {
+      const y = run.kit.floorAt(e.x, e.z);
+      for (let i = 0; i < 5; i++) fx.puff(e.x + (Math.random() - 0.5) * 5, y + 0.5, e.z + (Math.random() - 0.5) * 5, 2.2);
+      fx.ring([e.x, y + 0.1, e.z], [0, 1, 0], 0xff7050, 8, 0.8);
+    } else if (e.type === "heartSand") {
+      for (let i = 0; i < (e.k > 1 ? 6 : 2); i++) fx.spark(e.x + (Math.random() - 0.5) * 2.4, e.y + (Math.random() - 0.5) * 2.4, e.z + (Math.random() - 0.5) * 2.4, 0, -0.6, 0, 0.8, e.k > 1 ? 0.07 : 0.05, 0xffe0a0, 1);
+    } else if (e.type === "heartClink") {
+      fx.burst([e.x, e.y, e.z], [0, 1, 0], 0xffffff, 6, 3, 0.04);
+    } else if (e.type === "heartSlam") {
+      fx.ring([e.x, e.y + 0.08, e.z], [0, 1, 0], 0xff7050, 3, 0.5);
+      for (let i = 0; i < 6; i++) fx.puff(e.x + (Math.random() - 0.5) * 3, e.y + 0.4, e.z + (Math.random() - 0.5) * 3, 1.6);
+    } else if (e.type === "cogLast") {
+      fx.burst([e.x, e.y, e.z], [0, 1, 0], 0xffe0a0, 60, 3, 0.07);
+      fx.ring([e.x, e.y, e.z], [0, 1, 0], 0xffe0a0, 4, 1);
+    } else if (e.type === "bossPop" && run.boss) {
+      for (let i = 0; i < 90; i++) {
+        const a = Math.random() * Math.PI * 2, u = Math.random() * 2 - 1, s = Math.sqrt(1 - u * u), v = 2 + Math.random() * 5;
+        fx.spark(e.x, e.y, e.z, Math.cos(a) * s * v, u * v + 2, Math.sin(a) * s * v, 1.2 + Math.random() * 1.2, 0.08 + Math.random() * 0.08, [C.dreamGold, 0xffe0a0, C.dream, 0xd8b8ff][i % 4], 1);
+      }
+      for (let i = 0; i < 5; i++) fx.puff(e.x + (Math.random() - 0.5) * 3, e.y + (Math.random() - 0.5) * 2, e.z + (Math.random() - 0.5) * 3, 2.4);
+      fx.ring([e.x, e.y - 1, e.z], [0, 1, 0], C.dreamGold, 16, 1.6);
+      if (this.o) this.o.visible = false;
+    }
+  }
+
+  update(run, alpha, dt, t) {
+    const B = run.boss;
+    if (!this.o) {
+      this.o = make(sleeplessHeart);
+      this.meshes = [];
+      this.glowMat = MAT.glow.clone();
+      this.o.traverse((m) => { if (m.isMesh) { if (m.material === MAT.glow) m.material = this.glowMat; this.meshes.push(m); m.userData.mat = m.material; } });
+      this.scene.add(this.o);
+    }
+    if (!B.alive) { this.o.visible = false; this.spot.visible = false; return; }
+    const o = this.o, N = o.userData.nodes, st = B.state, awake = B.hp / B.maxHp;
+    const x = lerp(B.lx, B.x, alpha), y = lerp(B.ly, B.y, alpha), z = lerp(B.lz, B.z, alpha);
+    o.position.set(x, y, z);
+    o.rotation.y = B.yaw;
+    // The beat: a hard pump, faster the more awake it is.
+    const pump = Math.pow(Math.max(0, Math.sin(B.beat * Math.PI * 2)), 6);
+    N.heart.scale.setScalar(1 + pump * (0.04 + 0.06 * awake));
+    N.core.scale.setScalar(0.8 + B.glow * 0.5 + pump * 0.15);
+    // The rings spin with how awake it is (nearly still, asleep).
+    const sp = st === "sleep" ? 0.15 : st === "yawn" ? 0.5 : 0.8 + 2.2 * awake;
+    this.spin[0] += dt * sp * 1.3; this.spin[1] += dt * sp; this.spin[2] += dt * sp * 0.8;
+    N.ringA.rotation.z = this.spin[0];
+    N.ringB.rotation.y = this.spin[1];
+    N.ringC.rotation.x = 0.6 + this.spin[2];
+    // The eyelid: wide open awake, drooping as it gets sleepy, shut on a yawn or asleep.
+    const lid = st === "yawn" || st === "sleep" ? 1 : st === "dazed" ? 0.7 : 0.08 + (1 - awake) * 0.55 + Math.max(0, Math.sin(t * 0.9)) * 0.06;
+    N.lid.scale.y = damp(N.lid.scale.y, Math.max(0.05, lid), 8, dt);
+    // The bells shake before an alarm.
+    N.bells.rotation.z = st === "alarm" ? Math.sin(t * 50) * 0.15 : 0;
+    const shake = st === "dazed" ? Math.sin(t * 40) * 0.05 : 0;
+    N.heart.rotation.set(shake, 0, Math.sin(t * 0.8) * 0.06 + shake);
+    this.glowMat.color.setScalar(0.8 + B.glow * 0.8 + pump * 0.3);
+    // The slam's ring on the floor.
+    const m = B.mark;
+    this.spot.visible = !!m;
+    if (m) {
+      this.spot.position.set(m[0], m[1] + 0.07, m[2]);
+      this.spot.scale.setScalar(m[3] * (m[4] ? 1 : 1.15 + Math.sin(t * 6) * 0.05));
+      this.spot.material.opacity = m[4] ? 0.9 : 0.45;
+    }
+    // A yawn, or asleep: Zs drifting up.
+    if ((st === "yawn" || st === "sleep") && Math.random() < dt * 4) this.fx.spark(x + 1.4, y + 1.6, z, 0.4, 1.2, 0, 1.6, 0.14, 0xd8e0ff, -0.2);
+    const flash = B.flash > 0.6;
+    if (flash !== this.flashing) { for (const mm of this.meshes) mm.material = flash ? FLASH : mm.userData.mat; this.flashing = flash; }
+  }
+}
+
 // ── Whichever nightmare the dream has ──
 // One view per boss kind, made when that boss first shows up.
-const VIEWS = { vacuum: VacuumBossView, pen: PenBossView, cooker: CookerBossView, bigclock: ClockBossView, moon: MoonBossView };
+const VIEWS = { vacuum: VacuumBossView, pen: PenBossView, cooker: CookerBossView, bigclock: ClockBossView, moon: MoonBossView, insomnia: HeartBossView };
 
 export class BossView {
   constructor(scene, fx) { this.scene = scene; this.fx = fx; this.views = {}; this.curtain = null; }

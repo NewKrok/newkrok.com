@@ -282,6 +282,17 @@ export const LINES_HU = {
   oldhum_idle_2: ["margo", "Meleg réz illata van itt. Meg valahogy kakaóé."],
   oldhum_idle_3: ["margo", "Figyelj. A dünnyögés alatt egy altatódal szól. Nagyon régi."],
   oldhum_idle_4: ["margo", "Cog sosem ilyen csendes. Szerintem otthon érzi magát."],
+  oldhum_boss: ["margo", "Az ott a szíve. Kalapál. Száz éve."],
+  oldhum_clink: ["margo", "Ne lődd! Homok, újonc. Homok!"],
+  oldhum_yawn: ["margo", "Ásít! Most, minden homokot rá!"],
+  oldhum_phase: ["margo", "Küzd ellene. Csak így tovább."],
+  oldhum_asleep: ["margo", "Psszt. Bóbiskol…"],
+  oldhum_last: ["csavar", "Bip. (Jó éjt, öreg barátom.)"],
+  oldhum_win: ["margo", "Alszik. Old Hum alszik."],
+  oldhum_retry: ["margo", "Megint kalapál. Fújd ki magad."],
+  hub_end1: ["margo", "Tessék. Kávé. Most tényleg."],
+  hub_end2: ["margo", "Hallod? Horkol. Száz év óta először."],
+  hub_end3: ["csavar", "Bip-bip… (Zzz.)"],
 };
 export const MEMORIES_HU = {
   hedgehog: ["A sípolós sün", "Dora az első napon vette Biscuitnak. A sípolása elveszett, a szaga megmaradt."],
@@ -315,7 +326,7 @@ export const MEMORIES_HU = {
   socket: ["Egy üres foglalat", "Egy rézlap, benne egy kis fogaskerék alakú lyuk. Ami itt ült, régen elment, és nőtt neki egy propellere."],
   musicroll: ["Egy zenedoboz-henger", "Az altatódal, amire a Gyárat építették. Old Hum minden éjjel eldúdolja, mindenki másnak."],
 };
-export const OUTRO_HU = { park: "Biscuit most a tóról álmodik. Dora vasárnap hazajön.", school: "Ethan most Mogyoróról álmodik, meg egy nagy piros ötösről. A dolgozat kilenckor lesz.", kitchen: "Rosie most egy teli büféről álmodik, meg June nagyiról, ahogy megkóstolja a gombócot. Hétkor nyitnak.", garden: "Joe most May-ről álmodik a kertben, az ő szalmakalapjában. A költöztetők kilenckor jönnek; a rózsadugvány elöl utazik.", space: "Sophie most a verandalámpáról álmodik, meg a gyep fölött villódzó szentjánosbogarakról. Az űrséta hatkor kezdődik; ebédig kétszer száll el Ohio fölött." };
+export const OUTRO_HU = { park: "Biscuit most a tóról álmodik. Dora vasárnap hazajön.", school: "Ethan most Mogyoróról álmodik, meg egy nagy piros ötösről. A dolgozat kilenckor lesz.", kitchen: "Rosie most egy teli büféről álmodik, meg June nagyiról, ahogy megkóstolja a gombócot. Hétkor nyitnak.", garden: "Joe most May-ről álmodik a kertben, az ő szalmakalapjában. A költöztetők kilenckor jönnek; a rózsadugvány elöl utazik.", space: "Sophie most a verandalámpáról álmodik, meg a gyep fölött villódzó szentjánosbogarakról. Az űrséta hatkor kezdődik; ebédig kétszer száll el Ohio fölött.", oldhum: "Old Hum most álmodik: egy kislányról, aki sárkányt ereget egy szénamező fölött, a legeslegelső álomról, amit valaha készített. Csendesebb lesz az éjszakás műszak. Margo megígérte, hogy vasárnaponként hagyja pihenni." };
 // What the radio leaves out, kept as notes in the journal (unlocked by the line).
 export const NOTES_HU = {
   park_in2: ["Horgonyok", "Három álomhorgony tartja egyben az álmot. Figyeld a rózsaszín füstöt és a sötét foltokat a földön, nyomj E-t egy horgonynál, és maradj a körben, amíg hangol: közben hullámokban jönnek a hibák."],
@@ -356,6 +367,7 @@ export const NOTES_HU = {
   space_boss: ["A Holdlámpa", "Az éjjeli lámpája. A fényköre követ a padlón, aztán megáll: lépj ki belőle, mielőtt lezúdul a holdfény. Az árapálya magához húz, aztán gyűrűk futnak ki a padlón: ugord át őket, vagy lógj egy csillagos kapaszkodón. Holdköveket dob (gyűrűk mutatják, hová), és plüssrakétákat enged ki. Pár támadás után egy pillanatra elbóbiskol, és leengedi a húzóláncát: csak ilyenkor kapja el a lasszó. Ha lehúzod, pár másodpercig a padlónál marad, mindenütt világít, és többet sebződik."],
   oldhum_fix1: ["Az Álomhomok-zsák", "Old Hum sajátja. Nyomva tartva álomhomokot szór: az a kis hiba, amelyik eleget kap, elalszik (az első találat felkelti, és duplán számít), a nagy elálmosodik. Alig csíp, és az alvót sosem kelti fel. Jobb klikkre a lábad elől homokutat önt arra, amerre nézel: felfelé nézve rámpát (legfeljebb 3 méter), lefelé lejtőt. Pár másodpercig tart, aztán szétpereg. Homok homokon nem tart: szilárd talajról önts."],
   oldhum_gate_west: ["Cog zsilipjei", "Cogot Old Hum egyik alkatrészéből építették, és kiismeri magát benne. Menj oda egy zsiliphez, és kinyitja, ha itt az ideje: a keletit, ha már tart egy horgony, a szívét, ha mind a három."],
+  oldhum_boss: ["Old Hum álmatlansága", "A szíve, ahogy kalapál. Legyőzni nem lehet, csak elaltatni: a lövések lepattannak róla, az álmosság-mérőjét csak az álomhomok tölti, és ha egy pillanatra magára hagyod, visszaébred. Ha rázkódnak a csengői, gyűrűk futnak a padlón (ugord át). Föléd emelkedik, és lecsap oda, ahol a fénykör megáll. Kávészemeket dobál, és előhívja a hét hibáit. Néhány támadás után ásít: ilyenkor háromszoros a homok hatása. Lecsapás után egy pillanatig kábán ül a padlón: akkor is többet ér a homok."],
 };
 // A napló története: fejezetenként pár sor, ahogy odaérsz.
 export const STORY_HU = {
@@ -382,4 +394,6 @@ export const STORY_HU = {
   space_fixed: "Sophie a verandalámpáról álmodik, meg a gyep fölött villódzó szentjánosbogarakról. Öt elromlott álom öt éjszaka alatt. Margo azt hiszi, már tudja, honnan szivárognak a hibák. Még nem mondja meg. Csak egyre az ablakon néz kifelé.",
   oldhum_arrive: "A hatodik éjjel kialudtak a lámpák, leállt a lift, és kitárult a nagy ablak. Old Hum teljesen felébredt. Egész héten belőle szivárogtak a hibák: száz év mások álmaiból, és egyetlen saját átaludt éjszaka sem. Kisétáltál egy pallón, és bemásztál a szervizajtaján.",
   oldhum_tool: "Amikor az első horgony megtartott, egy zsák bukfencezett elő a gépezetből: Old Hum saját álomhomokja. Egy marék elaltat egy hibát; kiöntve utat rak.",
+  oldhum_boss: "Az utolsó zsilip mögött ott kalapált a szíve, száz éve pihenés nélkül. Legyőzni nem lehetett, csak elaltatni, maréknyi homokonként.",
+  oldhum_fixed: "Old Hum alszik. Az utolsó marék homokot Cog maga vitte be neki, és ott maradt egy kicsit, dünnyögve. A Gyárban Margo töltött két kávét, az egyiket a kezedbe nyomta, és a nagy ablakon túl száz év óta először horkolt az öreg gép.",
 };

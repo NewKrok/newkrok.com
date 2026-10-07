@@ -148,6 +148,8 @@ const DIRECTORS = {
       if (e.type === "gateCall") sayIf(D, `oldhum_gate_${e.id}`);
       if (e.type === "gateOpen" && e.id === "west") D.say("oldhum_gate_west2");
       if (e.type === "anchorFixed" && e.left === 1) { D.say("oldhum_cog"); D.say("oldhum_cog2"); }
+      // Shooting him: once, what to do instead.
+      if (e.type === "heartClink" && e.first) D.say("oldhum_clink");
     },
     // Under the school corridor, or where the catwalk to the kitchen
     // breaks off: Cog says what is in the way, or (with the sand) what to
@@ -158,12 +160,14 @@ const DIRECTORS = {
       if (b.x > -37 && b.x < -23 && b.z < -3 && b.z > -8 && b.y < 1) D.say(sand ? "oldhum_ramp" : "oldhum_high");
       else if (b.x > 18 && b.x < 21 && Math.abs(b.z) < 1.6 && b.y > -0.5 && b.y < 1) D.say(sand ? "oldhum_bridge" : "oldhum_gap");
     },
-    on: { dizzy: "dizzy", bossRise: "boss", bossPhase: "phase", bossPop: "win" },
+    on: { dizzy: "dizzy", bossRise: "boss", heartYawn: "yawn", bossPhase: "phase", heartAsleep: "asleep", cogLast: "last", bossPop: "win" },
   }),
   factory: {
     start(D, run, P) {
       // The finale's night: the lamps low, the window open, Old Hum awake.
       if (run.kit.marks.hatch) { D.say("hub_finale1"); D.say("hub_finale2"); return; }
+      // Back from Old Hum's dream, the first time: coffee, and his snoring.
+      if (P.ending) { P.ending = false; D.say("hub_end1"); D.say("hub_end2"); D.say("hub_end3"); return; }
       // First time in: the welcome. Back from a dream: how it went. Any
       // other time: one of a handful of greetings, at random.
       if (P.justBack) D.say("hub_back1");
