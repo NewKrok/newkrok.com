@@ -5,7 +5,7 @@ import { UPGRADES, level, maxLevel } from "./upgrades.js";
 // Experience comes from the work in the dreams (glitches smoothed out,
 // anchors tuned, nightmares put to bed, memories found) and raises your
 // rank at the Factory; the rank opens up the workbench, a level at a time.
-// A hard (deep sleep) fix pays half as much again.
+// A hard (deep sleep) fix pays half as much again (dream dust too).
 //
 // progress.xp: experience so far. progress.ach: { id: when it was earned }.
 // progress.stats: lifetime counters the achievements read.
@@ -13,8 +13,11 @@ import { UPGRADES, level, maxLevel } from "./upgrades.js";
 export const XP = { small: 2, big: 6, anchor: 25, boss: 120, memory: 15, fixed: 60, hard: 1.5 };
 
 export const MAX_RANK = 15;
-// Experience a rank starts at: 0, 100, 250, 450, 700, 1000…
-export const xpForRank = (r) => 25 * (r - 1) * (r + 2);
+// Experience a rank starts at: 0, 100, 250, 450, 700, 1000… up to 11 (about
+// one time through the game); the last four take a second time through
+// (the top level of every upgrade waits there).
+const TOP = { 12: 4300, 13: 5400, 14: 6600, 15: 7800 };
+export const xpForRank = (r) => TOP[r] ?? 25 * (r - 1) * (r + 2);
 export function rankFor(xp = 0) {
   let r = 1;
   while (r < MAX_RANK && xp >= xpForRank(r + 1)) r++;
@@ -64,6 +67,7 @@ export const ACHIEVEMENTS = [
   // ── The Factory ──
   { id: "rank_5", icon: "⭐", test: (P) => rankFor(P.xp) >= 5 },
   { id: "rank_10", icon: "🌟", test: (P) => rankFor(P.xp) >= 10 },
+  { id: "rank_15", icon: "🏅", test: (P) => rankFor(P.xp) >= MAX_RANK },
   { id: "bench_10", icon: "🔧", test: (P) => levelsBought(P) >= 10 },
   { id: "bench_max", icon: "⚙", test: (P) => UPGRADES.some((u) => level(P.upgrades, u.id) >= maxLevel(u)) },
   { id: "dust_1000", icon: "💰", test: (P) => P.stats.dust >= 1000 },

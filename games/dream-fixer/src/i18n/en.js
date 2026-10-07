@@ -257,6 +257,7 @@ export const EN = {
   a_memory_all: ["Archivist", "Find every memory in every dream."],
   a_rank_5: ["Old hand", "Reach rank 5."],
   a_rank_10: ["Night-shift legend", "Reach rank 10."],
+  a_rank_15: ["Master Fixer", "Reach the top rank, 15."],
   a_bench_10: ["Tinkerer", "Buy ten upgrade levels at the workbench."],
   a_bench_max: ["Fully tuned", "Max out an upgrade."],
   a_dust_1000: ["Dust collector", "Gather 1000 dream dust."],

@@ -378,6 +378,8 @@ export class Run {
   }
 
   dropDust(x, y, z, n) {
+    // Deep sleep pays half as much again.
+    if (this.opts.difficulty === "hard") n = Math.round(n * 1.5);
     // The bench's sieve: now and then half as much again.
     if (this.perks.sieve && this.rnd() < this.perks.sieve) n += Math.ceil(n / 2);
     for (let i = 0; i < n; i++) {

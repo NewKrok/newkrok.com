@@ -257,6 +257,7 @@ export const HU = {
   a_memory_all: ["Levéltáros", "Találd meg az összes álom összes emlékét."],
   a_rank_5: ["Régi motoros", "Érd el az 5. rangot."],
   a_rank_10: ["Az éjszakás műszak legendája", "Érd el a 10. rangot."],
+  a_rank_15: ["Mesterjavító", "Érd el a legmagasabb, 15. rangot."],
   a_bench_10: ["Bütykölő", "Vegyél tíz fejlesztési szintet a munkapadon."],
   a_bench_max: ["Csúcsra járatva", "Fejlessz ki teljesen egy fejlesztést."],
   a_dust_1000: ["Porgyűjtő", "Gyűjts össze 1000 álomport."],
