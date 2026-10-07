@@ -60,6 +60,7 @@ export const ACHIEVEMENTS = [
   { id: "lid", icon: "🔔", event: "cookerLid" },
   { id: "unwound", icon: "☂", event: "bigclockUnwound" },
   { id: "tether", icon: "🪀", event: "moonTethered" },
+  { id: "goodnight", icon: "😴", event: "heartAsleep" },
   // ── Memories ──
   { id: "memory_one", icon: "🫧", test: (P) => P.memories.length >= 1 },
   { id: "memory_dream", icon: "📷", test: (P) => CLIENTS.some((c) => c.level && dreamMemories(P, c.id)) },

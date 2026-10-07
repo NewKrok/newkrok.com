@@ -270,6 +270,7 @@ export const EN = {
   a_lid: ["Let off steam", "Rattle the lid off the Pressure Cooker."],
   a_unwound: ["Out of time", "Unwind the Big Alarm Clock's key with a gust."],
   a_tether: ["Moon on a string", "Lasso the Moon Lamp down to the floor."],
+  a_goodnight: ["Goodnight, Old Hum", "Put the Factory's old machine to sleep."],
   a_memory_one: ["Keepsake", "Find a memory."],
   a_memory_dream: ["The whole story", "Find all five memories in one dream."],
   a_memory_all: ["Archivist", "Find every memory in every dream."],

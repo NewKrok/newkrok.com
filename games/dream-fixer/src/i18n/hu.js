@@ -270,6 +270,7 @@ export const HU = {
   a_lid: ["Kiengedett gőz", "Rázd le a Kuktafazék fedőjét."],
   a_unwound: ["Lejárt idő", "Tekerd le széllökéssel a Nagy Ébresztőóra kulcsát."],
   a_tether: ["Hold pórázon", "Húzd le lasszóval a Holdlámpát a padlóra."],
+  a_goodnight: ["Jó éjt, Old Hum", "Altasd el a Gyár öreg gépét."],
   a_memory_one: ["Emléktárgy", "Találj egy emléket."],
   a_memory_dream: ["Az egész történet", "Találd meg egy álom mind az öt emlékét."],
   a_memory_all: ["Levéltáros", "Találd meg az összes álom összes emlékét."],

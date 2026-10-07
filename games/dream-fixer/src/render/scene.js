@@ -148,9 +148,12 @@ export class GameView {
     const sky = skyDome(def.sky);
     g.add(sky);
     this.scene.fog = new T.Fog(def.fog.color, def.fog.near, def.fog.far);
-    this.sun = new Sun(this.scene, { ...def.sun, box: 26, mapSize: 2048 });
+    // (A level may dim its light for a night: kit.sun.)
+    const sun = { ...def.sun, ...(kit.sun ?? {}) };
+    this.scene.environmentIntensity = sun.env ?? 0.35;
+    this.sun = new Sun(this.scene, { ...sun, box: 26, mapSize: 2048 });
     this.sun.light.castShadow = this.quality === "high";
-    this.vm.setLights(def.sun.color, def.sun.dir, def.sun.sky, def.sun.ground);
+    this.vm.setLights(sun.color, sun.dir, sun.sky, sun.ground);
     for (const m of buildLevelMeshes(kit)) g.add(m);
     this.anchors = new AnchorView(g, kit.anchors);
     this.weather = new DreamSky(g, def, kit, { sky, fog: this.scene.fog, sun: this.sun });

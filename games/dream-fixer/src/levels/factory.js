@@ -74,7 +74,8 @@ export const factory = {
     k.prop("dock", -2.6, -5.8, { collide: { r: 0.3, h: 1.4 } });
     k.prop("workbench", 8.8, -1, { yaw: Math.PI / 2, collide: { w: 2.4, d: 1.1, h: 1.0 } });
     k.use("bench", 7.8, -1, { r: 2.3, label: "useBench" });
-    k.prop("desk", -8.4, 1.8, { yaw: -Math.PI / 2, opts: { mugs: 3 }, collide: { w: 1.8, d: 0.9, h: 0.9 } });
+    // Margo's mugs pile up: one more every night of the week.
+    k.prop("desk", -8.4, 1.8, { yaw: -Math.PI / 2, opts: { mugs: Math.min(9, 2 + (P.night ?? 0)) }, collide: { w: 1.8, d: 0.9, h: 0.9 } });
     k.use("radio", -7.6, 1.8, { r: 2.2, label: "useRadio" });
     k.prop("lift", 8.4, -5.2, { yaw: Math.PI / 2 });
     // The lift is solid on three sides; you step up to its gate.
@@ -101,22 +102,33 @@ export const factory = {
     k.prop("pipe", 0, 0, { opts: { a: [4.6, 3.8, -6.1], d: [0, H - 0.5 - 3.8, 0], r: 0.12 } });
     // Hanging lamps (and the lights they give).
     for (const [x, z] of [[0, 1.8], [-5.5, -3], [5.5, -2.5], [-5.5, 4], [5, 4.5]]) {
-      k.prop("hangLamp", x, z, { y: H - 0.4, opts: { cord: 1.1 } });
-      // (The finale's night they burn low and red.)
-      k.light(x, H - 1.8, z, finale ? 0xff8a50 : 0xffc880, finale ? 3 : 9, 11);
+      k.prop("hangLamp", x, z, { y: H - 0.4, opts: { cord: 1.1, off: finale } });
+      if (!finale) k.light(x, H - 1.8, z, 0xffc880, 9, 11);
+    }
+    // The finale's night the lamps are out: the room dark but for the
+    // starlight through the window, the dream tanks and two red emergency lights.
+    if (finale) {
+      k.sun = { intensity: 0.15, hemi: 0.16, sky: 0x8a90c8, ground: 0x1a1420, env: 0.08 };
+      k.light(-9.4, 4.6, -6.6, 0xff3a2a, 4, 9);
+      k.light(9.4, 4.6, 6.6, 0xff3a2a, 4, 9);
+      k.light(0, 3, -9, 0xb0b8ff, 3, 10);
     }
     if (!finale) k.light(8.4, 2.8, -5.2, 0x7ff5e0, 5, 7);
     // ── On the walls ──
     // Behind you as you come in: a picture of every dream fixed (an empty
     // frame for the ones to come), the clock over them, the trophy case.
-    ["park", "school", "kitchen", "garden", "space"].forEach((id, i) => k.prop("dreamFrame", 4 - i * 2, 6.9, { y: 2.5, s: 1.35, opts: { kind: id, on: P.done.includes(id) } }));
+    ["park", "school", "kitchen", "garden", "space", "oldhum"].forEach((id, i) => k.prop("dreamFrame", 4 - i * 2 + (i === 5 ? 12 : 0), 6.9, { y: 2.5, s: 1.35, opts: { kind: id, on: P.done.includes(id) } }));
+    // Under the pictures, the week's tools on a table, as they come.
+    k.prop("toolTable", 2, 6.35, { opts: { tools: P.tools ?? [] }, collide: { w: 3.6, d: 0.8, h: 0.9 } });
     k.prop("wallClock", 0, 6.9, { y: 4.2 });
     k.prop("trophyCase", -7.4, 6.9, { y: 2.1, opts: { n: Object.keys(P.ach ?? {}).length } });
     k.block(-7.4, 6.7, 1.7, 0.45, 0, 2.9, null);
     k.use("trophies", -7.4, 6.0, { r: 2.2, label: "useTrophies" });
     k.light(-7.4, 3.4, 5.6, 0xffd27a, 1.2, 4);
     // By Margo's desk: the cork board and Cog's "employee of the month".
-    k.prop("corkboard", -9.9, 4.6, { y: 2.2, yaw: -Math.PI / 2 });
+    // Margo's notes on the broken dreams, one more every night; strung
+    // together, and the night she has worked it out, all to Old Hum.
+    k.prop("corkboard", -9.9, 4.6, { y: 2.2, yaw: -Math.PI / 2, opts: { n: P.done.length + 1, finale: P.done.includes("space") } });
     k.prop("cogPoster", -9.9, -0.2, { y: 2.4, s: 1.3, yaw: -Math.PI / 2 });
     // Over the workbench, gauges; by the lift, the week's calendar.
     k.prop("gauges", 9.9, -1, { y: 3.4, yaw: Math.PI / 2 });

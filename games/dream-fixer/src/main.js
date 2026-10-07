@@ -267,7 +267,7 @@ async function startGame() {
         else if (e.type === "itemUse") S.kit++;
         else if (e.type === "faint") S.faints++;
         else if (e.type === "respawn" && !e.pulled) S.falls++;
-        if (["pop", "catch", "cogZap", "itemUse", "respawn", "anchorFixed", "bossPop", "bossClog", "penBlot", "cookerLid", "bigclockUnwound", "moonTethered"].includes(e.type)) achieve({ event: e });
+        if (["pop", "catch", "cogZap", "itemUse", "respawn", "anchorFixed", "bossPop", "bossClog", "penBlot", "cookerLid", "bigclockUnwound", "moonTethered", "heartAsleep"].includes(e.type)) achieve({ event: e });
       }
       if (e.type === "interact") interact(e.id);
       else if (e.type === "memory") {

@@ -503,8 +503,21 @@ Morzsa parkjában a Kóc bőre egy összegabalyodott, dühös **mókus**: a kuty
   a rémálom, a megjavítás; Margo egyre gyanakvóbb), alatta az emlékek és
   egy lenyitható jegyzet a hogyanokról. A rádió szövegei nem kerülnek bele.
 - **A Gyár falai** a hét során telnek meg: minden megjavított álomról
-  bekeretezett kép, óra, parafatábla, Cog „a hónap dolgozója” plakátja,
-  mérőórák, és a naptár, amin az éjszakák ki vannak húzva.
+  bekeretezett kép (hat keret, a hatodik Old Humé), óra, Cog „a hónap
+  dolgozója” plakátja, mérőórák, és a naptár, amin az éjszakák ki vannak
+  húzva. Ami éjszakáról éjszakára változik:
+  - **Margó bögréi** az asztalán: minden éjjel eggyel több (legfeljebb 9).
+  - **A parafatábla:** minden megjavított álom után egy új cetli, piros
+    cérnával összekötve; a finálé estéjén középen Old Hum vázlata, és
+    minden szál hozzá fut.
+  - **A szerszámasztal** a képek alatt: a hét szerszámai, ahogy
+    megkapod őket, kis állványon, rézlapocskával.
+  - **A finálé estéje:** kialszanak a lámpák (sötét izzók), a szobát csak
+    a csillagos ablak, az álomtartályok és két piros vészfény világítja
+    (`kit.sun` a Gyár fényét is levesszi).
+  - **Utána:** Old Hum alszik, és időnként hallani a horkolását.
+- **Eredmények:** 28 (az utolsó: „Jó éjt, Old Hum”), a vitrin 30 helyes
+  (soronként 10).
 - **Megérkezés egy álomba:** spirálban ereszkedsz le az álom egéből, a
   földön fénygyűrű mutatja, hová érkezel. Munka elvállalása után Cog
   átrepül a lifthez, és ott vár.

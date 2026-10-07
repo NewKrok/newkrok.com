@@ -1,7 +1,7 @@
 import * as T from "three";
 import { SHAPE, rng, vary } from "../modelkit.js";
 import { C } from "../palette.js";
-import { stabilizer, fuzzVacuum } from "./tools.js";
+import { stabilizer, fuzzVacuum, foamCannon, lullabyBell, gustUmbrella, starYoyo, sandSack } from "./tools.js";
 
 // ── The Dream Factory ────────────────────────────────────────────────────
 // The night-shift workshop: warm wood, brass, enamel teal, a lot of pipes
@@ -221,10 +221,12 @@ export function rug(b, { r = 2 } = {}) {
 }
 
 // Hanging factory lamp (enamel shade, glowing bulb).
-export function hangLamp(b, { cord = 1.2 } = {}) {
+export function hangLamp(b, { cord = 1.2, off = false } = {}) {
   b.add(SHAPE.cyl(0.01, 0.01, cord, 4), { p: [0, -cord / 2, 0], c: C.black });
   b.add(SHAPE.lathe([[0.05, 0], [0.12, -0.05], [0.32, -0.25], [0.34, -0.28]], 12), { p: [0, -cord, 0], c: C.teal, mat: "metal" });
-  b.add(SHAPE.ball(0.09, 10, 7), { p: [0, -cord - 0.22, 0], c: C.dreamGold, mat: "glow", glow: 2.4 });
+  // (Gone out: a dead grey bulb.)
+  if (off) b.add(SHAPE.ball(0.09, 10, 7), { p: [0, -cord - 0.22, 0], c: 0x6a6458, mat: "glass" });
+  else b.add(SHAPE.ball(0.09, 10, 7), { p: [0, -cord - 0.22, 0], c: C.dreamGold, mat: "glow", glow: 2.4 });
 }
 
 // Cog's charging dock: a little brass cup on a post.
@@ -272,7 +274,7 @@ const starAt = (r, inner = 0.45) => Array.from({ length: 10 }, (_, i) => {
 // May's umbrella for Joe, a moon and stars for Sophie. Not fixed yet
 // (`on` false): an empty frame waiting, a brass plate and nothing in it.
 export function dreamFrame(b, { kind = "park", on = true } = {}) {
-  const BG = { park: 0x8fc46a, school: 0x2e4a7a, kitchen: 0xf2d27a, garden: 0xf4b8c8, space: 0x141a44 };
+  const BG = { park: 0x8fc46a, school: 0x2e4a7a, kitchen: 0xf2d27a, garden: 0xf4b8c8, space: 0x141a44, oldhum: 0x3a2418 };
   b.add(SHAPE.box(0.92, 0.74, 0.06, 0.02), { p: [0, 0, -0.03], c: on ? C.brass : C.woodD, mat: on ? "metal" : "solid" });
   b.add(SHAPE.box(0.8, 0.62, 0.02), { p: [0, 0, -0.06], c: on ? BG[kind] : 0x3a3448, facet: 0 });
   b.add(SHAPE.box(0.26, 0.05, 0.015), { p: [0, -0.42, -0.04], c: C.brassL, mat: "metal" });
@@ -294,6 +296,12 @@ export function dreamFrame(b, { kind = "park", on = true } = {}) {
     b.add(SHAPE.ball(0.04, 6, 5), { p: [-0.18, -0.08, z], s: [1.4, 0.7, 0.3], c: 0x4a9a4a });
     b.add(SHAPE.cone(0.18, 0.12, 8), { p: [0.13, 0.12, z], s: [1, 1, 0.25], c: 0x2a3a8a });
     b.add(SHAPE.box(0.015, 0.3, 0.01), { p: [0.13, -0.04, z], c: C.woodD });
+  } else if (kind === "oldhum") {
+    // A brass gear, fast asleep.
+    b.add(SHAPE.cyl(0.17, 0.17, 0.02, 16), { p: [-0.05, -0.04, z], r: [RX, 0, 0], c: C.brass, mat: "metal" });
+    for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2; b.add(SHAPE.box(0.05, 0.05, 0.02), { p: [-0.05 + Math.cos(a) * 0.19, -0.04 + Math.sin(a) * 0.19, z], r: [0, 0, a], c: C.brass, mat: "metal" }); }
+    b.add(SHAPE.cyl(0.05, 0.05, 0.025, 10), { p: [-0.05, -0.04, z - 0.005], r: [RX, 0, 0], c: C.copper, mat: "metal" });
+    for (const [x, y, k] of [[0.18, 0.12, 0.05], [0.25, 0.22, 0.035]]) b.add(SHAPE.box(k, 0.012, 0.01), { p: [x, y, z], c: 0xd8e0ff, mat: "glow", glow: 1 });
   } else if (kind === "space") {
     b.add(SHAPE.ball(0.15, 12, 8), { p: [-0.1, 0.03, z], s: [1, 1, 0.2], c: 0xf4ecc8, mat: "glow", glow: 0.8 });
     b.add(SHAPE.ball(0.12, 12, 8), { p: [-0.04, 0.07, z - 0.005], s: [1, 1, 0.2], c: BG.space });
@@ -313,9 +321,9 @@ export function trophyCase(b, { n = 0 } = {}) {
   for (const s of [-1, 1]) { b.add(SHAPE.box(1.56, 0.03, 0.03), { p: [0, s * 0.7, -0.36], c: C.brass, mat: "metal" }); b.add(SHAPE.box(0.03, 1.42, 0.03), { p: [s * 0.77, 0, -0.36], c: C.brass, mat: "metal" }); }
   b.add(SHAPE.box(1.7, 0.1, 0.4, 0.02), { p: [0, 0.79, -0.18], c: C.wood });
   b.add(SHAPE.box(0.5, 0.08, 0.02), { p: [0, 0.79, -0.385], c: C.brassL, mat: "metal" });
-  const per = 9;
+  const per = 10;
   for (let i = 0; i < Math.min(n, per * 3); i++) {
-    const row = Math.floor(i / per), x = 0.62 - (i % per) * 0.155, y = 0.46 - row * 0.44 + 0.015;
+    const row = Math.floor(i / per), x = 0.63 - (i % per) * 0.14, y = 0.46 - row * 0.44 + 0.015;
     const gold = i % 3 !== 2;
     b.add(SHAPE.cyl(0.035, 0.045, 0.03, 8), { p: [x, y + 0.015, -0.18], c: C.woodD });
     b.add(SHAPE.cyl(0.012, 0.012, 0.07, 6), { p: [x, y + 0.065, -0.18], c: gold ? C.brass : C.steel, mat: "metal" });
@@ -326,21 +334,28 @@ export function trophyCase(b, { n = 0 } = {}) {
 }
 
 // A cork board with notes, a photo or two and a length of red string.
-export function corkboard(b, { seed = 2 } = {}) {
+export function corkboard(b, { seed = 2, n = 6, finale = false } = {}) {
   const rnd = rng(seed);
   b.add(SHAPE.box(1.3, 0.9, 0.05, 0.02), { p: [0, 0, -0.025], c: C.wood });
   b.add(SHAPE.box(1.2, 0.8, 0.02), { p: [0, 0, -0.05], c: 0xc49a6c, facet: 0.15 });
-  const notes = [[-0.4, 0.2, 0xfff3a0], [-0.05, 0.22, 0xffd0e0], [0.35, 0.18, 0xd8f0ff], [-0.3, -0.18, C.paper], [0.1, -0.15, 0xfff3a0], [0.42, -0.2, 0xd0ffd8]];
+  // A note for every night so far (Margo's notes on the broken dreams).
+  const notes = [[-0.4, 0.2, 0xfff3a0], [-0.05, 0.24, 0xffd0e0], [0.38, 0.2, 0xd8f0ff], [-0.38, -0.2, C.paper], [0.38, -0.18, 0xfff3a0], [-0.02, -0.24, 0xd0ffd8]].slice(0, Math.max(1, Math.min(6, n)));
   notes.forEach(([x, y, c], i) => {
     b.add(SHAPE.box(0.24, 0.22, 0.005), { p: [x, y, -0.062], r: [0, 0, (rnd() - 0.5) * 0.3], c, facet: 0 });
     for (let k = 0; k < 3; k++) b.add(SHAPE.box(0.15 - k * 0.03, 0.012, 0.003), { p: [x - 0.02, y + 0.04 - k * 0.04, -0.066], c: 0x8a8a96, facet: 0 });
     b.add(SHAPE.ball(0.018, 6, 4), { p: [x, y + 0.09, -0.07], c: [C.red, C.teal, C.dreamPink][i % 3] });
   });
-  // The red string from note to note.
-  for (const [[ax, ay], [bx, by]] of [[[-0.4, 0.29], [0.1, -0.06]], [[0.1, -0.06], [0.35, 0.27]]]) {
+  const string = ([ax, ay], [bx, by]) => {
     const l = Math.hypot(bx - ax, by - ay);
     b.add(SHAPE.box(l, 0.008, 0.004), { p: [(ax + bx) / 2, (ay + by) / 2, -0.074], r: [0, 0, Math.atan2(by - ay, bx - ax)], c: C.red, facet: 0 });
-  }
+  };
+  if (finale) {
+    // She has worked it out: a sketch of Old Hum in the middle, every note strung to him.
+    b.add(SHAPE.box(0.26, 0.24, 0.005), { p: [0, 0, -0.064], c: C.paper, facet: 0 });
+    b.add(SHAPE.torus(0.08, 0.008, 4, 18), { p: [0, 0, -0.068], c: 0x8f6424, facet: 0 });
+    b.add(SHAPE.box(0.03, 0.03, 0.003), { p: [0, 0, -0.07], c: C.red, facet: 0 });
+    for (const [x, y] of notes) string([x, y + 0.09], [0, 0]);
+  } else for (let i = 1; i < notes.length; i++) string([notes[i - 1][0], notes[i - 1][1] + 0.09], [notes[i][0], notes[i][1] + 0.09]);
 }
 
 // A tear-off calendar: seven nights, `night` of them crossed off.
@@ -382,4 +397,22 @@ export function gauges(b) {
     b.add(SHAPE.box(0.012, 0.1, 0.006), { p: [x - Math.sin(a) * 0.045, 0.04 + Math.cos(a) * 0.045, -0.135], r: [0, 0, a], c: C.red });
   });
   for (let i = 0; i < 5; i++) b.add(SHAPE.ball(0.025, 8, 6), { p: [-0.3 + i * 0.15, -0.2, -0.09], c: [C.dream, C.dream, C.dreamGold, C.dream, C.dreamPink][i], mat: "glow", glow: 1.2 });
+}
+
+// The tools of the week, laid out on a table under the dream pictures as
+// you get them: each on a little wooden stand, a brass plate in front.
+// tools: the ids you have (the Stabilizer is always in your hand).
+const DISPLAY = [["vacuum", fuzzVacuum], ["foam", foamCannon], ["bell", lullabyBell], ["umbrella", gustUmbrella], ["yoyo", starYoyo], ["sand", sandSack]];
+export function toolTable(b, { tools = [] } = {}) {
+  b.add(SHAPE.box(3.6, 0.08, 0.8, 0.03), { p: [0, 0.86, 0], grad: [C.woodD, C.wood] });
+  for (const [x, z] of [[-1.7, -0.32], [1.7, -0.32], [-1.7, 0.32], [1.7, 0.32]]) b.add(SHAPE.box(0.08, 0.82, 0.08, 0.02), { p: [x, 0.41, z], c: C.woodD });
+  b.add(SHAPE.box(3.5, 0.04, 0.05), { p: [0, 0.82, -0.4], c: C.brassD, mat: "metal" });
+  DISPLAY.forEach(([id, build], i) => {
+    const x = -1.5 + i * 0.6;
+    b.add(SHAPE.box(0.3, 0.06, 0.24, 0.02), { p: [x, 0.93, 0.05], c: C.woodL });
+    b.add(SHAPE.box(0.2, 0.05, 0.01), { p: [x, 0.9, -0.405], c: tools.includes(id) ? C.brassL : C.woodD, mat: tools.includes(id) ? "metal" : "solid" });
+    if (!tools.includes(id)) return;
+    // Propped on its stand, pointing up and out into the room, twice as big as in the hand.
+    b.at([x, 1.12, 0.12], [0.55, 0, 0], id === "umbrella" ? 1.4 : 2.2, () => build(b, { hand: false }));
+  });
 }

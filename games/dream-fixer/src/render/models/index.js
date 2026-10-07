@@ -6,7 +6,7 @@ import { csavar, kocPark, buzzerPark, knotPark, bunnyPark, tubPark } from "./cha
 import { anchor } from "./dream.js";
 import { gear, wallGear, gearBit, lockGate, hatch, dreamColumn, sleeplessHeart } from "./oldhum.js";
 import { vacuumBoss } from "./boss.js";
-import { jobBoard, workbench, desk, lift, dreamTank, pipe, oldHum, crate, shelf, rug, hangLamp, dock, lectern, dreamFrame, trophyCase, corkboard, calendar, cogPoster, gauges } from "./factory.js";
+import { jobBoard, workbench, desk, lift, dreamTank, pipe, oldHum, crate, shelf, rug, hangLamp, dock, lectern, dreamFrame, trophyCase, corkboard, calendar, cogPoster, gauges, toolTable } from "./factory.js";
 import { memoryBubble } from "./dream.js";
 import { mugCoffee, mugCocoa, espresso, pillowBomb, vest, balloon, slipper, magnet, sieve, pouch } from "./kit.js";
 import { alarmClock, pencil, backpack, sharpener, redPen, lockers, schoolDesk, teacherDesk, chalkboard, bookshelf, readingTable, schoolBus, flagpole, hoop, wallClock, bellTower, acUnit, fountain } from "./school.js";
@@ -199,6 +199,7 @@ export const MODELS = {
   dreamTank: { build: dreamTank, frame: 4.5 },
   pipe: { build: pipe, frame: 3 },
   oldHum: { build: oldHum, frame: 16 },
+  toolTable: { build: toolTable, frame: 4.5 },
   gear: { build: gear, frame: 8, anim: spin("spin", "y", 0.3) },
   wallGear: { build: wallGear, frame: 8 },
   gearBit: { build: gearBit, frame: 4 },
