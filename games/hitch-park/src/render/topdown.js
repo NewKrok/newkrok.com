@@ -530,6 +530,9 @@ function drawStaticTop(p, def, lvl) {
     case "pine": circle(def.r * 0.8, 0x24502f); p.circle(x, y, def.r * 0.4, 0x2f6a3c); return;
     case "bush": circle(def.r, autumn ? 0xa8521c : 0x4d7c30); return;
     case "pumpkin": circle(def.r, 0xe8751a); p.circle(x, y, def.r * 0.25, 0x4a6a22); return;
+    case "inflatable": circle(def.r, { pumpkin: 0xe8751a, cat: 0x1c1a22 }[def.v] ?? 0xf6f8ff); return;
+    case "skeleton": circle(2.5, 0xeeeadc); return;
+    case "trolley": p.poly(box(9, 6), 0xc9d1da); return;
     case "scarecrow": p.poly(box(14, 3), 0x8a6238); circle(3, 0xd9b95a); return;
     case "grave": p.poly(box(def.w, def.h), 0x8d9096, 1, 0x55585e, 0.8); return;
     case "corn": p.poly(box(def.w, def.h), 0xc9a640, 1, 0x7a8a2a, 1); return;

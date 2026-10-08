@@ -304,6 +304,23 @@ export class Scene3D {
     }
     return m;
   }
+  // A pumpkin of radius r: ribbed lobes round a squat core and a stem; a
+  // lit one (a jack-o'-lantern) glows from inside with its face along +x.
+  addPumpkin(P, x, y, rz, r, lit) {
+    const g = this;
+    const c = Math.cos(rz), s = Math.sin(rz);
+    const skin = lit ? this.matCached("pumpkinLit", () => new T.MeshStandardMaterial({ color: 0xe8751a, emissive: 0xff6a10, emissiveIntensity: 0.35, roughness: 0.6 }))
+      : this.matCached("pumpkin", () => new T.MeshStandardMaterial({ color: 0xe8751a, roughness: 0.6 }));
+    P.add(g.sphere, skin, x, y, r * 0.62, 0, r * 0.8, r * 0.8, r * 0.66);
+    for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; P.add(g.sphere, skin, x + Math.cos(a) * r * 0.32, y + Math.sin(a) * r * 0.32, r * 0.6, a, r * 0.62, r * 0.42, r * 0.6); }
+    P.add(g.cylZ8, this.matCached("stem", () => new T.MeshStandardMaterial({ color: 0x5a6a2a, roughness: 0.9 })), x, y, r * 1.3, 0, r * 0.13, r * 0.13, r * 0.5);
+    if (!lit) return;
+    const glow = this.matCached("jack", () => new T.MeshBasicMaterial({ color: 0xffd25a }));
+    const at = (u, v, z, sx, sy, sz) => P.add(g.box, glow, x + u * c - v * s, y + u * s + v * c, z, rz, sx, sy, sz);
+    for (const sd of [-1, 1]) at(r * 0.92, sd * r * 0.3, r * 0.82, 0.6, r * 0.24, r * 0.2);
+    at(r * 0.93, 0, r * 0.42, 0.6, r * 0.62, r * 0.14);
+  }
+
   // Canopy colours: summer green, or reds and golds for `foliage: "autumn"`.
   leafOf(lvl) { return lvl.foliage === "autumn" ? this.leafAutumn : this.leaf; }
 
@@ -1112,21 +1129,53 @@ export class Scene3D {
       case "pine": trees.push({ x: def.x, y: def.y, r: def.r, pine: true }); return null;
       case "bush": P.add(g.ico, this.leafOf(lvl)[(def.x | 0) % 4], x, y, def.r * 0.45, def.x, def.r, def.r, def.r * 0.7); return null;
       case "pumpkin": {
-        // Ribbed lobes round a squat core and a stem; a lit one (a
-        // jack-o'-lantern, `lit` or any pumpkin after dark) glows from inside
-        // with its face turned along `a`.
-        const r = def.r, lit = def.lit ?? !!SUNS[lvl.sun]?.lamps;
-        const skin = lit ? this.matCached("pumpkinLit", () => new T.MeshStandardMaterial({ color: 0xe8751a, emissive: 0xff6a10, emissiveIntensity: 0.35, roughness: 0.6 }))
-          : this.matCached("pumpkin", () => new T.MeshStandardMaterial({ color: 0xe8751a, roughness: 0.6 }));
-        P.add(g.sphere, skin, x, y, r * 0.62, 0, r * 0.8, r * 0.8, r * 0.66);
-        for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; P.add(g.sphere, skin, x + Math.cos(a) * r * 0.32, y + Math.sin(a) * r * 0.32, r * 0.6, a, r * 0.62, r * 0.42, r * 0.6); }
-        P.add(g.cylZ8, this.matCached("stem", () => new T.MeshStandardMaterial({ color: 0x5a6a2a, roughness: 0.9 })), x, y, r * 1.3, 0, r * 0.13, r * 0.13, r * 0.5);
-        if (lit) {
-          const glow = this.matCached("jack", () => new T.MeshBasicMaterial({ color: 0xffd25a }));
-          for (const sd of [-1, 1]) at(g.box, glow, r * 0.92, sd * r * 0.3, r * 0.82, 0.6, r * 0.24, r * 0.2);
-          at(g.box, glow, r * 0.93, 0, r * 0.42, 0.6, r * 0.62, r * 0.14);
-          lamps.push({ x: def.x, y: def.y, size: 26 + r * 3 });
+        const lit = def.lit ?? !!SUNS[lvl.sun]?.lamps;
+        this.addPumpkin(P, x, y, rz, def.r, lit);
+        if (lit) lamps.push({ x: def.x, y: def.y, size: 26 + def.r * 3 });
+        return null;
+      }
+      case "inflatable": {
+        // A blow-up lawn figure, `v`: ghost | pumpkin | cat, facing along `a`.
+        const r = def.r, v = def.v ?? "ghost";
+        const lit = !!SUNS[lvl.sun]?.lamps;
+        if (v === "pumpkin") {
+          this.addPumpkin(P, x, y, rz, r, true);
+          const hat = this.matCached("witchHat", () => new T.MeshStandardMaterial({ color: 0x24182e, roughness: 0.7 }));
+          P.add(g.cylZ, hat, x, y, r * 1.36, 0, r * 0.7, r * 0.7, r * 0.08);
+          P.add(g.cone, hat, x, y, r * 1.9, 0, r * 0.42, r * 0.42, r * 1.1);
+        } else if (v === "cat") {
+          const fur = this.matCached("catFur", () => new T.MeshStandardMaterial({ color: 0x1c1a22, roughness: 0.85 }));
+          const eye = this.matCached("catEye", () => new T.MeshBasicMaterial({ color: 0xc8ff3a }));
+          P.add(g.sphere, fur, x, y, r * 0.75, rz, r * 0.8, r * 0.7, r * 0.75);
+          at(g.sphere, fur, r * 0.45, 0, r * 1.6, r * 0.5, r * 0.5, r * 0.46);
+          for (const sd of [-1, 1]) {
+            at(g.cone, fur, r * 0.4, sd * r * 0.28, r * 2.05, r * 0.16, r * 0.16, r * 0.38);
+            at(g.sphere, eye, r * 0.9, sd * r * 0.18, r * 1.68, r * 0.08, r * 0.1, r * 0.12);
+          }
+          at(g.cylZ8, fur, -r * 0.7, r * 0.3, r * 1.2, r * 0.12, r * 0.12, r * 1.2, 0.5);
+        } else {
+          const sheet = this.matCached("blowGhost", () => new T.MeshStandardMaterial({ color: 0xf6f8ff, emissive: 0xc8d8ff, emissiveIntensity: lit ? 0.55 : 0.08, roughness: 0.6 }));
+          const eye = this.matCached("ghostEye", () => new T.MeshBasicMaterial({ color: 0x14121c }));
+          P.add(g.cone, sheet, x, y, r * 0.9, 0, r, r, r * 2.2);
+          P.add(g.sphere, sheet, x, y, r * 1.95, 0, r * 0.75, r * 0.75, r * 0.8);
+          for (const sd of [-1, 1]) at(g.box, sheet, r * 0.1, sd * r * 0.85, r * 1.3, r * 0.25, r * 0.6, r * 0.22, sd * 0.6);
+          for (const sd of [-1, 1]) at(g.sphere, eye, r * 0.7, sd * r * 0.25, r * 2.05, r * 0.08, r * 0.12, r * 0.2);
+          at(g.sphere, eye, r * 0.72, 0, r * 1.7, r * 0.06, r * 0.16, r * 0.14);
         }
+        if (lit) lamps.push({ x: def.x, y: def.y, size: r * 7 });
+        return null;
+      }
+      case "skeleton": {
+        // A plastic skeleton propped up on the lawn, waving.
+        const bone = this.matCached("bone", () => new T.MeshStandardMaterial({ color: 0xeeeadc, emissive: 0xffffff, emissiveIntensity: 0.08, roughness: 0.7 }));
+        P.add(g.sphere, bone, x, y, 14, rz, 2, 1.8, 2.2);
+        P.add(g.box, bone, x, y, 9, rz, 1, 3.4, 5.5);
+        P.add(g.cylZ8, bone, x, y, 9, 0, 0.4, 0.4, 7);
+        for (const sd of [-1, 1]) {
+          at(g.box, bone, 0, sd * 1.1, 3.2, 0.7, 0.7, 6.4);
+          at(g.box, bone, 0, sd * 2.6, 9, 0.6, 0.6, 5, sd * 0.3);
+        }
+        at(g.box, bone, 0, -3.6, 13.5, 0.6, 0.6, 5, 0.5);
         return null;
       }
       case "grave": {
@@ -1838,8 +1887,24 @@ export class Scene3D {
     const hayMat = this.matCached("hay", () => new T.MeshStandardMaterial({ color: 0xd9b95a, roughness: 0.95 }));
     const hayEnd = this.matCached("hayEnd", () => new T.MeshStandardMaterial({ color: 0xc9a44a, roughness: 1 }));
     for (const m of sim.movables) {
-      const r = m.def.r;
+      const r = m.def.r ?? 4.5;
       const grp = new T.Group();
+      if (m.def.kind !== "hay") {
+        // A loose pumpkin or a shopping trolley.
+        const PP = this.parts();
+        if (m.def.kind === "pumpkin") this.addPumpkin(PP, 0, 0, 0, r, m.def.lit ?? !!sun.lamps);
+        else {
+          const tm = this.trolleyMat();
+          PP.add(g.box, tm, 0, 0, 6.5, 0, 9, 6, 5);
+          PP.add(g.box, g.darkMetal, 0, 0, 2.6, 0, 8, 5, 0.6);
+          PP.add(g.box, this.paintMat(0xd33a2c), -5, 0, 9.2, 0, 0.8, 6.4, 0.8);
+          for (const dx of [-3.5, 3.5]) for (const dy of [-2.4, 2.4]) PP.add(g.cylZ8, g.tire, dx, dy, 1, 0, 0.9, 0.9, 0.6, Math.PI / 2);
+        }
+        grp.add(PP.merged());
+        lv.group.add(grp);
+        lv.movables.push({ rec: m, grp });
+        continue;
+      }
       const bale = new T.Mesh(g.cylZ, [hayMat, hayEnd, hayEnd]);
       bale.scale.set(r, r, r * 1.4);
       bale.position.z = r * 0.7;
