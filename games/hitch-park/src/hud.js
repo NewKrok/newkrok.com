@@ -95,7 +95,7 @@ export class Hud {
     this.#text(str, x, y, sz, color, "left", weight);
   }
 
-  // s: { sim, phase, clock, hold, levelLabel ("12 / 48"), joy, pip, project, showStatus }
+  // s: { sim, phase, clock, hold, levelLabel ("12 / 48"), joy, pip, project, showStatus, overview }
   draw(s) {
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
@@ -105,6 +105,7 @@ export class Hud {
     if (s.phase === "play") this.#drawNav(s);
     this.#drawBlasts(s);
     if (this.marker > 0 && s.phase === "play") this.#drawMarker(s);
+    else if (s.overview && s.phase === "play") this.#drawPin(s);
     this.#drawFloaters(s);
     ctx.save();
     ctx.scale(this.u, this.u);
@@ -309,6 +310,21 @@ export class Hud {
     ctx.lineTo(p.x + 5 * u, ay - 20 * u); ctx.lineTo(p.x + 5 * u, ay - 4 * u); ctx.lineTo(p.x + 13 * u, ay - 4 * u); ctx.closePath();
     ctx.stroke(); ctx.fill();
     ctx.globalAlpha = 1;
+  }
+
+  // Overview: a small steady arrow over the rig, which is tiny from up there.
+  #drawPin(s) {
+    const ctx = this.ctx, v = s.sim.veh.chassis, u = this.u;
+    const p = s.project(v.position.x, v.position.y, 30);
+    if (!p) return;
+    const ay = p.y - 22 * u;
+    ctx.fillStyle = "#ffd166";
+    ctx.strokeStyle = "rgba(0,0,0,0.6)";
+    ctx.lineWidth = 2.5 * u;
+    ctx.beginPath();
+    ctx.moveTo(p.x, ay + 10 * u); ctx.lineTo(p.x - 9 * u, ay - 3 * u); ctx.lineTo(p.x - 3.5 * u, ay - 3 * u); ctx.lineTo(p.x - 3.5 * u, ay - 14 * u);
+    ctx.lineTo(p.x + 3.5 * u, ay - 14 * u); ctx.lineTo(p.x + 3.5 * u, ay - 3 * u); ctx.lineTo(p.x + 9 * u, ay - 3 * u); ctx.closePath();
+    ctx.stroke(); ctx.fill();
   }
 
   #drawFloaters(s) {

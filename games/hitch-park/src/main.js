@@ -1008,7 +1008,7 @@ function frame(now) {
     sim, phase: G.phase, clock: G.clock, hold: G.hold,
     levelLabel: `${jobNo(LEVELS[G.levelIdx])} / ${PACK_SIZE.get(LEVELS[G.levelIdx].season)}`,
     joy: G.phase === "play" && joy ? { ...joy, steerOnly: settings.pointer === "steer" } : null, pip,
-    project: (x, y, z) => scene.project(x, y, z),
+    project: (x, y, z) => scene.project(x, y, z), overview: G.camMode === 2,
   });
 }
 

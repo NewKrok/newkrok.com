@@ -150,10 +150,10 @@ function costumeRush() {
     id: "mall", vehicle: "car", name: "Spookmart", title: "Costume Rush", trailer: "teardrop", par: 120, sun: "dusk", foliage: "autumn",
     brief: "The night before Halloween, and the whole town ran in for a costume: cars dumped at every angle, trolleys everywhere. Weave in from the street and back the teardrop into the one free bay.",
     w: 1500, h: 1000, base: "asphalt", edge: "none", backdrop: "town",
-    surfaces: [rect("pavement", 120, 150, 1380, 195), rect("asphalt", 0, 900, 1500, 1000), rect("grass", 0, 880, 120, 900)],
+    surfaces: [rect("pavement", 120, 150, 1380, 195), rect("asphalt", 0, 900, 1500, 1000), rect("asphalt", 560, 870, 720, 905)],
     paint: [
       ...rows.map((r) => paintBays(r)), paintBays([bay], YELLOW),
-      hatch(1185, 420, 1240, 540), hatch(185, 680, 240, 800), line([[0, 950], [1500, 950]], { dash: [18, 16] }),
+      hatch(1185, 420, 1240, 540), hatch(185, 680, 240, 800), line([[0, 950], [1500, 950]], { dash: [18, 16] }), arrow(640, 900, -PI / 2, YELLOW), text(640, 860, "SPOOKMART", { size: 12, color: "#ff9a3a" }),
       arrow(1050, 345, PI), arrow(450, 605, 0), arrow(1050, 845, PI), text(745, 172, "HALLOWEEN SALE", { size: 16, color: "#ff9a3a" }),
     ],
     parked: [...cars, ...dumped],
@@ -168,8 +168,13 @@ function costumeRush() {
       ...[480, 740].flatMap((y) => [tree(220, y, 13), tree(1210, y, 13)]),
       ...[480, 740].flatMap((y) => [{ kind: "lamp", x: 220, y: y - 48, a: 0 }, { kind: "lamp", x: 1210, y: y + 48, a: PI }]),
       ...range(0, 5).map((i) => ({ kind: "lamp", x: 300 + i * 220, y: 912, a: -PI / 2 })),
-      // The lot is walled off from the street but for the way in at the west.
-      ...wallLine([[130, 886], [1500, 886]], { kind: "hedge", thick: 10, maxLen: 60 }),
+      // The lot is hedged off from the street; the way in is a proper
+      // entrance with a sign, in from the street at the middle.
+      ...wallLine([[0, 886], [560, 886]], { kind: "hedge", thick: 10, maxLen: 60 }),
+      ...wallLine([[720, 886], [1500, 886]], { kind: "hedge", thick: 10, maxLen: 60 }),
+      { kind: "kerb", x: 552, y: 893, w: 16, h: 22 }, { kind: "kerb", x: 728, y: 893, w: 16, h: 22 },
+      { kind: "post", x: 545, y: 878, r: 3, flag: 0xff8a2a }, { kind: "post", x: 735, y: 878, r: 3, flag: 0xff8a2a },
+      blowup(515, 862, "ghost", 9), blowup(765, 862, "pumpkin", 9),
     ],
     cones: [{ x: bay.x - 22, y: 560 }],
     start: { x: 140, y: 950, a: 0 },

@@ -2011,6 +2011,20 @@ export class Scene3D {
     trailer.body.add(revPool);
     lv.car = car;
     lv.trailer = trailer;
+    // In the overview the rig is a few pixels across: a glowing ring on the
+    // ground round it (car and trailer) shows where it is.
+    const halo = new T.Mesh(g.plane, this.matCached("halo", () => new T.MeshBasicMaterial({
+      map: canvasTex(128, 128, (cx, w, h) => {
+        const gr = cx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+        gr.addColorStop(0, "rgba(255,209,102,0.28)"); gr.addColorStop(0.72, "rgba(255,209,102,0.16)");
+        gr.addColorStop(0.84, "rgba(255,220,130,0.95)"); gr.addColorStop(0.9, "rgba(255,209,102,0.5)"); gr.addColorStop(1, "rgba(255,209,102,0)");
+        cx.fillStyle = gr; cx.fillRect(0, 0, w, h);
+      }), transparent: true, depthWrite: false, blending: T.AdditiveBlending,
+    })));
+    halo.renderOrder = 3;
+    halo.visible = false;
+    lv.group.add(halo);
+    lv.halo = halo;
     lv.mats = { tailC, revC, tailT, beamMat, revPoolMat, night: sun.lamps };
     this.camPos = null;
   }
@@ -2226,6 +2240,14 @@ export class Scene3D {
     const alpha = view.alpha ?? 1;
     const cp = sim.pose(c, alpha), cx = cp.x, cy = cp.y, ca = cp.a;
     this.placeOnGround(lv.car.body, cx, cy, ca, v.spec.len / 2 * M);
+    lv.halo.visible = view.camMode === 2 && (playing || view.phase === "paused" || view.phase === "done");
+    if (lv.halo.visible) {
+      const tp = sim.pose(tb, alpha);
+      const span = Math.hypot(tp.x - cx, tp.y - cy) + (v.spec.len + TRAILERS[v.trailer.key].len) / 2 * M;
+      const d = (span + 40) * (1 + Math.sin(view.time * 3) * 0.04);
+      lv.halo.position.set((cx + tp.x) / 2, -(cy + tp.y) / 2, 1.2);
+      lv.halo.scale.set(d, d, 1);
+    }
     // Body roll and pitch (looks only): the shell leans out of a turn by
     // the lateral acceleration, dips under braking, squats a little under
     // power. Smoothed like a damped suspension.
@@ -2393,8 +2415,12 @@ export class Scene3D {
       ex = tx + Math.cos(a) * 620 * sc; ey = ty + Math.sin(a) * 420 * sc - 80; ez = 430 * sc;
     } else if (overview) {
       const pitch = 1.0;
-      const D = this.#fitDist(pitch) * (view.camMode === 2 ? view.camDist : 1);
-      tx = lvl.w / 2; ty = -lvl.h / 2 + 10; tz = 0;
+      // While driving it leans a little towards the rig, so the rig is not
+      // left in a corner under the HUD panels.
+      // The bottom edge is lifted clear of the dashboard panel too.
+      const lean = view.phase === "intro" ? 0 : 0.4;
+      const D = this.#fitDist(pitch) * (view.camMode === 2 ? view.camDist : 1) * (1 + lean * 0.3);
+      tx = lvl.w / 2 + (c.x - lvl.w / 2) * lean; ty = -(lvl.h / 2 + (c.y - lvl.h / 2) * lean + lvl.h * 0.08 * (lean > 0)) + 10; tz = 0;
       ex = tx; ey = ty - Math.cos(pitch) * D; ez = Math.sin(pitch) * D;
     } else if (view.camMode === 1) {
       this.camYaw += wrapPi(heading - this.camYaw) * clamp(view.dt * 3.5, 0, 1);
