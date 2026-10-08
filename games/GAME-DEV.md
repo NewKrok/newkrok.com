@@ -104,6 +104,14 @@ what made headless level checking possible.
 - A trailer that is not a box needs its own collision shape: the field
   gun was a full 4.4 × 2 m rectangle, so its invisible corners touched the
   wire. It is now shield + barrel + trail, denser to keep the old mass.
+- Season packs (`SEASONS` in `src/levels.js`, e.g. `levels/autumn.js`)
+  sit after the main game in `LEVELS`, so the main levels keep their
+  indices. Each level carries `season`, `num` (its number within the main
+  game or its pack) and `first` (opens by itself); a pack opens without
+  the chapters and its jobs unlock one after another. These fields, and
+  render-only ones like `foliage`, `cargo`, `livery`, are listed in
+  `COSMETIC` in `src/run.js`, so adding a pack leaves every existing
+  level's fingerprint (and leaderboard) alone.
 - Mines (`level.mines`) are checked in `sim.step` against the tow vehicle's
   outline and the trailer's axle; the solver treats them as obstacles.
 - Players asked for varied starts: middle of the map, top, inside a shed

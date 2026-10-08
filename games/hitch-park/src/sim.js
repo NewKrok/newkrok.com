@@ -73,7 +73,8 @@ export function createSim({ onEvent = () => {} } = {}) {
     const boxAt = (x, y, w, h) => b.shapes.add(new Polygon(Polygon.rect(x - w / 2, y - h / 2, w, h), MAT_STATIC));
     const circ = (r) => b.shapes.add(new Circle(r, undefined, MAT_STATIC));
     if (k === "pillar") box(def.s, def.s);
-    else if (k === "hay" || k === "rock" || k === "island") circ(def.r);
+    else if (k === "hay" || k === "rock" || k === "island" || k === "pumpkin") circ(def.r);
+    else if (k === "scarecrow") circ(3);
     else if (k === "bush") circ(def.r * 0.7);
     else if (k === "post") circ(def.r ?? 2.2);
     else if (k === "pine") circ(Math.max(2.5, def.r * 0.2));
@@ -379,13 +380,14 @@ export function createSim({ onEvent = () => {} } = {}) {
   // along the wheel, all inside one friction circle. Applied to the wheel
   // body itself — the joints carry it into the chassis.
   // Ground effects: mud drags hard and grips badly, sand drags a little,
-  // snow is slippery. { drag: m/s², grip: × mu, power: × drive }
+  // snow is slippery, wet leaves a little. { drag: m/s², grip: × mu, power: × drive }
   const GROUND = {
     mud: { drag: 1.4, grip: 0.65, power: 0.8 },
     sand: { drag: 1.0, grip: 0.85, power: 0.85 },
     snow: { drag: 0.2, grip: 0.7, power: 0.9 },
+    leaves: { drag: 0.3, grip: 0.85, power: 0.95 },
   };
-  const LOOSE = new Set(["grass", "gravel", "dirt", "mud", "sand", "snow"]);
+  const LOOSE = new Set(["grass", "gravel", "dirt", "mud", "sand", "snow", "leaves"]);
 
   function tyre(spec, w, share, drive, brake, engineBrake) {
     const b = w.body;

@@ -95,7 +95,7 @@ export class Hud {
     this.#text(str, x, y, sz, color, "left", weight);
   }
 
-  // s: { sim, phase, clock, hold, levelIndex, levelCount, joy, pip, project, showStatus }
+  // s: { sim, phase, clock, hold, levelLabel ("12 / 48"), joy, pip, project, showStatus }
   draw(s) {
     const ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
@@ -122,7 +122,7 @@ export class Hud {
     // Level + clock.
     const pw = small ? 220 : 270;
     this.#panel(12, 12, pw, 54);
-    this.#fitText(`${s.levelIndex + 1} / ${s.levelCount}  ·  ${levelText(L).name.toUpperCase()}`, 26, 29, 11, C_DIM, pw - 100, 700);
+    this.#fitText(`${s.levelLabel}  ·  ${levelText(L).name.toUpperCase()}`, 26, 29, 11, C_DIM, pw - 100, 700);
     this.#fitText(levelText(L).title, 26, 49, 17, C_TEXT, pw - 100, 800);
     const over = s.clock > L.par;
     this.#text(fmtTime(s.clock), pw, 30, 19, over ? "#ffb347" : C_TEXT, "right", 800);

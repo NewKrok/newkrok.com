@@ -122,7 +122,7 @@ export function replayRun(sim, level, inputs, { extend = 0 } = {}) {
 // Everything that shapes how the level plays (not its texts or scenery),
 // plus SIM_VERSION. A board only lists runs set on the current fingerprint,
 // so a reworked level starts with a fresh board.
-const COSMETIC = new Set(["name", "title", "brief", "index", "chapter", "sun", "backdrop", "decor", "paint"]);
+const COSMETIC = new Set(["name", "title", "brief", "index", "chapter", "season", "num", "first", "foliage", "cargo", "livery", "sun", "backdrop", "decor", "paint"]);
 export function levelFingerprint(level) {
   const json = JSON.stringify({ sim: SIM_VERSION, ...level }, (k, v) => (COSMETIC.has(k) ? undefined : v));
   let h1 = 0x811c9dc5, h2 = 0x01000193;

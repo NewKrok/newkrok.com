@@ -172,7 +172,7 @@ kbd {
 .bar-head > :last-child { justify-self: end; }
 
 /* ── Level select ────────────────────────────────────────────────────── */
-#sites { width: min(1100px, 100%); display: flex; flex-direction: column; gap: 22px; padding-bottom: 24px; }
+#sites, #season-sites { width: min(1100px, 100%); display: flex; flex-direction: column; gap: 22px; padding-bottom: 24px; }
 .site h3 { margin: 0 0 10px; display: flex; gap: 10px; align-items: baseline; }
 .site h3 small { color: var(--faint); letter-spacing: 0; text-transform: none; font-size: 12px; font-weight: 600; }
 .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
@@ -205,6 +205,16 @@ kbd {
 .lvl.locked .meta { opacity: 0.5; }
 .lvl .lock { position: absolute; inset: 0 0 auto 0; aspect-ratio: 9 / 5; display: grid; place-items: center; font-size: 28px; }
 .lvl.next { border-color: rgba(255, 209, 102, 0.8); box-shadow: 0 0 0 1px rgba(255, 209, 102, 0.4); }
+
+/* Season packs: their own screen, each pack in its own colours. */
+.seasons-note { width: min(1100px, 100%); margin: -6px 0 18px; color: var(--dim); font-size: 13px; line-height: 1.5; flex-shrink: 0; }
+.season { --pack: 255, 140, 40; padding: 14px; border-radius: 16px; border: 1px solid rgba(var(--pack), 0.35); background: linear-gradient(160deg, rgba(var(--pack), 0.14), rgba(var(--pack), 0.02) 60%); }
+.season h3 { flex-wrap: wrap; }
+.season .pack-stars { margin-left: auto; font-size: 13px; font-weight: 800; letter-spacing: 0; text-transform: none; }
+.season .lvl:hover, .season .lvl:focus-visible, .season .lvl.next { border-color: rgba(var(--pack), 0.85); }
+.season .lvl.next { box-shadow: 0 0 0 1px rgba(var(--pack), 0.45), 0 0 18px rgba(var(--pack), 0.25); }
+.season-autumn { --pack: 255, 128, 32; }
+.seasons-btn { border-color: rgba(255, 128, 32, 0.55); }
 
 /* ── How to / settings ───────────────────────────────────────────────── */
 .prose, .settings { width: min(720px, 100%); padding: 8px 26px 24px; line-height: 1.55; color: #cfd6e0; flex-shrink: 0; margin-bottom: 20px; }
