@@ -131,7 +131,10 @@ export class Run {
     const out = [];
     if (this.anchors.length) out.push({ id: "anchors", n: this.fixedCount, of: this.anchors.length, done: this.fixedCount === this.anchors.length });
     if (this.def.boss && this.coreOpen) out.push({ id: this.def.boss.kind === "insomnia" ? "sleep" : "boss", done: !!this.boss && !this.boss.alive });
-    if (this.memories.length) out.push({ id: "memories", n: this.memories.filter((m) => m.got).length, of: this.memories.length, optional: true });
+    if (this.memories.length) {
+      const got = this.memories.filter((m) => m.got).length;
+      out.push({ id: "memories", n: got, of: this.memories.length, done: got === this.memories.length, optional: true });
+    }
     return out;
   }
   get diff() { return DIFFICULTY[this.opts.difficulty] ?? DIFFICULTY.normal; }
