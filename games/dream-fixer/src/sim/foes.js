@@ -1,3 +1,4 @@
+import { GLITCH } from "../config.js";
 import { Body } from "./player.js";
 import { World } from "./world.js";
 import { SCHOOL } from "./foes-school.js";
@@ -86,7 +87,7 @@ export class Foe {
     const d = this.def = FOES[kind];
     this.kind = kind;
     this.id = ++run.foeSeq;
-    this.hp = this.maxHp = d.hp * (o.hpMul ?? 1);
+    this.hp = this.maxHp = d.hp * (o.hpMul ?? 1) * GLITCH.hp;
     this.alive = true;
     this.state = "spawn";
     this.t = 0;                   // time in the current state

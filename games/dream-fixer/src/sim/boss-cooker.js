@@ -1,3 +1,4 @@
+import { GLITCH } from "../config.js";
 import { Body } from "./player.js";
 
 // ── The Pressure Cooker (Rosie's nightmare) ──────────────────────────────
@@ -49,7 +50,7 @@ export class CookerBoss {
     this.body = new Body(x, y, z, { radius: COOKER.r, height: COOKER.h, step: 0.5, speed: COOKER.speed[0], accel: 10, jump: 0 });
     this.body.grounded = true;
     this.arena = arena;
-    this.hp = this.maxHp = COOKER.hp;
+    this.hp = this.maxHp = COOKER.hp * GLITCH.hp;
     this.phase = 1;
     this.state = "rise"; this.t = 0;
     this.yaw = 0;

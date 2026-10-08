@@ -1,3 +1,4 @@
+import { GLITCH } from "../config.js";
 // ── Old Hum's insomnia (the finale) ──────────────────────────────────────
 // Old Hum's heart, a hundred years without sleep: a brass heart in three
 // spinning rings, racing, one red eye wide open. It floats over the floor
@@ -42,7 +43,7 @@ export class HeartBoss {
     this.x = x; this.z = z; this.y = this.y0 - 4;
     this.vx = 0; this.vz = 0;
     this.arena = arena;
-    this.hp = this.maxHp = HEART.hp;
+    this.hp = this.maxHp = HEART.hp * GLITCH.hp;
     this.phase = 1;
     this.state = "rise"; this.t = 0;
     this.yaw = 0;

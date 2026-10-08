@@ -1,3 +1,4 @@
+import { GLITCH } from "../config.js";
 import { Body } from "./player.js";
 import { PenBoss } from "./boss-pen.js";
 import { CookerBoss } from "./boss-cooker.js";
@@ -36,7 +37,7 @@ export class VacuumBoss {
     this.body = new Body(x, y, z, { radius: BOSS.r, height: BOSS.h, step: 0.5, speed: BOSS.speed[0], accel: 12, jump: 0 });
     this.body.grounded = true;
     this.arena = arena;
-    this.hp = this.maxHp = BOSS.hp;
+    this.hp = this.maxHp = BOSS.hp * GLITCH.hp;
     this.phase = 1;
     this.state = "rise"; this.t = 0;
     this.yaw = 0; this.aimYaw = 0; this.aimPitch = 0;

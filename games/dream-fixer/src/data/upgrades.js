@@ -22,56 +22,56 @@ const num = (v, d = 1) => String(Math.round(v * 10 ** d) / 10 ** d);
 // 11), and the last levels wait for a second time through (12–15). A tool's
 // upgrades open from about the rank you have when it arrives. Each step is
 // small (halved after playtests): the bench helps, it doesn't carry you.
-// Prices are set so a night's dust buys about half of what is open.
+// Prices are set so a night's dust buys about a quarter of what is open.
 export const UPGRADES = [
   // ── The Stabilizer ──
-  { id: "stab_fins", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [20, 20, 25, 20, 20], ranks: [2, 5, 8, 11, 13], stat: (l) => pct(1 - 0.035 * l) },
-  { id: "stab_lens", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [20, 30, 35, 30, 35], ranks: [1, 5, 8, 11, 14], stat: (l) => pct(1 + 0.045 * l) },
-  { id: "stab_trigger", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [20, 20, 25, 20, 20], ranks: [3, 6, 9, 12, 15], stat: (l) => num(1 / (TOOLS.stabilizer.interval * (1 - 0.025 * l))) },
-  { id: "stab_charge", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [20, 30, 25, 25, 30], ranks: [2, 6, 9, 12, 14], stat: (l) => `${num(TOOLS.stabilizer.charge.time * (1 - 0.04 * l), 2)} s` },
+  { id: "stab_fins", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [40, 40, 50, 40, 40], ranks: [2, 5, 8, 11, 13], stat: (l) => pct(1 - 0.035 * l) },
+  { id: "stab_lens", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [40, 60, 70, 60, 70], ranks: [1, 5, 8, 11, 14], stat: (l) => pct(1 + 0.045 * l) },
+  { id: "stab_trigger", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [40, 40, 50, 40, 40], ranks: [3, 6, 9, 12, 15], stat: (l) => num(1 / (TOOLS.stabilizer.interval * (1 - 0.025 * l))) },
+  { id: "stab_charge", tab: "tools", group: "stabilizer", model: "stabilizer", costs: [40, 60, 50, 50, 60], ranks: [2, 6, 9, 12, 14], stat: (l) => `${num(TOOLS.stabilizer.charge.time * (1 - 0.04 * l), 2)} s` },
   // ── The Fuzz Vacuum (once you have it) ──
-  { id: "vac_motor", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [20, 30, 25, 25, 30], ranks: [1, 4, 7, 10, 13], stat: (l) => `${num(TOOLS.vacuum.range + 0.36 * l)} m` },
-  { id: "vac_throat", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [10, 20, 25, 20, 15], ranks: [2, 5, 8, 11, 14], stat: (l) => pct(1 + 0.06 * l) },
-  { id: "vac_tank", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [65, 110], ranks: [3, 12], stat: (l) => String(TOOLS.vacuum.tankSize + l) },
-  { id: "vac_bang", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [20, 30, 25, 25, 30], ranks: [2, 6, 9, 12, 15], stat: (l) => `${num(TOOLS.vacuum.launch.splash * (1 + 0.06 * l))} m` },
+  { id: "vac_motor", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [40, 60, 50, 50, 60], ranks: [1, 4, 7, 10, 13], stat: (l) => `${num(TOOLS.vacuum.range + 0.36 * l)} m` },
+  { id: "vac_throat", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [20, 40, 50, 40, 30], ranks: [2, 5, 8, 11, 14], stat: (l) => pct(1 + 0.06 * l) },
+  { id: "vac_tank", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [130, 220], ranks: [3, 12], stat: (l) => String(TOOLS.vacuum.tankSize + l) },
+  { id: "vac_bang", tab: "tools", group: "vacuum", model: "vacuum", needs: "vacuum", costs: [40, 60, 50, 50, 60], ranks: [2, 6, 9, 12, 15], stat: (l) => `${num(TOOLS.vacuum.launch.splash * (1 + 0.06 * l))} m` },
   // ── The Foam Cannon (once you have it) ──
-  { id: "foam_nozzle", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [20, 30, 25, 25, 30], ranks: [4, 5, 7, 11, 13], stat: (l) => pct(1 + 0.075 * l) },
-  { id: "foam_mix", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [20, 30, 35, 30, 35], ranks: [4, 6, 8, 12, 14], stat: (l) => `${num(TOOLS.foam.hold + 0.21 * l)} s` },
-  { id: "foam_set", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [20, 30, 25, 25, 30], ranks: [5, 6, 9, 12, 14], stat: (l) => `${TOOLS.foam.step.life + 1.5 * l} s` },
-  { id: "foam_tank", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [65, 110], ranks: [6, 13], stat: (l) => String(TOOLS.foam.step.max + l) },
+  { id: "foam_nozzle", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [40, 60, 50, 50, 60], ranks: [4, 5, 7, 11, 13], stat: (l) => pct(1 + 0.075 * l) },
+  { id: "foam_mix", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [40, 60, 70, 60, 70], ranks: [4, 6, 8, 12, 14], stat: (l) => `${num(TOOLS.foam.hold + 0.21 * l)} s` },
+  { id: "foam_set", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [40, 60, 50, 50, 60], ranks: [5, 6, 9, 12, 14], stat: (l) => `${TOOLS.foam.step.life + 1.5 * l} s` },
+  { id: "foam_tank", tab: "tools", group: "foam", model: "foam", needs: "foam", costs: [130, 220], ranks: [6, 13], stat: (l) => String(TOOLS.foam.step.max + l) },
   // ── The Lullaby Bell (once you have it) ──
-  { id: "bell_rim", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [20, 30, 25, 25, 30], ranks: [6, 7, 9, 12, 14], stat: (l) => `${num(TOOLS.bell.range + 0.45 * l)} m` },
-  { id: "bell_clapper", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [20, 30, 35, 30, 35], ranks: [6, 8, 10, 13, 15], stat: (l) => pct(1 + 0.075 * l) },
-  { id: "bell_lull", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [35, 30, 35, 30, 40], ranks: [7, 8, 10, 12, 14], stat: (l) => `${num(TOOLS.bell.lull.sleep + 0.45 * l)} s` },
-  { id: "bell_box", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [10, 20, 25, 20, 15], ranks: [7, 9, 11, 13, 15], stat: (l) => `${num(TOOLS.bell.lull.r1 + 0.3 * l)} m` },
+  { id: "bell_rim", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [40, 60, 50, 50, 60], ranks: [6, 7, 9, 12, 14], stat: (l) => `${num(TOOLS.bell.range + 0.45 * l)} m` },
+  { id: "bell_clapper", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [40, 60, 70, 60, 70], ranks: [6, 8, 10, 13, 15], stat: (l) => pct(1 + 0.075 * l) },
+  { id: "bell_lull", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [70, 60, 70, 60, 80], ranks: [7, 8, 10, 12, 14], stat: (l) => `${num(TOOLS.bell.lull.sleep + 0.45 * l)} s` },
+  { id: "bell_box", tab: "tools", group: "bell", model: "bell", needs: "bell", costs: [20, 40, 50, 40, 30], ranks: [7, 9, 11, 13, 15], stat: (l) => `${num(TOOLS.bell.lull.r1 + 0.3 * l)} m` },
   // ── The Gust Umbrella (once you have it) ──
-  { id: "umb_canopy", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [20, 30, 25, 25, 30], ranks: [7, 8, 10, 12, 14], stat: (l) => `${num(TOOLS.umbrella.glide.fall * (1 - 0.045 * l))} m/s` },
-  { id: "umb_ribs", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [20, 30, 35, 30, 35], ranks: [7, 9, 11, 13, 15], stat: (l) => pct(1 + 0.06 * l) },
-  { id: "umb_spring", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [10, 20, 25, 20, 15], ranks: [8, 9, 11, 13, 14], stat: (l) => num(1 / (TOOLS.umbrella.interval * (1 - 0.03 * l))) },
-  { id: "umb_cloth", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [20, 30, 35, 30, 35], ranks: [8, 10, 11, 13, 15], stat: (l) => pct(TOOLS.umbrella.shield.guard - 0.021 * l) },
+  { id: "umb_canopy", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [40, 60, 50, 50, 60], ranks: [7, 8, 10, 12, 14], stat: (l) => `${num(TOOLS.umbrella.glide.fall * (1 - 0.045 * l))} m/s` },
+  { id: "umb_ribs", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [40, 60, 70, 60, 70], ranks: [7, 9, 11, 13, 15], stat: (l) => pct(1 + 0.06 * l) },
+  { id: "umb_spring", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [20, 40, 50, 40, 30], ranks: [8, 9, 11, 13, 14], stat: (l) => num(1 / (TOOLS.umbrella.interval * (1 - 0.03 * l))) },
+  { id: "umb_cloth", tab: "tools", group: "umbrella", model: "umbrella", needs: "umbrella", costs: [40, 60, 70, 60, 70], ranks: [8, 10, 11, 13, 15], stat: (l) => pct(TOOLS.umbrella.shield.guard - 0.021 * l) },
   // ── The Star Yo-Yo (once you have it) ──
-  { id: "yoyo_string", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [20, 30, 25, 25, 30], ranks: [9, 10, 11, 13, 14], stat: (l) => `${num(TOOLS.yoyo.range + 0.6 * l)} m` },
-  { id: "yoyo_weight", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [20, 30, 35, 30, 35], ranks: [9, 10, 12, 13, 15], stat: (l) => pct(1 + 0.075 * l) },
-  { id: "yoyo_bearing", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [10, 20, 25, 20, 15], ranks: [9, 11, 12, 14, 15], stat: (l) => `${num(TOOLS.yoyo.speed * (1 + 0.03 * l))} m/s` },
-  { id: "yoyo_knot", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [20, 30, 35, 30, 35], ranks: [10, 11, 12, 13, 15], stat: (l) => `${num(TOOLS.yoyo.lasso.tie + 0.3 * l)} s` },
+  { id: "yoyo_string", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [40, 60, 50, 50, 60], ranks: [9, 10, 11, 13, 14], stat: (l) => `${num(TOOLS.yoyo.range + 0.6 * l)} m` },
+  { id: "yoyo_weight", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [40, 60, 70, 60, 70], ranks: [9, 10, 12, 13, 15], stat: (l) => pct(1 + 0.075 * l) },
+  { id: "yoyo_bearing", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [20, 40, 50, 40, 30], ranks: [9, 11, 12, 14, 15], stat: (l) => `${num(TOOLS.yoyo.speed * (1 + 0.03 * l))} m/s` },
+  { id: "yoyo_knot", tab: "tools", group: "yoyo", model: "yoyo", needs: "yoyo", costs: [40, 60, 70, 60, 70], ranks: [10, 11, 12, 13, 15], stat: (l) => `${num(TOOLS.yoyo.lasso.tie + 0.3 * l)} s` },
   // ── The Dream Sand sack (once you have it) ──
-  { id: "sand_fine", tab: "tools", group: "sand", model: "sand", needs: "sand", costs: [20, 30, 25, 25, 30], ranks: [10, 11, 12, 13, 14], stat: (l) => pct(1 + 0.075 * l) },
-  { id: "sand_deep", tab: "tools", group: "sand", model: "sand", needs: "sand", costs: [20, 30, 35, 30, 35], ranks: [10, 11, 12, 14, 15], stat: (l) => `${num(TOOLS.sand.sleep + 0.45 * l)} s` },
-  { id: "sand_reach", tab: "tools", group: "sand", model: "sand", needs: "sand", costs: [10, 20, 25, 20, 15], ranks: [10, 11, 13, 14, 15], stat: (l) => `${num(TOOLS.sand.path.len + 0.3 * l)} m` },
-  { id: "sand_dune", tab: "tools", group: "sand", model: "sand", needs: "sand", costs: [20, 30, 35, 30, 35], ranks: [10, 12, 13, 14, 15], stat: (l) => `${num(TOOLS.sand.path.life + 0.9 * l)} s` },
+  { id: "sand_fine", tab: "tools", group: "sand", model: "sand", needs: "sand", costs: [40, 60, 50, 50, 60], ranks: [10, 11, 12, 13, 14], stat: (l) => pct(1 + 0.075 * l) },
+  { id: "sand_deep", tab: "tools", group: "sand", model: "sand", needs: "sand", costs: [40, 60, 70, 60, 70], ranks: [10, 11, 12, 14, 15], stat: (l) => `${num(TOOLS.sand.sleep + 0.45 * l)} s` },
+  { id: "sand_reach", tab: "tools", group: "sand", model: "sand", needs: "sand", costs: [20, 40, 50, 40, 30], ranks: [10, 11, 13, 14, 15], stat: (l) => `${num(TOOLS.sand.path.len + 0.3 * l)} m` },
+  { id: "sand_dune", tab: "tools", group: "sand", model: "sand", needs: "sand", costs: [40, 60, 70, 60, 70], ranks: [10, 12, 13, 14, 15], stat: (l) => `${num(TOOLS.sand.path.life + 0.9 * l)} s` },
   // ── You ──
-  { id: "wake_coffee", tab: "me", model: "mugCoffee", costs: [20, 30, 25, 25, 30], ranks: [1, 4, 7, 10, 13], stat: (l) => String(maxHpFor({ wake_coffee: l })) },
-  { id: "wake_pad", tab: "me", model: "vest", costs: [35, 30, 35, 40, 40], ranks: [3, 6, 9, 12, 14], stat: (l) => pct(1 - 0.03 * l) },
-  { id: "wake_lungs", tab: "me", model: "balloon", costs: [20, 20, 25, 20, 20], ranks: [1, 3, 6, 9, 12], stat: (l) => `${num(perksFor({ wake_lungs: l }).stamina.run)} s` },
-  { id: "wake_shoes", tab: "me", model: "slipper", costs: [35, 40, 55], ranks: [3, 8, 13], stat: (l) => `${num(6.4 * (1 + 0.02 * l))} m/s` },
-  { id: "wake_magnet", tab: "me", model: "magnet", costs: [10, 10, 10, 15, 10], ranks: [1, 4, 7, 10, 13], stat: (l) => `${num(magnetFor({ wake_magnet: l }))} m` },
-  { id: "wake_sieve", tab: "me", model: "sieve", costs: [35, 40, 55, 45], ranks: [5, 8, 11, 14], stat: (l) => pct(0.0625 * l) },
-  { id: "wake_pocket", tab: "me", model: "pouch", costs: [45, 80], ranks: [5, 13], stat: (l) => String(pocketFor({ wake_pocket: l })) },
+  { id: "wake_coffee", tab: "me", model: "mugCoffee", costs: [40, 60, 50, 50, 60], ranks: [1, 4, 7, 10, 13], stat: (l) => String(maxHpFor({ wake_coffee: l })) },
+  { id: "wake_pad", tab: "me", model: "vest", costs: [70, 60, 70, 80, 80], ranks: [3, 6, 9, 12, 14], stat: (l) => pct(1 - 0.03 * l) },
+  { id: "wake_lungs", tab: "me", model: "balloon", costs: [40, 40, 50, 40, 40], ranks: [1, 3, 6, 9, 12], stat: (l) => `${num(perksFor({ wake_lungs: l }).stamina.run)} s` },
+  { id: "wake_shoes", tab: "me", model: "slipper", costs: [70, 80, 110], ranks: [3, 8, 13], stat: (l) => `${num(6.4 * (1 + 0.02 * l))} m/s` },
+  { id: "wake_magnet", tab: "me", model: "magnet", costs: [20, 20, 20, 30, 20], ranks: [1, 4, 7, 10, 13], stat: (l) => `${num(magnetFor({ wake_magnet: l }))} m` },
+  { id: "wake_sieve", tab: "me", model: "sieve", costs: [70, 80, 110, 90], ranks: [5, 8, 11, 14], stat: (l) => pct(0.0625 * l) },
+  { id: "wake_pocket", tab: "me", model: "pouch", costs: [90, 160], ranks: [5, 13], stat: (l) => String(pocketFor({ wake_pocket: l })) },
   // ── Cog ──
-  { id: "cog_fetch", tab: "cog", model: "csavar", glow: 0xffd27a, costs: [45, 90], ranks: [4, 12], stat: (l) => (l ? `${perksFor({ cog_fetch: l }).cog.fetch} m` : "—") },
-  { id: "cog_heal", tab: "cog", model: "csavar", glow: 0xff7aa0, costs: [55, 90, 125], ranks: [5, 9, 14], stat: (l) => (l ? `${num(perksFor({ cog_heal: l }).cog.heal)}/s` : "—") },
-  { id: "cog_zap", tab: "cog", model: "csavar", glow: 0x7ff5e0, costs: [65, 100, 135], ranks: [4, 8, 14], stat: (l) => (l ? `${num(perksFor({ cog_zap: l }).cog.zap.every)} s` : "—") },
-  { id: "cog_scout", tab: "cog", model: "csavar", glow: 0xffe7a8, costs: [45], ranks: [3], stat: (l) => (l ? "✓" : "—") },
+  { id: "cog_fetch", tab: "cog", model: "csavar", glow: 0xffd27a, costs: [90, 180], ranks: [4, 12], stat: (l) => (l ? `${perksFor({ cog_fetch: l }).cog.fetch} m` : "—") },
+  { id: "cog_heal", tab: "cog", model: "csavar", glow: 0xff7aa0, costs: [110, 180, 250], ranks: [5, 9, 14], stat: (l) => (l ? `${num(perksFor({ cog_heal: l }).cog.heal)}/s` : "—") },
+  { id: "cog_zap", tab: "cog", model: "csavar", glow: 0x7ff5e0, costs: [130, 200, 270], ranks: [4, 8, 14], stat: (l) => (l ? `${num(perksFor({ cog_zap: l }).cog.zap.every)} s` : "—") },
+  { id: "cog_scout", tab: "cog", model: "csavar", glow: 0xffe7a8, costs: [90], ranks: [3], stat: (l) => (l ? "✓" : "—") },
 ];
 
 // Kit: used up in a dream. key / pad: the key and the pad button that use it.

@@ -1,4 +1,4 @@
-import { DT } from "../config.js";
+import { GLITCH, DT } from "../config.js";
 import { Body } from "./player.js";
 import { ToolState, TOOL_ORDER } from "./tools.js";
 import { World } from "./world.js";
@@ -436,7 +436,7 @@ export class Run {
       amount *= this.activeTool.def.shield.guard;
       this.umbrella.block(this, fromX, this.body.y + 1, fromZ);
     }
-    const dmg = amount * this.diff.dmg * this.perks.hurt;
+    const dmg = amount * GLITCH.dmg * this.diff.dmg * this.perks.hurt;
     this.hp -= dmg;
     this.hurtT = 0;
     this.invuln = 0.35;

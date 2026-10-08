@@ -1,3 +1,4 @@
+import { GLITCH } from "../config.js";
 import { Body } from "./player.js";
 
 // ── The Big Alarm Clock (Grandpa Joe's nightmare) ────────────────────────
@@ -46,7 +47,7 @@ export class ClockBoss {
     this.body = new Body(x, y, z, { radius: C.r, height: C.h, step: 0.5, speed: C.speed[0], accel: 10, jump: 0 });
     this.body.grounded = true;
     this.arena = arena;
-    this.hp = this.maxHp = C.hp;
+    this.hp = this.maxHp = C.hp * GLITCH.hp;
     this.phase = 1;
     this.state = "rise"; this.t = 0;
     this.yaw = 0;

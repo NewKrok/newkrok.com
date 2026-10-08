@@ -1,3 +1,4 @@
+import { GLITCH } from "../config.js";
 // ── The Moon Lamp (Sophie's nightmare) ───────────────────────────────────
 // The night-light from her childhood room, a moon with a sleepy face, now
 // as big as a car and floating over the cupola's floor once the three
@@ -41,7 +42,7 @@ export class MoonBoss {
     this.x = x; this.z = z; this.y = this.y0 - 4;
     this.vx = 0; this.vz = 0;
     this.arena = arena;
-    this.hp = this.maxHp = MOON.hp;
+    this.hp = this.maxHp = MOON.hp * GLITCH.hp;
     this.phase = 1;
     this.state = "rise"; this.t = 0;
     this.yaw = 0;

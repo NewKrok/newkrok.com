@@ -1,3 +1,4 @@
+import { GLITCH } from "../config.js";
 import { Body } from "./player.js";
 
 // ── The Red Pen (Ethan's nightmare) ───────────────────────────────────────
@@ -42,7 +43,7 @@ export class PenBoss {
     this.body = new Body(x, y, z, { radius: PEN.r, height: PEN.h, step: 0.5, speed: PEN.speed[0], accel: 14, jump: 0 });
     this.body.grounded = true;
     this.arena = arena;
-    this.hp = this.maxHp = PEN.hp;
+    this.hp = this.maxHp = PEN.hp * GLITCH.hp;
     this.phase = 1;
     this.state = "rise"; this.t = 0;
     this.yaw = 0;

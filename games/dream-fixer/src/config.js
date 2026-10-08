@@ -4,6 +4,11 @@
 
 export const DT = 1 / 60;
 
+// Every glitch and nightmare at once, on top of their own numbers: hp and
+// the damage they deal you (raised after a playtest with upgrades found the
+// week too easy).
+export const GLITCH = { hp: 1.15, dmg: 1.05 };
+
 export const PLAYER = {
   radius: 0.34,
   height: 1.72,
