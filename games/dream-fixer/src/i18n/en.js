@@ -220,7 +220,6 @@ export const EN = {
   set_music: "Music",
   set_voice: "Margo's voice",
   set_voiceVol: "Voice volume",
-  voiceCredit: "Margo's voice: elevenlabs.io",
   set_controls: "Controls",
   set_sens: "Mouse sensitivity",
   set_tsens: "Touch sensitivity",

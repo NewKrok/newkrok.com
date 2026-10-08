@@ -219,7 +219,6 @@ export const HU = {
   set_sfx: "Effektek",
   set_voice: "Margo hangja",
   set_voiceVol: "Beszéd hangereje",
-  voiceCredit: "Margo hangja: elevenlabs.io",
   set_music: "Zene",
   set_controls: "Irányítás",
   set_sens: "Egér érzékenység",

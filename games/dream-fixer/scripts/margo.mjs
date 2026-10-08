@@ -42,7 +42,7 @@ export const ACTED = {
   hub_window_2: "[playfully] Make a wish! [amused] Cog wished for a second propeller.",
   hub_window_3: "[softly] Pretty, isn't it? [wryly] Don't tell the dreams I said so.",
   hub_window_4: "[quietly] Hear that hum? [softly] Old Hum, snoring. [sighs] Or trying to.",
-  hub_bench: "[proudly] The workbench. [playfully] Bring me dream dust and your tools come back better than new.",
+  hub_bench: "[proudly] The workbench. [playfully] Bring me dream dust and I'll make your tools stronger.",
   hub_greet_1: "[teasing] Back again? The coffee's still hot. [chuckles] Mostly.",
   hub_greet_2: "[cheerfully] Oh, it's you! [amused] Cog's been polishing the lift all night.",
   hub_greet_3: "[wryly] Night shift, rookie. Dreams don't fix themselves.",

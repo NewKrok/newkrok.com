@@ -22,7 +22,7 @@ export const LINES_EN = {
   hub_window_2: ["margo", "Make a wish. Cog wished for a second propeller."],
   hub_window_3: ["margo", "Pretty, isn't it? Don't tell the dreams I said so."],
   hub_window_4: ["margo", "Hear that hum? Old Hum, snoring. Or trying to."],
-  hub_bench: ["margo", "The workbench. Bring me dream dust and your tools come back better than new."],
+  hub_bench: ["margo", "The workbench. Bring me dream dust and I'll make your tools stronger."],
   // Biscuit's park.
   park_bunny: ["margo", "Dust bunnies. One zap each."],
   park_tub: ["margo", "Is that… a bathtub?"],

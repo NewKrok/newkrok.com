@@ -61,7 +61,7 @@ export class Menus {
           <div class="row2"><button class="btn ghost" data-a="howto">${esc(t("howto"))}</button><button class="btn ghost" data-a="settings">${esc(t("settings"))}</button></div>
         </div>
       </div>
-      <footer class="credit"><div>${esc(t("madeBy"))}</div><div class="tech">three.js · ${esc(t("voiceCredit"))}</div></footer>`,
+      <footer class="credit"><div>${esc(t("madeBy"))}</div><div class="tech">three.js</div></footer>`,
     { play: onPlay, settings: onSettings, howto: onHowto }, "title");
   }
 
@@ -184,7 +184,8 @@ export class Menus {
     const old = this.open === "bench" ? this.el.querySelector(".tiles") : null, keep = old ? [old.scrollTop, this.el.querySelector(".bench")?.scrollTop ?? 0, st.tab] : null;
     const rank = rankFor(progress.xp), [have, need] = rankProgress(progress.xp);
     const own = progress.upgrades, items = progress.items ?? {}, pocket = pocketFor(own);
-    const entries = st.tab === "kit" ? ITEMS.map((it) => ({ ...it, item: true })) : UPGRADES.filter((u) => u.tab === st.tab);
+    // A tool you don't have yet isn't on the bench at all (no spoilers).
+    const entries = st.tab === "kit" ? ITEMS.map((it) => ({ ...it, item: true })) : UPGRADES.filter((u) => u.tab === st.tab && (!u.needs || progress.tools.includes(u.needs)));
     const cur = entries.find((e) => e.id === st.sel) ?? entries[0];
     st.sel = cur.id;
     // Keep the pad's focus where it was across the redraw.

@@ -8,7 +8,9 @@ import { hasLine } from "../i18n/index.js";
 // spell (S.quiet: seconds since the radio last fell silent). Warnings and
 // story events still come at once.
 
-const near = (run, kind, d) => run.foes.some((f) => f.alive && f.kind === kind && Math.hypot(f.px - run.body.x, f.pz - run.body.z) < d);
+// A glitch of that kind within d metres that you can actually see (not
+// one behind a wall).
+const near = (run, kind, d) => run.foes.some((f) => f.alive && f.kind === kind && Math.hypot(f.px - run.body.x, f.pz - run.body.z) < d && run.canSee(f.px, f.cy, f.pz));
 const from = (run, x, z) => Math.hypot(run.body.x - x, run.body.z - z);
 
 // A random line from a pool (ids prefix_1 … prefix_n, as many as are

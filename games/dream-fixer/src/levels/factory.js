@@ -80,8 +80,9 @@ export const factory = {
     k.use("radio", -7.6, 1.8, { r: 2.2, label: "useRadio" });
     // (The finale's night it runs on the red backup lamp.)
     k.prop("lift", 8.4, -5.2, { yaw: Math.PI / 2, opts: { backup: finale } });
-    // The lift is solid on three sides; you step up to its gate.
+    // The lift is solid all round, its gate too: you step up to the gate.
     k.block(9.55, -5.2, 0.1, 2.4, 0, 3.2, null);
+    k.block(7.25, -5.2, 0.1, 2.4, 0, 3.2, null);
     k.block(8.4, -6.35, 2.4, 0.1, 0, 3.2, null);
     k.block(8.4, -4.05, 2.4, 0.1, 0, 3.2, null);
     k.use("lift", 7.0, -5.2, { r: 2.2, label: "useLift" });
