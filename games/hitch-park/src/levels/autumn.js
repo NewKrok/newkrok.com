@@ -1,6 +1,6 @@
 import {
   PI, level, hrow, vrow, angledRow, car, rect, road, disc, paintBays, line, arrow, text, hatch, YELLOW,
-  building, tree, scatter, wallLine, range, parkedSemi,
+  building, tree, pine, scatter, wallLine, range, parkedSemi, smooth, sample, distToLine,
 } from "./kit.js";
 import { CAR_TYPES, M, PARKED_COLORS, lcg } from "../config.js";
 
@@ -89,7 +89,7 @@ function pumpkinPatch() {
   const lot = vrow(1030, 180, 9, PI, { w: 40 });
   const visitors = sloppy([lot], [], 507, { fill: 0.8, tilt: 1, straddle: 0.3 }).cars;
   return level({
-    id: "patch", vehicle: "pickup", name: "Pumpkin farm", title: "Pumpkin Patch", trailer: "box", par: 75, sun: "golden", foliage: "autumn",
+    id: "patch", vehicle: "pickup", name: "Pumpkin farm", title: "Pumpkin Patch", trailer: "box", load: "empty", color: 0xb5652b, carDecor: "hay", par: 75, sun: "golden", foliage: "autumn",
     brief: "Pick up the pumpkins for the village party. In through the farm gate, round the straw wall, then back the trailer up to the stand between the pumpkin heap and the pickup. Mind the loose pumpkins.",
     w: 1100, h: 700, base: "grass", edge: "fence", backdrop: "fields",
     surfaces: [
@@ -147,8 +147,8 @@ function costumeRush() {
     ...strayTrolleys(574, 6, [180, 805, 1280, 880], taken),
   ];
   return level({
-    id: "mall", vehicle: "car", name: "Spookmart", title: "Costume Rush", trailer: "teardrop", par: 120, sun: "dusk", foliage: "autumn",
-    brief: "The night before Halloween, and the whole town ran in for a costume: cars dumped at every angle, trolleys everywhere. Weave in from the street and back the teardrop into the one free bay.",
+    id: "mall", vehicle: "car", name: "Spookmart", title: "Costume Rush", trailer: "box", load: "empty", color: 0x5b3a8a, carDecor: "hat", par: 120, sun: "dusk", foliage: "autumn",
+    brief: "The night before Halloween, and the whole town ran in for a costume: cars dumped at every angle, trolleys everywhere. Weave in from the street and back the empty trailer into the one free bay — it's going home full.",
     w: 1500, h: 1000, base: "asphalt", edge: "none", backdrop: "town",
     surfaces: [rect("pavement", 120, 150, 1380, 195), rect("asphalt", 0, 900, 1500, 1000), rect("asphalt", 560, 870, 720, 905)],
     paint: [
@@ -210,8 +210,8 @@ function trickOrTreat() {
   ];
   const lot = (x0) => [...wallLine([[x0, 190], [x0, 352]], { kind: "fence", thick: 3, maxLen: 40 })];
   return level({
-    id: "street", vehicle: "suv", name: "Elm Street", title: "Trick or Treat", trailer: "caravan", par: 150, sun: "spooky", foliage: "autumn",
-    brief: "Home with the caravan on Halloween night, and the neighbours have filled every lawn: inflatables, graves, skeletons, pumpkins on the kerb. Drive past your house, turn in the cul-de-sac if you must, and back the caravan up your drive.",
+    id: "street", vehicle: "suv", name: "Elm Street", title: "Trick or Treat", trailer: "carhauler", load: "pumpkin", color: 0x1c1a22, carDecor: "pumpkin", par: 150, sun: "spooky", foliage: "autumn",
+    brief: "Halloween night, and you are bringing home the biggest pumpkin on the street. The neighbours have filled every lawn and half the road: inflatables, graves, skeletons, hay. Weave down the street, turn in the cul-de-sac and back the transporter up your drive.",
     w: 1500, h: 820, base: "grass", edge: "none", backdrop: "town",
     surfaces: [
       rect("pavement", 0, 350, 1260, 370), rect("pavement", 0, 510, 1260, 530), rect("asphalt", 0, 370, 1300, 510), disc("asphalt", 1330, 440, 140),
@@ -227,6 +227,12 @@ function trickOrTreat() {
       // Your drive: hedged on the west, the neighbour's fence on the east.
       ...wallLine([[drive - 26, 180], [drive - 26, 340]], { kind: "hedge", thick: 8, maxLen: 60 }),
       ...lawnsN.flatMap((f, i) => f(xs[i])), ...lawnsS.flatMap((f, i) => f(xs[i])),
+      // Out on the road: a ghost that blew off its lawn, hay and pumpkins
+      // left by the trick-or-treaters, more in the cul-de-sac.
+      blowup(520, 412, "ghost", 11), { kind: "hay", x: 330, y: 468, r: 9 }, { kind: "hay", x: 348, y: 452, r: 9 },
+      loosePumpkin(420, 428, 5), loosePumpkin(700, 470, 6), loosePumpkin(712, 456, 4), skeleton(840, 418, 0.4),
+      { kind: "hay", x: 1080, y: 470, r: 9 }, loosePumpkin(1100, 455, 5),
+      blowup(1440, 440, "pumpkin", 13), loosePumpkin(1300, 400, 5), loosePumpkin(1320, 486, 6),
       // Pumpkins set out on the kerb either side of your drive.
       loosePumpkin(drive - 36, 361, 5), loosePumpkin(drive + 34, 361, 5), loosePumpkin(drive - 140, 361, 4), loosePumpkin(drive + 120, 361, 6),
       ...[60, 520, 1220].map((x) => ({ kind: "lamp", x, y: 360, a: PI / 2 })), ...[300, 700, 1000].map((x) => ({ kind: "lamp", x, y: 520, a: -PI / 2 })),
@@ -234,7 +240,7 @@ function trickOrTreat() {
     ],
     decor: [
       { kind: "ghost", x: xs[0] - 30, y: 230, a: 0.4, s: 1.4 }, { kind: "ghost", x: xs[3] - 40, y: 300, a: 2, s: 1.6, z: 24 },
-      { kind: "ghost", x: xs[2] + 40, y: 640, a: -1, s: 1.3 }, { kind: "ghost", x: 1330, y: 440, a: 1.5, s: 1.5, z: 50 },
+      { kind: "ghost", x: xs[2] + 40, y: 640, a: -1, s: 1.3 }, { kind: "ghost", x: 1340, y: 440, a: 1.5, s: 1.5, z: 56 },
     ],
     cones: [],
     start: { x: 170, y: 460, a: 0 },
@@ -260,21 +266,25 @@ function cornMaze() {
   // The clearing: six cells, all open to each other.
   const clear = [[2, 1], [3, 1], [4, 1], [2, 2], [3, 2], [4, 2]];
   for (const a of clear) for (const b of clear) if (Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) === 1) { used.add(k(...a)); open.add(ek(a, b)); }
+  // Pieces overlap at the corners, so no two faces may share a plane (they
+  // would flicker): rows are a little thicker, taller and longer than
+  // columns, and the solid blocks are a little smaller, alternately.
   const corn = [];
-  const wall = (x, y, w, h) => corn.push({ kind: "corn", x, y, w, h });
+  const wall = (x, y, w, h, height) => corn.push({ kind: "corn", x, y, w, h, height });
+  const across = (x, y) => wall(x, y, C + T + 1.2, T + 0.8, 24.8), down = (x, y) => wall(x, y, T, C + T, 24);
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
     const cx = X0 + c * C + C / 2, cy = Y0 + r * C + C / 2;
-    if (!used.has(k(c, r))) { wall(cx, cy, C + T, C + T); continue; }
+    if (!used.has(k(c, r))) { const odd = (c + r) % 2; wall(cx, cy, C + T - (odd ? 1 : 2.2), C + T - (odd ? 2.2 : 1), odd ? 23.2 : 23.6); continue; }
     // East and south edges of each cell (west / north come from the neighbour).
     const east = [c + 1, r], south = [c, r + 1];
-    if (c === COLS - 1 || (used.has(k(...east)) && !open.has(ek([c, r], east)))) wall(cx + C / 2, cy, T, C + T);
-    if ((r === ROWS - 1 && c !== 6) || (r < ROWS - 1 && used.has(k(...south)) && !open.has(ek([c, r], south)))) wall(cx, cy + C / 2, C + T, T);
-    if (c === 0) wall(cx - C / 2, cy, T, C + T);
-    if (r === 0) wall(cx, cy - C / 2, C + T, T);
+    if (c === COLS - 1 || (used.has(k(...east)) && !open.has(ek([c, r], east)))) down(cx + C / 2, cy);
+    if ((r === ROWS - 1 && c !== 6) || (r < ROWS - 1 && used.has(k(...south)) && !open.has(ek([c, r], south)))) across(cx, cy + C / 2);
+    if (c === 0) down(cx - C / 2, cy);
+    if (r === 0) across(cx, cy - C / 2);
   }
   const bayX = X0 + 3.5 * C, bayY = Y0 + 3 * C - T / 2 - 42;
   return level({
-    id: "maze", vehicle: "suv", name: "Corn maze", title: "Pony Rides", trailer: "horsebox", par: 200, sun: "golden", foliage: "autumn",
+    id: "maze", vehicle: "suv", name: "Corn maze", title: "Pony Rides", trailer: "horsebox", color: 0x2f6b4a, trailerColor: 0x7a3b22, par: 200, sun: "golden", foliage: "autumn",
     brief: "The ponies are late for the rides, and the paddock is in the clearing in the middle of the corn maze. Find the way through with the horsebox, then back it in between the other two. Dead ends are no place to turn round.",
     w: 1400, h: 1110, base: "dirt", edge: "fence", backdrop: "fields",
     surfaces: [
@@ -303,49 +313,47 @@ function cornMaze() {
   });
 }
 
-// 5. Churchyard: the vintage hearse for the Halloween parade, parked at
-// the kerb by the lych gate.
-function churchyard() {
-  const kerbN = [[70, "hatch"], [160, "sedan"], [255, "wagon"], [350, "hatch"], [482, "sedan"], [748, "suv"], [890, "hatch"], [990, "sedan"], [1090, "wagon"], [1190, "hatch"]]
-    .map(([x, t]) => car(x, 344, 0, t));
-  const kerbS = [[110, "sedan"], [330, "van"], [520, "hatch"], [760, "wagon"], [980, "sedan"], [1180, "suv"]].map(([x, t]) => car(x, 456, PI, t));
-  const graves = range(0, 4).flatMap((r) => range(0, 9).map((i) => {
-    const x = 120 + i * 120 + (r % 2) * 40, y = 120 + r * 44;
-    return (Math.abs(x - 640) < 120 && y < 200) || Math.abs(x - 640) < 60 ? null : grave(x, y, PI / 2 + ((i * 7 + r * 3) % 5 - 2) * 0.05, (i + r) % 4 === 0);
-  })).filter(Boolean);
-  const houses = [[90, 160], [260, 160], [430, 150], [600, 170], [780, 160], [950, 150], [1120, 170]];
+// 5. Lakeside campsite: a misty autumn morning, a forest track under
+// wet leaves and fallen branches, and the teardrop onto a pitch by the lake.
+function lakeside() {
+  const rd = smooth([[-40, 900], [300, 900], [480, 820], [540, 660], [460, 520], [500, 380], [660, 320], [800, 420], [860, 560], [1000, 600]], 3);
+  const pitches = hrow(980, 410, 8, PI / 2, { w: 50, l: 80, step: 62 });
+  const target = 5;
+  const woods = scatter(601, 230, [0, 0, 960, 1000], (x, y, r) => (r() < 0.3 ? pine(x, y, 14 + r() * 8) : tree(x, y, 15 + r() * 9)), [[880, 330, 1500, 1000]])
+    .filter((t) => distToLine(rd, t.x, t.y) > 64);
+  const along = (d, off) => sample(rd, 1e4, off, d)[0];
+  // Fallen branches poking in from the verge, alternately left and right.
+  const branch = (d, off, len) => { const p = along(d, off); return { kind: "logs", x: p.x, y: p.y, a: p.a + 0.5, w: len, h: 10 }; };
+  const pile = (d, off, r = 13) => { const p = along(d, off); return { kind: "bush", x: p.x, y: p.y, r }; };
+  const camp = [
+    { kind: "tent", x: pitches[0].x, y: pitches[0].y, w: 40, h: 34, color: 0x2f7fbf }, { kind: "vancaravan", x: pitches[1].x, y: pitches[1].y, a: PI / 2 },
+    { kind: "tent", x: pitches[2].x, y: pitches[2].y - 6, w: 34, h: 30, color: 0xd9822b }, { kind: "parkedtrailer", trailer: "teardrop", x: pitches[4].x, y: pitches[4].y - 6, a: PI / 2 },
+    { kind: "vancaravan", x: pitches[6].x, y: pitches[6].y, a: PI / 2 }, { kind: "tent", x: pitches[7].x, y: pitches[7].y, w: 40, h: 34, color: 0x2f6b4a },
+  ];
   return level({
-    id: "churchyard", vehicle: "suv", name: "Village church", title: "The Last Ride", trailer: "carhauler", par: 120, sun: "spooky", foliage: "autumn", cargo: 0x16161a,
-    brief: "The vintage hearse leads the Halloween parade. Drive past the lych gate and parallel-park the transporter in the long gap at the churchyard wall.",
-    w: 1300, h: 700, base: "cobble", edge: "none", backdrop: "town",
+    id: "lakeside", vehicle: "car", name: "Lakeside campsite", title: "Leaf Peepers", trailer: "teardrop", par: 150, sun: "misty", foliage: "autumn",
+    color: 0xd9a13a, trailerColor: 0xc8641e,
+    brief: "Peak colour at the lake. Follow the forest track to the campsite — the wet leaves are slippery and the storm brought branches down — then back the little teardrop onto pitch 6, its tail to the water.",
+    w: 1500, h: 1000, base: "leaves", edge: "none", backdrop: "forest",
     surfaces: [
-      rect("leaves", 0, 0, 1300, 296), rect("pavement", 0, 300, 1300, 320), rect("asphalt", 0, 320, 1300, 480), rect("pavement", 0, 480, 1300, 500),
-      rect("pavement", 600, 230, 680, 300),
+      road("dirt", rd, 80), rect("water", 880, -300, 1800, 352), rect("sand", 880, 352, 1500, 366), rect("gravel", 900, 366, 1460, 780, 30),
+      disc("leaves", 500, 600, 50), disc("leaves", 620, 340, 44), rect("mud", 420, 780, 520, 860, 20), rect("mud", 760, 380, 840, 470, 18),
     ],
-    paint: [
-      line([[0, 400], [1300, 400]], { dash: [16, 14] }), paintBays([{ x: 618, y: 344, a: 0, w: 32, l: 84 }], YELLOW),
-      arrow(200, 425, 0), arrow(1000, 375, PI),
-    ],
-    parked: [...kerbN, ...kerbS],
+    paint: [paintBays(pitches, "rgba(236,236,230,0.35)"), paintBays([{ ...pitches[target], w: 52 }], YELLOW), text(pitches[target].x, 470, "6", { size: 16, color: YELLOW })],
+    parked: [car(pitches[3].x, pitches[3].y + 6, PI / 2, "wagon", 0x6b3b2a), car(1040, 700, 0.3, "suv", 0x2f6b4a), car(1380, 720, -0.2, "hatch", 0x8a1f24)],
     statics: [
-      { kind: "church", x: 640, y: 100, a: PI / 2, w: 170, h: 84 },
-      ...wallLine([[0, 296], [600, 296]], { kind: "wall", style: "stone", thick: 8, height: 12, maxLen: 80 }),
-      ...wallLine([[680, 296], [1300, 296]], { kind: "wall", style: "stone", thick: 8, height: 12, maxLen: 80 }),
-      { kind: "post", x: 600, y: 296, r: 4 }, { kind: "post", x: 680, y: 296, r: 4 },
-      { kind: "kerb", x: 650, y: 322, w: 1300, h: 4 }, { kind: "kerb", x: 650, y: 478, w: 1300, h: 4 },
-      ...graves,
-      skeleton(220, 214, PI / 2), skeleton(1010, 170, 2.2), skeleton(380, 250, 1),
-      ...[[60, 60], [260, 40], [1060, 50], [1240, 70], [40, 250], [1260, 240]].map(([x, y]) => tree(x, y, 20)),
-      ...[180, 420, 860, 1120].map((x) => ({ kind: "lamp", x, y: 310, a: PI / 2 })),
-      ...[300, 700, 1050].map((x) => ({ kind: "lamp", x, y: 490, a: -PI / 2 })),
-      ...houses.map(([x, w], i) => building(x, 575, w, 130, { height: 40 + (i % 3) * 8, color: [0x5a4a44, 0x8e6a4a, 0x3d4a5a, 0x6a5a7a, 0x8a5a3c, 0x4a5a4a, 0x7a6a5a][i], roof: 0x2a2830, lit: true })),
-      ...houses.map(([x], i) => pumpkin(x + (i % 2 ? 30 : -30), 504, 5, -PI / 2)),
-      pumpkin(590, 286, 6, -PI / 2), pumpkin(690, 286, 6, -PI / 2),
+      { kind: "water", x: 1190, y: 176, w: 620, h: 352 },
+      ...woods, ...camp,
+      branch(380, 30, 54), branch(760, -32, 60), branch(1150, 30, 50), pile(560, -34), pile(980, 36, 15), pile(1320, -36),
+      { kind: "firepit", x: 1180, y: 600 }, { kind: "table", x: 1120, y: 620, a: 0.2 }, { kind: "table", x: 1240, y: 620, a: -0.3 },
+      { kind: "cabin", x: 1400, y: 900, w: 90, h: 60, color: 0x6b3b2a }, { kind: "bin", x: 1310, y: 880 },
+      ...[[960, 830], [1100, 860], [1250, 940], [1460, 820], [920, 960]].map(([x, y]) => tree(x, y, 22)),
+      ...pumpkinPile(1300, 880, 3, 10, 602),
     ],
-    decor: [{ kind: "ghost", x: 300, y: 150, a: 0.4, s: 1.5 }, { kind: "ghost", x: 960, y: 190, a: 2.6, s: 1.7 }, { kind: "ghost", x: 470, y: 60, a: -0.3, s: 1.2, z: 30 }],
+    decor: [{ kind: "pontoon", x: 1190, y: 300, w: 22, h: 100 }, { kind: "boat", x: 1240, y: 240, a: 0.4, len: 60 }, { kind: "boat", x: 1000, y: 160, a: -0.3, len: 70 }],
     cones: [],
-    start: { x: 280, y: 426, a: 0 },
-    bay: { x: 618, y: 344, a: 0, w: 32, l: 84 },
+    start: { x: 150, y: 900, a: 0 },
+    bay: { ...pitches[target], w: 52, l: 80 },
   });
 }
 
@@ -364,8 +372,8 @@ function halloweenFair() {
   const lorries = slots.map((b, i) => ({ b, i })).filter(({ i }) => i !== target && i !== 6)
     .map(({ b }, k) => parkedSemi(b.x - Math.cos(A) * 18, b.y - Math.sin(A) * 18, A, [0x6a2a8a, 0xd9822b, 0x16161a, 0x1e8449, 0x8a1f24][k], ["HAUNTED HOUSE", "WALTZER", "DODGEMS", "HELTER SKELTER", "BIG WHEEL"][k]));
   return level({
-    id: "fair", vehicle: "truck", name: "Halloween fair", title: "Ghost Train", trailer: "semi", par: 180, sun: "night", foliage: "autumn", livery: "GHOST TRAIN",
-    brief: "The ghost train opens at midnight and its trailer is still on the road. Round the fairground on the service road, then back the semi into the free slot between the rides' lorries.",
+    id: "fair", vehicle: "truck", name: "Halloween fair", title: "Ghost Train", trailer: "semi", par: 200, color: 0x5b3a8a, sun: "night", foliage: "autumn", livery: "GHOST TRAIN",
+    brief: "The ghost train opens at midnight and its trailer is still on the road. Round the fairground on the service road — the fairgoers have parked all along it — then back the semi into the free slot between the rides' lorries.",
     w: 1900, h: 1100, base: "grass", edge: "rail", backdrop: "trees",
     surfaces: [
       rect("leaves", 0, 0, 1900, 1100), road("asphalt", [[-40, 1010], [1780, 1010], [1780, 130], [400, 130]], 140),
@@ -375,7 +383,13 @@ function halloweenFair() {
       paintBays(slots), paintBays([{ ...slots[target], w: 60 }], YELLOW),
       text(slots[target].x + 60, 595, "GHOST TRAIN", { size: 14, color: YELLOW }), arrow(1000, 1010, 0), arrow(1780, 600, -PI / 2), arrow(1450, 130, PI),
     ],
-    parked: [car(1660, 230, PI / 2, "van", 0x16161a), car(1660, 300, PI / 2, "van", 0x6a2a8a)],
+    // Fairgoers parked along the service road wherever they liked.
+    parked: [
+      car(1660, 230, PI / 2, "van", 0x16161a), car(1660, 300, PI / 2, "van", 0x6a2a8a),
+      car(570, 1062, 0, "sedan"), car(930, 958, PI, "hatch", 0xd9a13a), car(1290, 1062, 0.05, "suv"),
+      car(1828, 840, PI / 2, "wagon"), car(1732, 560, -PI / 2, "hatch", 0x8a1f24), car(1828, 330, PI / 2 + 0.06, "van", 0xf2f0e6),
+      car(1450, 82, PI, "sedan", 0x2f6b4a), car(1150, 178, 0, "hatch"),
+    ],
     statics: [
       ...lorries,
       ...wallLine([[520, 632], [1640, 632]], { kind: "fence", thick: 3, maxLen: 40 }),
@@ -402,4 +416,4 @@ function halloweenFair() {
   });
 }
 
-export const AUTUMN = [pumpkinPatch(), costumeRush(), trickOrTreat(), cornMaze(), churchyard(), halloweenFair()];
+export const AUTUMN = [pumpkinPatch(), costumeRush(), trickOrTreat(), cornMaze(), lakeside(), halloweenFair()];

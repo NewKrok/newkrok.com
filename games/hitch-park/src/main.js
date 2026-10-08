@@ -725,7 +725,8 @@ app.addEventListener("click", (e) => {
   if (a !== "back") audio.play("click");
   switch (a) {
     case "continue": openIntro(firstUnfinished(progress, MAIN_LEVELS)); break;
-    case "levels": openLevels("main"); break;
+    // From the main menu: the chapters; from a job: the list it is on.
+    case "levels": openLevels(btn.closest("#menu-main") ? "main" : undefined); break;
     case "seasons": openLevels("seasons"); break;
     case "howto": showScreen("menu-howto", { push: true }); break;
     case "settings": renderSettings(); showScreen("menu-settings", { push: true }); break;
