@@ -22,19 +22,27 @@ import { WorksView } from "./works.js";
 import { TileView } from "./tiles.js";
 import { ShootingStars } from "./shootingstars.js";
 import { C } from "./palette.js";
+import { dispose, MAT } from "./modelkit.js";
 import { damp, lerp } from "../config.js";
 import { ARRIVE, arriveLift } from "../sim/run.js";
 
 // ── The first-person view ────────────────────────────────────────────────
-// World pass, then the tool in hand on top (depth cleared), then bloom.
+// World pass, then the tool in hand on top (depth cleared), then bloom
+// (without bloom both go straight to the screen, no full-screen passes).
 // The camera rides the body's interpolated eye, smoothing step-ups and
 // dipping a little on hard landings.
 
 const LAMP_LIGHTS = 5;
+// Low quality lights fewer lamps: every point light costs every lit pixel.
+const LOW_LAMPS = 2;
+// Low quality keeps the studio reflections for metal and glass only; the
+// rest gets a flat fill of about the same light instead (a reflection
+// lookup in every pixel is a big part of a weak GPU's frame).
+const ENV_FILL = 4.5;
 
 export class GameView {
   constructor(container, settings) {
-    this.renderer = makeRenderer(container);
+    this.renderer = makeRenderer(container, { antialias: false });
     this.env = envMap(this.renderer);
     this.scene = new T.Scene();
     this.scene.environment = this.env;
@@ -68,6 +76,8 @@ export class GameView {
 
     this.muzzleLight = new T.PointLight(0x9ffff0, 0, 7, 2);
     this.scene.add(this.muzzleLight);
+    this.envFill = new T.AmbientLight(0xffffff, 0);
+    this.scene.add(this.envFill);
     this.lamps = [];
     for (let i = 0; i < LAMP_LIGHTS; i++) { const l = new T.PointLight(0xffd08a, 0, 10, 1.6); this.lamps.push(l); this.scene.add(l); }
 
@@ -86,10 +96,25 @@ export class GameView {
     this.perf = { ema: 1 / 60, slowT: 0, fastT: 0 };
     this.pr = hi ? Math.min(devicePixelRatio || 1, 2) : Math.min(devicePixelRatio || 1, 1.25) * 0.8;
     this.applyScale();
-    this.renderer.shadowMap.enabled = hi;
     this.bloom.enabled = hi;
-    if (this.sun) this.sun.light.castShadow = hi;
+    this.cheap = false;
+    this.setShading(hi);
     this.resize(this.W, this.H);
+  }
+
+  // The costly lighting: shadows, studio reflections on everything, all the
+  // lamps and the muzzle's flash of light. Off, the shaders are rebuilt.
+  setShading(hi) {
+    this.rich = hi;
+    this.renderer.shadowMap.enabled = hi;
+    if (this.sun) this.sun.light.castShadow = hi;
+    this.muzzleLight.visible = hi;
+    this.scene.environment = hi ? this.env : null;
+    this.envFill.visible = !hi;
+    MAT.metal.envMap = MAT.glass.envMap = hi ? null : this.env;
+    MAT.metal.needsUpdate = MAT.glass.needsUpdate = true;
+    this.setEnv(this.envK ?? 0.35);
+    this.setLamps();
   }
 
   applyScale() {
@@ -98,8 +123,25 @@ export class GameView {
     this.composer.setPixelRatio(pr);
   }
 
+  // How much of the studio light a level lets in.
+  setEnv(k) {
+    this.envK = k;
+    this.scene.environmentIntensity = k;
+    MAT.metal.envMapIntensity = MAT.glass.envMapIntensity = k;
+    this.envFill.intensity = k * ENV_FILL;
+  }
+
+  // Only the lamps in use are in the scene (a hidden light is left out of
+  // the shaders); changing the count recompiles them, so only on a load.
+  setLamps() {
+    const n = Math.min(this.level ? this.lampCount : 0, this.rich ? LAMP_LIGHTS : LOW_LAMPS);
+    this.lamps.forEach((L, i) => { L.visible = i < n; });
+  }
+
   // Adaptive resolution: a weak GPU that keeps missing frames gets a lower
-  // render scale (down to 55 %), then no bloom; a fast one climbs back.
+  // render scale (down to 55 %), then no bloom, then (from the next level
+  // on, as the shaders are rebuilt) the low quality lighting; a fast one
+  // climbs back in resolution.
   adapt(dt) {
     const P = this.perf;
     if (dt <= 0 || dt > 0.25) return;
@@ -109,6 +151,7 @@ export class GameView {
       P.slowT = 0;
       if (this.scale > 0.56) { this.scale = Math.max(0.55, this.scale - 0.15); this.applyScale(); this.resize(this.W, this.H); }
       else if (this.bloom.enabled) this.bloom.enabled = false;
+      else if (this.rich) this.cheap = true;
     } else if (P.fastT > 6 && this.scale < 1) {
       P.fastT = 0;
       this.scale = Math.min(1, this.scale + 0.15); this.applyScale(); this.resize(this.W, this.H);
@@ -130,8 +173,9 @@ export class GameView {
   load(run) {
     if (this.level) {
       this.scene.remove(this.level);
-      this.level.traverse((o) => { if (o.isMesh && !o.userData.keep) o.geometry.dispose(); });
+      dispose(this.level);
       this.scene.remove(this.sun.hemi, this.sun.light, this.sun.light.target);
+      this.sun.light.dispose();        // (its shadow map)
       this.foes.clear();
       this.bossView.clear();
       this.foamView.clear();
@@ -150,9 +194,9 @@ export class GameView {
     this.scene.fog = new T.Fog(def.fog.color, def.fog.near, def.fog.far);
     // (A level may dim its light for a night: kit.sun.)
     const sun = { ...def.sun, ...(kit.sun ?? {}) };
-    this.scene.environmentIntensity = sun.env ?? 0.35;
+    this.setEnv(sun.env ?? 0.35);
     this.sun = new Sun(this.scene, { ...sun, box: 26, mapSize: 2048 });
-    this.sun.light.castShadow = this.quality === "high";
+    this.sun.light.castShadow = this.rich;
     this.vm.setLights(sun.color, sun.dir, sun.sky, sun.ground);
     for (const m of buildLevelMeshes(kit)) g.add(m);
     this.anchors = new AnchorView(g, kit.anchors);
@@ -164,6 +208,8 @@ export class GameView {
     this.companion.placed = false;
     this.lampCount = Math.min(LAMP_LIGHTS, def.lamps ?? 3);
     this.lampSpots = kit.lights;
+    if (this.cheap && this.rich) this.setShading(false);
+    this.setLamps();
     this.scene.add(g);
   }
 
@@ -415,7 +461,7 @@ export class GameView {
     if (this.lampSpots?.length) {
       const near = this.lampSpots.map((l) => [l, (l.x - x) ** 2 + (l.z - z) ** 2]).sort((a, c) => a[1] - c[1]);
       this.lamps.forEach((L, i) => {
-        const s = i < this.lampCount ? near[i]?.[0] : null;
+        const s = L.visible ? near[i]?.[0] : null;
         if (!s) { L.intensity = 0; return; }
         L.position.set(s.x, s.y, s.z); L.color.set(s.color); L.distance = s.dist;
         L.intensity = s.intensity * (0.95 + Math.sin(t * 7 + i) * 0.05);
@@ -476,6 +522,13 @@ export class GameView {
     this.tileView.update(run, dt, t);
     this.fx.update(dt);
     this.adapt(dt);
-    this.composer.render(dt);
+    if (this.bloom.enabled) { this.composer.render(dt); return; }
+    const R = this.renderer;
+    R.setRenderTarget(null);
+    R.render(this.scene, this.camera);
+    R.autoClear = false;
+    R.clearDepth();
+    R.render(this.vm.scene, this.vm.camera);
+    R.autoClear = true;
   }
 }

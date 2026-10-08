@@ -1,6 +1,6 @@
 import * as T from "three";
 import { MODELS } from "./models/index.js";
-import { make } from "./modelkit.js";
+import { make, MAT } from "./modelkit.js";
 import { envMap } from "./look.js";
 
 // ── The workbench preview ────────────────────────────────────────────────
@@ -102,6 +102,11 @@ export class BenchPreview {
     const d = this.dist ?? 1, p = 0.32;
     this.camera.position.set(Math.sin(this.yaw) * Math.cos(p) * d, Math.sin(p) * d, Math.cos(this.yaw) * Math.cos(p) * d);
     this.camera.lookAt(0, 0, 0);
+    // (On low quality the game hands metal and glass its own reflections,
+    // which live in the game's GL context: here they take this scene's.)
+    const keep = [MAT.metal.envMap, MAT.glass.envMap];
+    MAT.metal.envMap = MAT.glass.envMap = null;
     r.render(this.scene, this.camera);
+    [MAT.metal.envMap, MAT.glass.envMap] = keep;
   }
 }

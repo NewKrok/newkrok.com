@@ -1,5 +1,5 @@
 import * as T from "three";
-import { make, MAT } from "./modelkit.js";
+import { make, MAT, dispose } from "./modelkit.js";
 import { vacuumBoss } from "./models/boss.js";
 import { redPen } from "./models/school.js";
 import { pressureCooker } from "./models/kitchen.js";
@@ -29,7 +29,7 @@ class VacuumBossView {
   }
 
   clear() {
-    if (this.o) { this.scene.remove(this.o); this.o = null; }
+    if (this.o) { this.scene.remove(this.o); dispose(this.o); this.o = null; }
     this.ring.visible = this.ringGlow.visible = false;
   }
 
@@ -139,7 +139,7 @@ class PenBossView {
   }
 
   clear() {
-    if (this.o) { this.scene.remove(this.o); this.o = null; }
+    if (this.o) { this.scene.remove(this.o); dispose(this.o); this.o = null; }
     this.ink.count = this.dash.count = this.rings.count = 0;
   }
 
@@ -263,7 +263,7 @@ class CookerBossView {
   }
 
   clear() {
-    if (this.o) { this.scene.remove(this.o); this.o = null; }
+    if (this.o) { this.scene.remove(this.o); dispose(this.o); this.o = null; }
     for (const j of this.jets) j.visible = false;
     this.ring.visible = false;
     this.lid = { t: 9, off: false };
@@ -380,7 +380,7 @@ class ClockBossView {
   }
 
   clear() {
-    if (this.o) { this.scene.remove(this.o); this.o = null; }
+    if (this.o) { this.scene.remove(this.o); dispose(this.o); this.o = null; }
     for (const j of this.blades) j.visible = false;
   }
 
@@ -476,7 +476,7 @@ class MoonBossView {
   }
 
   clear() {
-    if (this.o) { this.scene.remove(this.o); this.o = null; }
+    if (this.o) { this.scene.remove(this.o); dispose(this.o); this.o = null; }
     for (const s of this.spots) s.visible = false;
   }
 
@@ -573,7 +573,7 @@ class HeartBossView {
   }
 
   clear() {
-    if (this.o) { this.scene.remove(this.o); this.o = null; }
+    if (this.o) { this.scene.remove(this.o); dispose(this.o); this.o = null; }
     this.spot.visible = false;
   }
 

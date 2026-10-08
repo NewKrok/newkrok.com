@@ -5,8 +5,10 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 // Shared by the game and the model viewer, so a model looks the same in
 // both.
 
-export function makeRenderer(container) {
-  const r = new T.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+// antialias: false for the game, which draws through its own render
+// targets (a multisampled canvas would only cost memory there).
+export function makeRenderer(container, { antialias = true } = {}) {
+  const r = new T.WebGLRenderer({ antialias, powerPreference: "high-performance" });
   r.toneMapping = T.ACESFilmicToneMapping;
   r.toneMappingExposure = 0.92;
   r.shadowMap.enabled = true;

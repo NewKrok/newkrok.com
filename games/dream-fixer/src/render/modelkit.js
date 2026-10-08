@@ -331,6 +331,16 @@ function bake(parts) {
   return out;
 }
 
+// Let go of what an object took on the GPU once it is out of the scene:
+// its own geometries (not the shared shape cache) and textures.
+export function dispose(o) {
+  o.traverse((m) => {
+    if (m.geometry && !m.isSprite && !m.geometry.userData.shared) m.geometry.dispose();
+    const mats = Array.isArray(m.material) ? m.material : [m.material];
+    for (const mat of mats) mat?.map?.dispose();
+  });
+}
+
 // Build a model function into an Object3D: model(b, opts).
 export function make(model, opts = {}, o3 = {}) {
   const b = new Builder();

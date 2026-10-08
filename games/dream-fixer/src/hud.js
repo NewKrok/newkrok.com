@@ -152,7 +152,8 @@ export class Hud {
     // Slowed by an alarm clock: a violet haze and a word.
     const slow = run.slowT > 0;
     if (slow !== this.last.slow) { this.slowEl.classList.toggle("on", slow); this.last.slow = slow; }
-    this.vig.style.opacity = (this.hurt * 0.9 + (hp < 0.35 ? 0.25 + Math.sin(performance.now() / 180) * 0.1 : 0)).toFixed(3);
+    const vig = (this.hurt * 0.9 + (hp < 0.35 ? 0.25 + Math.sin(performance.now() / 180) * 0.1 : 0)).toFixed(2);
+    if (vig !== this.last.vig) { this.vig.style.opacity = vig; this.last.vig = vig; }
     // "+N" by the purse while dust keeps coming in.
     if (this.plusN) {
       this.plusT = 1.2; this.plusSum = (this.plusSum || 0) + this.plusN; this.plusN = 0;
