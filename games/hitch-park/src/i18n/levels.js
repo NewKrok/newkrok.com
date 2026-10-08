@@ -52,6 +52,13 @@ export const LEVEL_TEXT = {
     missilebase: ["Raketenstützpunkt", "Startfenster", "Durchs Nordtor und die Allee hinunter. Shelter D liegt jenseits eines schmalen Vorfelds, Raketen auf beiden Seiten und Splitterschutzwände zwischen den Toren: Such dir den Platz, um acht Meter Rakete herumzuschwenken."],
     railhead: ["Verladebahnhof", "Panzerzug", "Der Zug wird von hinten beladen. Um das Depot herum und den Tieflader den ganzen Bahnsteig entlang rückwärts zur Rampe, zwischen Waggons und Lagerhauswand. Vierzig Tonnen Panzer, eine Lücke kaum doppelt so breit."],
     forestcamp: ["Waldlager", "Unter den Bäumen", "Versteck die Rakete vor Einbruch der Dunkelheit. Das Tarnnetz hängt am Ende eines Stichwegs, der durch die Bäume abbiegt: Von der Lichtung aus musst du acht Meter Rakete rückwärts um die Kurve und darunter setzen."],
+    // Season pack: Hitch-o'-Lantern
+    patch: ["Kürbishof", "Kürbisfeld", "Hol die Kürbisse fürs Dorffest. Durchs Hoftor, um die Strohwand herum, dann den Anhänger an den Hofladen setzen, zwischen den Kürbishaufen und den Pick-up. Achtung auf die losen Kürbisse."],
+    mall: ["Spookmart", "Kostümrausch", "Der Abend vor Halloween, und die ganze Stadt rennt rein, um ein Kostüm zu kaufen: Autos in jedem Winkel abgestellt, überall Einkaufswagen. Schlängel dich von der Straße herein und setz den leeren Anhänger in die einzige freie Bucht — nach Hause fährt er voll."],
+    street: ["Elm Street", "Süßes oder Saures", "Halloween-Nacht, und du bringst den größten Kürbis der Straße heim. Die Nachbarn haben jeden Rasen und die halbe Fahrbahn vollgestellt: Aufblasfiguren, Gräber, Skelette, Heu. Schlängel dich die Straße hinunter, wende im Wendehammer und setz den Transporter in deine Einfahrt."],
+    maze: ["Maislabyrinth", "Ponyreiten", "Die Ponys kommen zu spät, und die Koppel liegt in der Lichtung mitten im Maislabyrinth. Finde mit dem Pferdeanhänger den Weg hindurch und setz ihn zwischen die beiden anderen. In einer Sackgasse lässt sich schlecht wenden."],
+    lakeside: ["Seecamping", "Laubgucker", "Die Herbstfarben am See sind auf dem Höhepunkt. Folge dem Waldweg zum Campingplatz — das nasse Laub ist rutschig, und der Sturm hat Äste heruntergeholt — und setz den kleinen Teardrop auf Platz 6, das Heck zum Wasser."],
+    fair: ["Halloween-Kirmes", "Geisterbahn", "Die Geisterbahn öffnet um Mitternacht, und ihr Auflieger ist noch unterwegs. Auf der Zufahrt um den Rummelplatz — die Besucher haben überall daran geparkt — dann den Auflieger in die freie Lücke zwischen den Lkw der Fahrgeschäfte setzen."],
   },
   es: {
     garden: ["Centro de jardinería", "Muelle de carga", "Recoge el compost en el muelle junto a la puerta de la tienda. Recto hacia atrás, pequeñas correcciones."],
@@ -102,6 +109,13 @@ export const LEVEL_TEXT = {
     missilebase: ["Base de misiles", "Ventana de lanzamiento", "Entra por la puerta norte y baja por la avenida. El refugio D está al otro lado de una plataforma estrecha, con misiles a ambos lados y muros antiexplosión entre las puertas: busca sitio para girar ocho metros de misil."],
     railhead: ["Estación de carga", "Tren de tanques", "El tren se carga por el final. Rodea el depósito y lleva la góndola marcha atrás por todo el andén hasta la rampa, entre los vagones y el muro del almacén. Cuarenta toneladas de tanque en un hueco apenas el doble de ancho."],
     forestcamp: ["Campamento en el bosque", "Bajo los árboles", "Esconde el misil antes de que anochezca. La red está al final de una pista sin salida que gira entre los árboles: desde el claro tienes que llevar ocho metros de misil marcha atrás por la curva hasta debajo de ella."],
+    // Season pack: Hitch-o'-Lantern
+    patch: ["Granja de calabazas", "Campo de calabazas", "Recoge las calabazas para la fiesta del pueblo. Entra por la puerta de la granja, rodea el muro de paja y lleva el remolque marcha atrás hasta el puesto, entre el montón de calabazas y la pick-up. Cuidado con las calabazas sueltas."],
+    mall: ["Spookmart", "Fiebre de disfraces", "La víspera de Halloween, y todo el pueblo ha entrado corriendo a por un disfraz: coches tirados en cualquier ángulo y carritos por todas partes. Entra desde la calle esquivándolos y mete el remolque vacío marcha atrás en la única plaza libre: volverá lleno a casa."],
+    street: ["Elm Street", "Truco o trato", "Noche de Halloween, y llevas a casa la calabaza más grande de la calle. Los vecinos han llenado cada jardín y media calzada: hinchables, tumbas, esqueletos, paja. Baja la calle esquivándolo todo, da la vuelta en la rotonda y sube el portacoches marcha atrás por tu entrada."],
+    maze: ["Laberinto de maíz", "Paseos en poni", "Los ponis llegan tarde, y el cercado está en el claro del centro del laberinto. Encuentra el camino con el remolque de caballos y mételo marcha atrás entre los otros dos. Un callejón sin salida no es sitio para dar la vuelta."],
+    lakeside: ["Camping del lago", "Mirones de hojas", "El otoño está en su mejor momento en el lago. Sigue la pista del bosque hasta el camping —las hojas mojadas resbalan y la tormenta ha tirado ramas— y mete el pequeño teardrop marcha atrás en la parcela 6, con la cola hacia el agua."],
+    fair: ["Feria de Halloween", "El tren fantasma", "El tren fantasma abre a medianoche y su semirremolque aún está en la carretera. Rodea la feria por el camino de servicio —los visitantes han aparcado a lo largo de todo él— y mete el semirremolque marcha atrás en el hueco libre entre los camiones de las atracciones."],
   },
   hu: {
     garden: ["Kertészet", "Rakodóhely", "Vedd fel a komposztot a bolt ajtaja melletti rakodóhelyen. Egyenesen hátra, apró korrekciókkal."],
@@ -152,6 +166,13 @@ export const LEVEL_TEXT = {
     missilebase: ["Rakétabázis", "Indítási ablak", "Be az északi kapun, le a sugárúton. A D hangár egy szűk előtér túloldalán van, két oldalt rakéták, a kapuk között kilógó robbanásvédő falak: keress helyet, ahol megfordítod a nyolcméteres rakétát."],
     railhead: ["Vasúti rakodó", "Tankvonat", "A vonatot a végéről rakodják. Kerüld meg a depót, és tolasd a mélybölcsőst végig a rakodórámpáig, a vagonok és a raktár fala között. Negyven tonna tank, alig kétszer olyan széles résben."],
     forestcamp: ["Erdei tábor", "A fák alatt", "Rejtsd el a rakétát sötétedés előtt. Az álcaháló egy zsákutca végén van, ami kanyarodik a fák között: a tisztásról a kanyaron át kell alátolatnod a nyolcméteres rakétát."],
+    // Season pack: Hitch-o'-Lantern
+    patch: ["Tökfarm", "Tökföld", "Vidd el a tököket a falunapra. Be a farm kapuján, kerüld meg a szalmafalat, aztán tolass a pótkocsival a standhoz, a tökkupac és a pickup közé. Vigyázz a szétgurult tökökre."],
+    mall: ["Spookmart", "Jelmezroham", "Halloween előestéje, és az egész város jelmezért rohant be: a kocsik mindenhogy beállva, bevásárlókocsik mindenfelé. Kanyarogj be az utcáról, és tolasd be az üres utánfutót az egyetlen szabad helyre — tele fog hazamenni."],
+    street: ["Elm Street", "Csokit vagy csalunk", "Halloween éjjel az utca legnagyobb tökét viszed haza. A szomszédok minden kertet és a fél úttestet teleraktak: felfújható figurák, sírkövek, csontvázak, szalma. Kerülgesd végig az utcát, fordulj meg a zsákutca végén, és tolasd fel az autószállítót a beállódra."],
+    maze: ["Kukoricalabirintus", "Pónilovaglás", "Késnek a pónik, a karám pedig a kukoricalabirintus közepén lévő tisztáson van. Találd meg az utat a lószállítóval, aztán tolasd be a másik kettő közé. Zsákutcában nehéz megfordulni."],
+    lakeside: ["Tóparti kemping", "Levélnézők", "Tetőfokán az ősz a tónál. Kövesd az erdei utat a kempingig — a vizes falevél csúszik, és a vihar ágakat tört le —, aztán tolasd be a kis teardropot a 6-os helyre, farral a víz felé."],
+    fair: ["Halloweeni vásár", "Szellemvasút", "A szellemvasút éjfélkor nyit, és a pótkocsija még úton van. Kerüld meg a vásárteret a szervizúton — a látogatók végig mellette parkolnak —, aztán tolasd be a félpótkocsit a mutatványosok kamionjai közötti szabad helyre."],
   },
   zh: {
     garden: ["园艺中心", "装货区", "在店门旁的装货区取堆肥。笔直倒车，小幅修正。"],
@@ -202,6 +223,13 @@ export const LEVEL_TEXT = {
     missilebase: ["导弹基地", "发射窗口", "从北门进，沿大道下行。D 号掩蔽库在一条狭窄停机坪的对面，两侧都是导弹，库门之间还伸出防爆墙：找出能调转八米长导弹的空间。"],
     railhead: ["铁路装载站", "坦克专列", "火车从尾端装载。绕过仓库，把低平板挂车沿站台一路倒到坡道，夹在车厢和仓库墙之间。四十吨的坦克，空隙不到车宽的两倍。"],
     forestcamp: ["林中营地", "林荫之下", "天黑前把导弹藏好。伪装网在一条穿过树林拐弯的死胡同尽头：你得从空地把八米长的导弹倒着拐过弯，停到网下。"],
+    // Season pack: Hitch-o'-Lantern
+    patch: ["南瓜农场", "南瓜田", "为村里的派对取南瓜。从农场大门进去，绕过草垛墙，再把拖车倒到摊位前，停在南瓜堆和皮卡之间。小心滚落的南瓜。"],
+    mall: ["Spookmart 超市", "变装大抢购", "万圣节前夜，全镇的人都冲进来买变装服：车子歪七扭八地停着，购物车满地都是。从街上绕进来，把空拖车倒进唯一的空位——回家时它会装得满满的。"],
+    street: ["榆树街", "不给糖就捣蛋", "万圣节之夜，你要把整条街最大的南瓜运回家。邻居们把每片草坪和半条马路都摆满了：充气玩偶、墓碑、骷髅、干草。绕过它们驶到街尾，在回车场掉头，再把运车拖车倒上你家的车道。"],
+    maze: ["玉米迷宫", "骑小马", "小马要迟到了，马场在玉米迷宫正中的空地上。拖着马匹拖车找到出路，再把它倒进另外两辆之间。死胡同里可不好掉头。"],
+    lakeside: ["湖畔营地", "赏叶客", "湖边的秋色正浓。沿林间小路开到营地——湿落叶很滑，暴风雨还吹断了树枝——再把小水滴房车倒进 6 号营位，车尾朝向湖水。"],
+    fair: ["万圣节游乐会", "幽灵列车", "幽灵列车午夜开放，它的挂车还在路上。沿服务道绕游乐场一圈——游客沿路到处停车——然后把半挂车倒进游乐设施卡车之间的空位。"],
   },
   fr: {
     garden: ["Jardinerie", "Quai de chargement", "Récupère le compost au quai de chargement près de la porte du magasin. Tout droit en arrière, petites corrections."],
@@ -252,5 +280,12 @@ export const LEVEL_TEXT = {
     missilebase: ["Base de missiles", "Fenêtre de tir", "Entre par la porte nord et descends l'allée. L'abri D est de l'autre côté d'une aire étroite, des missiles des deux côtés et des murs pare-souffle entre les portes : trouve la place de faire pivoter huit mètres de missile."],
     railhead: ["Gare militaire", "Train de chars", "Le train se charge par l'arrière. Fais le tour du dépôt et recule le porte-char tout le long du quai jusqu'à la rampe, entre les wagons et le mur de l'entrepôt. Quarante tonnes de char, un passage à peine deux fois plus large."],
     forestcamp: ["Camp en forêt", "Sous les arbres", "Cache le missile avant la nuit. Le filet est au bout d'une piste sans issue qui tourne entre les arbres : depuis la clairière, il faut reculer huit mètres de missile dans le virage jusque sous le filet."],
+    // Season pack: Hitch-o'-Lantern
+    patch: ["Ferme aux citrouilles", "Champ de citrouilles", "Va chercher les citrouilles pour la fête du village. Entre par le portail de la ferme, contourne le mur de paille, puis recule la remorque jusqu'à l'étal, entre le tas de citrouilles et le pick-up. Attention aux citrouilles qui ont roulé."],
+    mall: ["Spookmart", "La ruée aux costumes", "La veille d'Halloween, toute la ville a couru acheter un costume : voitures garées n'importe comment, chariots partout. Faufile-toi depuis la rue et recule la remorque vide dans la seule place libre — elle rentrera pleine."],
+    street: ["Elm Street", "Des bonbons ou un sort", "Soir d'Halloween, et tu rapportes la plus grosse citrouille de la rue. Les voisins ont rempli chaque pelouse et la moitié de la chaussée : gonflables, tombes, squelettes, paille. Descends la rue en slalomant, fais demi-tour dans l'impasse et recule le porte-voiture dans ton allée."],
+    maze: ["Labyrinthe de maïs", "Balades à poney", "Les poneys sont en retard, et le paddock est dans la clairière au milieu du labyrinthe. Trouve le chemin avec le van à chevaux, puis recule-le entre les deux autres. Une impasse n'est pas l'endroit pour faire demi-tour."],
+    lakeside: ["Camping du lac", "Feuilles d'automne", "L'automne est à son sommet au bord du lac. Suis la piste forestière jusqu'au camping — les feuilles mouillées glissent et la tempête a fait tomber des branches — puis recule la petite teardrop sur l'emplacement 6, l'arrière vers l'eau."],
+    fair: ["Fête d'Halloween", "Le train fantôme", "Le train fantôme ouvre à minuit et sa semi-remorque est encore sur la route. Fais le tour de la fête par la voie de service — les visiteurs se sont garés tout du long — puis recule la semi dans la place libre entre les camions des manèges."],
   },
 };

@@ -1,7 +1,7 @@
 import { DT, PARK_HOLD, SCORE, clamp, fmtTime, fmtPar } from "./config.js";
 import { quantizeInput, createRecorder, scoreRun, holdStep, levelFingerprint } from "./run.js";
 import { createGhost } from "./ghost.js";
-import { LEVELS, CHAPTERS } from "./levels.js";
+import { LEVELS, CHAPTERS, SEASONS, MAIN_LEVELS, seasonOf, packOf } from "./levels.js";
 import { createSim } from "./sim.js";
 import { Scene3D } from "./render/scene3d.js";
 import { drawLevelThumb, drawRigIcon } from "./render/topdown.js";
@@ -28,6 +28,11 @@ const settings = loadSettings();
 setLang(detectLang(settings.lang));
 const trailerName = (L) => (L.trailer === "semi" ? t("tractorSemi") : `${t("veh_" + (L.vehicle ?? "car"))} + ${t("tr_" + L.trailer)}`);
 const camName = (m) => t("cam" + m);
+// A job's number: "12" in the main game, "🎃3" in a season pack.
+const jobNo = (L) => (L.season ? `${seasonOf(L).icon}${L.num}` : L.num);
+const jobLabel = (L) => t("job", { n: jobNo(L) });
+const seasonLevels = (id) => LEVELS.filter((l) => l.season === id);
+const PACK_SIZE = new Map(LEVELS.map((l) => [l.season, packOf(l).length]));
 const progress = loadProgress(LEVELS);
 const audio = new Audio();
 const hud = new Hud($("#hud"));
@@ -77,7 +82,7 @@ function back() {
   if (prev) {
     $$(".screen:not(#loading)").forEach((s) => s.classList.toggle("active", s.id === prev));
     updateIngameButtons();
-    if (prev === "menu-levels") renderLevelSelect();
+    if (prev === "menu-levels" || prev === "menu-seasons") renderLevelSelect(prev);
     if (prev === "menu-main") renderMain();
     return;
   }
@@ -99,11 +104,12 @@ const bind = (name, value, root = document) => $$(`[data-bind="${name}"]`, root)
 
 // ── Main menu ────────────────────────────────────────────────────────────
 function renderMain() {
-  bind("stars", totalStars(progress));
-  bind("maxStars", LEVELS.length * 3);
-  const any = progress.best.some(Boolean);
-  const next = firstUnfinished(progress, LEVELS.length);
+  bind("stars", totalStars(progress, MAIN_LEVELS));
+  bind("maxStars", MAIN_LEVELS.length * 3);
+  const any = MAIN_LEVELS.some((l) => progress.best[l.index]);
+  const next = firstUnfinished(progress, MAIN_LEVELS);
   bind("continueLabel", any ? t("continueJob", { n: next + 1 }) : t("play"));
+  bind("seasonsLabel", `${SEASONS[SEASONS.length - 1].icon} ${t("seasons")}`);
   const link = (href, label) => `<a href="${href}" target="_blank" rel="noopener">${label}</a>`;
   $("[data-bind=madeBy]").innerHTML = t("madeBy", { name: link("https://x.com/KSomoracz", "Krisztian Somoracz") });
   $("[data-bind=techLine]").innerHTML = t("techLine", { nape: link("https://napejs.org/", "nape-js"), three: link("https://threejs.org/", "three.js") });
@@ -113,7 +119,7 @@ function goMain() {
   trackQuit();
   G.phase = "menu";
   audio.setMusic(true);
-  const idx = firstUnfinished(progress, LEVELS.length);
+  const idx = firstUnfinished(progress, MAIN_LEVELS);
   if (sim.level !== LEVELS[idx]) { G.levelIdx = idx; sim.load(LEVELS[idx]); }
   hud.clearFx();
   renderMain();
@@ -122,34 +128,43 @@ function goMain() {
 
 // ── Level select ─────────────────────────────────────────────────────────
 let thumbsBuilt = false, thumbsLang = "";
+// The main game's chapters on one screen, the season packs on another.
 function buildLevelSelect() {
-  const root = $("#sites");
-  root.innerHTML = "";
-  CHAPTERS.forEach((ch, ci) => {
+  const section = (root, cls, head, levels) => {
     const sec = document.createElement("section");
-    sec.className = "site";
-    const levels = LEVELS.filter((l) => l.chapter === ci);
-    sec.innerHTML = `<h3>${t("chapter", { n: ci + 1, name: t("ch" + (ci + 1)) })} <small>${t("chs" + (ci + 1))}</small></h3><div class="grid"></div>`;
+    sec.className = cls;
+    sec.innerHTML = `<h3>${head}</h3><div class="grid"></div>`;
     const grid = $(".grid", sec);
     for (const l of levels) {
       const lt = levelText(l);
       const b = document.createElement("button");
       b.className = "lvl";
       b.dataset.level = l.index;
-      b.innerHTML = `<canvas width="360" height="200"></canvas><span class="num">${l.index + 1}</span>
+      b.innerHTML = `<canvas width="360" height="200"></canvas><span class="num">${jobNo(l)}</span>
         <div class="meta"><div class="title">${lt.title}</div><div class="sub">${lt.name} · ${t("tr_" + l.trailer)} · ${t("par", { t: fmtPar(l.par) })}</div>
         <div class="st"><span class="stars"></span><small class="score"></small></div></div>`;
       grid.appendChild(b);
     }
     root.appendChild(sec);
-  });
+  };
+  const root = $("#sites");
+  root.innerHTML = "";
+  CHAPTERS.forEach((ch, ci) => section(root, "site", `${t("chapter", { n: ci + 1, name: t("ch" + (ci + 1)) })} <small>${t("chs" + (ci + 1))}</small>`, LEVELS.filter((l) => l.chapter === ci)));
+  const seasons = $("#season-sites");
+  seasons.innerHTML = "";
+  // Newest pack first.
+  for (const s of [...SEASONS].reverse()) {
+    section(seasons, `site season season-${s.id}`, `${s.icon} ${t("season_" + s.id)} <small>${t("seasons_" + s.id)}</small>
+      <span class="pack-stars"><span class="star-i">★</span> <b data-bind="packStars_${s.id}">0</b> / ${PACK_SIZE.get(s.id) * 3}</span>`, seasonLevels(s.id));
+  }
 }
-function renderLevelSelect() {
+function renderLevelSelect(screen = "menu-levels") {
   if (!thumbsBuilt || thumbsLang !== getLang()) {
     thumbsLang = getLang();
     buildLevelSelect();
-    // Thumbnails are drawn a few per frame so the screen opens at once.
-    const cards = $$(".lvl");
+    // Thumbnails are drawn a few per frame so the screen opens at once,
+    // the ones on the screen being opened first.
+    const cards = [...$$(`#${screen} .lvl`), ...$$(".lvl").filter((c) => !c.closest(`#${screen}`))];
     let i = 0;
     const drawSome = () => {
       for (let k = 0; k < 3 && i < cards.length; k++, i++) drawLevelThumb($("canvas", cards[i]), LEVELS[Number(cards[i].dataset.level)]);
@@ -158,21 +173,23 @@ function renderLevelSelect() {
     requestAnimationFrame(drawSome);
     thumbsBuilt = true;
   }
-  bind("stars", totalStars(progress));
-  const next = firstUnfinished(progress, LEVELS.length);
+  bind("stars", totalStars(progress, MAIN_LEVELS));
+  for (const s of SEASONS) bind(`packStars_${s.id}`, totalStars(progress, seasonLevels(s.id)));
+  // The next job to do, in the main game and in every pack.
+  const next = new Set([MAIN_LEVELS, ...SEASONS.map((s) => seasonLevels(s.id))].map((ls) => firstUnfinished(progress, ls)));
   for (const card of $$(".lvl")) {
     const i = Number(card.dataset.level);
     const best = progress.best[i];
     const open = isUnlocked(progress, i);
     card.classList.toggle("locked", !open);
-    card.classList.toggle("next", open && !best && i === next);
+    card.classList.toggle("next", open && !best && next.has(i));
     let lock = $(".lock", card);
     if (!open && !lock) { lock = document.createElement("span"); lock.className = "lock"; lock.textContent = "🔒"; card.appendChild(lock); }
     if (open && lock) lock.remove();
     const st = best?.stars ?? 0;
     $(".stars", card).innerHTML = [0, 1, 2].map((k) => `<span class="${k < st ? "star-i" : "off"}">★</span>`).join("");
     $(".score", card).textContent = best ? t("pts", { n: best.score }) : "";
-    card.setAttribute("aria-label", `${t("job", { n: i + 1 })}: ${levelText(LEVELS[i]).title}${open ? "" : " 🔒"}`);
+    card.setAttribute("aria-label", `${jobLabel(LEVELS[i])}: ${levelText(LEVELS[i]).title}${open ? "" : " 🔒"}`);
   }
 }
 
@@ -190,7 +207,7 @@ function openIntro(idx) {
   G.introPreview = false;           // intro shows the whole site until a view is picked
   const root = $("#intro");
   const lt = levelText(L);
-  bind("introSite", `${t("job", { n: idx + 1 })} · ${lt.name}`, root);
+  bind("introSite", `${jobLabel(L)} · ${lt.name}`, root);
   bind("introTitle", lt.title, root);
   bind("introBrief", lt.brief, root);
   bind("introTrailer", trailerName(L), root);
@@ -212,12 +229,12 @@ function openIntro(idx) {
   showScreen("intro");
 }
 
-const cleared = () => progress.best.filter(Boolean).length;
+const cleared = () => MAIN_LEVELS.filter((l) => progress.best[l.index]).length;
 // Leaving a level from the pause menu: how far they got before giving up.
 function trackQuit() {
   if (G.phase === "paused") track("level_quit", { ...levelInfo(LEVELS[G.levelIdx]), time_s: Math.round(G.clock), bumps: sim.hits + sim.crashes });
 }
-const levelInfo = (L) => ({ level_id: L.id, level_number: L.index + 1, chapter: L.chapter + 1, vehicle: L.vehicle });
+const levelInfo = (L) => ({ level_id: L.id, level_number: L.num, ...(L.season ? { season: L.season } : { chapter: L.chapter + 1 }), vehicle: L.vehicle });
 
 function startDriving({ retry = false } = {}) {
   if (G.phase !== "intro" && G.phase !== "play") return;
@@ -272,7 +289,11 @@ function finishLevel() {
   const { score, stars, time, timeBonus, accBonus } = scoreRun(L, stats);
   const rec = recordResult(progress, G.levelIdx, { stars, score, time });
   track("level_complete", { ...levelInfo(L), stars, score, time_s: Math.round(time), bumps, first_clear: rec.first });
-  if (rec.first && cleared() === LEVELS.length) track("all_complete", { stars: totalStars(progress) });
+  const pack = packOf(L);
+  if (rec.first && pack.every((l) => progress.best[l.index])) {
+    if (L.season) track("season_complete", { season: L.season, stars: totalStars(progress, pack) });
+    else track("all_complete", { stars: totalStars(progress, pack) });
+  }
   G.run = { level: L, ...stats, score, stars, replay: G.rec.encode(), sent: false };
   // Your best run's ghost; a best set before ghosts existed has no replay,
   // so until it is beaten the latest parked run stands in.
@@ -302,7 +323,7 @@ function showResult() {
   bind("resultScore", String(r.score), root);
   renderLbLine();
   $("[data-bind=resultBest]", root).classList.toggle("hidden", !r.isBest);
-  const last = G.levelIdx === LEVELS.length - 1;
+  const last = LEVELS[G.levelIdx + 1]?.season !== L.season || G.levelIdx === LEVELS.length - 1;
   bind("nextLabel", last ? t("allJobs") : t("nextJob"), root);
   const stars = $$(".rs", root);
   stars.forEach((s) => s.classList.remove("on", "shown"));
@@ -314,22 +335,28 @@ function showResult() {
   showScreen("result");
 }
 
+// The next job in the main game or in the same season pack; after its last
+// one, back to the list.
 function nextLevel() {
-  const n = G.levelIdx + 1;
-  if (n >= LEVELS.length) { openLevels(); toast(t("lastJob")); return; }
+  const L = LEVELS[G.levelIdx], n = G.levelIdx + 1;
+  if (n >= LEVELS.length || LEVELS[n].season !== L.season) { openLevels(); toast(t(L.season ? "lastSeasonJob" : "lastJob")); return; }
   openIntro(n);
 }
 
-function openLevels() {
+// `which`: "main" or "seasons"; by default the list the open job is on.
+function openLevels(which) {
   trackQuit();
+  const seasonal = which ? which === "seasons" : !!LEVELS[G.levelIdx]?.season;
   if (G.phase === "paused" || G.phase === "done" || G.phase === "intro") {
     G.phase = "menu";
     audio.setMusic(true);
   }
-  renderLevelSelect();
-  showScreen("menu-levels", { push: G.phase === "menu" && !!$("#menu-main.active") });
-  // Start at the job last picked, not at the top of the list.
-  const card = $(`.lvl[data-level="${G.levelIdx}"]`);
+  const id = seasonal ? "menu-seasons" : "menu-levels";
+  renderLevelSelect(id);
+  showScreen(id, { push: G.phase === "menu" && !!$("#menu-main.active") });
+  if (seasonal) track("seasons_open", {});
+  // Start at the job last picked (or the next one to do), not at the top of the list.
+  const card = $(`#${id} .lvl[data-level="${G.levelIdx}"]`) ?? $(`#${id} .lvl.next`);
   if (card) {
     card.focus({ preventScroll: true });
     requestAnimationFrame(() => card.scrollIntoView({ block: "center" }));
@@ -404,7 +431,7 @@ async function renderBoard() {
   $(".board").classList.toggle("overall", overall);
   const L = LEVELS[board.level];
   const lt = levelText(L);
-  bind("boardSite", t("job", { n: board.level + 1 }));
+  bind("boardSite", jobLabel(L));
   bind("boardTitle", `${lt.name} · ${lt.title}`);
   $("[data-bind=boardHead]").innerHTML = `<tr><th>#</th><th>${t("lb_col_name")}</th>${overall ? `<th class="num t">${t("lb_col_jobs")}</th>` : `<th class="num t">${t("lb_col_time")}</th>`}<th class="num">${t("lb_col_score")}</th></tr>`;
   bind("boardMe", lb.player ? t("lb_playingAs", { name: lb.player.name }) : "");
@@ -480,7 +507,7 @@ async function shareGhost() {
   const s = G.lbState, L = LEVELS[G.levelIdx];
   if (!s?.ghost) return;
   const url = `${location.origin}/gamer-zone/hitch-park?ghost=${s.ghost}`;
-  const text = t("gh_shareText", { score: s.score, n: L.index + 1 });
+  const text = t("gh_shareText", { score: s.score, n: jobNo(L) });
   track("ghost_share", levelInfo(L));
   // Phones and tablets: the share sheet (it has Copy, chat apps …). On a
   // desktop the sheet often has no Copy (Safari on macOS), so copy at once.
@@ -516,7 +543,7 @@ function showNotices(list) {
   const msgs = list.map((n) => {
     const L = LEVELS.find((l) => l.id === n.level);
     if (!L) return null;
-    const job = L.index + 1;
+    const job = jobNo(L);
     return n.status === "rejected"
       ? t("lb_notice_rejected", { n: job })
       : t("lb_notice_adjusted", { n: job, score: n.score, time: fmtTime(n.steps * DT) });
@@ -602,7 +629,7 @@ function escapeAction() {
   else if (G.phase === "paused" && onScreen("pause")) resume();
   else if (G.phase === "paused" && onScreen("menu-settings")) back();
   else if (G.phase === "intro" || (G.phase === "done" && onScreen("result"))) openLevels();
-  else if (screenStack.length || onScreen("menu-levels") || onScreen("menu-howto") || onScreen("menu-settings")) back();
+  else if (screenStack.length || onScreen("menu-levels") || onScreen("menu-seasons") || onScreen("menu-howto") || onScreen("menu-settings")) back();
 }
 const toggleRearCam = () => { settings.rearCam = !settings.rearCam; saveSettings(settings); toast(t(settings.rearCam ? "rearOn" : "rearOff")); };
 const toggleGuide = () => { settings.guide = !settings.guide; saveSettings(settings); toast(t(settings.guide ? "guideOn" : "guideOff")); };
@@ -617,7 +644,7 @@ function setCamMode(m, { announce = false } = {}) {
   if (announce) toast(t("camToast", { mode: camName(m) }));
 }
 function cycleCamera() { setCamMode((G.camMode + 1) % 3, { announce: true }); trackCamera("in_game"); }
-const trackCamera = (from) => track("camera_change", { camera: ["follow", "chase", "overview"][G.camMode] ?? G.camMode, from, level_number: G.levelIdx + 1 });
+const trackCamera = (from) => track("camera_change", { camera: ["follow", "chase", "overview"][G.camMode] ?? G.camMode, from, level_number: LEVELS[G.levelIdx].num });
 function updateCamLabel() { const el = $(".cam-label"); if (el) el.textContent = camName(G.camMode); }
 function renderViewPick() {
   for (const b of $$(".vp")) b.classList.toggle("on", Number(b.dataset.cam) === G.camMode);
@@ -697,8 +724,10 @@ app.addEventListener("click", (e) => {
   const a = btn.dataset.action;
   if (a !== "back") audio.play("click");
   switch (a) {
-    case "continue": openIntro(firstUnfinished(progress, LEVELS.length)); break;
-    case "levels": openLevels(); break;
+    case "continue": openIntro(firstUnfinished(progress, MAIN_LEVELS)); break;
+    // From the main menu: the chapters; from a job: the list it is on.
+    case "levels": openLevels(btn.closest("#menu-main") ? "main" : undefined); break;
+    case "seasons": openLevels("seasons"); break;
     case "howto": showScreen("menu-howto", { push: true }); break;
     case "settings": renderSettings(); showScreen("menu-settings", { push: true }); break;
     case "back": back(); break;
@@ -978,9 +1007,9 @@ function frame(now) {
   G.snapCam = false;
   hud.draw({
     sim, phase: G.phase, clock: G.clock, hold: G.hold,
-    levelIndex: G.levelIdx, levelCount: LEVELS.length,
+    levelLabel: `${jobNo(LEVELS[G.levelIdx])} / ${PACK_SIZE.get(LEVELS[G.levelIdx].season)}`,
     joy: G.phase === "play" && joy ? { ...joy, steerOnly: settings.pointer === "steer" } : null, pip,
-    project: (x, y, z) => scene.project(x, y, z),
+    project: (x, y, z) => scene.project(x, y, z), overview: G.camMode === 2,
   });
 }
 
@@ -1014,7 +1043,7 @@ function boot() {
     if (ok) lb.notices().then(showNotices);
   });
   openSharedGhost();
-  track("game_open", { lang: getLang(), returning: cleared() > 0, levels_cleared: cleared(), stars: totalStars(progress), embedded: window.parent !== window });
+  track("game_open", { lang: getLang(), returning: cleared() > 0, levels_cleared: cleared(), stars: totalStars(progress, MAIN_LEVELS), embedded: window.parent !== window });
   requestAnimationFrame((t) => { last = t; frame(t); });
   // Let the first frames render behind the loader, then reveal.
   setTimeout(() => $("#loading").classList.remove("active"), 250);

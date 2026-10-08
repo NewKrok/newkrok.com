@@ -57,6 +57,7 @@
           <div class="menu-buttons">
             <button class="btn primary" data-action="continue"><span data-bind="continueLabel"></span></button>
             <button class="btn" data-action="levels" data-i18n="levels"></button>
+            <button class="btn seasons-btn" data-action="seasons"><span data-bind="seasonsLabel"></span></button>
             <button class="btn lb-only hidden" data-action="board" data-i18n="lb_open"></button>
             <button class="btn" data-action="howto" data-i18n="howto"></button>
             <button class="btn" data-action="settings" data-i18n="settings"></button>
@@ -73,6 +74,17 @@
           <div class="star-total"><span class="star-i">★</span> <b data-bind="stars">0</b> / <span data-bind="maxStars">90</span></div>
         </header>
         <div id="sites"></div>
+      </section>
+
+      <!-- Season packs: extra jobs outside the main game -->
+      <section id="menu-seasons" class="screen scroll">
+        <header class="bar-head">
+          <button class="btn ghost" data-action="back" data-i18n="back"></button>
+          <h2 data-i18n="seasonsTitle"></h2>
+          <span></span>
+        </header>
+        <p class="seasons-note" data-i18n="seasonsNote"></p>
+        <div id="season-sites"></div>
       </section>
 
       <!-- How to play -->

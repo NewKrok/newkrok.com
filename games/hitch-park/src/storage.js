@@ -37,8 +37,10 @@ const V2_ORDER = [
 ];
 
 let order = [];
+let opensAlone = [];
 export function loadProgress(levels) {
   order = levels.map((l) => l.id);
+  opensAlone = levels.map((l, i) => i === 0 || !!l.first);
   let byId = read(KEY_PROGRESS)?.best;
   if (!byId || typeof byId !== "object" || Array.isArray(byId)) {
     byId = {};
@@ -65,13 +67,14 @@ export function recordResult(progress, index, { stars, score, time }) {
   return { isBest, first: !prev };
 }
 
-// A level is open when it is the first one, already parked, or the one
-// before it is parked (a level added mid-way doesn't lock the ones after it).
-export const isUnlocked = (progress, i) => i === 0 || !!progress.best[i] || !!progress.best[i - 1];
-export const totalStars = (progress) => progress.best.reduce((s, b) => s + (b?.stars ?? 0), 0);
-export function firstUnfinished(progress, count) {
-  for (let i = 0; i < count; i++) if (!progress.best[i]) return i;
-  return count - 1;
+// A level is open when it is the first one of the main game or of a season
+// pack, already parked, or the one before it is parked (a level added
+// mid-way doesn't lock the ones after it).
+export const isUnlocked = (progress, i) => !!opensAlone[i] || !!progress.best[i] || !!progress.best[i - 1];
+// Stars and the next job to do, over a list of levels (the main game or a pack).
+export const totalStars = (progress, levels) => levels.reduce((s, l) => s + (progress.best[l.index]?.stars ?? 0), 0);
+export function firstUnfinished(progress, levels) {
+  return (levels.find((l) => !progress.best[l.index]) ?? levels[levels.length - 1]).index;
 }
 
 // The replay of the best run per level, for the "my best" ghost. Kept with

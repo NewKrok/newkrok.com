@@ -273,6 +273,7 @@ const SURF = {
   mud:      { base: "#5e4630", dots: ["#4a3624", "#6f5236"], a: 0.3, size: 2.4 },
   sand:     { base: "#d9c48e", dots: ["#c9b27a", "#ead8a4", "#bfa870"], a: 0.28, size: 1.5 },
   snow:     { base: "#e8eef4", dots: ["#d3dde8", "#ffffff", "#c9d4e0"], a: 0.35, size: 2.4 },
+  leaves:   { base: "#5e6a34", dots: ["#c8641e", "#e09a2a", "#9a3a1c", "#7a5a2a", "#d8b040"], a: 0.75, size: 2.6 },
   water:    { base: "#23657f", water: true },
   ramp:     { base: "#86826f", grooves: 5 },
   deck:     { base: "#5a6068", dots: ["#4a4f55", "#6b7179"], a: 0.2, size: 1.4, joints: 48 },
@@ -510,7 +511,9 @@ export function drawGround(ctx, lvl, S = 1) {
 
 // ── Static obstacles, top-down (thumbnails) ──────────────────────────────
 const WALL_COLORS = { stone: 0x9a9184, brick: 0xa0523d, barn: 0x9a3b2a, wood: 0x8a6238, white: 0xf2f2ee, hangar: 0x9aa3ab, hull: 0x2b3a4a, site: 0xa3a6aa };
-function drawStaticTop(p, def) {
+const AUTUMN_LEAF = [0xc8641e, 0xe09a2a, 0x9a3a1c, 0xb8862a];
+function drawStaticTop(p, def, lvl) {
+  const autumn = lvl?.foliage === "autumn";
   const k = def.kind, x = def.x, y = def.y, a = def.a ?? 0;
   const box = (w, h) => xform(x, y, a, rectPts(-w / 2, -h / 2, w / 2, h / 2));
   const circle = (r, col) => p.circle(x, y, r, col);
@@ -519,9 +522,26 @@ function drawStaticTop(p, def) {
     case "pillar": p.poly(box(def.s + 2, def.s + 2), 0xe8c547); p.poly(box(def.s - 1, def.s - 1), 0xa3a6aa); return;
     case "bollard": case "post": circle(def.r ?? 2.5, def.flag ?? 0xf2c230); return;
     case "lamp": case "hydrant": case "bin": case "barrel": circle(3.5, 0x3d434b); return;
-    case "tree": p.circle(x + 3, y + 4, def.r, 0x000000, 0.22); circle(def.r, 0x3d7a2a); p.circle(x - def.r * 0.25, y - def.r * 0.3, def.r * 0.4, 0x5f9e3f); return;
+    case "tree": {
+      const leaf = autumn ? AUTUMN_LEAF[(Math.abs(x * 3 + y) | 0) % 4] : 0x3d7a2a;
+      p.circle(x + 3, y + 4, def.r, 0x000000, 0.22); circle(def.r, leaf); p.circle(x - def.r * 0.25, y - def.r * 0.3, def.r * 0.4, autumn ? 0xe8b048 : 0x5f9e3f);
+      return;
+    }
     case "pine": circle(def.r * 0.8, 0x24502f); p.circle(x, y, def.r * 0.4, 0x2f6a3c); return;
-    case "bush": circle(def.r, 0x4d7c30); return;
+    case "bush": circle(def.r, autumn ? 0xa8521c : 0x4d7c30); return;
+    case "pumpkin": circle(def.r, 0xe8751a); p.circle(x, y, def.r * 0.25, 0x4a6a22); return;
+    case "inflatable": circle(def.r, { pumpkin: 0xe8751a, cat: 0x1c1a22 }[def.v] ?? 0xf6f8ff); return;
+    case "skeleton": circle(2.5, 0xeeeadc); return;
+    case "trolley": p.poly(box(9, 6), 0xc9d1da); return;
+    case "scarecrow": p.poly(box(14, 3), 0x8a6238); circle(3, 0xd9b95a); return;
+    case "grave": p.poly(box(def.w, def.h), 0x8d9096, 1, 0x55585e, 0.8); return;
+    case "corn": p.poly(box(def.w, def.h), 0xc9a640, 1, 0x7a8a2a, 1); return;
+    case "church": {
+      p.poly(box(def.w, def.h), 0x3a3d48, 1, 0x9a9184, 1.5);
+      const T0 = def.tower ?? 36, u = def.w / 2 - T0 / 2;
+      p.poly(xform(x + Math.cos(a) * u, y + Math.sin(a) * u, a, rectPts(-T0 / 2, -T0 / 2, T0 / 2, T0 / 2)), 0x9a9184, 1, 0x3a3d48, 1);
+      return;
+    }
     case "rock": circle(def.r, 0x8a8f96); return;
     case "island": circle(def.r, 0xa7a39a); circle(def.r - 3, 0x3f7a2c); return;
     case "hay": circle(def.r, 0xd9b95a); return;
@@ -582,7 +602,7 @@ export function drawLevelThumb(canvas, lvl) {
   drawGround(ctx, lvl, Math.max(0.5, s));
   const p = new Painter(ctx);
   for (const c of lvl.parked) drawCarTop(p, CAR_TYPES[c.type], c.color, c.x, c.y, c.a);
-  for (const st of lvl.statics) drawStaticTop(p, st);
+  for (const st of lvl.statics) drawStaticTop(p, st, lvl);
   for (const m of lvl.mines ?? []) p.circle(m.x, m.y, 3, 0x2c2e24);
   const b = lvl.bay;
   p.poly(xform(b.x, b.y, b.a, rectPts(-b.l / 2, -b.w / 2, b.l / 2, b.w / 2)), 0xffd166, 0.55, 0xffd166, 3 / s * 0.6);

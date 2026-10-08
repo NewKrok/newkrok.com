@@ -19,6 +19,10 @@ export const SUNS = {
   golden: { dir: [-0.8, -0.3, 0.45], color: 0xffc27a, i: 2.4, sky: 0x9ab8e0, gnd: 0x5a6a30, hemi: 0.95, top: "#6f9ad0", bot: "#f6d6a0", fog: 0xe8d8b8, lamps: false, env: 0.85 },
   dusk:   { dir: [0.9, 0.3, 0.26], color: 0xff9a5a, i: 1.5, sky: 0x46558a, gnd: 0x2a2424, hemi: 0.6, top: "#1d2447", bot: "#f0a066", fog: 0x6a5060, lamps: true, env: 0.45 },
   night:  { dir: [0.35, 0.55, 0.85], color: 0xa8bcff, i: 0.5, sky: 0x3a4a78, gnd: 0x141418, hemi: 0.42, top: "#03050d", bot: "#1c2748", fog: 0x0c1222, lamps: true, env: 0.16 },
+  // Halloween: the last of a blood-orange sunset under a violet sky.
+  // A hazy autumn morning: low warm sun through mist.
+  misty:  { dir: [-0.85, -0.2, 0.42], color: 0xffd2a0, i: 2.0, sky: 0xc8c0b4, gnd: 0x5a5040, hemi: 1.0, top: "#9aa6b4", bot: "#f0d6b4", fog: 0xd8cbb8, fogNear: 1500, fogFar: 4600, lamps: false, env: 0.75 },
+  spooky: { dir: [0.8, 0.4, 0.3], color: 0xff8a4a, i: 1.1, sky: 0x5a4688, gnd: 0x1c1620, hemi: 0.55, top: "#0d0820", bot: "#c25a2a", fog: 0x3a2a44, lamps: true, env: 0.3 },
 };
 
 const MATTE = new Set([ARMY_GREEN, ARMY_SAND, 0x55643a]);
@@ -250,6 +254,7 @@ export class Scene3D {
       for (let i = 0; i < 900; i++) { c.fillStyle = ["#3d7a2a", "#24501a", "#4d8c34", "#1d4015"][i % 4]; c.beginPath(); c.arc(rnd() * w, rnd() * h, 1.5 + rnd() * 3, 0, Math.PI * 2); c.fill(); }
     }, { repeat: true }) });
     g.leaf = [0x3d7a2a, 0x4d8c34, 0x2f6a24, 0x5f9e3f].map((c, i) => std("leaf" + i, { color: c, roughness: 0.9, flatShading: true }));
+    g.leafAutumn = [0xc8641e, 0xe09a2a, 0x9a3a1c, 0xb8862a].map((c, i) => std("leafAutumn" + i, { color: c, roughness: 0.9, flatShading: true }));
     g.trunk = vcm("trunk", { color: 0x5a3d24, roughness: 0.95 });
     g.coneM = std("coneMat", { color: 0xff6a12, roughness: 0.5 });
     g.poolMat = new T.MeshBasicMaterial({ map: canvasTex(128, 128, (c, w, h) => {
@@ -301,6 +306,49 @@ export class Scene3D {
     }
     return m;
   }
+  // A pumpkin of radius r: ribbed lobes round a squat core and a stem; a
+  // lit one (a jack-o'-lantern) glows from inside with its face along +x.
+  addPumpkin(P, x, y, rz, r, lit) {
+    const g = this;
+    const c = Math.cos(rz), s = Math.sin(rz);
+    const skin = lit ? this.matCached("pumpkinLit", () => new T.MeshStandardMaterial({ color: 0xe8751a, emissive: 0xff6a10, emissiveIntensity: 0.35, roughness: 0.6 }))
+      : this.matCached("pumpkin", () => new T.MeshStandardMaterial({ color: 0xe8751a, roughness: 0.6 }));
+    P.add(g.sphere, skin, x, y, r * 0.62, 0, r * 0.8, r * 0.8, r * 0.66);
+    for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; P.add(g.sphere, skin, x + Math.cos(a) * r * 0.32, y + Math.sin(a) * r * 0.32, r * 0.6, a, r * 0.62, r * 0.42, r * 0.6); }
+    P.add(g.cylZ8, this.matCached("stem", () => new T.MeshStandardMaterial({ color: 0x5a6a2a, roughness: 0.9 })), x, y, r * 1.3, 0, r * 0.13, r * 0.13, r * 0.5);
+    if (!lit) return;
+    const glow = this.matCached("jack", () => new T.MeshBasicMaterial({ color: 0xffd25a }));
+    const at = (u, v, z, sx, sy, sz) => P.add(g.box, glow, x + u * c - v * s, y + u * s + v * c, z, rz, sx, sy, sz);
+    for (const sd of [-1, 1]) at(r * 0.92, sd * r * 0.3, r * 0.82, 0.6, r * 0.24, r * 0.2);
+    at(r * 0.93, 0, r * 0.42, 0.6, r * 0.62, r * 0.14);
+  }
+
+  // Something on the player's car for a season job, `kind`: hat (a witch's
+  // hat on the roof) | pumpkin (a jack-o'-lantern on the roof) | hay (a bale
+  // in a pickup's bed).
+  buildCarDecor(kind, spec, night) {
+    const g = this, P = this.parts();
+    const L = spec.len * M, H = spec.h * M;
+    const roofX = L / 2 - L * (spec.rf + spec.rb) / 2;
+    if (kind === "hay") {
+      P.add(g.cylZ, this.matCached("hay", () => new T.MeshStandardMaterial({ color: 0xd9b95a, roughness: 0.95 })), -L * 0.32, 0, H * 0.62, 0, 5, 5, 9, 0, Math.PI / 2);
+      this.addPumpkin(P, -L * 0.42, 6, 0, 3.6, night);
+    } else if (kind === "pumpkin") {
+      this.addPumpkin(P, roofX, 0, 0, 6.5, true);
+    } else {
+      const hat = this.matCached("witchHat", () => new T.MeshStandardMaterial({ color: 0x24182e, roughness: 0.7 }));
+      P.add(g.cylZ, hat, roofX, 0, H + 0.6, 0, 8.5, 8.5, 0.8);
+      P.add(g.cone, hat, roofX - 1, 0, H + 7, 0, 4.6, 4.6, 12, 0, -0.25);
+      P.add(g.cylZ, this.matCached("hatBand", () => new T.MeshStandardMaterial({ color: 0xff8a2a, roughness: 0.6 })), roofX, 0, H + 1.8, 0, 4.9, 4.9, 1.4);
+    }
+    const m = P.merged();
+    if (kind === "pumpkin") m.position.z = H;
+    return m;
+  }
+
+  // Canopy colours: summer green, or reds and golds for `foliage: "autumn"`.
+  leafOf(lvl) { return lvl.foliage === "autumn" ? this.leafAutumn : this.leaf; }
+
   matCached(key, make) {
     let m = this.mats.get(key);
     if (!m) { m = make(); this.mats.set(key, m); }
@@ -491,10 +539,13 @@ export class Scene3D {
         P.add(g.box, g.darkMetal, ax, s * wo, r * 2.1, 0, r * 2.6, ww + 2.2, 0.8);
         P.add(g.box, g.darkMetal, ax, s * (wo + ww / 2 + 1), r * 1.3, 0, r * 2.6, 0.6, r * 1.6);
       }
-      const tarp = owned(new T.ExtrudeGeometry(roundedRectShape(L * 0.72, W * 0.68, 3), { depth: 5, bevelEnabled: true, bevelThickness: 2, bevelSize: 1.6, bevelSegments: 3, curveSegments: 4 }));
-      P.add(tarp, this.paintMat(0x2f6d57), -1, 0, bedZ + 1.2);
-      const rope = this.matCached("rope", () => new T.MeshStandardMaterial({ color: 0xd6c38a, roughness: 0.9 }));
-      for (const k of [-0.25, 0.1]) P.add(g.box, rope, k * L, 0, bedZ + 9.3, 0, 0.6, W * 0.74, 0.4);
+      // `load: "empty"` leaves the bed bare (off to fetch something).
+      if (o.load !== "empty") {
+        const tarp = owned(new T.ExtrudeGeometry(roundedRectShape(L * 0.72, W * 0.68, 3), { depth: 5, bevelEnabled: true, bevelThickness: 2, bevelSize: 1.6, bevelSegments: 3, curveSegments: 4 }));
+        P.add(tarp, this.paintMat(0x2f6d57), -1, 0, bedZ + 1.2);
+        const rope = this.matCached("rope", () => new T.MeshStandardMaterial({ color: 0xd6c38a, roughness: 0.9 }));
+        for (const k of [-0.25, 0.1]) P.add(g.box, rope, k * L, 0, bedZ + 9.3, 0, 0.6, W * 0.74, 0.4);
+      } else for (let k = -2; k <= 2; k++) P.add(g.box, g.trim, k * L * 0.18, 0, bedZ + 0.55, 0, 0.5, W - 2, 0.2);
       for (const s of [-1, 1]) P.add(g.box, tail, -L / 2 - 0.2, s * (W / 2 - 1.8), bedZ + 1.2, 0, 0.6, 3.2, 1.6);
       P.add(g.box, g.plate, -L / 2 - 0.3, 0, bedZ - 0.4, 0, 0.3, 5.5, 1.6);
       addWheel(wo); addWheel(-wo);
@@ -523,7 +574,7 @@ export class Scene3D {
       shell.rotateX(Math.PI / 2);
       shell.translate(0, W / 2 - 1, 0);
       P.add(shell, g.chrome);
-      const band = this.paintMat(0x2a9d8f);
+      const band = this.paintMat(o.paint ?? 0x2a9d8f);
       for (const sd of [-1, 1]) {
         P.add(g.box, band, 0, sd * (W / 2 + 0.2), z0 + 3.2, 0, L - 4, 0.4, 3.4);
         P.add(g.box, g.trim, L * 0.05, sd * (W / 2 + 0.25), z0 + 7.5, 0, 6.5, 0.4, 7.5);
@@ -552,7 +603,7 @@ export class Scene3D {
       const shell = owned(new T.ExtrudeGeometry(s, { depth: W - 2, bevelEnabled: true, bevelThickness: 1, bevelSize: 1, bevelSegments: 2, curveSegments: 5 }));
       shell.rotateX(Math.PI / 2);
       shell.translate(0, W / 2 - 1, 0);
-      P.add(shell, this.paintMat(0x2f4f3a));
+      P.add(shell, this.paintMat(o.paint ?? 0x2f4f3a));
       const cream = this.paintMat(0xe9e2cf);
       for (const sd of [-1, 1]) {
         P.add(g.box, cream, -1, sd * (W / 2 + 0.2), z0 + 5, 0, L - 6, 0.4, 7);
@@ -728,8 +779,20 @@ export class Scene3D {
       // Model +y is the physics body's −y side: wheel 0. Twin axles share it.
       out.wheels.push({ pivot, spin, phys: w.ly > 0 ? 0 : 1 });
     }
-    if (key === "carhauler") {
-      const car = this.buildCarModel(CAR_TYPES.sedan, 0xc0392b, { live: false });
+    if (key === "carhauler" && o.load === "pumpkin") {
+      // A giant jack-o'-lantern in a witch's hat, strapped to the deck.
+      const PP = this.parts(), R = W * 0.5;
+      this.addPumpkin(PP, -2, 0, 0, R, true);
+      const hat = this.matCached("witchHat", () => new T.MeshStandardMaterial({ color: 0x24182e, roughness: 0.7 }));
+      PP.add(g.cylZ, hat, -2, 0, R * 1.36, 0, R * 0.7, R * 0.7, R * 0.08);
+      PP.add(g.cone, hat, -2, 0, R * 1.9, 0, R * 0.42, R * 0.42, R * 1.1);
+      const strap = this.matCached("strap", () => new T.MeshStandardMaterial({ color: 0x2a2420, roughness: 0.8 }));
+      for (const dy of [-R * 0.86, R * 0.86]) PP.add(g.box, strap, -2, dy, R * 0.45, 0, R * 0.9, 0.6, 1.2);
+      const m = PP.merged();
+      m.position.z = r * 2 + 1.8;
+      body.add(m);
+    } else if (key === "carhauler") {
+      const car = this.buildCarModel(CAR_TYPES.sedan, o.cargo ?? 0xc0392b, { live: false });
       car.body.position.set(-1, 0, r * 2 + 1.8);
       body.add(car.body);
     }
@@ -908,7 +971,7 @@ export class Scene3D {
   groundZAt() { return 0; }
 
   // Tree batch: instanced trunks and canopy blobs for any number of trees.
-  buildTrees(list) {
+  buildTrees(list, leaf = this.leaf) {
     const g = this;
     if (!list.length) return null;
     const grp = new T.Group();
@@ -931,7 +994,7 @@ export class Scene3D {
     if (!list.length) return grp;
     const trunks = new T.InstancedMesh(g.cylZ8, g.trunk, list.length);
     const blobs = list.length * 4;
-    const perMat = g.leaf.map((m) => new T.InstancedMesh(g.ico, m, blobs));
+    const perMat = leaf.map((m) => new T.InstancedMesh(g.ico, m, blobs));
     const counts = perMat.map(() => 0);
     const d = g.dummy;
     const rnd = lcg(list.length * 31 + 5);
@@ -1104,7 +1167,119 @@ export class Scene3D {
         return null;
       case "tree": trees.push({ x: def.x, y: def.y, r: def.r }); return null;
       case "pine": trees.push({ x: def.x, y: def.y, r: def.r, pine: true }); return null;
-      case "bush": P.add(g.ico, g.leaf[(def.x | 0) % 4], x, y, def.r * 0.45, def.x, def.r, def.r, def.r * 0.7); return null;
+      case "bush": P.add(g.ico, this.leafOf(lvl)[(def.x | 0) % 4], x, y, def.r * 0.45, def.x, def.r, def.r, def.r * 0.7); return null;
+      case "pumpkin": {
+        const lit = def.lit ?? !!SUNS[lvl.sun]?.lamps;
+        this.addPumpkin(P, x, y, rz, def.r, lit);
+        if (lit) lamps.push({ x: def.x, y: def.y, size: 26 + def.r * 3 });
+        return null;
+      }
+      case "inflatable": {
+        // A blow-up lawn figure, `v`: ghost | pumpkin | cat, facing along `a`.
+        const r = def.r, v = def.v ?? "ghost";
+        const lit = !!SUNS[lvl.sun]?.lamps;
+        if (v === "pumpkin") {
+          this.addPumpkin(P, x, y, rz, r, true);
+          const hat = this.matCached("witchHat", () => new T.MeshStandardMaterial({ color: 0x24182e, roughness: 0.7 }));
+          P.add(g.cylZ, hat, x, y, r * 1.36, 0, r * 0.7, r * 0.7, r * 0.08);
+          P.add(g.cone, hat, x, y, r * 1.9, 0, r * 0.42, r * 0.42, r * 1.1);
+        } else if (v === "cat") {
+          const fur = this.matCached("catFur", () => new T.MeshStandardMaterial({ color: 0x1c1a22, roughness: 0.85 }));
+          const eye = this.matCached("catEye", () => new T.MeshBasicMaterial({ color: 0xc8ff3a }));
+          P.add(g.sphere, fur, x, y, r * 0.75, rz, r * 0.8, r * 0.7, r * 0.75);
+          at(g.sphere, fur, r * 0.45, 0, r * 1.6, r * 0.5, r * 0.5, r * 0.46);
+          for (const sd of [-1, 1]) {
+            at(g.cone, fur, r * 0.4, sd * r * 0.28, r * 2.05, r * 0.16, r * 0.16, r * 0.38);
+            at(g.sphere, eye, r * 0.9, sd * r * 0.18, r * 1.68, r * 0.08, r * 0.1, r * 0.12);
+          }
+          at(g.cylZ8, fur, -r * 0.7, r * 0.3, r * 1.2, r * 0.12, r * 0.12, r * 1.2, 0.5);
+        } else {
+          const sheet = this.matCached("blowGhost", () => new T.MeshStandardMaterial({ color: 0xf6f8ff, emissive: 0xc8d8ff, emissiveIntensity: lit ? 0.55 : 0.08, roughness: 0.6 }));
+          const eye = this.matCached("ghostEye", () => new T.MeshBasicMaterial({ color: 0x14121c }));
+          P.add(g.cone, sheet, x, y, r * 0.9, 0, r, r, r * 2.2);
+          P.add(g.sphere, sheet, x, y, r * 1.95, 0, r * 0.75, r * 0.75, r * 0.8);
+          for (const sd of [-1, 1]) at(g.box, sheet, r * 0.1, sd * r * 0.85, r * 1.3, r * 0.25, r * 0.6, r * 0.22, sd * 0.6);
+          for (const sd of [-1, 1]) at(g.sphere, eye, r * 0.7, sd * r * 0.25, r * 2.05, r * 0.08, r * 0.12, r * 0.2);
+          at(g.sphere, eye, r * 0.72, 0, r * 1.7, r * 0.06, r * 0.16, r * 0.14);
+        }
+        if (lit) lamps.push({ x: def.x, y: def.y, size: r * 7 });
+        return null;
+      }
+      case "skeleton": {
+        // A plastic skeleton propped up on the lawn, waving.
+        const bone = this.matCached("bone", () => new T.MeshStandardMaterial({ color: 0xeeeadc, emissive: 0xffffff, emissiveIntensity: 0.08, roughness: 0.7 }));
+        P.add(g.sphere, bone, x, y, 14, rz, 2, 1.8, 2.2);
+        P.add(g.box, bone, x, y, 9, rz, 1, 3.4, 5.5);
+        P.add(g.cylZ8, bone, x, y, 9, 0, 0.4, 0.4, 7);
+        for (const sd of [-1, 1]) {
+          at(g.box, bone, 0, sd * 1.1, 3.2, 0.7, 0.7, 6.4);
+          at(g.box, bone, 0, sd * 2.6, 9, 0.6, 0.6, 5, sd * 0.3);
+        }
+        at(g.box, bone, 0, -3.6, 13.5, 0.6, 0.6, 5, 0.5);
+        return null;
+      }
+      case "grave": {
+        // A headstone across `a` (w wide, h thick), round-topped or a cross.
+        const stone = this.matCached("gravestone", () => new T.MeshStandardMaterial({ color: 0x8d9096, roughness: 0.95, flatShading: true }));
+        const tall = def.height ?? 7;
+        if (def.cross) {
+          at(g.box, stone, 0, 0, 1, def.w + 2, def.h + 2, 2);
+          at(g.box, stone, 0, 0, tall * 0.9, def.h, def.h, tall * 1.8);
+          at(g.box, stone, 0, 0, tall * 1.3, def.w, def.h, def.h);
+        } else {
+          at(g.box, stone, 0, 0, tall / 2, def.w, def.h, tall);
+          at(g.cyl, stone, 0, 0, tall, def.w / 2, def.h, def.w / 2);
+        }
+        return null;
+      }
+      case "scarecrow": {
+        const straw = this.matCached("hay", () => new T.MeshStandardMaterial({ color: 0xd9b95a, roughness: 0.95 }));
+        P.add(g.cylZ8, g.wood, x, y, 13, 0, 1.2, 1.2, 26);
+        at(g.box, g.wood, 0, 0, 19, 1.4, 18, 1.4);
+        at(g.box, this.paintMat(0x8a1f24), 0, 0, 16.5, 3.2, 7, 8);
+        for (const sd of [-1, 1]) at(g.box, straw, 0, sd * 8.6, 19, 2.2, 1.6, 2.2);
+        P.add(g.sphere, straw, x, y, 23.4, 0, 2.6, 2.6, 2.8);
+        P.add(g.cylZ, g.trim, x, y, 25.6, 0, 4.4, 4.4, 0.5);
+        P.add(g.cone, g.trim, x, y, 27.6, 0, 2.4, 2.4, 4.2);
+        return null;
+      }
+      case "church": {
+        // Nave under a slate roof, a tower with a spire at the front (+x
+        // along `a`), lancet windows that glow after dark.
+        const T0 = def.tower ?? 36, wall = this.wallMat("stone"), H = 34, len = def.w - T0;
+        const slate = this.matCached("slate", () => new T.MeshStandardMaterial({ color: 0x3a3d48, roughness: 0.8 }));
+        const lit = !!SUNS[lvl.sun]?.lamps;
+        const pane = this.matCached(lit ? "lancetLit" : "lancet", () => new T.MeshStandardMaterial({ color: 0x3a3040, emissive: 0xffb050, emissiveIntensity: lit ? 1.4 : 0.1, roughness: 0.4 }));
+        const nx = -def.w / 2 + len / 2;
+        at(g.box, wall, nx, 0, H / 2, len, def.h, H);
+        const [rx, ry] = L(nx, 0);
+        P.add(taperGeo(-len / 2 - 1, len / 2 + 1, def.h + 4, -len / 2 - 1, len / 2 + 1, 1, 26), slate, rx, ry, H, rz);
+        for (let i = 0; i < 4; i++) for (const sd of [-1, 1]) at(g.box, pane, nx - len / 2 + (i + 0.5) * len / 4, sd * (def.h / 2 + 0.3), 17, 5, 0.6, 15);
+        const tx = def.w / 2 - T0 / 2;
+        at(g.box, wall, tx, 0, 44, T0, T0, 88);
+        at(g.box, pane, def.w / 2 + 0.3, 0, 66, 0.6, 8, 14);
+        at(g.box, g.darkMetal, def.w / 2 + 0.3, 0, 9, 0.6, 12, 18);
+        const [sx, sy] = L(tx, 0);
+        P.add(taperGeo(-T0 / 2, T0 / 2, T0, -0.6, 0.6, 1.2, 60), slate, sx, sy, 88, rz);
+        return null;
+      }
+      case "corn": {
+        // A wall of ripe maize (a maze hedge), w × h, about 2 m tall.
+        const corn = this.matCached("corn", () => new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, map: canvasTex(128, 128, (c, w, h) => {
+          c.fillStyle = "#8a7a2a"; c.fillRect(0, 0, w, h);
+          const rnd = lcg(17);
+          for (let i = 0; i < 70; i++) {
+            const sx = rnd() * w;
+            c.strokeStyle = ["#b8a23a", "#d8c050", "#9a8a30", "#c8b048"][i % 4]; c.lineWidth = 2 + rnd() * 2;
+            c.beginPath(); c.moveTo(sx, h); c.lineTo(sx + (rnd() - 0.5) * 6, 0); c.stroke();
+            c.strokeStyle = "#e8d070"; c.lineWidth = 1.5;
+            const ly = rnd() * h; c.beginPath(); c.moveTo(sx, ly); c.lineTo(sx + (rnd() - 0.5) * 22, ly - 8); c.stroke();
+          }
+        }, { repeat: true }) }));
+        const ch = def.height ?? 24;
+        at(g.box, corn, 0, 0, ch / 2, def.w, def.h, ch);
+        return null;
+      }
       case "rock": P.add(g.ico, lvl.base === "snow" ? g.white : g.darkConcrete, x, y, def.r * 0.3, def.x, def.r, def.r * 0.9, def.r * 0.7); return null;
       case "island": // a kerbed roundabout island
         P.add(g.cylZ, g.concrete, x, y, 2.5, 0, def.r, def.r, 5);
@@ -1428,7 +1603,8 @@ export class Scene3D {
     const grp = new T.Group();
     const W = lvl.w, H = lvl.h;
     const bd = lvl.backdrop ?? "trees";
-    const outside = { trees: 0x5a8a3a, forest: 0x4d7c30, fields: 0x6d8a45, town: 0x8f8a80, industrial: 0x7d7f80, dunes: 0xd9c48e, mountains: 0xe8eef4, none: 0x5a8a3a }[bd] ?? 0x5a8a3a;
+    const outside = lvl.foliage === "autumn" && bd !== "town" && bd !== "industrial" ? 0x6a6a34
+      : { trees: 0x5a8a3a, forest: 0x4d7c30, fields: 0x6d8a45, town: 0x8f8a80, industrial: 0x7d7f80, dunes: 0xd9c48e, mountains: 0xe8eef4, none: 0x5a8a3a }[bd] ?? 0x5a8a3a;
     const outer = new T.Mesh(g.plane, owned(new T.MeshStandardMaterial({ color: outside, roughness: 0.95 })));
     outer.scale.set(W + 9000, H + 9000, 1);
     outer.position.set(W / 2, -H / 2, -0.6);
@@ -1529,6 +1705,61 @@ export class Scene3D {
     const g = this;
     const P = this.parts();
     if (d.kind === "pontoon") P.add(g.box, g.wood, d.x, -d.y, 1, 0, d.w, d.h, 2.4);
+    else if (d.kind === "ferris") {
+      // A Ferris wheel on two A-frames, its axle across `a`, rim lit with bulbs.
+      const R = d.r ?? 70, hub = R + 12, dy = 9;
+      const steel = this.matCached("ferrisSteel", () => new T.MeshStandardMaterial({ color: 0xe8e4f0, roughness: 0.4, metalness: 0.6 }));
+      const bulb = this.matCached("ferrisBulb", () => new T.MeshBasicMaterial({ color: 0xffc860 }));
+      const grp = new T.Group();
+      const legs = this.parts();
+      for (const sy of [-dy, dy]) for (const sx of [-1, 1]) {
+        const x0 = sx * R * 0.6, len = Math.hypot(x0, hub), phi = Math.atan2(hub, -x0);
+        legs.add(g.box, steel, x0 / 2, sy, hub / 2, 0, len, 2, 2, 0, -phi);
+      }
+      legs.add(g.cylZ, steel, 0, 0, hub, 0, 2.6, 2.6, dy * 2 + 4, Math.PI / 2);
+      grp.add(legs.merged());
+      const spin = new T.Group();
+      spin.position.z = hub;
+      const SP = this.parts();
+      const nSeg = 48;
+      for (const sy of [-dy + 2, dy - 2]) {
+        for (let k = 0; k < nSeg; k++) {
+          const t = (k / nSeg) * Math.PI * 2;
+          SP.add(g.box, steel, Math.cos(t) * R, sy, Math.sin(t) * R, 0, (Math.PI * 2 * R) / nSeg + 0.6, 1.2, 1.2, 0, -(t + Math.PI / 2));
+          if (k % 2 === 0) SP.add(g.sphere, bulb, Math.cos(t) * (R + 1.2), sy, Math.sin(t) * (R + 1.2), 0, 1, 1, 1);
+        }
+        for (let k = 0; k < 12; k++) {
+          const t = (k / 12) * Math.PI * 2;
+          SP.add(g.box, steel, Math.cos(t) * R / 2, sy, Math.sin(t) * R / 2, 0, R, 0.8, 0.8, 0, -t);
+        }
+      }
+      spin.add(SP.merged(false));
+      grp.add(spin);
+      const n = 12;
+      const cars = new T.InstancedMesh(g.box, this.matCached("ferrisCar", () => new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 })), n);
+      const cols = [0xd9822b, 0x6a2a8a, 0x1e8449, 0xd33a2c, 0xf2c230, 0x2e86c1];
+      for (let k = 0; k < n; k++) cars.setColorAt(k, new T.Color(cols[k % cols.length]));
+      cars.frustumCulled = false;
+      grp.add(cars);
+      grp.position.set(d.x, -d.y, 0);
+      grp.rotation.z = -(d.a ?? 0);
+      lv.wheels.push({ spin, cars, n, R, hub });
+      return grp;
+    }
+    else if (d.kind === "ghost") {
+      // A sheet ghost hovering over a spot (scenery only), bobbing slowly.
+      const sheet = this.matCached("ghostSheet", () => new T.MeshStandardMaterial({ color: 0xf4f6ff, emissive: 0xbfd4ff, emissiveIntensity: 0.45, roughness: 0.8, transparent: true, opacity: 0.82, depthWrite: false }));
+      const eye = this.matCached("ghostEye", () => new T.MeshBasicMaterial({ color: 0x14121c }));
+      const grp = new T.Group();
+      const s = d.s ?? 1;
+      const body = new T.Mesh(g.cone, sheet); body.scale.set(6 * s, 6 * s, 14 * s); body.position.z = 2 * s;
+      const head = new T.Mesh(g.sphere, sheet); head.scale.set(4.6 * s, 4.6 * s, 4.8 * s); head.position.z = 8 * s;
+      grp.add(body, head);
+      for (const sd of [-1, 1]) { const e = new T.Mesh(g.sphere, eye); e.scale.set(0.8 * s, 0.9 * s, 1.3 * s); e.position.set(4 * s, sd * 1.6 * s, 9 * s); grp.add(e); }
+      grp.position.set(d.x, -d.y, d.z ?? 16);
+      lv.ghosts.push({ grp, z: d.z ?? 16, a: -(d.a ?? 0), ph: lv.ghosts.length * 2.1 });
+      return grp;
+    }
     else if (d.kind === "camonet") {
       // Camouflage net on four poles: a see-through sheet, so the bay under
       // it stays visible from above.
@@ -1592,7 +1823,7 @@ export class Scene3D {
     const lvl = sim.level;
     this.level = lvl;
     const sun = SUNS[lvl.sun];
-    const lv = { gen: sim.gen, group: new T.Group(), parked: [], cones: [], waters: [], boats: [] };
+    const lv = { gen: sim.gen, group: new T.Group(), parked: [], cones: [], waters: [], boats: [], ghosts: [], wheels: [] };
     this.lv = lv;
     this.scene.add(lv.group);
 
@@ -1612,7 +1843,7 @@ export class Scene3D {
     if (g.skyTex) g.skyTex.dispose();
     g.skyTex = sky;
     g.scene.background = sky;
-    g.scene.fog = new T.Fog(sun.fog, 2200, 7000);
+    g.scene.fog = new T.Fog(sun.fog, sun.fogNear ?? 2200, sun.fogFar ?? 7000);
 
     // Ground: the baked top-down canvas, as sharp as the texture size allows.
     const maxTex = Math.min(8192, g.renderer.capabilities.maxTextureSize || 4096);
@@ -1667,12 +1898,12 @@ export class Scene3D {
     lv.group.add(this.buildScenery(P, lvl, trees));
     lv.group.add(P.merged());
     this.flushFacades(lv.group);
-    const tg = this.buildTrees(trees);
+    const tg = this.buildTrees(trees, this.leafOf(lvl));
     if (tg) lv.group.add(tg);
     if (sun.lamps) {
       for (const l of lamps) {
         const pool = new T.Mesh(g.plane, g.poolMat);
-        pool.scale.set(90, 90, 1);
+        pool.scale.set(l.size ?? 90, l.size ?? 90, 1);
         pool.position.set(l.x, -l.y, 0.5);
         pool.renderOrder = 2;
         lv.group.add(pool);
@@ -1697,8 +1928,24 @@ export class Scene3D {
     const hayMat = this.matCached("hay", () => new T.MeshStandardMaterial({ color: 0xd9b95a, roughness: 0.95 }));
     const hayEnd = this.matCached("hayEnd", () => new T.MeshStandardMaterial({ color: 0xc9a44a, roughness: 1 }));
     for (const m of sim.movables) {
-      const r = m.def.r;
+      const r = m.def.r ?? 4.5;
       const grp = new T.Group();
+      if (m.def.kind !== "hay") {
+        // A loose pumpkin or a shopping trolley.
+        const PP = this.parts();
+        if (m.def.kind === "pumpkin") this.addPumpkin(PP, 0, 0, 0, r, m.def.lit ?? !!sun.lamps);
+        else {
+          const tm = this.trolleyMat();
+          PP.add(g.box, tm, 0, 0, 6.5, 0, 9, 6, 5);
+          PP.add(g.box, g.darkMetal, 0, 0, 2.6, 0, 8, 5, 0.6);
+          PP.add(g.box, this.paintMat(0xd33a2c), -5, 0, 9.2, 0, 0.8, 6.4, 0.8);
+          for (const dx of [-3.5, 3.5]) for (const dy of [-2.4, 2.4]) PP.add(g.cylZ8, g.tire, dx, dy, 1, 0, 0.9, 0.9, 0.6, Math.PI / 2);
+        }
+        grp.add(PP.merged());
+        lv.group.add(grp);
+        lv.movables.push({ rec: m, grp });
+        continue;
+      }
       const bale = new T.Mesh(g.cylZ, [hayMat, hayEnd, hayEnd]);
       bale.scale.set(r, r, r * 1.4);
       bale.position.z = r * 0.7;
@@ -1783,10 +2030,11 @@ export class Scene3D {
         wheelbase: sim.veh.spec.wheelbase, wheelR: sim.veh.spec.wheelR, wheelW: sim.veh.spec.wheelW,
       });
     lv.group.add(car.body);
+    if (lvl.carDecor && !truck) car.body.add(this.buildCarDecor(lvl.carDecor, CAR_TYPES[sim.veh.spec.body ?? "wagon"], !!sun.lamps));
     const tailT = owned(new T.MeshStandardMaterial({ color: 0x5a0a0a, emissive: 0xff1a1a, emissiveIntensity: 0.3, roughness: 0.3 }));
     const trailer = sim.veh.trailer.key === "semi"
-      ? this.buildSemiModel({ live: true, tailMat: tailT, company: "HITCH & PARK" })
-      : this.buildTrailerModel(sim.veh.trailer.key, { tailMat: tailT });
+      ? this.buildSemiModel({ live: true, tailMat: tailT, company: lvl.livery ?? "HITCH & PARK" })
+      : this.buildTrailerModel(sim.veh.trailer.key, { tailMat: tailT, cargo: lvl.cargo, load: lvl.load, paint: lvl.trailerColor });
     lv.group.add(trailer.body);
     // Night beams: headlights ahead, reversing light behind.
     const beamMat = owned(new T.MeshBasicMaterial({ map: g.beamTex, transparent: true, depthWrite: false, blending: T.AdditiveBlending, opacity: sun.lamps ? 0.6 : 0 }));
@@ -1805,6 +2053,36 @@ export class Scene3D {
     trailer.body.add(revPool);
     lv.car = car;
     lv.trailer = trailer;
+    // In the overview the rig is a few pixels across: a glowing ring on the
+    // ground round it (car and trailer) shows where it is.
+    const halo = new T.Mesh(g.plane, this.matCached("halo", () => new T.MeshBasicMaterial({
+      map: canvasTex(128, 128, (cx, w, h) => {
+        const gr = cx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+        gr.addColorStop(0, "rgba(255,209,102,0.28)"); gr.addColorStop(0.72, "rgba(255,209,102,0.16)");
+        gr.addColorStop(0.84, "rgba(255,220,130,0.95)"); gr.addColorStop(0.9, "rgba(255,209,102,0.5)"); gr.addColorStop(1, "rgba(255,209,102,0)");
+        cx.fillStyle = gr; cx.fillRect(0, 0, w, h);
+      }), transparent: true, depthWrite: false, blending: T.AdditiveBlending,
+    })));
+    halo.renderOrder = 3;
+    // Autumn: leaves drifting down round wherever the camera looks.
+    if (lvl.foliage === "autumn") {
+      const n = this.quality === "high" ? 280 : 120;
+      const mat = this.matCached("fallingLeaf", () => new T.MeshStandardMaterial({ color: 0xffffff, side: T.DoubleSide, roughness: 0.9 }));
+      const im = new T.InstancedMesh(g.plane, mat, n);
+      const rnd = lcg(lvl.id.length * 7 + 3);
+      const cols = [0xc8641e, 0xe09a2a, 0x9a3a1c, 0xd8b040, 0xb8862a].map((c) => new T.Color(c));
+      const L = { im, n, x: new Float32Array(n), y: new Float32Array(n), z: new Float32Array(n), ph: new Float32Array(n), S: 1100 };
+      for (let i = 0; i < n; i++) {
+        L.x[i] = lvl.w / 2 + (rnd() - 0.5) * L.S; L.y[i] = -lvl.h / 2 + (rnd() - 0.5) * L.S; L.z[i] = rnd() * 220; L.ph[i] = rnd() * 6.28;
+        im.setColorAt(i, cols[i % cols.length]);
+      }
+      im.frustumCulled = false;
+      lv.group.add(im);
+      lv.leaves = L;
+    }
+    halo.visible = false;
+    lv.group.add(halo);
+    lv.halo = halo;
     lv.mats = { tailC, revC, tailT, beamMat, revPoolMat, night: sun.lamps };
     this.camPos = null;
   }
@@ -2020,6 +2298,15 @@ export class Scene3D {
     const alpha = view.alpha ?? 1;
     const cp = sim.pose(c, alpha), cx = cp.x, cy = cp.y, ca = cp.a;
     this.placeOnGround(lv.car.body, cx, cy, ca, v.spec.len / 2 * M);
+    if (lv.leaves) this.#fallLeaves(lv.leaves, view);
+    lv.halo.visible = view.camMode === 2 && (playing || view.phase === "paused" || view.phase === "done");
+    if (lv.halo.visible) {
+      const tp = sim.pose(tb, alpha);
+      const span = Math.hypot(tp.x - cx, tp.y - cy) + (v.spec.len + TRAILERS[v.trailer.key].len) / 2 * M;
+      const d = (span + 40) * (1 + Math.sin(view.time * 3) * 0.04);
+      lv.halo.position.set((cx + tp.x) / 2, -(cy + tp.y) / 2, 1.2);
+      lv.halo.scale.set(d, d, 1);
+    }
     // Body roll and pitch (looks only): the shell leans out of a turn by
     // the lateral acceleration, dips under braking, squats a little under
     // power. Smoothed like a damped suspension.
@@ -2141,6 +2428,43 @@ export class Scene3D {
       b.grp.position.z = -4 + Math.sin(view.time * 1.3 + b.ph) * 0.8;
       b.grp.rotation.x = Math.sin(view.time * 1.1 + b.ph) * 0.03;
     }
+    for (const gh of lv.ghosts) {
+      gh.grp.position.z = gh.z + Math.sin(view.time * 1.6 + gh.ph) * 3;
+      gh.grp.rotation.z = gh.a + Math.sin(view.time * 0.7 + gh.ph) * 0.35;
+    }
+    for (const w of lv.wheels) {
+      // The wheel turns; its cars hang level, so they are placed, not spun.
+      const t0 = view.time * 0.18;
+      w.spin.rotation.y = -t0;
+      const d = this.dummy;
+      for (let k = 0; k < w.n; k++) {
+        const t = t0 + (k / w.n) * Math.PI * 2;
+        d.position.set(Math.cos(t) * w.R, 0, w.hub + Math.sin(t) * w.R - 5);
+        d.rotation.set(0, 0, 0); d.scale.set(7, 9, 7); d.updateMatrix();
+        w.cars.setMatrixAt(k, d.matrix);
+      }
+      w.cars.instanceMatrix.needsUpdate = true;
+    }
+  }
+
+  #fallLeaves(L, view) {
+    const dt = Math.min(view.dt ?? 0, 0.1), t = view.time, d = this.dummy;
+    const cx = this.camTgt?.x ?? L.x[0], cy = this.camTgt?.y ?? L.y[0], H = L.S / 2;
+    for (let i = 0; i < L.n; i++) {
+      const ph = L.ph[i];
+      L.z[i] -= dt * (13 + (ph % 1) * 8);
+      L.x[i] += dt * (9 + Math.sin(t * 1.3 + ph) * 14);
+      L.y[i] += dt * Math.cos(t * 1.1 + ph * 2) * 10;
+      if (L.z[i] < 0.6) L.z[i] += 220;
+      if (L.x[i] - cx > H) L.x[i] -= L.S; else if (cx - L.x[i] > H) L.x[i] += L.S;
+      if (L.y[i] - cy > H) L.y[i] -= L.S; else if (cy - L.y[i] > H) L.y[i] += L.S;
+      d.position.set(L.x[i], L.y[i], L.z[i]);
+      d.rotation.set(t * 2.1 + ph, t * 1.4 + ph * 2, ph);
+      d.scale.set(3.4, 2.4, 1);
+      d.updateMatrix();
+      L.im.setMatrixAt(i, d.matrix);
+    }
+    L.im.instanceMatrix.needsUpdate = true;
   }
 
   // Camera distance at which the whole site fits the screen.
@@ -2170,8 +2494,12 @@ export class Scene3D {
       ex = tx + Math.cos(a) * 620 * sc; ey = ty + Math.sin(a) * 420 * sc - 80; ez = 430 * sc;
     } else if (overview) {
       const pitch = 1.0;
-      const D = this.#fitDist(pitch) * (view.camMode === 2 ? view.camDist : 1);
-      tx = lvl.w / 2; ty = -lvl.h / 2 + 10; tz = 0;
+      // While driving it leans a little towards the rig, so the rig is not
+      // left in a corner under the HUD panels.
+      // The bottom edge is lifted clear of the dashboard panel too.
+      const lean = view.phase === "intro" ? 0 : 0.4;
+      const D = this.#fitDist(pitch) * (view.camMode === 2 ? view.camDist : 1) * (1 + lean * 0.3);
+      tx = lvl.w / 2 + (c.x - lvl.w / 2) * lean; ty = -(lvl.h / 2 + (c.y - lvl.h / 2) * lean + lvl.h * 0.08 * (lean > 0)) + 10; tz = 0;
       ex = tx; ey = ty - Math.cos(pitch) * D; ez = Math.sin(pitch) * D;
     } else if (view.camMode === 1) {
       this.camYaw += wrapPi(heading - this.camYaw) * clamp(view.dt * 3.5, 0, 1);

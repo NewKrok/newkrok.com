@@ -3,6 +3,7 @@
 
 export const UI = {
   en: {
+    seasons: "Seasons", seasonsTitle: "Seasonal jobs", seasonsNote: "Extra job packs, separate from the main game: you don't need to finish the chapters to play them. Each pack's jobs open one after another, and every pack stays here to replay.", season_autumn: "Hitch-o'-Lantern", seasons_autumn: "Pumpkins, costumes and a spooky night", lastSeasonJob: "That was the last job in this pack — happy Halloween!",
     veh_car: "Estate car", veh_pickup: "Pickup", veh_suv: "SUV", veh_van: "Van", chs1: "Straight backs and gentle angles", chs2: "Docks, yards and your first caravan", chs3: "A longer drive before you park", chs4: "Very little room to spare", chs5: "Snow, night and the hardest pitches", chs6: "Articulated lorry", chs7: "Odd loads that tow like nothing else",
     tagline: "Back the trailer into the bay — nose out, square, stopped.",
     play: "Play", continueJob: "Continue · Job {n}", levels: "Levels", howto: "How to play", settings: "Settings",
@@ -42,6 +43,7 @@ export const UI = {
     webgl_title: "WebGL is not available", webgl_text: "Hitch & Park needs a browser with WebGL. Try another browser or enable hardware acceleration.",
   },
   de: {
+    seasons: "Saisons", seasonsTitle: "Saison-Aufträge", seasonsNote: "Zusätzliche Auftragspakete, getrennt vom Hauptspiel: Die Kapitel musst du dafür nicht abschließen. Die Aufträge eines Pakets werden nacheinander freigeschaltet, und jedes Paket bleibt hier zum Nochmalspielen.", season_autumn: "Spuk am Haken", seasons_autumn: "Kürbisse, Kostüme und eine gruselige Nacht", lastSeasonJob: "Das war der letzte Auftrag in diesem Paket — fröhliches Halloween!",
     veh_car: "Kombi", veh_pickup: "Pick-up", veh_suv: "SUV", veh_van: "Transporter", chs1: "Gerade zurück und sanfte Winkel", chs2: "Rampen, Höfe und dein erster Wohnwagen", chs3: "Erst eine längere Fahrt, dann parken", chs4: "Kaum Platz zum Rangieren", chs5: "Schnee, Nacht und die schwersten Plätze", chs6: "Sattelzug", chs7: "Ungewöhnliche Lasten mit eigenem Charakter",
     tagline: "Setz den Anhänger in die Bucht — Deichsel nach außen, gerade, stehend.",
     play: "Spielen", continueJob: "Weiter · Auftrag {n}", levels: "Level", howto: "Anleitung", settings: "Einstellungen",
@@ -81,6 +83,7 @@ export const UI = {
     webgl_title: "WebGL ist nicht verfügbar", webgl_text: "Hitch & Park braucht einen Browser mit WebGL. Probiere einen anderen Browser oder aktiviere die Hardwarebeschleunigung.",
   },
   es: {
+    seasons: "Temporadas", seasonsTitle: "Trabajos de temporada", seasonsNote: "Paquetes de trabajos extra, aparte del juego principal: no hace falta terminar los capítulos para jugarlos. Los trabajos de cada paquete se desbloquean uno tras otro, y cada paquete se queda aquí para volver a jugarlo.", season_autumn: "Remolque embrujado", seasons_autumn: "Calabazas, disfraces y una noche de miedo", lastSeasonJob: "Era el último trabajo de este paquete. ¡Feliz Halloween!",
     veh_car: "Familiar", veh_pickup: "Pick-up", veh_suv: "SUV", veh_van: "Furgoneta", chs1: "Marcha atrás recta y ángulos suaves", chs2: "Muelles, patios y tu primera caravana", chs3: "Un trayecto más largo antes de aparcar", chs4: "Casi sin espacio", chs5: "Nieve, noche y las plazas más difíciles", chs6: "Camión articulado", chs7: "Cargas raras que se remolcan a su manera",
     tagline: "Mete el remolque en la plaza: morro hacia fuera, recto y parado.",
     play: "Jugar", continueJob: "Continuar · Trabajo {n}", levels: "Niveles", howto: "Cómo jugar", settings: "Ajustes",
@@ -120,6 +123,7 @@ export const UI = {
     webgl_title: "WebGL no está disponible", webgl_text: "Hitch & Park necesita un navegador con WebGL. Prueba otro navegador o activa la aceleración por hardware.",
   },
   hu: {
+    seasons: "Szezonok", seasonsTitle: "Szezonális feladatok", seasonsNote: "Extra pályacsomagok, külön az alapjátéktól: nem kell hozzájuk teljesíteni a fejezeteket. Egy csomag feladatai egymás után nyílnak meg, és minden csomag itt marad, bármikor újrajátszható.", season_autumn: "Töklámpás tolatás", seasons_autumn: "Tökök, jelmezek és egy kísérteties éjszaka", lastSeasonJob: "Ez volt a csomag utolsó feladata — boldog Halloweent!",
     veh_car: "Kombi", veh_pickup: "Pickup", veh_suv: "Terepjáró", veh_van: "Kisbusz", chs1: "Egyenes tolatás és enyhe szögek", chs2: "Rámpák, udvarok és az első lakókocsi", chs3: "Előbb egy hosszabb út, aztán parkolás", chs4: "Szinte semmi hely", chs5: "Hó, éjszaka és a legnehezebb helyek", chs6: "Nyerges vontató", chs7: "Furcsa terhek, mindegyik máshogy viselkedik",
     tagline: "Tolasd be az utánfutót a helyre — orral kifelé, egyenesen, megállva.",
     play: "Játék", continueJob: "Folytatás · {n}. feladat", levels: "Pályák", howto: "Útmutató", settings: "Beállítások",
@@ -159,6 +163,7 @@ export const UI = {
     webgl_title: "A WebGL nem érhető el", webgl_text: "A Hitch & Park WebGL-t támogató böngészőt igényel. Próbálj másik böngészőt, vagy kapcsold be a hardveres gyorsítást.",
   },
   zh: {
+    seasons: "季节", seasonsTitle: "季节任务", seasonsNote: "独立于主线的额外任务包：无需完成各章即可游玩。每个任务包内的任务依次解锁，所有任务包都会保留在这里，随时可以重玩。", season_autumn: "南瓜灯拖挂夜", seasons_autumn: "南瓜、变装与诡异的夜晚", lastSeasonJob: "这是本任务包的最后一关——万圣节快乐！",
     veh_car: "旅行车", veh_pickup: "皮卡", veh_suv: "SUV", veh_van: "厢式车", chs1: "直线倒车与小角度", chs2: "码头、院子与第一辆房车", chs3: "先开一段路再停车", chs4: "几乎没有余地", chs5: "雪地、夜晚与最难的车位", chs6: "半挂卡车", chs7: "各有脾气的特殊拖挂",
     tagline: "把拖车倒进车位——车头朝外，摆正，停稳。",
     play: "开始", continueJob: "继续 · 第 {n} 关", levels: "关卡", howto: "玩法", settings: "设置",
@@ -198,6 +203,7 @@ export const UI = {
     webgl_title: "WebGL 不可用", webgl_text: "Hitch & Park 需要支持 WebGL 的浏览器。请尝试其他浏览器或开启硬件加速。",
   },
   fr: {
+    seasons: "Saisons", seasonsTitle: "Missions de saison", seasonsNote: "Des packs de missions en plus, à part du jeu principal : pas besoin de finir les chapitres pour y jouer. Les missions d'un pack se débloquent l'une après l'autre, et chaque pack reste ici pour être rejoué.", season_autumn: "Attelage hanté", seasons_autumn: "Citrouilles, costumes et une nuit qui fait peur", lastSeasonJob: "C'était la dernière mission de ce pack — joyeux Halloween !",
     veh_car: "Break", veh_pickup: "Pick-up", veh_suv: "SUV", veh_van: "Fourgon", chs1: "Marche arrière droite et angles doux", chs2: "Quais, cours et ta première caravane", chs3: "Un plus long trajet avant de te garer", chs4: "Presque pas de place", chs5: "Neige, nuit et les places les plus dures", chs6: "Semi-remorque", chs7: "Des charges qui ne se tractent comme aucune autre",
     tagline: "Recule la remorque dans la place — flèche vers l'extérieur, droite, à l'arrêt.",
     play: "Jouer", continueJob: "Continuer · Mission {n}", levels: "Niveaux", howto: "Comment jouer", settings: "Réglages",
