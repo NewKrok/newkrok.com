@@ -274,7 +274,11 @@ export class Menus {
         <div class="detail"><div class="pv"></div><b class="dn">${esc(name)}</b><div class="dl">${esc(meta)}</div><p>${esc(desc)}</p>${stat}<div class="dbuy">${buy}</div></div></div>
       <div class="actions"><button class="btn ghost" data-a="close">${esc(t("close"))}</button></div></div>`,
     {
-      pick: (b) => { st.sel = b.dataset.id; this.bench(progress, { onBuy, onClose }); },
+      // Picking the one already picked goes on to its buy button (a pad's A twice).
+      pick: (b) => {
+        if (st.sel === b.dataset.id) { el.querySelector("[data-a=buy]")?.focus(); return; }
+        st.sel = b.dataset.id; this.bench(progress, { onBuy, onClose });
+      },
       tab: (b) => { st.tab = b.dataset.tab; st.sel = null; this.bench(progress, { onBuy, onClose }); },
       buy: (b) => onBuy(b.dataset.id),
       close: onClose,

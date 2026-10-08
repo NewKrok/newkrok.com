@@ -108,8 +108,11 @@ export class PadNav {
         const gap = sgn > 0 ? r.top - r0.bottom : r0.top - r.bottom;
         cands.push({ el, gap: Math.max(0, gap), across: Math.abs(ex - cx) });
       } else {
-        if ((ex - cx) * sgn <= 4 || r.top >= r0.bottom - 2 || r.bottom <= r0.top + 2) continue;
-        cands.push({ el, gap: Math.abs(ex - cx), across: 0 });
+        if ((ex - cx) * sgn <= 4) continue;
+        // In the same row first; failing that, the nearest control that way
+        // (the bench's buy button sits low in the panel beside the list).
+        const row = !(r.top >= r0.bottom - 2 || r.bottom <= r0.top + 2);
+        cands.push({ el, gap: row ? Math.abs(ex - cx) : 1e5 + Math.abs(ey - cy), across: row ? 0 : Math.abs(ex - cx) });
       }
     }
     if (!cands.length) {
