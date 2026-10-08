@@ -272,6 +272,21 @@ export class Menus {
     { factory: onFactory, again: onAgain }, "dim");
   }
 
+  // The epilogue, once the week is done: what became of everyone, your
+  // week in numbers, and thanks.
+  epilogue(progress, { onClose }) {
+    const who = ["park", "school", "kitchen", "garden", "space", "oldhum", "margo"].map((id) => `<li>${esc(t(`epi_${id}`))}</li>`).join("");
+    const mems = progress.memories.length, allMems = CLIENTS.reduce((n, c) => n + (c.level ? memoriesOf(c.level).length : 0), 0);
+    const achs = ACHIEVEMENTS.filter((a) => progress.ach[a.id]).length;
+    this.show("epilogue", `<div class="panel narrow result-card epilogue"><h2>${esc(t("epi_title"))}</h2><p class="outro">${esc(t("epi_lead"))}</p><ul class="epi">${who}</ul>
+      <h4>${esc(t("epi_week"))}</h4><table>
+      <tr><td>${esc(t("epi_nights"))}</td><td>${progress.night ?? 0}</td></tr><tr><td>${esc(t("epi_popped"))}</td><td>${progress.stats.popped}</td></tr>
+      <tr><td>${esc(t("memories"))}</td><td>${mems}/${allMems}</td></tr><tr><td>${esc(t("achievements"))}</td><td>${achs}/${ACHIEVEMENTS.length}</td></tr>
+      <tr><td>${esc(t("rank", { n: rankFor(progress.xp) }))}</td><td>${progress.xp} XP</td></tr></table>
+      <p>${esc(t("epi_thanks"))}</p><p class="by">${esc(t("madeBy"))}</p>
+      <div class="menu-buttons"><button class="btn big" data-a="close">${esc(t("toFactory"))}</button></div></div>`, { close: onClose }, "dim");
+  }
+
   // A memory card slides in on the right for a few seconds.
   memory(id) {
     const [title, text] = memoryText(id);

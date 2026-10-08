@@ -319,7 +319,7 @@ async function startGame() {
   if (import.meta.env.DEV && LEVELS[q.get("level")]) startLevel(q.get("level"));
 
   // ── Loop ──
-  let last = performance.now(), acc = 0, time = 0, snoreT = 3;
+  let last = performance.now(), acc = 0, time = 0, snoreT = 3, epiT = 2;
   const loop = (now) => {
     requestAnimationFrame(loop);
     // (A frame stamp can be older than `last` after a long level build.)
@@ -366,6 +366,15 @@ async function startGame() {
       director.frame(run, dt);
       // Old Hum asleep at last: through the window, now and then, a snore.
       if (run.def.hub && progress.done.includes("oldhum") && (snoreT -= dt) <= 0) { snoreT = 6 + Math.random() * 3; audio.play("snore"); }
+      // The week done: once the closing scene has been said, the epilogue
+      // (an older save that finished without it gets it on the next visit).
+      if (run.def.hub && progress.done.includes("oldhum") && !progress.epilogue) {
+        epiT = dialog.busy ? 2 : epiT - dt;
+        if (epiT <= 0) {
+          progress.epilogue = true; save();
+          openMenu(() => menus.epilogue(progress, { onClose: () => { resume(); dialog.say("hub_end4"); dialog.say("hub_end5"); } }));
+        }
+      }
       hud.update(run, dt);
     } else {
       input.look();

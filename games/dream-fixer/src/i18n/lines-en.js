@@ -406,6 +406,8 @@ export const LINES_EN = {
   hub_end1: ["margo", "Here. Coffee. For real this time."],
   hub_end2: ["margo", "Hear that? He's snoring. First time in a hundred years."],
   hub_end3: ["csavar", "Bip-bip… (Zzz.)"],
+  hub_end4: ["margo", "Not a rookie any more, are you?"],
+  hub_end5: ["margo", "Old Hum's on the board now too. For the odd bad night."],
 };
 
 // Biscuit's memories: [title, text].

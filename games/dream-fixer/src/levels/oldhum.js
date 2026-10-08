@@ -161,7 +161,7 @@ export const oldhum = {
     k.prop("bench", -36, 1, { yaw: Math.PI / 2, collide: { w: 1.9, d: 0.6, h: 0.9 } });
     k.prop("lamp", -23, 2, { collide: { r: 0.12, h: 3 } });
     for (let i = 0; i < 5; i++) k.prop("flowers", -37 + rnd() * 14, -6 + rnd() * 13, { opts: { seed: i + 3 } });
-    k.prop("tennisBall", -27, 3);
+    k.prop("tennisBall", -27, 3, { collide: { r: 0.95, h: 1.9 } });
     k.light(-30, 4, 0, 0xffe8b0, 5, 13);
   },
 

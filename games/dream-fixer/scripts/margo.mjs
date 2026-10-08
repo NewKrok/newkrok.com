@@ -394,4 +394,6 @@ export const ACTED = {
   oldhum_retry: "[gently] His heart's racing again. [softly] Breathe, then go back to him.",
   hub_end1: "[warmly] Here. Coffee. [chuckles] For real this time.",
   hub_end2: "[quietly] Hear that? [softly] He's snoring. First time in a hundred years.",
+  hub_end4: "[warmly] Not a rookie any more, [teasing] are you?",
+  hub_end5: "[softly] Old Hum's on the board now too. [wryly] For the odd bad night.",
 };

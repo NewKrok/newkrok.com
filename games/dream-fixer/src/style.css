@@ -259,6 +259,14 @@ kbd { display: inline-block; min-width: 1.6em; padding: 1px 6px; border-radius: 
 .result-card td { padding: 6px 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); text-align: left; }
 .result-card td:last-child { text-align: right; font-weight: 800; color: #ffe7a8; }
 .result-card h2 { color: var(--mint); }
+.panel.narrow.epilogue { max-width: 600px; max-height: 92vh; overflow-y: auto; }
+.epilogue ul.epi { list-style: none; padding: 0; margin: 8px 0 10px; text-align: left; }
+.epilogue ul.epi li { padding: 3px 0; font-size: 0.88em; line-height: 1.35; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.epilogue h4 { margin: 10px 0 0; color: var(--mint); text-align: left; }
+.epilogue table { margin: 4px 0 10px; font-size: 0.9em; }
+.epilogue td { padding: 3px 4px; }
+.epilogue p { margin: 6px 0; }
+.epilogue .by { opacity: 0.65; font-size: 0.85em; }
 .touch-ui.hub .tbtn[data-t="fire"], .touch-ui.hub .tbtn[data-t="alt"], .touch-ui.hub .tbtn[data-t="tool"] { display: none; }
 @media (pointer: coarse) { .dialog { width: min(420px, 56vw); padding: 7px 11px 9px; } .dialog .text { font-size: 14px; } .memcard { width: min(260px, 40vw); } }
 .hud .clickhint { position: absolute; left: 50%; top: calc(50% + 40px); transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; background: rgba(20, 26, 44, 0.75); font-weight: 700; opacity: 0; transition: opacity 0.2s; }

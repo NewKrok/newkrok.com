@@ -37,7 +37,7 @@ const { move, touching, bonk, busy, potter, rr } = WALKER;
 export const GNOME = {
   look: 0.32,                // you are looking at it within this (radians, plus its size)
   set: 0.5,                  // seconds you have to look at it before it is stone
-  stone: 0.4,                // the share of a hit that a stone one feels
+  stone: 0.12,               // the share of a hit that a stone one feels
   rush: 1.7,                 // its speed when you are not
   cd: [1.6, 2.8], busy: 2,
   bonk: { near: 1.5, wind: 0.35, dmg: 6, cd: 1.3 },

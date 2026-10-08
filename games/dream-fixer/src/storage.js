@@ -26,7 +26,7 @@ export function saveSettings(s) { write(KEY_SETTINGS, s); }
 // hard: dreams fixed in deep sleep (hard); pickedHard: the job taken is one.
 // xp, ach, stats: rank and achievements (see data/progression.js).
 const VERSION = 3;
-const blank = () => ({ version: VERSION, dust: 0, done: [], hard: [], memories: [], upgrades: {}, items: {}, tools: ["stabilizer"], night: 0, picked: null, pickedHard: false, introSeen: false, log: [], xp: 0, ach: {}, stats: blankStats() });
+const blank = () => ({ version: VERSION, dust: 0, done: [], hard: [], memories: [], upgrades: {}, items: {}, tools: ["stabilizer"], night: 0, picked: null, pickedHard: false, introSeen: false, epilogue: false, log: [], xp: 0, ach: {}, stats: blankStats() });
 
 // An older save brought up to date, step by step.
 function migrate(p) {

@@ -403,6 +403,8 @@ export const LINES_HU = {
   hub_end1: ["margo", "Tessék. Kávé. Most tényleg."],
   hub_end2: ["margo", "Hallod? Horkol. Száz év óta először."],
   hub_end3: ["csavar", "Bip-bip… (Zzz.)"],
+  hub_end4: ["margo", "Már nem is vagy újonc, igaz?"],
+  hub_end5: ["margo", "Old Hum is felkerült a táblára. Ha néha rosszul aludna."],
 };
 export const MEMORIES_HU = {
   hedgehog: ["A sípolós sün", "Dora az első napon vette Biscuitnak. A sípolása elveszett, a szaga megmaradt."],
