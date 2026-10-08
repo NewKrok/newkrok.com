@@ -23,27 +23,27 @@ világban.
   shading, vertex colorok, gondos arányok. Minden álomnak saját palettája
   van, a Gyár meleg, műhelyes réz-fa-zöld tónusú. Az álomelemeken (hibák,
   horgonyok, álompor) világító, unlit részek vannak, a bloom ezekre kap rá.
-- **Hang:** minden szintetizált, mint eddig. A beszéd szöveges
-  buborékokban jelenik meg, alatta Animal Crossing-szerű „csipogó
-  gibberish” hang szól karakterenként más hangmagasságon. Így nincs
-  szinkron, és minden nyelven működik.
+- **Hang:** a zajok és a zene szintetizáltak. A beszéd szöveges
+  buborékokban jelenik meg. Margónak minden nyelven angol hangja van
+  (ElevenLabs, `scripts/voice.mjs`, a színészi utasítások és a karakter
+  leírása a `scripts/margo.mjs`-ben); Cog csipog, a buborék mondja meg, mit.
 
 ## 2. Szereplők
 
 | Ki | Szerep |
 | --- | --- |
 | **Te, az újonc** | Néma főhős, az első heted az Álomgyárban. Csak a kezed és a szerszámaid látszanak. |
-| **Margó** | Az éjszakás diszpécser, a rádióhang. Kicsit fáradt, nagyon kávéfüggő, és titokban szereti az újoncokat. Ő viszi a sztorit és a humort. |
-| **Csavar** | Kis lebegő műhelyrobot, aki elkísér az álmokba. Ő mutatja az utat és a horgonyokat, és ő a tutorial-hang. Szótlanul, csipogva kommunikál. |
+| **Margo** | Az éjszakás diszpécser, a rádióhang. Húsz éve van a szakmában: semmi nem ijeszti meg, de még mindig élvezi a műsort. Szórakozott, ironikus, kávéfüggő, éber, de sosem pánikol; titokban szereti az újoncokat. Csak a finálé közelében komolyodik el. Ő viszi a sztorit és a humort. |
+| **Cog** | Kis lebegő műhelyrobot, aki elkísér az álmokba. Ő mutatja az utat és a horgonyokat, és ő a tutorial-hang. Szótlanul, csipogva kommunikál. |
 | **Old Hum** | A Gyár ősi, hatalmas álomgépe. Csak a végén derül ki, hogy ő a fő szereplő (lásd a sztorinál). |
 | **Az ügyfelek** | Minden fejezetnek van egy ügyfele, akinek az álmában jársz. |
 
 ## 3. Sztoriív
 
 Egy hét, hat éjszaka, hat ügyfél. Minden éjjel kicsit több hiba van, és
-Margó egyre idegesebb, mert „ennyi hibás álom nem szokott lenni”.
+Margo egyre idegesebb, mert „ennyi hibás álom nem szokott lenni”.
 
-1. **Morzsa, a kutya:** a parkban elszabadultak a mókusok, a főellenség
+1. **Biscuit, a kutya:** a parkban elszabadultak a mókusok, a főellenség
    pedig a Porszívó. Ez a tutorial-fejezet.
 2. **Ethan (10 éves), matekdolgozat előtti éjszaka:** az iskolafolyosók
    körbeérnek, ébresztőórák, ceruzák és egy dühös hátizsák támadnak, a
@@ -60,7 +60,7 @@ Margó egyre idegesebb, mert „ennyi hibás álom nem szokott lenni”.
 6. **Finálé, Old Hum álma:** kiderül, hogy a hibák onnan szivárognak, hogy a
    Gyár nagy gépe száz éve nem aludt, mert mindig mások álmait gyártja. Az
    utolsó küldetésben nem legyőzöd, hanem **elaltatod**: megjavítod a saját
-   álmát. A zárójelenetben Margó kávét hoz neked, Old Hum pedig horkol.
+   álmát. A zárójelenetben Margo kávét hoz neked, Old Hum pedig horkol.
    Az álma az öt álom **egyvelege**: Old Hum gépezetének belsejében (fogaskerekek,
    csövek, futószalagok) lebegnek a hét álmainak darabjai, a horgonyok
    ezeknél vannak, és visszajönnek a régi hibák is. Nálad csak a
@@ -70,18 +70,18 @@ Margó egyre idegesebb, mert „ennyi hibás álom nem szokott lenni”.
    elalszik.
 
 A történet három csatornán jut el a játékoshoz:
-- **Margó rádióüzenetei** a pálya közben. Rövidek, és sosem veszik el az
+- **Margo rádióüzenetei** a pálya közben. Rövidek, és sosem veszik el az
   irányítást.
 - **Emléktárgyak** minden álomban (5 darab, gyűjthető). Ezek az ügyfél
   apró történetét mesélik el, és rájuk építhetők az érzelmesebb pillanatok.
 - **A Gyár mint központ:** a műszakok között változik (új szerszám a
-  pultokon, cetlik, Margó bögréinek száma).
+  pultokon, cetlik, Margo bögréinek száma).
 
 ## 4. Játékmenet
 
 ### Egy álom felépítése (10–15 perc)
 
-1. **Leszállás:** rövid bevezető, Csavar körülnéz, Margó elmondja a
+1. **Leszállás:** rövid bevezető, Cog körülnéz, Margo elmondja a
    feladatot.
 2. **Három horgony:** az álmot három meghibásodott **álomhorgony** tartja
    egyben. Mindegyikhez el kell jutni (felfedezés, könnyű platformozás),
@@ -95,7 +95,7 @@ A történet három csatornán jut el a játékoshoz:
 4. **Ébredés nélkül:** az ügyfél nyugodtan alszik tovább. Jön egy rövid
    zárókép, és vissza a Gyárba.
 
-### Morzsa parkja (1. fejezet)
+### Biscuit parkja (1. fejezet)
 
 Lebegő szigetek: a nagy gyep középen (itt jön elő a főellenség), terasz a
 kutyaházzal, nyugatra híd egy akadálypályás kutyafuttatóra, keletre híd egy
@@ -161,7 +161,7 @@ Az első horgony után jön az **Altatócsengő**. A kamra ajtaját egy
 felfújódott szuflé tömi be (egy csengetés lelapítja), a pultra csak egy
 rezgő zselé dob fel (három hablépcső épp nem elég), így az asztal jön
 előbb. Zselé visz fel a polcra és egy szék ülésére is, a kamrában a
-lisztes zsákokra: ott emlékek várnak. Csavar szól, ha a szuflé vagy a
+lisztes zsákokra: ott emlékek várnak. Cog szól, ha a szuflé vagy a
 pult alatt állsz.
 
 | Hiba | Viselkedés |
@@ -202,7 +202,7 @@ lassan sodródnak szét: zuhanós álom, hajnali, rózsaszín-arany égen.
   ez a boss arénája. A peron kőlapokból áll.
 
 Az első horgony után Joe ernyője leereszkedik az égből (a **Szélernyő**):
-a gyümölcsös és a jelzőház csak azzal érhető el. Csavar szól, ha a
+a gyümölcsös és a jelzőház csak azzal érhető el. Cog szól, ha a
 résnél vagy a szélforgónál állsz.
 
 | Hiba | Viselkedés |
@@ -261,7 +261,7 @@ kb. 2,4 méterre ugrasz, 8 métert (sprintelve 12-t), és lassan esel. Az
 Az első horgony után jön a **Csillagjojó**; a napelemsor, a
 csillagvizsgáló és az emlékek fele csak a lasszóval érhető el. Az utolsó
 kapaszkodó mindig kb. 1 méterrel a túlsó perem előtt lóg, mert
-elengedéskor kb. 6 métert repülsz tovább. Csavar szól a rés szélén és a
+elengedéskor kb. 6 métert repülsz tovább. Cog szól a rés szélén és a
 torony tövében.
 
 | Hiba | Viselkedés |
@@ -297,18 +297,18 @@ Old Hum a Gyár százéves álomgépe; egész héten belőle szivárogtak a hib�
 A finálé **nem a liftről indul**: amikor az ötödik álomból visszaérsz, a
 Gyárban kialszanak a lámpák, a lift a piros tartaléklámpáján megy (a
 táblán a régi álmok továbbra is elvállalhatók: aki elakad, előbb
-erősödhet; Margó szól is), a nagy ablak kitárul, és egy pallón kisétálsz Old Humhoz. A
+erősödhet; Margo szól is), a nagy ablak kitárul, és egy pallón kisétálsz Old Humhoz. A
 gömb oldalán egy szervizajtó (`E`) visz be; nincs zuhanó érkezés
 (`walkIn`), a landolón kezdesz, a bezárt ajtó mögötted. A munkatáblán
 csak a megjavítása után jelenik meg (`door: true` a `CLIENTS`-ben), onnan
 újra elvállalható.
 
-**Csavar csavarja:** Csavart Old Hum egyik alkatrészéből építették, ezért
+**Cog titka:** Cogot Old Hum egyik alkatrészéből építették, ezért
 bent ismeri az utat. A darabok között **zsilipek** (`kit.gate`) vannak:
-ha odamész, Csavar a kapcsolótáblához repül, és kinyitja (a lámpa
+ha odamész, Cog a kapcsolótáblához repül, és kinyitja (a lámpa
 pirosból borostyánon át mentazöldre vált). A nyugati rögtön nyílik, a
 keleti az első horgony után, a szívé mind a három után. A második
-horgony után Csavar el is mondja, mi ő.
+horgony után Cog el is mondja, mi ő.
 
 - **A landoló és a palló** (délen).
 - **A gépház** (középen): kerek rézpadló korláttal, közepén forgó
@@ -332,7 +332,7 @@ egy lebegő rézszív három forgó rézgyűrűben, vörösen izzó maggal, egy
 tágra nyílt szemmel és két vekkercsengővel. Nem győzöd le, hanem
 elaltatod: életerő helyett **álmosság-mérője** van (lila, ásításkor
 arany), és csak az álomhomok tölti; minden más lepattan róla (az első
-lövésnél Margó szól: „Homok, újonc!”). Ha egy ideig nem kap homokot,
+lövésnél Margo szól: „Homok, újonc!”). Ha egy ideig nem kap homokot,
 lassan visszaébred.
 - **Vekker:** rázkódnak a csengői, aztán gyűrűk futnak a padlón (2, a
   második fázisban 3).
@@ -346,13 +346,13 @@ lassan visszaébred.
 - Ha megtelt, leereszkedik és bóbiskol; Cog odarepül, és beleszórja az
   utolsó marék homokot. Old Hum elalszik.
 
-**Zárójelenet:** a Gyárba visszaérve Margó kávét ad, és a nagy ablakon
+**Zárójelenet:** a Gyárba visszaérve Margo kávét ad, és a nagy ablakon
 túl Old Hum horkol (a Gyárban ettől kezdve hallani).
 
 
 Hibák: minden darabban a saját álmáé (mókusok, ceruzák, gombócok,
 törpék, robotok), a hullámokban az egész hét keverve. Emlékek: az első
-tervrajz, az első álom, Margó első bögréje, egy üres foglalat (Csavaré),
+tervrajz, az első álom, Margo első bögréje, egy üres foglalat (Cogé),
 egy zenedoboz-henger.
 
 ### Szerszámok (a „fegyverek”)
@@ -478,7 +478,7 @@ Kóc egy dühös mókus-gombolyag, a konyhában egy pattogó gombóc.
 | **Porcica** | Apró, gyors porcica-nyuszi, falkában jön. Egy lövés elég rá, a Kócszívó egyszerre többet is beszív. (A Porszívó kártevői.) |
 | **Fürdőkád** | Lassú, erős, távolról íves pályán szappanbuborékot lő; a földön gyűrű mutatja, hová esik. Túl nagy a beszíváshoz. |
 
-Morzsa parkjában a Kóc bőre egy összegabalyodott, dühös **mókus**: a kutya álmában a hibák annak alakját öltik, amit a kutya egész nap kerget.
+Biscuit parkjában a Kóc bőre egy összegabalyodott, dühös **mókus**: a kutya álmában a hibák annak alakját öltik, amit a kutya egész nap kerget.
 
 ### Casual szabályok
 
@@ -507,7 +507,7 @@ Morzsa parkjában a Kóc bőre egy összegabalyodott, dühös **mókus**: a kuty
   bekeretezett kép (hat keret, a hatodik Old Humé), óra, Cog „a hónap
   dolgozója” plakátja, mérőórák, és a naptár, amin az éjszakák ki vannak
   húzva. Ami éjszakáról éjszakára változik:
-  - **Margó bögréi** az asztalán: minden éjjel eggyel több (legfeljebb 9).
+  - **Margo bögréi** az asztalán: minden éjjel eggyel több (legfeljebb 9).
   - **A parafatábla:** minden megjavított álom után egy új cetli, piros
     cérnával összekötve; a finálé estéjén középen Old Hum vázlata, és
     minden szál hozzá fut.
@@ -557,7 +557,7 @@ kellék, például gurítható dolog.
 | `sim/` | Mozgás, ütközés, hibák AI-ja, szerszámok, horgonyok, főellenségek. Semmit sem tud a renderelésről. |
 | `levels/kit.js` + `levels/*.js` | Pályák adatként: kolliderek, díszletek, horgonyok, spawnok, emléktárgyak. |
 | `render/modelkit.js` | A low poly modell-kit: bevelezett doboz, lathe, kúpos végtagok, vertex color, variálás, összefűzés. |
-| `render/models/*.js` | Minden modell a saját fájljában: szerszámok (view model), Csavar, hibák, díszletek. |
+| `render/models/*.js` | Minden modell a saját fájljában: szerszámok (view model), Cog, hibák, díszletek. |
 | `render/viewmodel.js` | A kéz és a szerszám a kamera előtt: ringás, visszarúgás, váltási animáció. |
 | `input/` | Egér és billentyűzet, érintés, (később) kontroller egyetlen közös interfész mögött. |
 | `story/` | Rádióüzenetek, triggerek, emléktárgy-szövegek (EN/HU az `i18n`-ben). |
@@ -611,11 +611,11 @@ külön megnézhetünk és finomíthatunk, mielőtt pályára kerül.
 ## 7. Első mérföldkő: játszható szelet
 
 - **A Gyár (központ), kis méretben:** munkapad (fejlesztés), munkatábla
-  (ügyfél választás), Margó pultja, lift az álomba.
-- **1. fejezet (Morzsa álma) teljes egészében:** park, három horgony,
+  (ügyfél választás), Margo pultja, lift az álomba.
+- **1. fejezet (Biscuit álma) teljes egészében:** park, három horgony,
   Stabilizátor és Kócszívó, három hibatípus (Kóc, Zizegő, Csomó), a
   Porszívó főellenség két fázissal, öt emléktárgy.
-- Rádióüzenetek és Csavar tutorialja EN/HU nyelven.
+- Rádióüzenetek és Cog tutorialja EN/HU nyelven.
 - Asztali és mobil irányítás, célzássegítés, mentés (`localStorage`).
 - Menü, beállítások (érzékenység, hangerő, nehézség, auto-lövés), stáblista.
 - Headless bot és screenshot-szkriptek.
