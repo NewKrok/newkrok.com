@@ -269,7 +269,7 @@ export class Menus {
     const el = this.show("bench", `<div class="panel wide bench">
       <div class="bhead"><h2>${esc(t("bench_title"))}</h2><div class="rankbox"><b>${esc(t("rank", { n: rank }))}</b><div class="xpbar"><i style="transform:scaleX(${need ? (have / need).toFixed(3) : 1})"></i></div><small>${esc(need ? t("xpLine", { have, need }) : t("xpMax"))}</small></div><div class="purse">✦ <b>${progress.dust}</b></div></div>
       <p class="intro">${esc(t("bench_intro"))}</p>
-      <div class="seg tabs">${tabs}</div>
+      <div class="tabrow"><kbd class="padonly">${padLabel("LB")}</kbd><div class="seg tabs">${tabs}</div><kbd class="padonly">${padLabel("RB")}</kbd></div>
       <div class="bgrid"><div class="tiles">${tiles}</div>
         <div class="detail"><div class="pv"></div><b class="dn">${esc(name)}</b><div class="dl">${esc(meta)}</div><p>${esc(desc)}</p>${stat}<div class="dbuy">${buy}</div></div></div>
       <div class="actions"><button class="btn ghost" data-a="close">${esc(t("close"))}</button></div></div>`,

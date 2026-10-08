@@ -60,6 +60,16 @@ export class PadNav {
     const P = (b) => pad.pressed(b);
     if (P(BTN.B)) { this.press("[data-a=back], [data-a=close], [data-a=resume]"); return; }
     if (P(BTN.START)) { this.press("[data-a=resume]"); return; }
+    // The shoulder buttons flip through a panel's tabs (the bench's pages).
+    if (P(BTN.LB) || P(BTN.RB)) {
+      const tabs = [...(this.root.querySelector(".menus .screen")?.querySelectorAll("[data-a=tab]") ?? [])];
+      if (tabs.length) {
+        const i = Math.max(0, tabs.findIndex((b) => b.classList.contains("on"))), d = P(BTN.RB) ? 1 : -1;
+        tabs[(i + d + tabs.length) % tabs.length].click();
+        this.audio.play("click");
+        return;
+      }
+    }
     if (P(BTN.A)) {
       document.body.classList.add("pad-nav");
       this.padT = performance.now();
