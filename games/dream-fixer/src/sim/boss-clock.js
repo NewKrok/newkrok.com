@@ -31,7 +31,7 @@ export const BIGCLOCK = {
   ring: { wind: 1.4, rings: [3, 4], gap: 0.45, dmg: 9, max: 13, speed: 9, pulse: { max: 15, speed: 9, slow: 2.5 } },
   sweep: { wind: 0.9, turn: 1.9, len: 9.5, h: 1.1, dmg: 9, every: 0.5 },
   tiles: { warn: 1.5, down: 4, n: [3, 5], near: 8 },
-  snooze: { n: 3, minions: 4 },
+  snooze: { n: [3, 4], minions: 6 },
   unwound: { time: 5.5, mul: 2.6 },
   loose: { every: [3, 4], time: 6 },    // attacks between; how long the key stays loose
   faceMul: 1, bodyMul: 0.55,
@@ -206,7 +206,8 @@ export class ClockBoss {
         if (this.t > 0.5 && !this.fired) {
           this.fired = true;
           const fx = -Math.sin(this.yaw), fz = -Math.cos(this.yaw);
-          for (let i = 0; i < C.snooze.n; i++) run.spawn("ticket", b.x + fx * 2.6 + (i - 1) * 1.2, b.z + fz * 2.6, { group: "boss", y: b.y + 1.5 });
+          const n = C.snooze.n[this.phase - 1];
+          for (let i = 0; i < n; i++) run.spawn("ticket", b.x + fx * 2.6 + (i - (n - 1) / 2) * 1.2, b.z + fz * 2.6, { group: "boss", y: b.y + 1.5 });
           run.events.push({ type: "bossAttack", attack: "snoozeOut" });
         }
         if (this.t > 1.3) { this.set("roam"); this.cd = 1.6 + run.rnd(); }
@@ -265,7 +266,7 @@ export class ClockBoss {
     this.attacks++;
     const minions = run.foes.filter((f) => f.alive && f.group === "boss").length;
     const r = run.rnd();
-    let s = r < 0.27 ? "ring" : r < 0.52 ? "sweep" : r < 0.82 || minions >= BIGCLOCK.snooze.minions ? "timesup" : "snooze";
+    let s = r < 0.25 ? "ring" : r < 0.48 ? "sweep" : r < 0.74 || minions >= BIGCLOCK.snooze.minions ? "timesup" : "snooze";
     if (s === "sweep" && dist > BIGCLOCK.sweep.len - 1) s = "timesup";
     if (s === "sweep") { this.dir = run.rnd() < 0.5 ? 1 : -1; this.windJet = null; }
     this.set(s);
