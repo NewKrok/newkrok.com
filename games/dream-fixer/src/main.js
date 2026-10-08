@@ -229,17 +229,23 @@ async function startGame() {
       // Stand and gaze out at the night (and Old Hum); Margo now and then has a word.
       run.gaze = { t: 0 };
       if (!dialog.busy && Math.random() < 0.6) {
-        const all = [];
-        for (let i = 1; hasLine(`hub_window_${i}`); i++) if (`hub_window_${i}` !== lastWindow) all.push(`hub_window_${i}`);
-        lastWindow = all[Math.floor(Math.random() * all.length)];
+        // Once Old Hum sleeps, not the lines about him never resting, and a
+        // few about him asleep.
+        const asleep = progress.done.includes("oldhum"), all = [];
+        for (let i = 1; hasLine(`hub_window_${i}`); i++) if (!(asleep && (i === 1 || i === 4))) all.push(`hub_window_${i}`);
+        for (let i = 1; asleep && hasLine(`hub_sleep_${i}`); i++) all.push(`hub_sleep_${i}`);
+        const pool = all.filter((x) => x !== lastWindow);
+        lastWindow = pool[Math.floor(Math.random() * pool.length)];
         if (lastWindow) dialog.say(lastWindow, true);
       }
     }
     else if (id === "radio" && run.kit.marks.hatch) { if (!dialog.busy) dialog.say("hub_finale_radio", true); }
     else if (id === "radio") {
       // Margo picks up with one of her lines, never the same one twice running.
+      // (After the finale, a few about the quieter nights as well.)
       const all = ["hub_radio"];
       for (let i = 2; hasLine(`hub_radio_${i}`); i++) all.push(`hub_radio_${i}`);
+      for (let i = 1; progress.done.includes("oldhum") && hasLine(`hub_late_${i}`); i++) all.push(`hub_late_${i}`);
       const pool = all.filter((x) => x !== lastRadio);
       lastRadio = pool[Math.floor(Math.random() * pool.length)];
       if (!dialog.busy) { dialog.say(lastRadio, true); progress.stats.radio++; achieve(); save(); }
@@ -288,6 +294,9 @@ async function startGame() {
         bankDust();
         // The finale, the first time: the Factory's closing scene comes next.
         if (id === "oldhum" && !progress.done.includes(id)) progress.ending = true;
+        // (Back at the Factory Margo's word depends on it: a dream fixed the
+        // first time moves the week's story on.)
+        progress.backFirst = progress.done.includes(id) ? null : id;
         if (!progress.done.includes(id)) progress.done.push(id);
         if (run.opts.difficulty === "hard" && !progress.hard.includes(id)) progress.hard.push(id);
         if (!run.def.dev) achieve({ fixed: run });

@@ -23,6 +23,8 @@ function pick(D, prefix) {
 const sayOne = (D, prefix) => { const id = pick(D, prefix); if (id) D.say(id); return !!id; };
 // A line only if the dream has one written for that beat.
 const sayIf = (D, id, again) => { if (hasLine(id)) D.say(id, again); };
+// Just back from a dream this visit (that night's word already said).
+const backNow = (D) => [...D.said].some((id) => id.startsWith("hub_back") || id.startsWith("hub_return"));
 
 // ── What every dream's radio does ──
 // The same beats in every dream, each in that dream's own lines (ids
@@ -181,7 +183,16 @@ const DIRECTORS = {
       if (P.ending) { P.ending = false; D.say("hub_end1"); D.say("hub_end2"); D.say("hub_end3"); return; }
       // First time in: the welcome. Back from a dream: how it went. Any
       // other time: one of a handful of greetings, at random.
-      if (P.justBack) D.say("hub_back1");
+      // Back from a dream: the first time it is fixed, a word on how the
+      // week is going (the park's is the plain welcome); after a replay, one
+      // of a handful.
+      if (P.justBack) {
+        const first = P.backFirst;
+        P.backFirst = null;
+        if (first && hasLine(`hub_back_${first}`)) D.say(`hub_back_${first}`);
+        else if (first || !P.log.includes("hub_back1")) D.say("hub_back1");
+        else sayOne(D, "hub_return");
+      }
       else if (!P.log.includes("hub_intro1")) { D.say("hub_intro1"); D.say("hub_intro2"); }
       else sayOne(D, "hub_greet");
     },
@@ -199,10 +210,10 @@ const DIRECTORS = {
       // The journal when you wander over to it (or a while later).
       // The journal: once ever, when you wander over to it (or a while later).
       // A new client calls once the last dream is done (not straight after it: that night is over).
-      if (S.P?.done.includes("park") && !S.P.done.includes("school") && !S.P.log.includes("hub_newjob") && !D.said.has("hub_back1") && q(3)) D.say("hub_newjob");
-      if (S.P?.done.includes("school") && !S.P.done.includes("kitchen") && !S.P.log.includes("hub_newjob2") && !D.said.has("hub_back1") && q(3)) D.say("hub_newjob2");
-      if (S.P?.done.includes("kitchen") && !S.P.done.includes("garden") && !S.P.log.includes("hub_newjob3") && !D.said.has("hub_back1") && q(3)) D.say("hub_newjob3");
-      if (S.P?.done.includes("garden") && !S.P.done.includes("space") && !S.P.log.includes("hub_newjob4") && !D.said.has("hub_back1") && q(3)) D.say("hub_newjob4");
+      if (S.P?.done.includes("park") && !S.P.done.includes("school") && !S.P.log.includes("hub_newjob") && !backNow(D) && q(3)) D.say("hub_newjob");
+      if (S.P?.done.includes("school") && !S.P.done.includes("kitchen") && !S.P.log.includes("hub_newjob2") && !backNow(D) && q(3)) D.say("hub_newjob2");
+      if (S.P?.done.includes("kitchen") && !S.P.done.includes("garden") && !S.P.log.includes("hub_newjob3") && !backNow(D) && q(3)) D.say("hub_newjob3");
+      if (S.P?.done.includes("garden") && !S.P.done.includes("space") && !S.P.log.includes("hub_newjob4") && !backNow(D) && q(3)) D.say("hub_newjob4");
       if (!S.P?.log.includes("hub_journal") && (from(run, -8.7, -4.2) < 3.5 || (S.time > 40 && (D.said.has("hub_intro3") || D.said.has("hub_back2")))) && q(2)) D.say("hub_journal");
     },
   },

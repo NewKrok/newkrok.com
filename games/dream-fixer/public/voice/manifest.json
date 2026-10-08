@@ -1081,5 +1081,134 @@
  },
  "hub_end5": {
   "hash": "daaee8953c31"
+ },
+ "hub_radio_9": {
+  "hash": "d216cbef0602"
+ },
+ "hub_radio_10": {
+  "hash": "1191bd25cab7"
+ },
+ "hub_radio_11": {
+  "hash": "0691ec98e83d"
+ },
+ "hub_radio_12": {
+  "hash": "52836c3490c2"
+ },
+ "hub_radio_13": {
+  "hash": "bf811b08dea9"
+ },
+ "hub_radio_14": {
+  "hash": "33f87d24167c"
+ },
+ "hub_radio_15": {
+  "hash": "148eb83235d8"
+ },
+ "hub_radio_16": {
+  "hash": "6822cc111a8c"
+ },
+ "hub_window_5": {
+  "hash": "12cbaf773f43"
+ },
+ "hub_window_6": {
+  "hash": "1f5719c8552c"
+ },
+ "hub_window_7": {
+  "hash": "59db5dbe177c"
+ },
+ "hub_window_8": {
+  "hash": "4d8d7aeaa95f"
+ },
+ "hub_window_9": {
+  "hash": "e144caa1d70c"
+ },
+ "hub_sleep_1": {
+  "hash": "2e4a83ed1fd6"
+ },
+ "hub_sleep_2": {
+  "hash": "0482d29c8769"
+ },
+ "hub_sleep_3": {
+  "hash": "6f38b68cdb82"
+ },
+ "hub_sleep_4": {
+  "hash": "0acee3dc7c05"
+ },
+ "hub_late_1": {
+  "hash": "67972d119883"
+ },
+ "hub_late_2": {
+  "hash": "deea6d4ac34e"
+ },
+ "hub_late_3": {
+  "hash": "7f5dd528ca4b"
+ },
+ "hub_late_4": {
+  "hash": "8fe0ada6e90f"
+ },
+ "hub_late_5": {
+  "hash": "692686b8b306"
+ },
+ "hub_back_school": {
+  "hash": "8e472c2cd1e5"
+ },
+ "hub_back_kitchen": {
+  "hash": "dc6ddf9aa6a6"
+ },
+ "hub_back_garden": {
+  "hash": "9307c7e0bb9c"
+ },
+ "hub_back_space": {
+  "hash": "63f5a53da0d8"
+ },
+ "hub_return_1": {
+  "hash": "5b4ea50f67b2"
+ },
+ "hub_return_2": {
+  "hash": "074b0bc483df"
+ },
+ "hub_return_3": {
+  "hash": "505b712ee03e"
+ },
+ "hub_return_4": {
+  "hash": "0727c0fff5d5"
+ },
+ "hub_return_5": {
+  "hash": "99697f87f7b0"
+ },
+ "park_idle_5": {
+  "hash": "379a76c05ee1"
+ },
+ "park_idle_6": {
+  "hash": "19cf8752ba2e"
+ },
+ "school_idle_5": {
+  "hash": "f21584eeb208"
+ },
+ "school_idle_6": {
+  "hash": "36897d850ab9"
+ },
+ "kitchen_idle_5": {
+  "hash": "8a31acba5d5f"
+ },
+ "kitchen_idle_6": {
+  "hash": "21f02789b388"
+ },
+ "garden_idle_5": {
+  "hash": "7b6c79dcbd2e"
+ },
+ "garden_idle_6": {
+  "hash": "0cf0c7029c2b"
+ },
+ "space_idle_5": {
+  "hash": "16294ab576f1"
+ },
+ "space_idle_6": {
+  "hash": "bb3f1a6a9527"
+ },
+ "oldhum_idle_5": {
+  "hash": "3df68d5d4a45"
+ },
+ "oldhum_idle_6": {
+  "hash": "9ec11fe03674"
  }
 }
