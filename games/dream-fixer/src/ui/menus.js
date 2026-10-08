@@ -13,6 +13,11 @@ import { CLIENTS, MEMORY_OWNER, isOpen, memoriesOf } from "../levels/index.js";
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
+// Where the game lives, for sharing.
+const SHARE_URL = "https://newkrok.com/games/dream-fixer/";
+// The credit line, the author's name a link to his X account.
+const madeBy = () => esc(t("madeBy")).replace(/Krisztian Somoracz|Somoracz Krisztián/, (n) => `<a href="https://x.com/KSomoracz" target="_blank" rel="noopener">${n}</a>`);
+
 export class Menus {
   constructor(root, audio) {
     this.root = root;
@@ -50,7 +55,7 @@ export class Menus {
     return this.el.firstElementChild;
   }
 
-  title(progress, { onPlay, onSettings, onHowto }) {
+  title(progress, { onPlay, onSettings, onHowto, onShare }) {
     const started = progress.done.length || progress.dust || progress.introSeen;
     this.show("title", `
       <div class="title-card">
@@ -58,15 +63,36 @@ export class Menus {
         <div class="tagline">${esc(t("tagline"))}</div>
         <div class="menu-buttons">
           <button class="btn big" data-a="play">${esc(t(started ? "continue" : "play"))}</button>
-          <div class="row2"><button class="btn ghost" data-a="howto">${esc(t("howto"))}</button><button class="btn ghost" data-a="settings">${esc(t("settings"))}</button></div>
+          <div class="row2"><button class="btn ghost" data-a="howto">${esc(t("howto"))}</button><button class="btn ghost" data-a="settings">${esc(t("settings"))}</button><button class="btn ghost" data-a="share">${esc(t("share"))}</button></div>
         </div>
       </div>
-      <footer class="credit"><div>${esc(t("madeBy"))}</div><div class="tech">three.js</div></footer>`,
-    { play: onPlay, settings: onSettings, howto: onHowto }, "title");
+      <footer class="credit"><div>${madeBy()}</div><div class="tech"><a href="https://threejs.org/" target="_blank" rel="noopener">three.js</a></div></footer>`,
+    { play: onPlay, settings: onSettings, howto: onHowto, share: onShare }, "title");
+  }
+
+  // Sharing the game: post it on X or Facebook, copy the link, or the
+  // device's own share sheet where there is one.
+  share({ onBack }) {
+    const text = t("share_text"), enc = encodeURIComponent;
+    const links = [["x", `https://x.com/intent/post?text=${enc(text)}&url=${enc(SHARE_URL)}`], ["fb", `https://www.facebook.com/sharer/sharer.php?u=${enc(SHARE_URL)}`]];
+    const el = this.show("share", `<div class="panel narrow share"><h2>${esc(t("share"))}</h2><p>${esc(t("share_lead"))}</p><div class="menu-buttons">
+      ${links.map(([k, href]) => `<button class="btn" data-a="open" data-href="${esc(href)}">${esc(t(`share_${k}`))}</button>`).join("")}
+      <button class="btn" data-a="copy">${esc(t("share_copy"))}</button>
+      ${navigator.share ? `<button class="btn ghost" data-a="native">${esc(t("share_more"))}</button>` : ""}
+      </div><p class="link">${esc(SHARE_URL)}</p><div class="actions"><button class="btn ghost" data-a="back">${esc(t("back"))}</button></div></div>`,
+    {
+      open: (b) => window.open(b.dataset.href, "_blank", "noopener"),
+      copy: async (b) => {
+        try { await navigator.clipboard.writeText(SHARE_URL); b.textContent = t("share_copied"); }
+        catch { el.querySelector(".link")?.classList.add("pick"); }
+      },
+      native: () => navigator.share({ title: "Dream Fixer", text, url: SHARE_URL }).catch(() => {}),
+      back: onBack,
+    }, "dim");
   }
 
   howto(onBack) {
-    this.show("howto", `<div class="panel wide prose"><h2>${esc(t("howto"))}</h2>${t("howto_text")}<div class="actions"><button class="btn" data-a="back">${esc(t("back"))}</button></div></div>`, { back: onBack }, "dim");
+    this.show("howto", `<div class="panel wide prose fixfoot"><h2>${esc(t("howto"))}</h2><div class="scroll">${t("howto_text")}</div><div class="actions"><button class="btn" data-a="back">${esc(t("back"))}</button></div></div>`, { back: onBack }, "dim");
   }
 
   pause({ inDream, onResume, onJournal, onAchievements, onSettings, onFactory, onMain }) {
@@ -85,7 +111,7 @@ export class Menus {
     const range = (key, min, max, step) => `<input type="range" min="${min}" max="${max}" step="${step}" value="${S[key]}" data-set="${key}">`;
     const pick = (key, opts) => `<select class="pick" data-set="${key}">${opts.map(([v, l]) => `<option value="${v}" ${S[key] === v ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
     const check = (key) => `<input type="checkbox" ${S[key] ? "checked" : ""} data-set="${key}">`;
-    const el = this.show("settings", `<div class="panel wide"><h2>${esc(t("settings"))}</h2><div class="settings">
+    const el = this.show("settings", `<div class="panel wide fixfoot"><h2>${esc(t("settings"))}</h2><div class="settings">
       <h3>${esc(t("set_lang"))}</h3>${pick("lang", LANGS)}
       <h3>${esc(t("set_sound"))}</h3>
       <label class="row"><span>${esc(t("set_master"))}</span>${range("master", 0, 1, 0.05)}</label>
@@ -173,7 +199,7 @@ export class Menus {
         <span class="tag">${esc(done ? t("board_fixed") : t("board_new"))}</span> ${hard ? `<span class="tag hard">${esc(t("board_hardDone"))}</span> ` : ""}<span class="tag soft">${esc(t("memories"))} ${found}/${memoriesOf(c.level).length}</span>${done ? `<p class="hardtip">${esc(t("board_hardTip"))}</p>` : ""}</div>
         <div class="takes">${btn}${hardBtn}</div></div>`;
     }).join("");
-    this.show("board", `<div class="panel wide board"><h2>${esc(t("board_title"))}</h2><div class="clients">${cards}</div><div class="actions"><button class="btn ghost" data-a="close">${esc(t("close"))}</button></div></div>`,
+    this.show("board", `<div class="panel wide board fixfoot"><h2>${esc(t("board_title"))}</h2><div class="clients">${cards}</div><div class="actions"><button class="btn ghost" data-a="close">${esc(t("close"))}</button></div></div>`,
       { take: (b) => onTake(b.dataset.level, false), hard: (b) => onTake(b.dataset.level, true), close: onClose }, "dim");
   }
 
@@ -280,12 +306,12 @@ export class Menus {
     const who = ["park", "school", "kitchen", "garden", "space", "oldhum", "margo"].map((id) => `<li>${esc(t(`epi_${id}`))}</li>`).join("");
     const mems = progress.memories.length, allMems = CLIENTS.reduce((n, c) => n + (c.level ? memoriesOf(c.level).length : 0), 0);
     const achs = ACHIEVEMENTS.filter((a) => progress.ach[a.id]).length;
-    this.show("epilogue", `<div class="panel narrow result-card epilogue"><h2>${esc(t("epi_title"))}</h2><p class="outro">${esc(t("epi_lead"))}</p><ul class="epi">${who}</ul>
+    this.show("epilogue", `<div class="panel narrow result-card epilogue fixfoot"><h2>${esc(t("epi_title"))}</h2><div class="scroll"><p class="outro">${esc(t("epi_lead"))}</p><ul class="epi">${who}</ul>
       <h4>${esc(t("epi_week"))}</h4><table>
       <tr><td>${esc(t("epi_nights"))}</td><td>${progress.night ?? 0}</td></tr><tr><td>${esc(t("epi_popped"))}</td><td>${progress.stats.popped}</td></tr>
       <tr><td>${esc(t("memories"))}</td><td>${mems}/${allMems}</td></tr><tr><td>${esc(t("achievements"))}</td><td>${achs}/${ACHIEVEMENTS.length}</td></tr>
       <tr><td>${esc(t("rank", { n: rankFor(progress.xp) }))}</td><td>${progress.xp} XP</td></tr></table>
-      <p>${esc(t("epi_thanks"))}</p><p class="by">${esc(t("madeBy"))}</p>
+      <p>${esc(t("epi_thanks"))}</p><p class="by">${madeBy()}</p></div>
       <div class="menu-buttons"><button class="btn big" data-a="close">${esc(t("toFactory"))}</button></div></div>`, { close: onClose }, "dim");
   }
 

@@ -125,6 +125,7 @@ async function startGame() {
       onPlay: () => { progress.introSeen = true; save(); resume(); },
       onSettings: () => showSettings(showTitle),
       onHowto: () => menus.howto(showTitle),
+      onShare: () => menus.share({ onBack: showTitle }),
     });
   };
 

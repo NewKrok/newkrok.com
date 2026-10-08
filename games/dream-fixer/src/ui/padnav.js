@@ -52,7 +52,7 @@ export class PadNav {
     this.lastT = time;
     if (Math.abs(ry) > 0.05) {
       const scr = this.root.querySelector(".menus .screen"), act = document.activeElement;
-      const box = (scr?.contains(act) && act.closest(".achlist, .jbody, .tiles")) || scr?.querySelector(".achlist, .jbody, .tiles") || scr?.querySelector(".panel");
+      const box = (scr?.contains(act) && act.closest(".achlist, .jbody, .tiles, .clients, .settings, .scroll")) || scr?.querySelector(".achlist, .jbody, .tiles, .clients, .settings, .scroll") || scr?.querySelector(".panel");
       box?.scrollBy({ top: ry * 900 * dt });
     }
     const dir = pad.nav(time);
