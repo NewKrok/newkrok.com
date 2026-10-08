@@ -1,5 +1,8 @@
 import { UI } from "./ui.js";
 import { LEVEL_TEXT } from "./levels.js";
+import { LB_UI } from "./leaderboard.js";
+
+for (const code of Object.keys(LB_UI)) Object.assign(UI[code], LB_UI[code]);
 
 // ── Localisation ─────────────────────────────────────────────────────────
 // Static page text carries data-i18n (plain) or data-i18n-html (with markup)
@@ -43,4 +46,5 @@ export function levelText(l) {
 export function applyDom(root = document) {
   for (const el of root.querySelectorAll("[data-i18n]")) el.textContent = t(el.dataset.i18n);
   for (const el of root.querySelectorAll("[data-i18n-html]")) el.innerHTML = t(el.dataset.i18nHtml);
+  for (const el of root.querySelectorAll("[data-i18n-ph]")) el.placeholder = t(el.dataset.i18nPh);
 }

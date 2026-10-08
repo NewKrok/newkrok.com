@@ -1,0 +1,91 @@
+.Page {
+  padding: 2.5rem 1.5rem 4rem;
+  color: var(--main-color--text);
+  font-family: "Kanit", sans-serif;
+  font-weight: 200;
+  text-align: left;
+
+  @media screen and (max-width: 600px) {
+    padding: 1.5rem 1rem 3rem;
+  }
+}
+
+.Text {
+  max-width: 44rem;
+  margin: 0 auto;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+
+  h1 {
+    font-weight: 400;
+    font-size: 2.2rem;
+    margin: 0 0 0.25rem;
+    color: #fff;
+  }
+
+  h2 {
+    font-weight: 400;
+    font-size: 1.25rem;
+    margin: 2rem 0 0.5rem;
+    color: #fff;
+  }
+
+  a {
+    color: #ffd166;
+  }
+
+  ul {
+    padding-left: 1.25rem;
+  }
+
+  li {
+    margin-bottom: 0.4rem;
+  }
+
+  b {
+    font-weight: 400;
+    color: #fff;
+  }
+}
+
+.Updated {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.85rem;
+  margin-top: 0;
+}
+
+.Inline {
+  font: inherit;
+  color: #ffd166;
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.Lang {
+  max-width: 44rem;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+
+  button {
+    font: inherit;
+    font-weight: 400;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.9rem;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background: #1a1a1a;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+  }
+
+  .On {
+    background: #ffd166;
+    border-color: #ffd166;
+    color: #111;
+  }
+}

@@ -96,6 +96,17 @@ export function createSim({ onEvent = () => {} } = {}) {
     else if (k === "tractor") box(44, 24);
     else if (k === "digger") box(def.w ?? 60, def.h ?? 30);
     else if (k === "skip") box(def.w ?? 44, def.h ?? 26);
+    else if (k === "tank") {
+      // Hull, plus the gun where it overhangs (turret turned by `turret`).
+      box(84, 36);
+      const ta = def.turret ?? 0, tx = -84 * 0.06;
+      b.shapes.add(new Polygon(toVecs([[tx + 17, -1.5], [tx + 66, -1.5], [tx + 66, 1.5], [tx + 17, 1.5]].map(([u, v]) => [u * Math.cos(ta) - v * Math.sin(ta), u * Math.sin(ta) + v * Math.cos(ta)])), MAT_STATIC));
+    } else if (k === "parkedtrailer") {
+      const t = TRAILERS[def.trailer];
+      box(t.len * M, t.wid * M);
+      if (t.bar > 0) boxAt((t.len / 2 + t.bar / 2) * M, 0, t.bar * M, 4);
+    } else if (k === "watchtower") box(def.s ?? 22, def.s ?? 22);
+    else if (k === "radar") circ(def.r ?? 12);
     else if (k === "vancaravan") {
       const t = TRAILERS.caravan;
       box(t.len * M, t.wid * M);
@@ -235,9 +246,20 @@ export function createSim({ onEvent = () => {} } = {}) {
     const tb = new Body(BodyType.DYNAMIC, new Vec2(tp.x, tp.y));
     tb.rotation = start.a;
     const tmat = new Material(0.12, 0.6, 0.8, t.density, 0.001);
-    tb.shapes.add(new Polygon(toVecs(carOutline(t.len, t.wid, trailerKey === "caravan" ? 0.35 : 0.08)), tmat));
     const bx = t.len / 2 * M;
-    if (t.bar > 0) tb.shapes.add(new Polygon([new Vec2(bx - 1, -t.wid * 0.28 * M), new Vec2(couplerX, -1.2), new Vec2(couplerX, 1.2), new Vec2(bx - 1, t.wid * 0.28 * M)], tmat));
+    if (trailerKey === "fieldgun") {
+      // The gun is no box: shield over the axle, a narrow barrel back to
+      // the muzzle and the split trail forward to the towing eye. Denser,
+      // so it weighs what the box did.
+      const gmat = new Material(0.12, 0.6, 0.8, t.density * 1.45, 0.001);
+      const ax = t.axle * M;
+      tb.shapes.add(new Polygon(Polygon.rect(ax - 1, -t.wid * 0.43 * M, 5, t.wid * 0.86 * M), gmat));
+      tb.shapes.add(new Polygon(Polygon.rect(-bx, -3.5, bx + ax, 7), gmat));
+      tb.shapes.add(new Polygon([new Vec2(ax, -t.wid * 0.22 * M), new Vec2(couplerX, -1.2), new Vec2(couplerX, 1.2), new Vec2(ax, t.wid * 0.22 * M)], gmat));
+    } else {
+      tb.shapes.add(new Polygon(toVecs(carOutline(t.len, t.wid, trailerKey === "caravan" ? 0.35 : 0.08)), tmat));
+      if (t.bar > 0) tb.shapes.add(new Polygon([new Vec2(bx - 1, -t.wid * 0.28 * M), new Vec2(couplerX, -1.2), new Vec2(couplerX, 1.2), new Vec2(bx - 1, t.wid * 0.28 * M)], tmat));
+    }
     const wOut = t.wid / 2 + t.wheelOut;
     if (t.wheelOut > 0) {
       // Fenders stick out past the bed: they are part of what can hit things.
@@ -332,6 +354,7 @@ export function createSim({ onEvent = () => {} } = {}) {
     space.clear();
     installListeners();
     S.parked = [];
+    S.mines = (level.mines ?? []).map((m) => ({ x: m.x, y: m.y, live: true }));
     S.cones = [];
     S.movables = [];
     S.statics = [];
@@ -348,6 +371,7 @@ export function createSim({ onEvent = () => {} } = {}) {
     S.time = 0;
     S.scoring = false;
     S.park = evalParking();
+    movingBodies(snapshot);
   }
 
   // ── Vehicle dynamics ───────────────────────────────────────────────────
@@ -391,7 +415,7 @@ export function createSim({ onEvent = () => {} } = {}) {
       jLat *= k; jLong *= k;
       w.skid = Math.min(1, (mag - cap) / cap);
     }
-    b.applyImpulse(new Vec2(c * jLong - s * jLat, s * jLong + c * jLat));
+    b.applyImpulse(Vec2.weak(c * jLong - s * jLat, s * jLong + c * jLat));
     w.fLong = jLong / DT;
     w.fLat = jLat / DT;
     w.spin += vLong * DT / w.r;
@@ -410,11 +434,11 @@ export function createSim({ onEvent = () => {} } = {}) {
     const speed = c.velocity.x * fx + c.velocity.y * fy;
     v.speed = speed;
 
-    // Steering rack: rate-limited, self-centring when you let go.
+    // Steering rack: rate-limited, self-centring when you let go — unless
+    // `holdSteer` asks it to stay where it was left (keyboard parking).
     const target = input.steer * spec.maxSteer;
-    v.steer = input.steer !== 0
-      ? approach(v.steer, target, spec.steerRate * DT)
-      : approach(v.steer, 0, spec.steerReturn * DT);
+    if (input.steer !== 0) v.steer = approach(v.steer, target, spec.steerRate * DT);
+    else if (!input.holdSteer) v.steer = approach(v.steer, 0, spec.steerReturn * DT);
     for (const w of v.wheels) {
       if (!w.front) continue;
       const ang = ackermann(v.steer, w.side, spec);
@@ -557,19 +581,83 @@ export function createSim({ onEvent = () => {} } = {}) {
     return best;
   }
 
-  // One fixed physics step. `input` = { throttle, steer, brake }.
+  // ── Render interpolation ───────────────────────────────────────────────
+  // The sim steps at a fixed 60 Hz, the screen refreshes at its own rate:
+  // every moving body keeps its pose from before the last step, and the
+  // renderer draws a blend of the two (pose), so motion stays smooth on
+  // 120/144 Hz screens and when a frame runs two steps at once.
+  function movingBodies(fn) {
+    const v = S.veh;
+    fn(v.chassis); fn(v.trailer.body);
+    for (const w of v.wheels) fn(w.body);
+    for (const p of S.parked) fn(p.body);
+    for (const m of S.movables) fn(m.body);
+    for (const c of S.cones) fn(c.body);
+  }
+  function snapshot(b) {
+    const q = b.userData._prev ?? (b.userData._prev = { x: 0, y: 0, a: 0 });
+    q.x = b.position.x; q.y = b.position.y; q.a = b.rotation;
+  }
+  const posed = { x: 0, y: 0, a: 0 };
+  // Pose of a body `alpha` of the way from its last pose to the current one.
+  // Returns a shared object: read it before the next call.
+  function pose(b, alpha = 1) {
+    const q = b.userData._prev;
+    if (!q || alpha >= 1) { posed.x = b.position.x; posed.y = b.position.y; posed.a = b.rotation; return posed; }
+    posed.x = q.x + (b.position.x - q.x) * alpha;
+    posed.y = q.y + (b.position.y - q.y) * alpha;
+    posed.a = q.a + wrapPi(b.rotation - q.a) * alpha;
+    return posed;
+  }
+
+  // Pre-step velocity of a body, for bump strength (BEGIN fires after the solver).
+  function keepVelocity(b) {
+    const pv = b.userData._pv ?? (b.userData._pv = { x: 0, y: 0 });
+    pv.x = b.velocity.x; pv.y = b.velocity.y;
+  }
+
+  // One fixed physics step. `input` = { throttle, steer, brake, holdSteer }.
   function step(input) {
     const v = S.veh;
-    // Pre-step velocities for bump strength (BEGIN fires after the solver).
-    for (const b of [v.chassis, v.trailer.body]) b.userData._pv = { x: b.velocity.x, y: b.velocity.y };
-    for (const p of S.parked) p.body.userData._pv = { x: p.body.velocity.x, y: p.body.velocity.y };
+    movingBodies(snapshot);
+    keepVelocity(v.chassis); keepVelocity(v.trailer.body);
+    for (const p of S.parked) keepVelocity(p.body);
     driveVehicle(input);
     parkedFriction();
     space.step(DT, 10, 4);
     S.time += DT;
+    if (S.scoring) checkMines();
     if (v.dent) v.dent = Math.max(0, v.dent - DT * 2);
     S.park = evalParking();
     return S.park;
+  }
+
+  // Mines (the minefield on the artillery range): a buried charge goes off
+  // under the tow vehicle or the trailer, throwing the rig.
+  function checkMines() {
+    const v = S.veh, t = v.trailer.spec;
+    const parts = [
+      { b: v.chassis, hl: v.spec.len / 2 * M + 1, hw: v.spec.wid / 2 * M + 1 },
+      // The trailer sets one off with its wheels (a barrel hanging over
+      // it does not).
+      { b: v.trailer.body, cx: t.axle * M, hl: t.wheelR * M + 2, hw: (t.wid / 2 + Math.max(0, t.wheelOut) + t.wheelW / 2) * M },
+    ];
+    for (const m of S.mines) {
+      if (!m.live) continue;
+      for (const { b, cx = 0, hl, hw } of parts) {
+        const dx = m.x - b.position.x, dy = m.y - b.position.y;
+        const c = Math.cos(b.rotation), sn = Math.sin(b.rotation);
+        if (Math.abs(dx * c + dy * sn - cx) > hl || Math.abs(-dx * sn + dy * c) > hw) continue;
+        m.live = false;
+        for (const q of [v.chassis, v.trailer.body]) {
+          const ex = q.position.x - m.x, ey = q.position.y - m.y, d = Math.hypot(ex, ey) || 1;
+          q.applyImpulse(Vec2.weak(ex / d * q.mass * 60, ey / d * q.mass * 60));
+          q.angularVel += (Math.random() - 0.5) * 3;
+        }
+        onEvent("mine", { x: m.x, y: m.y });
+        return;
+      }
+    }
   }
 
   // Predicted path of the trailer axle for the current steering (kinematic
@@ -606,5 +694,5 @@ export function createSim({ onEvent = () => {} } = {}) {
 
   const hitchAngle = () => wrapPi(S.veh.chassis.rotation - S.veh.trailer.body.rotation);
 
-  return Object.assign(S, { load, step, predictPath, rearClearance, hitchAngle });
+  return Object.assign(S, { load, step, pose, predictPath, rearClearance, hitchAngle });
 }

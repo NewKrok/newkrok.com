@@ -74,6 +74,9 @@ const SideBar = () => {
           </Link>
         </div>
         <div className={styles.name}>NewKrok</div>
+        <Link to="/privacy" className={styles.privacy} onClick={(e) => { e.stopPropagation(); handleMenuItemClick(); }}>
+          Privacy
+        </Link>
         <button
           type="button"
           className={styles.cookies}

@@ -24,6 +24,16 @@ jobs:
         id: build
         run: npm ci
       - run: npm run build
+      # The Hitch & Park leaderboard's PHP reads its database and secrets
+      # from build/api/hitch-park/config.php (never in the repository).
+      - name: Write leaderboard config
+        run: node scripts/write-lb-config.js
+        env:
+          LB_DB_NAME: ${{ secrets.LB_DB_NAME }}
+          LB_DB_USER: ${{ secrets.LB_DB_USER }}
+          LB_DB_PASS: ${{ secrets.LB_DB_PASS }}
+          LB_RUN_SECRET: ${{ secrets.LB_RUN_SECRET }}
+          LB_VERIFY_TOKEN: ${{ secrets.LB_VERIFY_TOKEN }}
       - name: List files after build
         run: |
           pwd
@@ -42,3 +52,9 @@ jobs:
           password: ${{secrets.FTP_PASSWORD}}
           exclude: .git* - .git*/** - .vscode/** - .github/** - *.gpg - *.keys
           dangerous-clean-slate: false
+      # Creates any leaderboard table that is missing (safe to repeat).
+      - name: Leaderboard tables
+        run: |
+          curl -fsS -X POST -H "X-Verify-Token: $LB_VERIFY_TOKEN" -H "Content-Type: application/json" -d '{}' https://newkrok.com/api/hitch-park/install.php
+        env:
+          LB_VERIFY_TOKEN: ${{ secrets.LB_VERIFY_TOKEN }}

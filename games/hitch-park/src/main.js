@@ -1,14 +1,18 @@
 import { DT, PARK_HOLD, SCORE, clamp, fmtTime, fmtPar } from "./config.js";
+import { quantizeInput, createRecorder, scoreRun, holdStep, levelFingerprint } from "./run.js";
+import { createGhost } from "./ghost.js";
 import { LEVELS, CHAPTERS } from "./levels.js";
 import { createSim } from "./sim.js";
 import { Scene3D } from "./render/scene3d.js";
 import { drawLevelThumb, drawRigIcon } from "./render/topdown.js";
 import { Hud } from "./hud.js";
 import { Audio } from "./audio.js";
+import { Gamepad, BTN } from "./gamepad.js";
 import { track } from "./analytics.js";
+import { lb } from "./leaderboard.js";
 import {
   loadSettings, saveSettings, loadProgress, recordResult, isUnlocked, totalStars, firstUnfinished,
-  saveProgress,
+  saveProgress, loadGhost, saveGhost,
 } from "./storage.js";
 import { t, levelText, setLang, detectLang, getLang, LANGS } from "./i18n/index.js";
 
@@ -22,9 +26,9 @@ const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 const app = $("#app");
 const settings = loadSettings();
 setLang(detectLang(settings.lang));
-const trailerName = (L) => (L.vehicle === "truck" ? t("tractorSemi") : `${t("veh_" + (L.vehicle ?? "car"))} + ${t("tr_" + L.trailer)}`);
+const trailerName = (L) => (L.trailer === "semi" ? t("tractorSemi") : `${t("veh_" + (L.vehicle ?? "car"))} + ${t("tr_" + L.trailer)}`);
 const camName = (m) => t("cam" + m);
-const progress = loadProgress();
+const progress = loadProgress(LEVELS);
 const audio = new Audio();
 const hud = new Hud($("#hud"));
 let scene;
@@ -39,11 +43,17 @@ const G = {
   shake: 0,
   camMode: settings.camMode,
   camDist: 1,
+  look: 0,            // camera turned round the rig (rad), smoothed
+  mouseX: null,       // mouse position across the screen, 0..1 (mouse look)
   snapCam: true,
   resultAt: 0,        // when the result card should appear
 };
 
 const sim = createSim({ onEvent: onSimEvent });
+const ghost = createGhost();
+G.ghostChoice = settings.ghost;   // off | best | record | shared (a link, not saved)
+G.ghostOpts = {};                 // what the open level offers: { best, record, shared }
+G.sharedGhost = null;             // the run a shared link brought
 
 // ── Screens ──────────────────────────────────────────────────────────────
 let screenStack = [];          // for "back"
@@ -53,7 +63,7 @@ function showScreen(id, { push = false } = {}) {
   if (!push) screenStack = [];
   $$(".screen:not(#loading)").forEach((s) => s.classList.toggle("active", s.id === id));
   updateIngameButtons();
-  const first = id && $(`#${id} .btn.primary, #${id} .btn`);
+  const first = id && ($(`#${id} .btn.primary`) ?? $(`#${id} .btn`));
   if (first && matchMedia("(hover: hover)").matches) first.focus({ preventScroll: true });
 }
 function hideScreens() {
@@ -78,12 +88,12 @@ function updateIngameButtons() {
   $("#hud").style.visibility = $(".screen.scroll.active") ? "hidden" : "";
   $("#ingame").classList.toggle("hidden", G.phase !== "play" || anyScreen);
 }
-function toast(msg) {
+function toast(msg, ms = 1800) {
   const t = $("#toast");
   t.textContent = msg;
   t.classList.add("show");
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => t.classList.remove("show"), 1800);
+  toast.timer = setTimeout(() => t.classList.remove("show"), ms);
 }
 const bind = (name, value, root = document) => $$(`[data-bind="${name}"]`, root).forEach((el) => { el.textContent = value; });
 
@@ -171,6 +181,7 @@ function openIntro(idx) {
   G.levelIdx = idx;
   const L = LEVELS[idx];
   sim.load(L);
+  ghost.clear();
   G.phase = "intro";
   G.clock = 0; G.hold = 0; G.result = null; G.shake = 0;
   hud.clearFx();
@@ -186,11 +197,18 @@ function openIntro(idx) {
   bind("introPar", t("par", { t: fmtPar(L.par) }), root);
   const best = progress.best[idx];
   bind("introBest", best ? `${t("best", { score: best.score })} · ${"★".repeat(best.stars)}${"☆".repeat(3 - best.stars)}` : "", root);
+  bind("introRecord", "", root);
+  if (lb.available) lb.level(L.id, 1).then((r) => {
+    const top = r.top?.[0];
+    if (top && G.phase === "intro" && G.levelIdx === idx) bind("introRecord", `🏆 ${t("lb_record", { score: top.score, name: top.name })}`, root);
+  });
   renderViewPick();
+  prepareGhosts(idx);
+  renderPadHint();
   const cv = $("canvas.rig", root);
   const ctx = cv.getContext("2d");
   ctx.clearRect(0, 0, cv.width, cv.height);
-  drawRigIcon(ctx, L.vehicle ?? "car", L.trailer, cv.width / 2, cv.height / 2, cv.width - 30);
+  drawRigIcon(ctx, L.vehicle ?? "car", L.trailer, cv.width / 2, cv.height / 2, cv.width - 30, L.color);
   showScreen("intro");
 }
 
@@ -208,9 +226,18 @@ function startDriving({ retry = false } = {}) {
   audio.play("go");
   G.phase = "play";
   sim.scoring = true;
+  G.rec = createRecorder();         // every input from here to the bay: the run's replay
+  lb.prepare(LEVELS[G.levelIdx]);
+  const gp = pickedGhost();
+  if (gp && ghost.set(LEVELS[G.levelIdx], gp)) {
+    ghost.reset();
+    if (!retry) track("ghost_race", { ...levelInfo(LEVELS[G.levelIdx]), ghost: gp.kind });
+  } else ghost.clear();
   G.snapCam = true;                 // start in the chosen view, no glide from the overview
+  G.look = 0;
   hideScreens();
   hud.banner(t("banner_go"), "#7ee787", 0.9);
+  hud.markPlayer();
   updateCamLabel();
 }
 
@@ -241,15 +268,19 @@ function resume() {
 function finishLevel() {
   const L = sim.level, ps = sim.park;
   const bumps = sim.hits + sim.crashes;
-  const timeBonus = Math.max(0, Math.round((L.par - G.clock) * SCORE.perSecond));
-  const accBonus = Math.round(ps.acc * SCORE.accuracy);
-  const penalty = sim.hits * SCORE.bump + sim.crashes * SCORE.crash + sim.coneHits * SCORE.cone;
-  const score = Math.max(0, SCORE.base + timeBonus + accBonus - penalty);
-  const stars = 1 + (bumps === 0 ? 1 : 0) + (G.clock <= L.par ? 1 : 0);
-  const rec = recordResult(progress, G.levelIdx, { stars, score, time: G.clock });
-  track("level_complete", { ...levelInfo(L), stars, score, time_s: Math.round(G.clock), bumps, first_clear: rec.first });
+  const stats = { steps: G.rec.steps, hits: sim.hits, crashes: sim.crashes, cones: sim.coneHits, acc: ps.acc };
+  const { score, stars, time, timeBonus, accBonus } = scoreRun(L, stats);
+  const rec = recordResult(progress, G.levelIdx, { stars, score, time });
+  track("level_complete", { ...levelInfo(L), stars, score, time_s: Math.round(time), bumps, first_clear: rec.first });
   if (rec.first && cleared() === LEVELS.length) track("all_complete", { stars: totalStars(progress) });
-  G.result = { score, stars, time: G.clock, hits: sim.hits, crashes: sim.crashes, cones: sim.coneHits, acc: ps.acc, timeBonus, accBonus, isBest: rec.isBest && !rec.first };
+  G.run = { level: L, ...stats, score, stars, replay: G.rec.encode(), sent: false };
+  // Your best run's ghost; a best set before ghosts existed has no replay,
+  // so until it is beaten the latest parked run stands in.
+  const myGhost = loadGhost(L.id, levelFingerprint(L));
+  if (rec.isBest || !myGhost || score > myGhost.score) saveGhost(L.id, { fp: levelFingerprint(L), replay: G.run.replay, steps: stats.steps, score });
+  G.lbState = lb.available ? (lb.player ? { kind: "sending" } : { kind: "join" }) : null;
+  if (lb.available && lb.player) submitRun(G.run);
+  G.result = { score, stars, time, hits: sim.hits, crashes: sim.crashes, cones: sim.coneHits, acc: ps.acc, timeBonus, accBonus, isBest: rec.isBest && !rec.first };
   G.phase = "done";
   sim.scoring = false;
   G.resultAt = G.time + 1.1;
@@ -269,6 +300,7 @@ function showResult() {
     row(t("r_cones"), String(r.cones), r.cones ? `−${r.cones * SCORE.cone}` : "0", r.cones ? "minus" : "zero"),
   ].join("");
   bind("resultScore", String(r.score), root);
+  renderLbLine();
   $("[data-bind=resultBest]", root).classList.toggle("hidden", !r.isBest);
   const last = G.levelIdx === LEVELS.length - 1;
   bind("nextLabel", last ? t("allJobs") : t("nextJob"), root);
@@ -296,6 +328,205 @@ function openLevels() {
   }
   renderLevelSelect();
   showScreen("menu-levels", { push: G.phase === "menu" && !!$("#menu-main.active") });
+  // Start at the job last picked, not at the top of the list.
+  const card = $(`.lvl[data-level="${G.levelIdx}"]`);
+  if (card) {
+    card.focus({ preventScroll: true });
+    requestAnimationFrame(() => card.scrollIntoView({ block: "center" }));
+  }
+}
+
+// ── Leaderboard ──────────────────────────────────────────────────────────
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+const LB_ERRORS = { outdated: "lb_outdated", slow_down: "lb_slow", offline: "lb_offline", not_configured: "lb_offline", db_unavailable: "lb_offline" };
+
+async function submitRun(run) {
+  run.sent = true;
+  const r = await lb.submit(run);
+  if (G.run !== run) return;             // already on another job
+  if (r.error === "no_player") G.lbState = { kind: "join" };
+  else G.lbState = r.error ? { kind: "error", msg: t(LB_ERRORS[r.error] ?? "lb_err") } : { kind: "done", ...r };
+  if (!r.error) track("leaderboard_submit", { ...levelInfo(run.level), rank: r.rank, improved: r.improved });
+  renderLbLine();
+}
+
+// The line under the score on the result card.
+function renderLbLine() {
+  const el = $("[data-bind=lbLine]");
+  const s = G.lbState;
+  el.classList.toggle("hidden", !s);
+  el.classList.toggle("err", s?.kind === "error");
+  if (!s) return;
+  const open = `<button class="btn small" data-action="board">${t("lb_open")}</button>`;
+  if (s.kind === "join") el.innerHTML = `<button class="btn small" data-action="lbName">🏆 ${t("lb_join")}</button>${open}`;
+  else if (s.kind === "sending") el.innerHTML = `<span>${t("lb_sending")}</span>`;
+  else if (s.kind === "error") el.innerHTML = `<span>${esc(s.msg)}</span>`;
+  else {
+    const line = t(s.improved ? "lb_rank" : "lb_rankBest", { rank: `<b>${s.rank}</b>`, total: s.total });
+    const share = s.ghost ? `<button class="btn small" data-action="ghostShare">👻 ${t("gh_share")}</button>` : "";
+    el.innerHTML = `<span>🏆 ${line}</span>${open}${share}${s.verified ? "" : `<small>${t("lb_checking")}</small>`}`;
+  }
+}
+
+function openNameDialog() {
+  const form = $("[data-form=lbName]");
+  form.name.value = lb.player?.name ?? "";
+  bind("lbNameErr", "");
+  showScreen("lb-name", { push: true });
+  setTimeout(() => form.name.focus(), 50);
+}
+async function saveName(form) {
+  const btn = $("[type=submit]", form);
+  btn.disabled = true;
+  const r = await lb.setName(form.name.value);
+  btn.disabled = false;
+  if (r.error) {
+    const msg = t(`lb_err_${r.error}`);   // name_invalid, name_taken, name_rude; t() returns the key when there is none
+    bind("lbNameErr", msg.startsWith("lb_err_") ? t(LB_ERRORS[r.error] ?? "lb_err") : msg);
+    return;
+  }
+  track("leaderboard_name", { renamed: !!G.lbRenaming });
+  back();
+  if (G.phase === "done" && G.run && !G.run.sent) { G.lbState = { kind: "sending" }; renderLbLine(); submitRun(G.run); }
+  if ($("#menu-board.active")) renderBoard();
+}
+
+const board = { tab: "job", level: 0, seq: 0 };
+function openBoard() {
+  board.level = G.levelIdx;
+  showScreen("menu-board", { push: true });
+  renderBoard();
+}
+async function renderBoard() {
+  const seq = ++board.seq;
+  const overall = board.tab === "overall";
+  $$(".lb-tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === board.tab));
+  $(".board").classList.toggle("overall", overall);
+  const L = LEVELS[board.level];
+  const lt = levelText(L);
+  bind("boardSite", t("job", { n: board.level + 1 }));
+  bind("boardTitle", `${lt.name} · ${lt.title}`);
+  $("[data-bind=boardHead]").innerHTML = `<tr><th>#</th><th>${t("lb_col_name")}</th>${overall ? `<th class="num t">${t("lb_col_jobs")}</th>` : `<th class="num t">${t("lb_col_time")}</th>`}<th class="num">${t("lb_col_score")}</th></tr>`;
+  bind("boardMe", lb.player ? t("lb_playingAs", { name: lb.player.name }) : "");
+  bind("boardNameBtn", lb.player ? t("lb_change") : t("lb_setName"));
+  $(".board-delete").classList.toggle("hidden", !lb.player);
+  bind("boardMsg", "…");
+  $("[data-bind=boardRows]").innerHTML = "";
+  const r = overall ? await lb.overall(10) : await lb.level(L.id, 10);
+  if (seq !== board.seq) return;
+  if (r.error) { bind("boardMsg", t(LB_ERRORS[r.error] ?? "lb_err")); return; }
+  bind("boardMsg", r.top.length ? "" : t("lb_empty"));
+  const row = (e) => {
+    const you = e.you ? ` <small>${t("lb_you")}${e.verified ? "" : " · ⏳"}</small>` : "";
+    const mid = overall ? `${e.levels} <span class="stars">★</span>${e.stars}` : `${fmtTime(e.steps * DT)} <span class="stars">${"★".repeat(e.stars)}</span>`;
+    return `<tr class="${e.you ? "me" : ""}"><td class="r">${e.rank}</td><td class="n">${esc(e.name)}${you}</td><td class="num t">${mid}</td><td class="num s">${e.score}</td></tr>`;
+  };
+  $("[data-bind=boardRows]").innerHTML = r.top.map(row).join("") + (r.you ? `<tr class="gap"><td colspan="4"></td></tr>${row(r.you)}` : "");
+}
+// ── Ghosts ───────────────────────────────────────────────────────────────
+// The intro offers the rigs the level has: your own best run (kept in this
+// browser), the record (from the leaderboard) and a run a link brought.
+function prepareGhosts(idx) {
+  const L = LEVELS[idx];
+  const opts = G.ghostOpts = {};
+  const mine = loadGhost(L.id, levelFingerprint(L));
+  if (mine) opts.best = { kind: "best", name: t("gh_you"), score: mine.score, steps: mine.steps, replay: mine.replay };
+  if (G.sharedGhost?.level === L.id) opts.shared = { kind: "shared", ...G.sharedGhost };
+  renderGhostPick();
+  if (lb.available) lb.ghostRecord(L.id).then((r) => {
+    if (r.error || G.ghostOpts !== opts) return;
+    opts.record = { kind: "record", ...r };
+    renderGhostPick();
+  });
+}
+function ghostKind() {
+  const o = G.ghostOpts, c = G.ghostChoice;
+  if (c === "off" || o[c]) return c;
+  return ["shared", "best", "record"].find((k) => o[k]) ?? "off";
+}
+const pickedGhost = () => G.ghostOpts[ghostKind()] ?? null;
+function renderGhostPick() {
+  const o = G.ghostOpts;
+  const kinds = ["shared", "best", "record"].filter((k) => o[k]);
+  $(".ghost-pick").classList.toggle("hidden", !kinds.length);
+  if (!kinds.length) return;
+  const label = (k) => (k === "best" ? `${t("gh_best")} · ${o.best.score}` : `${k === "record" ? "🏆" : "👥"} ${esc(o[k].name)} · ${o[k].score}`);
+  const cur = ghostKind();
+  $(".gp-options").innerHTML = ["off", ...kinds]
+    .map((k) => `<button data-ghost="${k}" class="${k === cur ? "on" : ""}">${k === "off" ? t("gh_off") : label(k)}</button>`).join("");
+}
+function chooseGhost(k) {
+  G.ghostChoice = k;
+  if (k !== "shared") { settings.ghost = k; saveSettings(settings); }
+  renderGhostPick();
+}
+
+// The chip under the HUD while a ghost drives.
+let chipText = null;
+function updateGhostChip() {
+  const on = ghost.active && (G.phase === "play" || G.phase === "paused" || G.phase === "done" || G.phase === "boom");
+  const text = !on ? "" : ghost.parked
+    ? t("gh_parked", { name: ghost.info.name, time: fmtTime(ghost.time * DT) })
+    : t("gh_chip", { name: ghost.info.name });
+  if (text === chipText) return;
+  chipText = text;
+  const el = $("#ghost-chip");
+  el.textContent = text;
+  el.classList.toggle("hidden", !on);
+}
+
+// "Challenge a friend": a link that opens this job with your best run as the ghost.
+async function shareGhost() {
+  const s = G.lbState, L = LEVELS[G.levelIdx];
+  if (!s?.ghost) return;
+  const url = `${location.origin}/gamer-zone/hitch-park?ghost=${s.ghost}`;
+  const text = t("gh_shareText", { score: s.score, n: L.index + 1 });
+  track("ghost_share", levelInfo(L));
+  // Phones and tablets: the share sheet (it has Copy, chat apps …). On a
+  // desktop the sheet often has no Copy (Safari on macOS), so copy at once.
+  if (navigator.share && matchMedia("(pointer: coarse)").matches) {
+    try { await navigator.share({ title: "Hitch & Park", text, url }); return; } catch (e) { if (e?.name === "AbortError") return; }
+  }
+  try {
+    await navigator.clipboard.writeText(`${text} ${url}`);
+    toast(t("gh_copied"), 3000);
+  } catch {
+    prompt(t("gh_share"), url);
+  }
+}
+
+// A shared link (?ghost=<code from the server>): straight to that job with that ghost,
+// even when the job is not open yet.
+function openSharedGhost() {
+  const id = new URLSearchParams(location.search).get("ghost");
+  if (!id) return;
+  if (!/^\d+-[\w-]{12}$/.test(id)) { toast(t("gh_missing"), 3500); return; }
+  lb.ghostRun(id).then((r) => {
+    const L = !r.error && LEVELS.find((l) => l.id === r.level);
+    if (!L) { toast(t("gh_missing"), 3500); return; }
+    G.sharedGhost = { level: L.id, name: r.name, score: r.score, steps: r.steps, replay: r.replay };
+    G.ghostChoice = "shared";
+    track("ghost_link_open", levelInfo(L));
+    if (G.phase === "menu") openIntro(L.index);
+  });
+}
+
+// What the replay check did to runs sent earlier, one toast after another.
+function showNotices(list) {
+  const msgs = list.map((n) => {
+    const L = LEVELS.find((l) => l.id === n.level);
+    if (!L) return null;
+    const job = L.index + 1;
+    return n.status === "rejected"
+      ? t("lb_notice_rejected", { n: job })
+      : t("lb_notice_adjusted", { n: job, score: n.score, time: fmtTime(n.steps * DT) });
+  }).filter(Boolean);
+  msgs.forEach((m, i) => setTimeout(() => toast(m, 5500), 1200 + i * 6000));
+}
+
+function boardStep(d) {
+  board.level = (board.level + d + LEVELS.length) % LEVELS.length;
+  renderBoard();
 }
 
 // ── Sim events → sound, floaters, shake ──────────────────────────────────
@@ -308,6 +539,16 @@ function onSimEvent(type, e) {
     hud.floater(e.x, e.y, `${t("fl_crash")} −${SCORE.crash}`, "#ff5c5c");
     audio.play("crash");
     G.shake = Math.max(G.shake, 1);
+  } else if (type === "mine") {
+    // A mine: the rig is thrown, and the job starts again after a moment.
+    hud.blast(e.x, e.y);
+    hud.banner(t("banner_mine"), "#ff5c5c", 2.4);
+    audio.play("boom");
+    G.shake = 2.2;
+    G.phase = "boom";
+    G.boomAt = G.time + 2.6;
+    sim.scoring = false;
+    track("level_mine", { ...levelInfo(LEVELS[G.levelIdx]), time_s: Math.round(G.clock) });
   } else if (type === "cone") {
     hud.floater(e.x, e.y - 8, `${t("fl_cone")} −${SCORE.cone}`, "#ffb347");
     audio.play("cone");
@@ -317,23 +558,54 @@ function onSimEvent(type, e) {
 // ── Input ────────────────────────────────────────────────────────────────
 const keys = {};
 let joy = null;                // { id, ox, oy, x, y } in CSS px
+const pad = new Gamepad();
+let padActive = false;         // the pad drove this frame (else keys / pointer)
+let digitalSteer = true;       // last steering came from keys or the pad (can hold)
 
+// For parking the wheel can be set to stay where it is left instead of
+// centring itself (the `autoCentre` setting): keys, d-pad and the pad's
+// stick; pointer drag is absolute and always centres.
 function readInput() {
   let throttle = 0, steer = 0;
   if (keys.ArrowUp || keys.KeyW) throttle += 1;
   if (keys.ArrowDown || keys.KeyS) throttle -= 1;
   if (keys.ArrowLeft || keys.KeyA) steer -= 1;
   if (keys.ArrowRight || keys.KeyD) steer += 1;
-  const brake = !!keys.Space;
+  let brake = !!keys.Space;
+  if (steer) digitalSteer = true;
+  if (padActive) {
+    const p = pad.drive();
+    if (p.throttle) throttle = clamp(throttle + p.throttle, -1, 1);
+    // The stick follows the centring setting too, like the d-pad.
+    if (p.steer) { steer = p.steer; digitalSteer = true; }
+    brake ||= p.brake;
+  }
   if (joy) {
     const dx = joy.x - joy.ox, dy = joy.y - joy.oy;
     steer = clamp(dx / 55, -1, 1);
     if (Math.abs(steer) < 0.12) steer = 0;
-    if (dy < -14) throttle = clamp(-dy / 60, 0, 1);
-    else if (dy > 14) throttle = -clamp(dy / 60, 0, 1);
+    digitalSteer = false;
+    if (settings.pointer !== "steer") {
+      if (dy < -14) throttle = clamp(-dy / 60, 0, 1);
+      else if (dy > 14) throttle = -clamp(dy / 60, 0, 1);
+    }
   }
-  return { throttle, steer, brake };
+  const centre = settings.autoCentre;
+  const holdSteer = digitalSteer && !joy && (centre === "never" || (centre === "forward" && sim.veh.gear < 0));
+  return quantizeInput({ throttle, steer, brake, holdSteer });
 }
+
+// Escape (and the pad's B): one step back from wherever we are.
+function escapeAction() {
+  const onScreen = (id) => $(`#${id}.active`);
+  if (G.phase === "play") pause();
+  else if (G.phase === "paused" && onScreen("pause")) resume();
+  else if (G.phase === "paused" && onScreen("menu-settings")) back();
+  else if (G.phase === "intro" || (G.phase === "done" && onScreen("result"))) openLevels();
+  else if (screenStack.length || onScreen("menu-levels") || onScreen("menu-howto") || onScreen("menu-settings")) back();
+}
+const toggleRearCam = () => { settings.rearCam = !settings.rearCam; saveSettings(settings); toast(t(settings.rearCam ? "rearOn" : "rearOff")); };
+const toggleGuide = () => { settings.guide = !settings.guide; saveSettings(settings); toast(t(settings.guide ? "guideOn" : "guideOff")); };
 
 // The last camera picked (here or in the intro) is where the next job starts.
 function setCamMode(m, { announce = false } = {}) {
@@ -359,21 +631,18 @@ window.addEventListener("keydown", (e) => {
   if (["Space", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(code) && G.phase === "play") e.preventDefault();
   if (e.repeat) return;
   const onScreen = (id) => $(`#${id}.active`);
+  document.body.classList.remove("pad-nav");
   if (code === "Escape") {
     e.preventDefault();
-    if (G.phase === "play") pause();
-    else if (G.phase === "paused" && onScreen("pause")) resume();
-    else if (G.phase === "paused" && onScreen("menu-settings")) back();
-    else if (G.phase === "intro" || (G.phase === "done" && onScreen("result"))) openLevels();
-    else if (screenStack.length || onScreen("menu-levels") || onScreen("menu-howto") || onScreen("menu-settings")) back();
+    escapeAction();
     return;
   }
   if (G.phase === "play") {
     if (code === "KeyR") restart();
     if (code === "KeyP") pause();
     if (code === "KeyC") cycleCamera();
-    if (code === "KeyV") { settings.rearCam = !settings.rearCam; saveSettings(settings); toast(t(settings.rearCam ? "rearOn" : "rearOff")); }
-    if (code === "KeyG") { settings.guide = !settings.guide; saveSettings(settings); toast(t(settings.guide ? "guideOn" : "guideOff")); }
+    if (code === "KeyV") toggleRearCam();
+    if (code === "KeyG") toggleGuide();
   } else if (G.phase === "intro" && onScreen("intro")) {
     if (code === "Enter" || code === "Space") { e.preventDefault(); startDriving(); }
   } else if (G.phase === "done" && onScreen("result")) {
@@ -394,7 +663,11 @@ app.addEventListener("pointerdown", (e) => {
   joy = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: e.clientX, y: e.clientY };
   app.setPointerCapture?.(e.pointerId);
 });
-app.addEventListener("pointermove", (e) => { if (joy && e.pointerId === joy.id) { joy.x = e.clientX; joy.y = e.clientY; } });
+app.addEventListener("pointermove", (e) => {
+  if (joy && e.pointerId === joy.id) { joy.x = e.clientX; joy.y = e.clientY; }
+  if (e.pointerType === "mouse") G.mouseX = e.clientX / Math.max(1, app.clientWidth);
+});
+document.addEventListener("mouseleave", () => { G.mouseX = null; });
 const endJoy = (e) => { if (joy && e.pointerId === joy.id) joy = null; };
 app.addEventListener("pointerup", endJoy);
 app.addEventListener("pointercancel", endJoy);
@@ -413,6 +686,10 @@ app.addEventListener("click", (e) => {
     openIntro(i);
     return;
   }
+  const gb = e.target.closest(".gp-options button");
+  if (gb) { audio.play("click"); chooseGhost(gb.dataset.ghost); return; }
+  const tab = e.target.closest(".lb-tabs button");
+  if (tab) { audio.play("click"); board.tab = tab.dataset.tab; renderBoard(); return; }
   const vp = e.target.closest(".vp");
   if (vp) { audio.play("click"); G.introPreview = true; setCamMode(Number(vp.dataset.cam)); trackCamera("intro"); return; }
   const btn = e.target.closest("[data-action]");
@@ -432,6 +709,17 @@ app.addEventListener("click", (e) => {
     case "main": goMain(); break;
     case "pause": pause(); break;
     case "camera": cycleCamera(); break;
+    case "board": openBoard(); break;
+    case "boardPrev": boardStep(-1); break;
+    case "boardNext": boardStep(1); break;
+    case "lbName": G.lbRenaming = !!lb.player; openNameDialog(); break;
+    case "ghostShare": shareGhost(); break;
+    case "lbDelete":
+      if (confirm(t("lb_confirmDelete"))) lb.deleteMe().then((r) => {
+        toast(r.error ? t(LB_ERRORS[r.error] ?? "lb_err") : t("lb_deleted"), 3500);
+        if (!r.error) { track("leaderboard_delete"); renderBoard(); }
+      });
+      break;
     case "reset":
       if (confirm(t("confirmReset"))) {
         progress.best = [];
@@ -441,6 +729,10 @@ app.addEventListener("click", (e) => {
       break;
     default:
   }
+});
+app.addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (e.target.dataset.form === "lbName") saveName(e.target);
 });
 app.addEventListener("pointerover", (e) => {
   const b = e.target.closest(".btn, .lvl:not(.locked)");
@@ -485,11 +777,130 @@ $("#menu-settings").addEventListener("click", (e) => {
   if (!b) return;
   const k = b.closest("[data-setting]").dataset.setting;
   settings[k] = k === "camMode" ? Number(b.dataset.value) : b.dataset.value;
+  if (k === "autoCentre" || k === "pointer") track("controls_change", { setting: k, value: settings[k] });
   if (k === "camMode") { setCamMode(settings.camMode); trackCamera("settings"); return renderSettings(); }
   if (k === "quality") { scene.setQuality(settings.quality); scene.lv && (scene.lv.gen = -1); }
   applySettings();
   renderSettings();
 });
+
+// ── Gamepad: driving buttons and menu navigation ─────────────────────────
+pad.onConnect = (on) => { toast(t(on ? "padOn" : "padOff")); if (on) track("gamepad_connect", {}); renderPadHint(); };
+const renderPadHint = () => bind("padHint", t(pad.info ? "padHintOn" : "padHintOff"));
+// Settings: what the controller reports, live, so a pad that misbehaves
+// can be checked (name, mapping, pressed buttons, axes).
+let padInfoAt = 0;
+function renderPadInfo() {
+  if (!$("#menu-settings.active") || G.time < padInfoAt) return;
+  padInfoAt = G.time + 0.1;
+  const info = pad.info;
+  bind("padInfo", info ? info.map((p) => `${p.id}\n${t("pad_mapping")}: ${p.mapping} · ${t("pad_buttons")}: ${p.buttons.join(" ") || "–"}\n${t("pad_axes")}: ${p.axes.join("  ")}`).join("\n\n") : t("pad_none"));
+}
+
+const visible = (el) => el.offsetParent !== null && !el.disabled;
+function focusables() {
+  const scr = $(".screen.active:not(#loading)");
+  if (!scr) return [];
+  return $$("button, select, input, .lvl", scr).filter(visible);
+}
+// Moves the focus to the nearest control in a direction.
+function moveFocus(dir) {
+  const list = focusables();
+  if (!list.length) return;
+  const cur = document.activeElement;
+  if (!list.includes(cur)) { (list.find((b) => b.classList.contains("primary")) ?? list[0]).focus(); return; }
+  // Sliders and the language list take left / right themselves.
+  if ((dir === "left" || dir === "right") && (cur.type === "range" || cur.tagName === "SELECT")) {
+    const d = dir === "right" ? 1 : -1;
+    if (cur.type === "range") {
+      cur.value = clamp(Number(cur.value) + d * Number(cur.step || 0.05), Number(cur.min), Number(cur.max));
+      cur.dispatchEvent(new Event("input", { bubbles: true }));
+    } else {
+      cur.selectedIndex = clamp(cur.selectedIndex + d, 0, cur.options.length - 1);
+      cur.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    audio.play("hover");
+    return;
+  }
+  // Up / down: the nearest row first, then the control in it closest
+  // across (the old single score jumped past narrow controls, such as the
+  // language list under the Back button). Left / right: within the row.
+  const r0 = cur.getBoundingClientRect();
+  const cx = r0.left + r0.width / 2, cy = r0.top + r0.height / 2;
+  const vertical = dir === "up" || dir === "down", sgn = dir === "down" || dir === "right" ? 1 : -1;
+  const cands = [];
+  for (const el of list) {
+    if (el === cur) continue;
+    const r = el.getBoundingClientRect();
+    const ex = r.left + r.width / 2, ey = r.top + r.height / 2;
+    if (vertical) {
+      if ((ey - cy) * sgn <= 4) continue;
+      const gap = sgn > 0 ? r.top - r0.bottom : r0.top - r.bottom;
+      cands.push({ el, gap: Math.max(0, gap), across: Math.abs(ex - cx) });
+    } else {
+      if ((ex - cx) * sgn <= 4 || r.top >= r0.bottom - 2 || r.bottom <= r0.top + 2) continue;
+      cands.push({ el, gap: Math.abs(ex - cx), across: 0 });
+    }
+  }
+  let best = null;
+  if (cands.length) {
+    const near = Math.min(...cands.map((c) => c.gap)) + 12;
+    best = cands.filter((c) => c.gap <= near).sort((p, q) => p.across - q.across || p.gap - q.gap)[0].el;
+  }
+  if (best) {
+    best.focus({ preventScroll: true });
+    best.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    audio.play("hover");
+  } else if (vertical) scrollScreen(sgn * 160, true);
+}
+
+// Scrolls the open scrolling screen (How to play, levels, settings).
+function scrollScreen(dy, smooth = false) {
+  const scr = $(".screen.scroll.active");
+  if (scr) scr.scrollBy({ top: dy, behavior: smooth ? "smooth" : "instant" });
+}
+
+function pollPad() {
+  const had = !!pad.info;
+  padActive = pad.poll();
+  if (had !== !!pad.info) renderPadHint();
+  renderPadInfo();
+  if (!padActive) return;
+  if (pad.any()) audio.unlock();
+  const P = (b) => pad.pressed(b);
+  if (G.phase === "play") {
+    // Zoom on the right stick.
+    if (pad.axes[3]) G.camDist = clamp(G.camDist * (1 + pad.axes[3] * 0.02), 0.55, 1.7);
+    if (P(BTN.START)) pause();
+    else if (P(BTN.BACK)) restart();
+    else if (P(BTN.Y)) cycleCamera();
+    else if (P(BTN.LB)) toggleRearCam();
+    else if (P(BTN.RB)) toggleGuide();
+    return;
+  }
+  // Right stick scrolls the screen.
+  if (pad.axes[3]) scrollScreen(pad.axes[3] * 16);
+  const dir = pad.nav(G.time);
+  if (dir) { document.body.classList.add("pad-nav"); moveFocus(dir); }
+  const onScreen = (id) => $(`#${id}.active`);
+  if (P(BTN.B)) { escapeAction(); return; }
+  if (G.phase === "paused" && onScreen("pause") && P(BTN.START)) { resume(); return; }
+  if (G.phase === "intro" && onScreen("intro") && P(BTN.START)) { startDriving(); return; }
+  if (G.phase === "done" && onScreen("result")) {
+    if (P(BTN.START)) { nextLevel(); return; }
+    if (P(BTN.X)) { restart(); return; }
+  }
+  if (P(BTN.A)) {
+    document.body.classList.add("pad-nav");
+    const el = document.activeElement;
+    const list = focusables();
+    // Nothing picked yet: A takes the screen's main button (Drive!, Next …).
+    const target = list.includes(el) ? el : list.find((x) => x.classList.contains("primary"));
+    if (target?.tagName === "SELECT") moveFocus("right");
+    else if (target) target.click();
+    else moveFocus("down");
+  }
+}
 
 // ── Loop ─────────────────────────────────────────────────────────────────
 let last = performance.now();
@@ -500,22 +911,24 @@ function frame(now) {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
   G.time += dt;
+  pollPad();
 
-  if (G.phase === "play" || G.phase === "done") {
+  if (G.phase === "boom" && G.time >= G.boomAt) restart();
+  if (G.phase === "play" || G.phase === "done" || G.phase === "boom") {
     acc += dt;
     while (acc >= DT) {
       acc -= DT;
       const playing = G.phase === "play";
       const input = playing ? readInput() : { throttle: 0, steer: 0, brake: true };
+      if (playing) G.rec.push(input);
       const prevGear = sim.veh.gear;
       const ps = sim.step(input);
+      if (ghost.active) ghost.step();      // in step with the player, on its own sim
       if (playing) {
         G.clock += DT;
         if (sim.veh.gear !== prevGear) audio.play("gear");
-        if (ps.inside && ps.aligned && ps.stopped) {
-          G.hold += DT;
-          if (G.hold >= PARK_HOLD) finishLevel();
-        } else G.hold = Math.max(0, G.hold - DT * 2);
+        G.hold = holdStep(G.hold, ps);
+        if (G.hold >= PARK_HOLD && G.phase === "play") finishLevel();
       }
     }
   } else acc = 0;
@@ -527,27 +940,46 @@ function frame(now) {
   const v = sim.veh;
   const driving = G.phase === "play";
   audio.drive({
-    active: driving || G.phase === "done",
+    active: driving || G.phase === "done" || G.phase === "boom",
     speed: v.speed, throttle: driving ? v.throttle : 0, skid: v.skid, loose: v.skidLoose,
     reverse: driving && v.gear < 0, clearance: driving && v.gear < 0 ? sim.rearClearance() : Infinity,
-    hazard: driving && sim.parked.some((p) => p.hazard > 0), dt, truck: v.key === "truck",
+    hazard: driving && sim.parked.some((p) => p.hazard > 0), dt, truck: v.key === "truck" || !!v.spec.heavy,
   });
 
   const shake = G.shake > 0
     ? [(Math.sin(G.time * 91) + Math.sin(G.time * 53)) * G.shake * 1.6, (Math.cos(G.time * 77) + Math.sin(G.time * 61)) * G.shake * 1.6]
     : [0, 0];
+  if (G.phase !== "menu" && G.phase !== "paused") scene.adapt(dt);
+  // How far the screen is between the last two physics steps.
+  const alpha = G.phase === "play" || G.phase === "done" || G.phase === "boom" ? acc / DT : 1;
+  // Look round: the pad's right stick (full push = straight back), else
+  // the mouse across the screen when mouse look is on.
+  // Both on a curve, so small movements barely turn it and only a full
+  // push (or the screen's edge) looks behind; eased slowly.
+  let lookTo = 0;
+  const curve = (v) => Math.sign(v) * Math.abs(v) ** 2.2;
+  if (G.phase === "play" && padActive && pad.axes[2]) lookTo = -curve(pad.axes[2]) * Math.PI;
+  else if (G.phase === "play" && settings.mouseLook && G.mouseX != null && !joy) {
+    const m = clamp((G.mouseX - 0.5) * 2, -1, 1), dead = 0.3;
+    lookTo = Math.abs(m) < dead ? 0 : -curve(Math.sign(m) * (Math.abs(m) - dead) / (1 - dead)) * Math.PI * 0.9;
+  }
+  G.look += (lookTo - G.look) * (1 - Math.exp(-dt * 3.2));
+  if (Math.abs(G.look) < 1e-3 && !lookTo) G.look = 0;
   const pip = scene.render(sim, {
+    alpha, look: G.look,
     // In the intro, a picked view is previewed behind the card.
-    phase: G.phase === "paused" || G.phase === "done" || (G.phase === "intro" && G.introPreview) ? "play" : G.phase,
+    phase: G.phase === "paused" || G.phase === "done" || G.phase === "boom" || (G.phase === "intro" && G.introPreview) ? "play" : G.phase,
     time: G.time, dt, camMode: G.camMode, camDist: G.camDist,
     showGuide: settings.guide && G.phase === "play", rearCam: settings.rearCam && G.phase === "play",
     hold: G.hold, shake, snap: G.snapCam,
+    ghost: ghost.active && (G.phase === "play" || G.phase === "paused" || G.phase === "done" || G.phase === "boom") ? ghost.sim : null,
   });
+  updateGhostChip();
   G.snapCam = false;
   hud.draw({
     sim, phase: G.phase, clock: G.clock, hold: G.hold,
     levelIndex: G.levelIdx, levelCount: LEVELS.length,
-    joy: G.phase === "play" ? joy : null, pip,
+    joy: G.phase === "play" && joy ? { ...joy, steerOnly: settings.pointer === "steer" } : null, pip,
     project: (x, y, z) => scene.project(x, y, z),
   });
 }
@@ -577,6 +1009,11 @@ function boot() {
   new ResizeObserver(resize).observe(app);
   resize();
   goMain();
+  lb.probe().then((ok) => {
+    $$(".lb-only").forEach((el) => el.classList.toggle("hidden", !ok));
+    if (ok) lb.notices().then(showNotices);
+  });
+  openSharedGhost();
   track("game_open", { lang: getLang(), returning: cleared() > 0, levels_cleared: cleared(), stars: totalStars(progress), embedded: window.parent !== window });
   requestAnimationFrame((t) => { last = t; frame(t); });
   // Let the first frames render behind the loader, then reveal.
@@ -584,7 +1021,7 @@ function boot() {
 }
 
 // Debug handle for automated checks (dev server only).
-if (import.meta.env.DEV) window.__hitchPark = { G, sim, LEVELS, openIntro, startDriving, finishLevel, keys };
+if (import.meta.env.DEV) window.__hitchPark = { G, sim, ghost, LEVELS, openIntro, startDriving, finishLevel, keys, get scene() { return scene; } };
 
 boot();
 window.focus();

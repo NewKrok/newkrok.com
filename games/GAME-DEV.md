@@ -96,15 +96,52 @@ what made headless level checking possible.
   overlaps, a blocked bay, or a start inside something. Run it after every
   change.
 - `npm run solve-levels [-- <n>]` searches for a way to park (hybrid A*)
-  and flags levels that can be done without reversing. It is slow and hungry:
-  lorry levels can run out of memory, and long routes need stop-over poses
-  (the `VIA` table). Run one level at a time, `nice`d, never several in
-  parallel: it makes the machine unusable.
+  and flags levels that can be done without reversing. Long routes need
+  stop-over poses (the `VIA` table). Run one level at a time, `nice`d. Its
+  distance fields are Float64: in Float32, rounding made equal-cost cells
+  look improvable and the search re-expanded them endlessly, which is what
+  used to make big levels take many minutes and run out of memory.
+- A trailer that is not a box needs its own collision shape: the field
+  gun was a full 4.4 × 2 m rectangle, so its invisible corners touched the
+  wire. It is now shield + barrel + trail, denser to keep the old mass.
+- Mines (`level.mines`) are checked in `sim.step` against the tow vehicle's
+  outline and the trailer's axle; the solver treats them as obstacles.
+- Players asked for varied starts: middle of the map, top, inside a shed
+  nose-in (back out first), not always bottom-left.
 - Bugs playtesting kept finding: segmented hedges whose gap doesn't line up
   with the road (build them from separate lines), a shortcut that lets you
   drive forwards into the bay, props dropped in the only gateway, lamps
   standing on the road (lamps take an arm angle `a`), and the bay facing
   the other way from the parked vehicles next to it.
+
+## Input
+
+- Keyboard, pointer drag and gamepad all feed one `readInput()` per physics
+  step. The steering rack can be told to stay where it was left
+  (`holdSteer`, the "Steering centres itself" setting: always / not
+  reversing / never) for keys, d-pad and stick; pointer drag is absolute and
+  always re-centres. Pointer drag can be limited to steering only, leaving
+  throttle to the keys or the pad.
+- Gamepad (`src/gamepad.js`): every connected pad is read and merged
+  (following one "active" pad broke when the system listed the controller
+  twice). A button or axis only counts once it has been seen at rest, so a
+  stuck button or an axis resting at ±1 on another device cannot hold a
+  direction. Non-standard pads get their d-pad from the hat axis (9), only
+  their first twelve buttons are read (12+ are Home, Capture …) and the face
+  buttons are reordered (Switch pads by letter, others by position).
+  A HORI Switch pad on macOS Chrome shows up as two devices and sends no
+  stick data at all, only the hat and the buttons.
+  Settings show the raw readout for checking a player's controller.
+- Menus are driven by moving the DOM focus: up / down picks the nearest row
+  first, then the control closest across; left / right stays in the row;
+  with nothing further, it scrolls the screen, and so does the right stick.
+  A clicks the focused control (or the screen's primary button), B does
+  what Escape does. A `pad-nav` class on `<body>` shows the focus until a
+  key is pressed (segmented buttons need an inner ring: `overflow: hidden`
+  clips an outline).
+- To test the pad headless, stub `navigator.getGamepads` in an init script
+  and hold each button for longer than a frame: software GL runs at a few
+  frames per second, so a short tap falls between two polls.
 
 ## Testing without a screen
 
@@ -117,6 +154,35 @@ chromium.launch({ executablePath, args: ["--use-gl=angle", "--use-angle=swiftsha
 Open a level through the debug handle, switch to the overview camera, take
 a screenshot and look at it. This caught most layout mistakes before anyone
 played them. Stop the dev server and the browser when done.
+
+## Leaderboard and determinism
+
+Hitch & Park's leaderboard trusts no score from the browser: the server
+stores the run's inputs and a GitHub Action replays them with the game's
+physics (setup and API: `public/api/hitch-park/README.md`). That only works
+if a replay gives the same result everywhere, and out of the box it does
+not: `Math.sin`, `cos` and `pow` differ in the last bits between engines,
+even between Node 22 and Chrome 141, and the physics drifted apart on every
+test run within seconds.
+
+- `src/detmath.js` swaps the trig the sim and nape-js use (`sin`, `cos`,
+  `tan`, `atan`, `atan2`, `asin`, `acos`, `hypot`) for musl/fdlibm ports made
+  of `+ − × ÷` and `sqrt`, which IEEE 754 fixes to the bit. It is installed
+  globally by `config.js`'s first import, before any level is built
+  (level geometry uses trig too). About 1 ulp from the native results.
+- No `Math.random` in a run that can finish (the one in the mine blast is
+  fine: a mine ends the attempt), no wall-clock time in the sim.
+- Analog input is rounded to 1/64 before the sim sees it, so the replay
+  stores it exactly (`quantizeInput` in `src/run.js`).
+- Scoring and the parking hold live in `src/run.js` and are shared by the
+  game and the verifier; change them there only.
+- Ghost rigs (`src/ghost.js`) lean on the same determinism: a second
+  `createSim()` gets the recorded inputs step for step beside the player's
+  sim and the scene draws its rig see-through. Cheap: a step costs some
+  30 µs in Node.
+- `SIM_VERSION` in `src/run.js`: bump it when a physics or tuning change
+  alters how a run plays out. Every level's board starts afresh instead of
+  the verifier rejecting the old records.
 
 ## Notes from Last Lantern
 
@@ -143,6 +209,17 @@ spawning / damage / drops, `monsters.js` AI and bosses, `weapons.js`,
 - `scripts/shot.mjs`, `boss-shots.mjs`, `ui-shots.mjs` screenshot the dev
   server through `window.__lastLantern` (see `scripts/browser.mjs` for the
   Chromium paths).
+
+### Performance (Hitch & Park)
+
+- Fixed-step physics needs render interpolation: keep each moving body's
+  pose from before the last step and draw `acc / DT` of the way to the
+  current one (Hitch & Park `sim.pose`). Without it a 120/144 Hz screen shows
+  the car stepping in jerks under a smoothly gliding camera, which players
+  read as the camera falling out of sync with the physics.
+- Parked cars as `InstancedMesh` per body type and material (paint and
+  hazard lamps from the instance colour), building walls merged per window
+  texture: Hitch & Park's busiest level went from ~800 draw calls to under 300.
 
 ### Performance (Last Lantern)
 

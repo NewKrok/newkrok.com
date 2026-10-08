@@ -97,7 +97,7 @@ export class Scene3D {
     this.rigs?.dispose();
     if (this.hero) this.scene.remove(this.hero.g);
     this.stageKey = key;
-    const L = LOOKS[R.stage.look];
+    const L = R.stage.mood || LOOKS[R.stage.look];
     this.scene.fog = new T.FogExp2(L.fog, L.fogD);
     this.scene.background = new T.Color(L.fog);
     this.ambient.color.setHex(L.amb); this.ambient.intensity = L.ambI;
@@ -215,10 +215,10 @@ export class Scene3D {
     const flare = R.hero.flareT > 0 && !opts.calm ? R.hero.flareT / 40 : 0;
     this.heroLight.intensity = (R.hero.dig > 0 ? 4000 : 17000 * (0.94 + Math.sin(time * 11) * 0.04)) * (1 + flare * 3) * (R.eclipse ? 0.85 : 1);
     this.heroLight.distance = 620 * (R.eclipse ? 0.8 : 1);
-    this.ambient.intensity = LOOKS[R.stage.look].ambI * (R.eclipse ? 0.45 : 1) * (1 + (R.beaconLit || 0) * 0.6);
+    this.ambient.intensity = (R.stage.mood || LOOKS[R.stage.look]).ambI * (R.eclipse ? 0.45 : 1) * (1 + (R.beaconLit || 0) * 0.6);
     // Visible world rect for culling the instanced effects.
     this.fx.sync(R, time, pitch, view, opts.calm);
-    this.bloom.strength = LOOKS[R.stage.look].bloom * (opts.calm ? 0.55 : 1);
+    this.bloom.strength = (R.stage.mood || LOOKS[R.stage.look]).bloom * (opts.calm ? 0.55 : 1);
 
     if (this.useBloom) this.composer.render(dt);
     else this.renderer.render(this.scene, this.camera);

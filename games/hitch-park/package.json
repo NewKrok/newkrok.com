@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "check-levels": "node scripts/check-levels.js",
-    "solve-levels": "node scripts/solve-levels.js"
+    "solve-levels": "node scripts/solve-levels.js",
+    "verify-runs": "node scripts/verify-runs.js",
+    "leaderboard-levels": "node scripts/leaderboard-levels.js"
   },
   "dependencies": {
     "@newkrok/nape-js": "^3.42.3",

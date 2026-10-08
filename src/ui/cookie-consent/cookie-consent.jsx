@@ -55,7 +55,8 @@ const CookieConsent = () => {
     <div className={styles.banner} role="dialog" aria-live="polite" aria-label="Cookie consent">
       <p className={styles.text}>
         We use Google Analytics cookies to count visits and see which games
-        and levels get played. No ads, no selling data. Is that OK?
+        and levels get played. No ads, no selling data. Is that OK?{" "}
+        <a href="/privacy" className={styles.link}>Privacy</a>
       </p>
       <div className={styles.buttons}>
         <button type="button" className={styles.decline} onClick={decline}>

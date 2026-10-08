@@ -9,10 +9,11 @@ import {
 import { STAGES, BLOOD } from "../data/stages.js";
 import { MON } from "../data/monsters.js";
 import { HEROES, ACTIVES, WEAPON_IDS, PASSIVE_IDS, WEAPON_META, RELIC_IDS, MAX_RELICS } from "../data/meta.js";
+import { ITEMS, ITEM_CD } from "../data/items.js";
 import { buildWorld } from "./world.js";
 import {
-  F, heroX, heroY, spawnMonster, killMonster, damageMonster, hurtHero, killSpit, gemTier,
-  burst, floater, particle, explode, pushProps, nearestMonsters,
+  F, heroX, heroY, spawnMonster, killMonster, damageMonster, hurtHero, killSpit, gemTier, spawnSpit,
+  burst, floater, particle, explode, pushProps, nearestMonsters, burnMonster,
 } from "./core.js";
 import { tickMonsters, spawnPoint, spawnBoss, contactDamage, slam } from "./monsters.js";
 import {
@@ -31,7 +32,7 @@ import {
 
 export const PASSIVE_MAX = (id) => (id === "quiver" ? 2 : MAX_PLEVEL);
 
-export function createRun({ stageIndex = 0, heroId = "wren", hearth = {}, blood = false, seed = 1, unlocked = null, title = false } = {}) {
+export function createRun({ stageIndex = 0, heroId = "wren", hearth = {}, blood = false, seed = 1, unlocked = null, title = false, items = {} } = {}) {
   const stage = STAGES[stageIndex];
   const heroDef = HEROES.find((h) => h.id === heroId) || HEROES[0];
   const space = new Space(new Vec2(0, 0));
@@ -53,6 +54,10 @@ export function createRun({ stageIndex = 0, heroId = "wren", hearth = {}, blood 
     freeze: 0, flash: 0, eclipse: 0, shakeAmp: 0, shakeT: 0,
     sfx: [], hitsThisFrame: 0, gemStreak: 0, gemStreakT: 0,
     beaconLit: 0,
+    // The satchel (a copy: the page takes used items off the saved progress
+    // through R.itemLog) and, in the Vigil, which keeper is next.
+    items: { ...items }, itemCd: 0, itemLog: [], wantItem: null,
+    rushIdx: 0, rushNext: stage.bossAt * FPS, bossSpawnedAt: 0, fastKeeper: false,
   };
   R.shake = (amp, dur) => { R.shakeAmp = Math.max(R.shakeAmp, amp); R.shakeT = Math.max(R.shakeT, dur); };
   R.banner = (key, color, frames, vars) => R.banners.push({ key, vars, color, t: 0, T: frames });
@@ -69,7 +74,7 @@ export function createRun({ stageIndex = 0, heroId = "wren", hearth = {}, blood 
   for (const c of R.world.candles) spawnMonster(R, "candle", c.x, c.y);
   // The beacons behind you lend their strength: later stages start with a
   // few levels to spend.
-  const extra = title ? 0 : stage.index * 2 + 2 * (hearth.headstart || 0);
+  const extra = title ? 0 : (stage.boost ?? stage.index * 2) + 2 * (hearth.headstart || 0);
   if (extra > 0) {
     R.hero.level += extra;
     R.hero.xpNext = xpFor(R.hero.level);
@@ -80,7 +85,7 @@ export function createRun({ stageIndex = 0, heroId = "wren", hearth = {}, blood 
   if (title) {
     R.title = true;
     spawnTitleHorde(R);
-  } else R.banner("b_start", "#ffd166", 160, { stage: stage.id });
+  } else R.banner(stage.rush ? "b_vigil" : "b_start", "#ffd166", 160, { stage: stage.id });
 
   R.step = (input) => step(R, input);
   R.pickCard = (i) => pickCard(R, i);
@@ -89,6 +94,7 @@ export function createRun({ stageIndex = 0, heroId = "wren", hearth = {}, blood 
   R.skip = () => skipCard(R);
   R.closeChest = () => closeChest(R);
   R.useActive = () => { R.wantActive = true; };
+  R.useItem = (id) => { R.wantItem = id; };
   return R;
 }
 
@@ -156,7 +162,7 @@ function makeHero(R) {
     weapons: [], passives: {},
     regenAcc: 0, stats: null,
     activeCd: 60, activeMax: ACTIVES[R.heroDef.active].cd * FPS, activeT: 0,
-    tumble: 0, sanct: 0, dig: 0, flareT: 0,
+    tumble: 0, sanct: 0, dig: 0, flareT: 0, ward: 0, swift: 0,
     revives: R.hearthLv.revival || 0, onIce: false,
   };
 }
@@ -228,7 +234,7 @@ function tickHero(R, input) {
   const x = heroX(R), y = heroY(R);
   h.onIce = onIce(R, x, y);
   const mud = inMud(R, x, y) && h.dig <= 0;
-  let sp = st.speed * (mud ? 0.62 : 1) * (h.dig > 0 ? 1.45 : 1);
+  let sp = st.speed * (mud ? 0.62 : 1) * (h.dig > 0 ? 1.45 : 1) * (h.swift > 0 ? 1.4 : 1);
   const v = h.body.velocity;
   if (h.tumble > 0) {
     h.tumble--;
@@ -276,6 +282,14 @@ function tickHero(R, input) {
     if (h.dig === 0) activeEnd(R);
   }
   if (h.flareT > 0) h.flareT--;
+  // The satchel.
+  if (R.itemCd > 0) R.itemCd--;
+  if (R.wantItem) { const id = R.wantItem; R.wantItem = null; useItem(R, id); }
+  if (h.ward > 0) h.ward--;
+  if (h.swift > 0) {
+    h.swift--;
+    if (h.swift % 3 === 0 && h.speedNow > 60) particle(R, x, y, -h.moveX * 40, -h.moveY * 40, 0x7ee787, 22, 2.6, 6, 10);
+  }
   // Relics that act on their own clock.
   if (R.relics.includes("clapper") && R.clock % 480 === 0 && R.clock > 0) {
     R.rings.push({ x: heroX(R), y: heroY(R), r: 10, max: 220, t: 0, T: 22, color: 0xe0c070 });
@@ -424,6 +438,51 @@ function spawnVolleyBolt(R, a, dmg = 18, pierce = 2) {
   R.shots.push({ kind: "bolt", w: "tumble", body, angle: a, dmg, pierce, r: 5, life: 50, speed: 560, delay: 0, blast: 0, hit: new Set() });
 }
 
+// ── The satchel ──────────────────────────────────────────────────────────
+// One of the Pedlar's wares; refused (with a dull click) when there is none
+// left, the last one was a moment ago, or a tonic would heal nothing.
+function useItem(R, id) {
+  const it = ITEMS.find((i) => i.id === id), h = R.hero;
+  if (!it || !(R.items[id] > 0) || R.itemCd > 0 || R.phase !== "play") return false;
+  if (it.heal && h.hp >= h.maxHp) { R.sfx.push(["locked"]); return false; }
+  R.items[id]--;
+  R.itemCd = Math.round(ITEM_CD * FPS);
+  R.itemLog.push(id);
+  const x = heroX(R), y = heroY(R), col = parseInt(it.color.slice(1), 16);
+  if (it.heal) {
+    const heal = Math.round(h.maxHp * it.heal);
+    h.hp = Math.min(h.maxHp, h.hp + heal);
+    floater(R, x, y - 26, `+${heal}`, "#7ee787", 1.3);
+    burst(R, x, y, 14, 0x7ee787, 2.4);
+    R.rings.push({ x, y, r: 10, max: 90, t: 0, T: 18, color: 0x7ee787 });
+    R.sfx.push(["heal"]);
+  } else if (id === "ward") {
+    h.ward = it.dur * FPS;
+    R.rings.push({ x, y, r: 10, max: 60, t: 0, T: 16, color: col });
+    R.sfx.push(["ward"]);
+  } else if (id === "draught") {
+    h.swift = it.dur * FPS;
+    burst(R, x, y, 12, col, 2.2);
+    R.sfx.push(["draught"]);
+  } else if (id === "firebomb") {
+    R.flash = Math.max(R.flash, 0.6);
+    explode(R, x, y, 300, 150, 0xff8a3a, false, "firebomb");
+    for (const m of R.monsters) {
+      if (!m.alive || m.def.prop) continue;
+      const p = m.body.position;
+      if (Math.hypot(p.x - x, p.y - y) < 300 + m.def.r) burnMonster(m, 12, 180);
+    }
+    R.shake(12, 0.4);
+  } else if (id === "lodestone") {
+    for (const g of R.gems) g.pull = true;
+    for (const p of R.pickups) if (p.kind === "ember") p.pull = true;
+    R.rings.push({ x, y, r: 10, max: 700, t: 0, T: 30, color: col });
+    R.sfx.push(["magnet"]);
+  }
+  R.banner("b_item_" + id, it.color, 70);
+  return true;
+}
+
 function heroDown(R) {
   const h = R.hero;
   if (h.revives > 0) {
@@ -450,6 +509,27 @@ function heroDown(R) {
 }
 
 function bossDown(R, m) {
+  if (R.clock - R.bossSpawnedAt <= 30 * FPS) R.fastKeeper = true;
+  const st = R.stage;
+  if (st.rush && R.rushIdx < st.rush.length) {
+    // One keeper of the Vigil down: the night clears for a breath, then
+    // the next one comes.
+    R.eclipse = 0;
+    R.hazards.length = 0;
+    R.flash = 0.8;
+    for (const o of [...R.monsters]) if (o.alive && !o.def.prop) { burst(R, o.body.position.x, o.body.position.y, 3, o.def.c, 2); killMonster(R, o, true); }
+    for (const g of R.gems) g.pull = true;
+    R.bossSpawned = false;
+    R.rushNext = R.clock + st.gap * FPS;
+    R.banner("b_vigilNext", "#ffd166", 200, { n: R.rushIdx, of: st.rush.length });
+    // Its strength passes to you: three levels to spend before the next.
+    const h = R.hero;
+    h.level += 3;
+    h.xpNext = xpFor(h.level);
+    R.levelUpQueue += 3;
+    void m;
+    return;
+  }
   R.bossKilledAt = R.frame;
   R.eclipse = 0;
   R.hazards.length = 0;
@@ -460,7 +540,7 @@ function bossDown(R, m) {
   for (const o of [...R.monsters]) if (o.alive && !o.def.prop) { burst(R, o.body.position.x, o.body.position.y, 3, o.def.c, 2); killMonster(R, o, true); }
   // Pull every gem and ember in.
   for (const g of R.gems) g.pull = true;
-  R.clearBonus = 60 + R.stage.index * 40;
+  R.clearBonus = R.stage.clearBonus ?? 60 + R.stage.index * 40;
   void m;
 }
 
@@ -473,8 +553,75 @@ function weightedPick(R, list) {
   return list[list.length - 1][0];
 }
 
+// The Vigil: the keepers one after another, each with its own
+// stage's strength.
+function tickRush(R) {
+  const st = R.stage;
+  if (R.boss?.alive) { tickKeeper(R, R.boss); return; }
+  if (R.rushIdx >= st.rush.length || R.clock < R.rushNext) return;
+  const [id, hp, dmg] = st.rush[R.rushIdx++];
+  R.hpMul = hp * (R.blood ? BLOOD.hp : 1);
+  R.dmgMul = dmg * (R.blood ? BLOOD.dmg : 1);
+  R.rushHome = STAGES.find((s) => s.boss === id);
+  R.rushCalls = 0;
+  R.wrathT = 0;
+  R.bossSpawned = true;
+  R.bossSpawnedAt = R.clock;
+  const k = spawnBoss(R, id);
+  if (k) { k.hp *= st.keeperHp; k.maxHp *= st.keeperHp; }
+  R.banner("boss_" + id, "#f85149", 200);
+  R.sfx.push(["bossArrive"]);
+  R.shake(10, 0.6);
+}
+
+// While a keeper of the Vigil stands: its stage's night around it, its
+// elite guard at 2/3 and 1/3 health, and its wrath below half.
+function tickKeeper(R, k) {
+  const st = R.stage, home = R.rushHome;
+  if (!home) return;
+  const f = k.hp / k.maxHp;
+  // The horde: the home stage's late mix at a share of the boss-fight pace.
+  if (R.freeze <= 0) {
+    let rate = (0.8 + (home.bossAt / 60) * 1.35) * home.rate * (R.blood ? BLOOD.rate : 1) * 1.4 * 0.55 * st.hordeRate;
+    let alive = 0;
+    const count = {};
+    for (const m of R.monsters) if (m.alive && !m.def.prop && !m.def.part) { alive++; count[m.id] = (count[m.id] || 0) + 1; }
+    if (alive >= MAX_MON) rate = 0;
+    R.spawnAcc += rate * DT;
+    const w = home.mix.filter(([id]) => !(MON[id].cap && (count[id] || 0) >= MON[id].cap)).map(([id, , , w1]) => [id, w1]);
+    while (R.spawnAcc >= 1 && w.length) {
+      R.spawnAcc -= 1;
+      const s = spawnPoint(R);
+      spawnMonster(R, weightedPick(R, w), s.x, s.y);
+    }
+  }
+  // The guard.
+  const want = f < 0.33 ? 2 : f < 0.66 ? 1 : 0;
+  if (want > R.rushCalls) {
+    R.rushCalls = want;
+    const elite = home.events.find((e) => e[1] === "elite")[2];
+    for (let i = 0; i < want; i++) {
+      const s = spawnPoint(R, 480, 560);
+      const m = spawnMonster(R, elite, s.x, s.y);
+      if (m) burst(R, s.x, s.y, 30, m.def.c, 3);
+    }
+    R.banner("ev_elite_" + elite, "#ff9a5a", 150);
+    R.sfx.push(["elite"]);
+    R.shake(6, 0.3);
+  }
+  // The keeper's wrath: rings of spit, quicker when nearly down.
+  if (f < 0.5 && k.hidden <= 0 && --R.wrathT <= 0) {
+    if (R.rushWrathFor !== k) { R.rushWrathFor = k; R.banner("b_wrath", "#ff6b4a", 150); }
+    R.wrathT = Math.round((f < 0.25 ? 4 : 5.5) * FPS);
+    const p = k.body.position, n = f < 0.25 ? 22 : 16, off = R.rng() * Math.PI * 2;
+    for (let i = 0; i < n; i++) spawnSpit(R, p.x, p.y, off + (i / n) * Math.PI * 2, { dmg: 11, speed: 190, color: k.def.c2, r: 7, life: 240, big: true });
+    R.sfx.push(["orbs"]);
+  }
+}
+
 function tickSpawns(R) {
   if (R.bossKilledAt) return;
+  if (R.stage.rush) { tickRush(R); return; }
   const sec = R.clock / FPS;
   const st = R.stage;
   const t = clamp(sec / st.bossAt, 0, 1);
@@ -530,6 +677,7 @@ function tickSpawns(R) {
   // The keeper of the beacon.
   if (!R.bossSpawned && sec >= st.bossAt) {
     R.bossSpawned = true;
+    R.bossSpawnedAt = R.clock;
     spawnBoss(R, st.boss);
     R.banner("boss_" + st.boss, "#f85149", 200);
     R.sfx.push(["bossArrive"]);
@@ -565,7 +713,7 @@ function tickGems(R) {
     p.t++;
     const dx = hx - p.x, dy = hy - p.y, d = hyp(dx, dy);
     // Embers roll to you from a little further than gems.
-    if (p.kind === "ember" && (d < mag * 1.2 || R.bossKilledAt)) {
+    if (p.kind === "ember" && (d < mag * 1.2 || R.bossKilledAt || p.pull)) {
       const sp = clamp(900 - d, 300, 900);
       p.x += (dx / d) * sp * DT; p.y += (dy / d) * sp * DT;
     }
@@ -860,11 +1008,12 @@ function tickProps(R) {
 // The menu backdrop: the stage's night gathers around the hero at a
 // distance, milling, never attacking.
 function spawnTitleHorde(R) {
-  const ids = R.stage.mix.map((e) => e[0]);
+  const ids = R.stage.horde || R.stage.mix.map((e) => e[0]);
+  const lead = R.stage.hordeLead || R.stage.events.find((e) => e[1] === "elite")[2];
   const s = R.world.start;
   for (let i = 0; i < 70; i++) {
     const a = R.rng() * Math.PI * 2, d = 230 + R.rng() * 330;
-    const id = i === 0 ? R.stage.events.find((e) => e[1] === "elite")[2] : ids[Math.floor(R.rng() * ids.length)];
+    const id = i === 0 ? lead : ids[Math.floor(R.rng() * ids.length)];
     const m = spawnMonster(R, id, s.x + Math.cos(a) * d, s.y + Math.sin(a) * d);
     if (m) { m.idleA = a; m.idleR = d; m.born = -100; }
   }
@@ -941,6 +1090,7 @@ export function runSummary(R) {
     stage: R.stage.index, stageId: R.stage.id, hero: R.heroDef.id, blood: R.blood,
     won: R.phase === "won", time: R.clock / FPS, kills: R.kills, level: R.hero.level, embers: R.embers, tithe: R.tithe || 0,
     weapons, passives: { ...R.hero.passives }, relics: [...R.relics], damageTaken: R.damageTaken, evolved: [...R.evolved],
+    fastKeeper: R.fastKeeper, itemsUsed: R.itemLog.length, keepers: R.stage.rush ? R.rushIdx - (R.boss?.alive ? 1 : 0) : 0,
   };
 }
 
