@@ -269,6 +269,7 @@ export const HU = {
   achGot: "Eredmény",
   ach_count: "{n} / {of}",
   useTrophies: "Eredmények",
+  useEpilogue: "A hét",
   a_first_fix: ["Első éjszaka", "Javítsd meg az első álmot."],
   a_all_fixed: ["Teljes hét", "Javítsd meg mind az öt álmot."],
   a_no_faint: ["Éberen", "Javíts meg egy álmot úgy, hogy egyszer sem esel ki belőle."],

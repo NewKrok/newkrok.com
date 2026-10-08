@@ -224,6 +224,7 @@ async function startGame() {
       openMenu(open);
     } else if (id === "journal") openMenu(() => menus.journal(progress, { onClose: resume }));
     else if (id === "trophies") openMenu(() => menus.achievements(progress, { onClose: resume }));
+    else if (id === "epilogue") openMenu(() => menus.epilogue(progress, { onClose: resume }));
     else if (id === "window") {
       // Stand and gaze out at the night (and Old Hum); Margo now and then has a word.
       run.gaze = { t: 0 };

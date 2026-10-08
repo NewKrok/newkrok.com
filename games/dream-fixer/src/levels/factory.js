@@ -121,6 +121,8 @@ export const factory = {
     // Behind you as you come in: a picture of every dream fixed (an empty
     // frame for the ones to come), the clock over them, the trophy case.
     ["park", "school", "kitchen", "garden", "space", "oldhum"].forEach((id, i) => k.prop("dreamFrame", 4 - i * 2 + (i === 5 ? 12 : 0), 6.9, { y: 2.5, s: 1.35, opts: { kind: id, on: P.done.includes(id) } }));
+    // Old Hum's picture, once he sleeps: step up to it for the week's epilogue.
+    if (P.done.includes("oldhum")) k.use("epilogue", 6, 6.1, { r: 1.8, label: "useEpilogue" });
     // Under the pictures, the week's tools on a table, as they come.
     k.prop("toolTable", 2, 6.35, { opts: { tools: P.tools ?? [] }, collide: { w: 3.6, d: 0.8, h: 0.9 } });
     k.prop("wallClock", 0, 6.9, { y: 4.2 });

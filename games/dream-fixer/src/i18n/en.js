@@ -269,6 +269,7 @@ export const EN = {
   achGot: "Achievement",
   ach_count: "{n} of {of}",
   useTrophies: "Achievements",
+  useEpilogue: "The week",
   a_first_fix: ["First night", "Fix your first dream."],
   a_all_fixed: ["Full week", "Fix all five dreams."],
   a_no_faint: ["Wide awake", "Fix a dream without drifting out once."],
