@@ -19,5 +19,8 @@ yarn-debug.log*
 yarn-error.log*
 
 
+# API keys kept next to the games (never commit)
+elevenlabs.txt
+
 # leaderboard secrets live on the server only
 /public/api/hitch-park/config.php

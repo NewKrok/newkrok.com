@@ -1,0 +1,424 @@
+import * as T from "three";
+import { SHAPE, shade } from "../modelkit.js";
+import { C } from "../palette.js";
+
+// ── Tools in the hand ────────────────────────────────────────────────────
+// Built in the tool's own frame: the grip at the origin, the muzzle
+// along −z. The view model places and animates the whole thing.
+
+const RX = Math.PI / 2;
+const up = new T.Vector3(0, 1, 0);
+const dirQ = (x, y, z) => new T.Quaternion().setFromUnitVectors(up, new T.Vector3(x, y, z).normalize());
+
+// The muzzle's position in the tool frame (shots and flashes start here).
+export const STABILIZER_MUZZLE = [0, 0.035, -0.29];
+
+export function stabilizer(b, { hand = true } = {}) {
+  const CY = 0.035;                        // chamber axis height
+
+  // ── Receiver and grip ──
+  b.add(SHAPE.box(0.068, 0.072, 0.15, 0.014), { p: [0, CY - 0.004, 0.005], grad: [C.brassD, C.brass], mat: "metal" });
+  b.both((s) => {
+    // Enamel side plates with four rivets each.
+    b.add(SHAPE.box(0.004, 0.044, 0.1, 0.0015), { p: [s * 0.0345, CY - 0.004, 0.01], c: C.teal, facet: 0.02 });
+    for (const [dy, dz] of [[-0.016, -0.04], [0.016, -0.04], [-0.016, 0.06], [0.016, 0.06]])
+      b.add(SHAPE.ball(0.0035, 6, 4), { p: [s * 0.037, CY - 0.004 + dy, 0.01 + dz], c: C.brassL, mat: "metal" });
+  });
+  b.add(SHAPE.box(0.074, 0.012, 0.03, 0.004), { p: [0, CY - 0.034, 0.07], c: C.brassD, mat: "metal" });
+  b.at([0, -0.055, 0.045], [-0.3, 0, 0], 1, () => {
+    b.add(SHAPE.box(0.042, 0.13, 0.058, 0.013), { grad: [C.woodD, C.woodL], facet: 0.08 });
+    for (let i = 0; i < 4; i++)              // finger grooves at the back of the grip
+      b.add(SHAPE.box(0.044, 0.004, 0.012, 0.001), { p: [0, -0.04 + i * 0.024, 0.026], c: C.woodD });
+    b.add(SHAPE.box(0.048, 0.018, 0.064, 0.006), { p: [0, -0.068, 0], c: C.brassD, mat: "metal" });
+  });
+  // Trigger and its guard.
+  b.add(SHAPE.box(0.01, 0.032, 0.012, 0.003), { p: [0, -0.012, -0.03], r: [0.25, 0, 0], c: C.iron, mat: "metal" });
+  b.add(SHAPE.torus(0.03, 0.0045, 5, 12, Math.PI), { p: [0, -0.005, -0.028], r: [0, RX, Math.PI], c: C.brassD, mat: "metal" });
+
+  // ── Chamber: a glass tube with the glowing core ──
+  const zc = -0.135;
+  b.add(SHAPE.cyl(0.034, 0.034, 0.14, 14), { p: [0, CY, zc], r: [RX, 0, 0], c: 0xc8f4f0, mat: "glass" });
+  b.add(SHAPE.cyl(0.018, 0.018, 0.13, 8), { p: [0, CY, zc], r: [RX, 0, 0], c: C.dream, mat: "glow", glow: 2 });
+  for (const z of [zc + 0.075, zc - 0.075]) {
+    b.add(SHAPE.cyl(0.043, 0.043, 0.02, 14, 0.005), { p: [0, CY, z], r: [RX, 0, 0], c: C.brass, mat: "metal" });
+    b.add(SHAPE.cyl(0.046, 0.046, 0.006, 14), { p: [0, CY, z], r: [RX, 0, 0], c: C.copperD, mat: "metal" });
+  }
+  for (const a of [0.35, 0.35 + 2.094, 0.35 + 4.189])     // three rails hold the tube
+    b.add(SHAPE.cyl(0.0055, 0.0055, 0.15, 6), { p: [Math.sin(a) * 0.04, CY + Math.cos(a) * 0.04, zc], r: [RX, 0, 0], c: C.copper, mat: "metal" });
+
+  // ── Emitter ──
+  b.add(SHAPE.lathe([[0.03, 0], [0.032, 0.012], [0.046, 0.04], [0.052, 0.058], [0.046, 0.062], [0.03, 0.05]], 14),
+    { p: [0, CY, zc - 0.083], r: [-RX, 0, 0], grad: [C.copperD, C.copper], mat: "metal" });
+  b.add(SHAPE.torus(0.037, 0.0065, 5, 16), { p: [0, CY, STABILIZER_MUZZLE[2] + 0.012], c: C.dream, mat: "glow", glow: 2.4 });
+  for (let i = 0; i < 3; i++) {               // tuning prongs
+    const a = i * 2.094;
+    b.at([Math.sin(a) * 0.05, CY + Math.cos(a) * 0.05, zc - 0.155], [0, 0, -a], 1, () => {
+      b.add(SHAPE.box(0.012, 0.01, 0.05, 0.003), { c: C.brass, mat: "metal" });
+      b.add(SHAPE.ball(0.006, 6, 4), { p: [0, 0, -0.027], c: C.dream, mat: "glow", glow: 2 });
+    });
+  }
+
+  // ── Gauge on top, facing the player ──
+  b.at([0, CY + 0.043, 0.05], [0.85, 0, 0], 1, () => {
+    b.add(SHAPE.cyl(0.03, 0.03, 0.014, 16, 0.004), { c: C.brass, mat: "metal" });
+    b.add(SHAPE.cyl(0.024, 0.024, 0.004, 16), { p: [0, 0.007, 0], c: 0xd8ccb0, facet: 0 });
+    for (let i = 0; i < 7; i++) {
+      const a = -1.2 + i * 0.4;
+      b.add(SHAPE.box(0.0018, 0.002, 0.005), { p: [Math.sin(a) * 0.018, 0.0095, -Math.cos(a) * 0.018], r: [0, -a, 0], c: i > 4 ? C.red : C.black, facet: 0 });
+    }
+    b.node("needle", [0, 0.0105, 0], [0, 0, 0], (n) => {
+      n.add(SHAPE.box(0.0024, 0.0016, 0.02), { p: [0, 0, -0.008], c: C.red, facet: 0 });
+      n.add(SHAPE.cyl(0.003, 0.003, 0.003, 8), { c: C.black });
+    });
+    b.add(SHAPE.cyl(0.025, 0.025, 0.003, 16), { p: [0, 0.013, 0], c: 0xffffff, mat: "glass" });
+  });
+  // Copper pipe from the gauge down into the chamber.
+  b.add(SHAPE.torus(0.03, 0.0045, 5, 10, Math.PI / 2), { p: [-0.02, CY + 0.012, 0.0], r: [0, RX, 0], c: C.copper, mat: "metal" });
+
+  // ── Valve wheel on the right side ──
+  b.at([0.045, CY + 0.004, -0.035], [0, RX, 0], 1, () => {
+    b.add(SHAPE.cyl(0.006, 0.006, 0.02, 8), { r: [RX, 0, 0], c: C.iron, mat: "metal" });
+    b.node("valve", [0, 0, -0.011], [0, 0, 0], (n) => {
+      n.add(SHAPE.torus(0.021, 0.0045, 5, 14), { c: C.red, mat: "metal" });
+      for (let i = 0; i < 3; i++) n.add(SHAPE.box(0.04, 0.004, 0.004), { r: [0, 0, i * 1.047], c: C.redD, mat: "metal" });
+      n.add(SHAPE.cyl(0.007, 0.007, 0.008, 8), { r: [RX, 0, 0], c: C.brass, mat: "metal" });
+    });
+  });
+
+  // ── Sight ──
+  b.add(SHAPE.box(0.012, 0.014, 0.03, 0.003), { p: [0, CY + 0.043, -0.02], c: C.iron, mat: "metal" });
+  b.add(SHAPE.ball(0.004, 6, 4), { p: [0, CY + 0.052, -0.02], c: C.dreamPink, mat: "glow", glow: 2 });
+
+  if (hand) glovedHand(b);
+}
+
+// A work-gloved right hand around the grip, with the overall's sleeve.
+function glovedHand(b) {
+  b.at([0, -0.055, 0.045], [-0.3, 0, 0], 1, () => {
+    // Palm and back of the hand wrap the grip.
+    b.add(SHAPE.box(0.074, 0.1, 0.076, 0.022), { p: [0.008, 0.004, 0.006], grad: [C.gloveD, C.glove], facet: 0.06 });
+    b.add(SHAPE.box(0.006, 0.07, 0.05, 0.002), { p: [0.046, 0.006, 0.004], c: C.gloveD });     // stitched patch
+    // Four fingers curl round the front.
+    for (let i = 0; i < 4; i++) {
+      const y = 0.036 - i * 0.024, w = i === 3 ? 0.044 : 0.054;
+      b.add(SHAPE.box(w, 0.022, 0.03, 0.009), { p: [-0.002, y, -0.046], grad: [C.gloveD, C.glove] });
+      b.add(SHAPE.box(0.024, 0.02, 0.03, 0.008), { p: [-0.03, y, -0.03], c: C.glove });
+    }
+    // Thumb along the left of the receiver.
+    b.add(SHAPE.capsule(0.013, 0.036, 7, 2), { p: [-0.036, 0.062, -0.012], r: [-1.2, 0, 0.15], c: C.glove });
+    // Cuff and sleeve reaching back to the shoulder.
+    const d = [0.28, -0.45, 1];
+    const q = dirQ(...d);
+    const L = Math.hypot(...d);
+    const at = (t) => [0.02 + d[0] / L * t, -0.06 + d[1] / L * t, 0.05 + d[2] / L * t];
+    b.add(SHAPE.cyl(0.05, 0.046, 0.075, 10, 0.008), { p: at(0.03), r: q, grad: [C.glove, C.gloveD] });
+    b.add(SHAPE.cyl(0.058, 0.058, 0.05, 10, 0.012), { p: at(0.1), r: q, c: C.overallD });
+    b.add(SHAPE.cyl(0.056, 0.062, 0.42, 10), { p: at(0.33), r: q, grad: [C.overallD, C.overall], facet: 0.07 });
+  });
+}
+
+// The Fuzz Vacuum: a brass motor behind the grip, a glass tank on top
+// that glows with whatever it has swallowed, a ribbed copper tube and a
+// wide nozzle with a fan inside. Nodes: "fan", "tank" (the contents), "flap".
+export const VACUUM_MUZZLE = [0, 0.03, -0.33];
+
+export function fuzzVacuum(b, { hand = true } = {}) {
+  const CY = 0.03;
+  // Grip, as on the Stabilizer, so the hand fits both.
+  b.at([0, -0.055, 0.045], [-0.3, 0, 0], 1, () => {
+    b.add(SHAPE.box(0.042, 0.13, 0.058, 0.013), { grad: [C.woodD, C.woodL], facet: 0.08 });
+    b.add(SHAPE.box(0.048, 0.018, 0.064, 0.006), { p: [0, -0.068, 0], c: C.iron, mat: "metal" });
+  });
+  b.add(SHAPE.box(0.01, 0.03, 0.012, 0.003), { p: [0, -0.012, -0.03], r: [0.25, 0, 0], c: C.red, mat: "metal" });
+  b.add(SHAPE.torus(0.03, 0.0045, 5, 12, Math.PI), { p: [0, -0.005, -0.028], r: [0, RX, Math.PI], c: C.iron, mat: "metal" });
+  // Motor: an iron drum with brass cooling rings, and a vent at the back.
+  b.add(SHAPE.cyl(0.058, 0.058, 0.13, 12, 0.01), { p: [0, CY, 0.03], r: [RX, 0, 0], grad: [C.ironD, C.iron], mat: "metal" });
+  for (let i = 0; i < 4; i++) b.add(SHAPE.torus(0.059, 0.006, 4, 16), { p: [0, CY, -0.015 + i * 0.03], c: C.brass, mat: "metal" });
+  b.add(SHAPE.cyl(0.045, 0.045, 0.01, 12), { p: [0, CY, 0.097], r: [RX, 0, 0], c: C.black });
+  for (let i = -2; i <= 2; i++) b.add(SHAPE.box(0.07, 0.004, 0.004), { p: [0, CY + i * 0.013, 0.1], c: C.brassD, mat: "metal" });
+  // Glass tank on top with the glowing contents.
+  b.add(SHAPE.cyl(0.036, 0.036, 0.012, 12, 0.003), { p: [0, CY + 0.064, 0.0], c: C.brass, mat: "metal" });
+  b.add(SHAPE.cyl(0.04, 0.034, 0.07, 12), { p: [0, CY + 0.106, 0.0], c: 0xd8fff6, mat: "glass" });
+  b.add(SHAPE.cyl(0.03, 0.03, 0.014, 12, 0.004), { p: [0, CY + 0.146, 0.0], c: C.brass, mat: "metal" });
+  b.node("tank", [0, CY + 0.1, 0], [0, 0, 0], (n) => n.add(SHAPE.sphere(0.026, 1), { c: C.dreamGold, mat: "glow", glow: 1.8 }));
+  // Tube, ribbed.
+  b.add(SHAPE.cyl(0.034, 0.038, 0.15, 12), { p: [0, CY, -0.11], r: [RX, 0, 0], c: C.copper, mat: "metal" });
+  for (let i = 0; i < 5; i++) b.add(SHAPE.torus(0.037, 0.006, 4, 14), { p: [0, CY, -0.05 - i * 0.03], c: C.copperD, mat: "metal" });
+  // Nozzle: a flared mouth with a fan and a glowing throat.
+  b.add(SHAPE.lathe([[0.038, 0], [0.042, 0.02], [0.06, 0.06], [0.08, 0.1], [0.083, 0.11], [0.074, 0.11], [0.05, 0.07]], 16),
+    { p: [0, CY, -0.215], r: [-RX, 0, 0], grad: [C.brassD, C.brassL], mat: "metal" });
+  b.add(SHAPE.torus(0.07, 0.007, 5, 20), { p: [0, CY, VACUUM_MUZZLE[2] + 0.01], c: C.dreamGold, mat: "glow", glow: 2 });
+  b.node("fan", [0, CY, -0.235], [0, 0, 0], (n) => {
+    n.add(SHAPE.cyl(0.012, 0.012, 0.02, 8), { r: [RX, 0, 0], c: C.brass, mat: "metal" });
+    for (let i = 0; i < 4; i++) n.add(SHAPE.box(0.07, 0.016, 0.004, 0.002), { r: [0, 0.3, i * Math.PI / 4], c: C.steel, mat: "metal" });
+  });
+  // A hinged flap on top of the nozzle (clacks when it launches).
+  b.node("flap", [0, CY + 0.055, -0.22], [0, 0, 0], (n) => n.add(SHAPE.box(0.05, 0.006, 0.05, 0.002), { p: [0, 0, -0.022], c: C.red, mat: "metal" }));
+  // Power switch and a dial on the side.
+  b.add(SHAPE.box(0.012, 0.02, 0.03, 0.004), { p: [0.06, CY + 0.02, 0.03], c: C.red, mat: "metal" });
+  b.add(SHAPE.cyl(0.018, 0.018, 0.008, 12), { p: [-0.06, CY, 0.03], r: [0, 0, RX], c: C.cream });
+  if (hand) glovedHand(b);
+}
+
+// The Foam Cannon: a fat enamel canister with brass end caps and a window
+// onto the glowing foam inside, a pressure gauge on top, a pump on the
+// left and a flat duckbill nozzle. Nodes: "needle" (the heat), "pump"
+// (kicks back on a blob), "foam" (the level in the window).
+export const FOAM_MUZZLE = [0, 0.04, -0.29];
+const FOAM_GLOW = 0x9fe0ff;
+
+export function foamCannon(b, { hand = true } = {}) {
+  const CY = 0.04, zc = -0.105;
+  b.at([0, -0.055, 0.045], [-0.3, 0, 0], 1, () => {
+    b.add(SHAPE.box(0.042, 0.13, 0.058, 0.013), { grad: [C.woodD, C.woodL], facet: 0.08 });
+    b.add(SHAPE.box(0.048, 0.018, 0.064, 0.006), { p: [0, -0.068, 0], c: C.brassD, mat: "metal" });
+  });
+  b.add(SHAPE.box(0.01, 0.03, 0.012, 0.003), { p: [0, -0.012, -0.03], r: [0.25, 0, 0], c: C.iron, mat: "metal" });
+  b.add(SHAPE.torus(0.03, 0.0045, 5, 12, Math.PI), { p: [0, -0.005, -0.028], r: [0, RX, Math.PI], c: C.brassD, mat: "metal" });
+  b.add(SHAPE.box(0.05, 0.026, 0.11, 0.008), { p: [0, CY - 0.038, 0.0], c: C.brassD, mat: "metal" });
+
+  // ── Canister ──
+  b.add(SHAPE.cyl(0.044, 0.044, 0.15, 14, 0.006), { p: [0, CY, zc], r: [RX, 0, 0], grad: [C.tealD, C.teal], facet: 0.03 });
+  for (const z of [zc + 0.05, zc - 0.05]) b.add(SHAPE.torus(0.045, 0.005, 5, 18), { p: [0, CY, z], c: C.cream });
+  // Brass caps: a flat one at the back (by your hand), a dome at the front.
+  b.add(SHAPE.cyl(0.036, 0.042, 0.012, 14, 0.004), { p: [0, CY, zc + 0.08], r: [RX, 0, 0], c: C.brass, mat: "metal" });
+  b.add(SHAPE.cyl(0.01, 0.01, 0.012, 8), { p: [0, CY, zc + 0.09], r: [RX, 0, 0], c: C.brassD, mat: "metal" });
+  b.add(SHAPE.lathe([[0.045, 0], [0.043, 0.01], [0.036, 0.02], [0.022, 0.027], [0, 0.029]], 14), { p: [0, CY, zc - 0.075], r: [-RX, 0, 0], grad: [C.brassD, C.brass], mat: "metal" });
+  // A window down the right side, the foam glowing behind it.
+  b.add(SHAPE.box(0.006, 0.04, 0.08, 0.002), { p: [0.043, CY, zc], c: C.brass, mat: "metal" });
+  b.node("foam", [0.044, CY - 0.01, zc], [0, 0, 0], (n) => n.add(SHAPE.box(0.004, 0.02, 0.066), { p: [0, 0.01, 0], c: FOAM_GLOW, mat: "glow", glow: 1.8 }));
+  b.add(SHAPE.box(0.004, 0.032, 0.07), { p: [0.047, CY, zc], c: 0xd8f4ff, mat: "glass" });
+
+  // ── Neck and duckbill nozzle ──
+  b.add(SHAPE.cyl(0.02, 0.024, 0.06, 10), { p: [0, CY, zc - 0.12], r: [RX, 0, 0], c: C.copper, mat: "metal" });
+  b.add(SHAPE.torus(0.024, 0.005, 4, 12), { p: [0, CY, zc - 0.105], c: C.copperD, mat: "metal" });
+  b.add(SHAPE.box(0.074, 0.03, 0.05, 0.01), { p: [0, CY, FOAM_MUZZLE[2] + 0.03], grad: [C.brassD, C.brassL], mat: "metal" });
+  b.add(SHAPE.box(0.06, 0.008, 0.006), { p: [0, CY, FOAM_MUZZLE[2] + 0.004], c: FOAM_GLOW, mat: "glow", glow: 2.2 });
+  // Little foam bubbles stuck on the lip.
+  for (const [x, y, r] of [[-0.024, 0.016, 0.008], [0.018, 0.017, 0.006], [0.03, -0.012, 0.007], [-0.01, -0.016, 0.005]])
+    b.add(SHAPE.sphere(r, 0), { p: [x, CY + y, FOAM_MUZZLE[2] + 0.012], c: C.white });
+
+  // ── Gauge on top, facing the player ──
+  b.at([0, CY + 0.05, -0.05], [0.85, 0, 0], 1, () => {
+    b.add(SHAPE.cyl(0.006, 0.006, 0.02, 6), { p: [0, -0.012, 0], c: C.brass, mat: "metal" });
+    b.add(SHAPE.cyl(0.026, 0.026, 0.012, 16, 0.003), { c: C.brass, mat: "metal" });
+    b.add(SHAPE.cyl(0.021, 0.021, 0.004, 16), { p: [0, 0.006, 0], c: 0xd8ccb0, facet: 0 });
+    for (let i = 0; i < 5; i++) {
+      const a = -1.2 + i * 0.6;
+      b.add(SHAPE.box(0.0018, 0.002, 0.005), { p: [Math.sin(a) * 0.015, 0.0085, -Math.cos(a) * 0.015], r: [0, -a, 0], c: i > 3 ? C.red : C.black, facet: 0 });
+    }
+    b.node("needle", [0, 0.0095, 0], [0, 0, 0], (n) => {
+      n.add(SHAPE.box(0.0024, 0.0016, 0.017), { p: [0, 0, -0.007], c: C.red, facet: 0 });
+      n.add(SHAPE.cyl(0.003, 0.003, 0.003, 8), { c: C.black });
+    });
+    b.add(SHAPE.cyl(0.022, 0.022, 0.003, 16), { p: [0, 0.011, 0], c: 0xffffff, mat: "glass" });
+  });
+
+  // ── Pump on the left: a rod and a red knob ──
+  b.add(SHAPE.cyl(0.01, 0.01, 0.1, 8), { p: [-0.052, CY + 0.01, zc], r: [RX, 0, 0], c: C.iron, mat: "metal" });
+  b.node("pump", [-0.052, CY + 0.01, zc + 0.06], [0, 0, 0], (n) => {
+    n.add(SHAPE.cyl(0.006, 0.006, 0.04, 6), { r: [RX, 0, 0], c: C.steel, mat: "metal" });
+    n.add(SHAPE.ball(0.014, 8, 6), { p: [0, 0, 0.024], c: C.red });
+  });
+  for (const z of [zc - 0.035, zc + 0.035]) b.add(SHAPE.box(0.012, 0.01, 0.01, 0.002), { p: [-0.046, CY + 0.01, z], c: C.brassD, mat: "metal" });
+
+  if (hand) glovedHand(b);
+}
+
+// The Lullaby Bell: a brass bell laid on its side, mouth forward, with a
+// lilac glow deep inside and a clapper hanging in it; a little mallet on
+// top that strikes it, and a wooden music box on the left whose crank
+// turns while you hum a lullaby. Nodes: "hammer" (raised, falls on a
+// ring), "clapper" (swings), "crank" (turns), "hum" (the glow inside).
+export const BELL_MUZZLE = [0, 0.03, -0.29];
+const BELL_GLOW = 0xc8b0ff;
+
+export function lullabyBell(b, { hand = true } = {}) {
+  const CY = 0.03, z0 = -0.1;
+  b.at([0, -0.055, 0.045], [-0.3, 0, 0], 1, () => {
+    b.add(SHAPE.box(0.042, 0.13, 0.058, 0.013), { grad: [C.woodD, C.woodL], facet: 0.08 });
+    b.add(SHAPE.box(0.048, 0.018, 0.064, 0.006), { p: [0, -0.068, 0], c: C.brassD, mat: "metal" });
+  });
+  b.add(SHAPE.box(0.01, 0.03, 0.012, 0.003), { p: [0, -0.012, -0.03], r: [0.25, 0, 0], c: C.iron, mat: "metal" });
+  b.add(SHAPE.torus(0.03, 0.0045, 5, 12, Math.PI), { p: [0, -0.005, -0.028], r: [0, RX, Math.PI], c: C.brassD, mat: "metal" });
+  // A wooden stock from the grip up to the bell's crown.
+  b.add(SHAPE.box(0.05, 0.034, 0.12, 0.01), { p: [0, CY - 0.03, -0.01], grad: [C.woodD, C.wood], facet: 0.06 });
+  b.add(SHAPE.box(0.054, 0.008, 0.124, 0.003), { p: [0, CY - 0.012, -0.01], c: C.brassD, mat: "metal" });
+
+  // ── The bell ──
+  const prof = [[0.016, 0], [0.025, 0.012], [0.029, 0.04], [0.031, 0.07], [0.036, 0.1], [0.045, 0.13], [0.058, 0.155], [0.064, 0.167], [0.062, 0.175], [0.055, 0.169], [0.042, 0.14], [0.028, 0.1]];
+  b.add(SHAPE.lathe(prof, 20), { p: [0, CY, z0], r: [-RX, 0, 0], grad: [C.brassD, C.brassL], mat: "metal", facet: 0.015 });
+  // The crown at the back, a knob and a collar.
+  b.add(SHAPE.ball(0.022, 10, 7), { p: [0, CY, z0 + 0.008], c: C.brass, mat: "metal" });
+  b.add(SHAPE.torus(0.03, 0.005, 5, 16), { p: [0, CY, z0 - 0.035], c: C.copper, mat: "metal" });
+  // A ring of engraved stars round the waist.
+  for (let i = 0; i < 6; i++) {
+    const a = i * Math.PI / 3 + 0.3;
+    b.add(SHAPE.ball(0.004, 6, 4), { p: [Math.sin(a) * 0.04, CY + Math.cos(a) * 0.04, z0 - 0.1], c: BELL_GLOW, mat: "glow", glow: 1.2 });
+  }
+  // The glowing lip and the glow deep inside.
+  b.add(SHAPE.torus(0.059, 0.004, 5, 22), { p: [0, CY, BELL_MUZZLE[2] + 0.012], c: BELL_GLOW, mat: "glow", glow: 2.2 });
+  b.node("hum", [0, CY, z0 - 0.09], [0, 0, 0], (n) => n.add(SHAPE.cyl(0.03, 0.03, 0.004, 14), { r: [RX, 0, 0], c: BELL_GLOW, mat: "glow", glow: 1.8 }));
+  // The clapper, hanging from the crown inside the bell.
+  b.node("clapper", [0, CY + 0.012, z0 - 0.06], [0, 0, 0], (n) => {
+    n.add(SHAPE.cyl(0.003, 0.003, 0.09, 6), { p: [0, -0.015, -0.04], r: [RX - 0.35, 0, 0], c: C.iron, mat: "metal" });
+    n.add(SHAPE.ball(0.014, 8, 6), { p: [0, -0.032, -0.085], c: C.brassD, mat: "metal" });
+  });
+
+  // ── The mallet on top: hinged at the back, its head over the shoulder ──
+  b.add(SHAPE.box(0.02, 0.022, 0.02, 0.004), { p: [0, CY + 0.032, z0 + 0.03], c: C.brassD, mat: "metal" });
+  b.node("hammer", [0, CY + 0.044, z0 + 0.03], [0, 0, 0], (n) => {
+    n.add(SHAPE.cyl(0.004, 0.004, 0.13, 6), { p: [0, 0, -0.065], r: [RX, 0, 0], c: C.woodL });
+    n.add(SHAPE.cyl(0.013, 0.013, 0.036, 10, 0.004), { p: [0, 0, -0.13], r: [0, 0, RX], c: C.red });
+    for (const s of [-1, 1]) n.add(SHAPE.cyl(0.0135, 0.0135, 0.004, 10), { p: [s * 0.018, 0, -0.13], r: [0, 0, RX], c: C.cream });
+  });
+
+  // ── The music box on the left, with its crank ──
+  b.add(SHAPE.box(0.034, 0.04, 0.056, 0.006), { p: [-0.05, CY - 0.012, -0.02], grad: [C.woodD, C.woodL], facet: 0.06 });
+  b.add(SHAPE.box(0.036, 0.006, 0.058, 0.002), { p: [-0.05, CY + 0.009, -0.02], c: C.brass, mat: "metal" });
+  b.add(SHAPE.cyl(0.006, 0.006, 0.012, 8), { p: [-0.072, CY - 0.012, -0.02], r: [0, 0, RX], c: C.brassD, mat: "metal" });
+  b.node("crank", [-0.078, CY - 0.012, -0.02], [0, 0, 0], (n) => {
+    n.add(SHAPE.box(0.004, 0.034, 0.006, 0.001), { p: [0, 0.015, 0], c: C.brass, mat: "metal" });
+    n.add(SHAPE.cyl(0.005, 0.005, 0.016, 6), { p: [-0.006, 0.03, 0], r: [0, 0, RX], c: C.cream });
+  });
+
+  if (hand) glovedHand(b);
+}
+
+// The Gust Umbrella: Grandpa Joe's old umbrella, green and cream gores on
+// steel ribs, a crook handle of polished wood (the straight part in your
+// glove, the hook curling under), a brass collar and a ferrule at the tip
+// that glows mint. Nodes: "canopy" (scaled: furled thin and long, or open
+// wide), "glow" (the collar band, swells on a gust).
+export const UMBRELLA_MUZZLE = [0, 0.02, -0.5];
+const UMB_GLOW = 0xa8f0c0, UMB_A = 0x2f6a4a, UMB_B = 0xe8dcc0;
+
+export function gustUmbrella(b, { hand = true } = {}) {
+  const CY = 0.02, zc = -0.43;             // the shaft's height; the crown, where the ribs meet
+  // ── The crook handle: the grip, and the hook under the hand ──
+  b.at([0, -0.055, 0.045], [-0.3, 0, 0], 1, () => {
+    b.add(SHAPE.cyl(0.021, 0.024, 0.15, 10, 0.006), { p: [0, -0.005, 0], grad: [C.woodD, C.woodL], facet: 0.06 });
+    b.add(SHAPE.torus(0.04, 0.019, 7, 12, Math.PI), { p: [0, -0.08, 0.04], r: [0, RX, Math.PI], grad: [C.woodD, C.wood], facet: 0.06 });
+    b.add(SHAPE.ball(0.02, 8, 6), { p: [0, -0.08, 0.08], c: C.woodD });
+  });
+  b.add(SHAPE.cyl(0.018, 0.02, 0.03, 10, 0.004), { p: [0, CY - 0.012, 0.0], r: [-0.3, 0, 0], c: C.brass, mat: "metal" });
+  // ── The shaft, collar and the band that glows ──
+  b.add(SHAPE.cyl(0.0075, 0.0075, 0.46, 8), { p: [0, CY, -0.215], r: [RX, 0, 0], c: C.steel, mat: "metal" });
+  b.add(SHAPE.cyl(0.014, 0.014, 0.03, 10, 0.003), { p: [0, CY, -0.02], r: [RX, 0, 0], c: C.brassD, mat: "metal" });
+  b.node("glow", [0, CY, -0.05], [0, 0, 0], (n) => n.add(SHAPE.cyl(0.012, 0.012, 0.02, 10), { r: [RX, 0, 0], c: UMB_GLOW, mat: "glow", glow: 1.8 }));
+  // The runner that slides up the shaft as it opens.
+  b.add(SHAPE.cyl(0.012, 0.012, 0.03, 8, 0.003), { p: [0, CY, -0.3], r: [RX, 0, 0], c: C.brassD, mat: "metal" });
+  // ── The ferrule at the tip ──
+  b.add(SHAPE.cyl(0.006, 0.009, 0.06, 8), { p: [0, CY, zc - 0.035], r: [RX, 0, 0], c: C.brass, mat: "metal" });
+  b.add(SHAPE.ball(0.011, 8, 6), { p: [0, CY, UMBRELLA_MUZZLE[2] + 0.004], c: UMB_GLOW, mat: "glow", glow: 2.2 });
+
+  // ── The canopy: from the crown back towards the hand ──
+  const R = 0.34, H = 0.17, G = 8;
+  const prof = [[0.012, 0], [0.12, 0.02], [0.2, 0.05], [0.27, 0.095], [0.315, 0.14], [0.34, 0.17]].map(([r, y]) => [r / R, y / H]);
+  const outer = prof.map(([r, y]) => new T.Vector2(r, y));
+  const inner = [...prof].reverse().map(([r, y]) => new T.Vector2(r * 0.985, y + 0.012));
+  b.node("canopy", [0, CY, zc], [0, 0, 0], (n) => {
+    // Unit gores, laid along +z by the node's frame (scaled to size below).
+    n.at([0, 0, 0], [RX, 0, 0], [R, H, R], () => {
+      for (let i = 0; i < G; i++) {
+        const a = (i / G) * Math.PI * 2, w = Math.PI * 2 / G, c = i % 2 ? UMB_B : UMB_A;
+        n.add(new T.LatheGeometry(outer, 3, a, w), { c, facet: 0.04 });
+        n.add(new T.LatheGeometry(inner, 3, a, w), { c: shade(c, 0.62), facet: 0.03 });
+      }
+    });
+    // Ribs from the crown to the rim, a cream tip on each.
+    for (let i = 0; i < G; i++) {
+      const a = (i / G) * Math.PI * 2, x = Math.cos(a) * R, y = Math.sin(a) * R;
+      n.add(SHAPE.cyl(0.0025, 0.0025, Math.hypot(R, H), 4), { p: [x / 2, y / 2, H / 2], r: dirQ(x, y, H), c: C.iron, mat: "metal" });
+      n.add(SHAPE.ball(0.007, 6, 4), { p: [x, y, H + 0.004], c: C.cream });
+    }
+    n.add(SHAPE.cyl(0.016, 0.012, 0.025, 8), { p: [0, 0, 0.004], r: [RX, 0, 0], c: C.brassD, mat: "metal" });
+  });
+  if (hand) glovedHand(b);
+}
+
+
+// The Star Yo-Yo: Sophie's old yo-yo, navy halves with a glowing gold
+// star on each face and a gold rim, on a wooden trick handle with a brass
+// arm and a ring the string runs through. Nodes: "yoyo" (hidden while it
+// is out on its string), "glow" (the ring, flares on a throw).
+export const YOYO_MUZZLE = [0, 0.02, -0.2];
+const YOYO_GLOW = 0xffe27a, YOYO_A = 0x2a3a8a;
+
+// A five-pointed star outline (outer radius r) for SHAPE.extrude.
+const starOutline = (r, inner = 0.45) => Array.from({ length: 10 }, (_, i) => {
+  const a = Math.PI / 2 + i * Math.PI / 5, k = i % 2 ? r * inner : r;
+  return [Math.cos(a) * k, Math.sin(a) * k];
+});
+
+// The two halves of a yo-yo of radius R, its axle along x.
+export function yoyoHalves(n, R) {
+  for (const s of [-1, 1]) {
+    n.add(SHAPE.cyl(R, R * 0.72, R * 0.55, 18, R * 0.1), { p: [s * R * 0.34, 0, 0], r: [0, 0, -s * RX], grad: [shade(YOYO_A, 0.7), YOYO_A], facet: 0.03 });
+    n.add(SHAPE.torus(R * 0.93, R * 0.07, 5, 20), { p: [s * R * 0.6, 0, 0], r: [0, RX, 0], c: C.brassL, mat: "metal" });
+    n.add(SHAPE.extrude(starOutline(R * 0.62), R * 0.06), { p: [s * R * 0.62, 0, 0], r: [0, RX, 0], c: YOYO_GLOW, mat: "glow", glow: 1.8 });
+  }
+  n.add(SHAPE.cyl(R * 0.18, R * 0.18, R * 0.2, 8), { r: [0, 0, RX], c: C.cream });
+}
+
+export function starYoyo(b, { hand = true } = {}) {
+  const CY = 0.02, z = YOYO_MUZZLE[2];
+  b.at([0, -0.055, 0.045], [-0.3, 0, 0], 1, () => {
+    b.add(SHAPE.box(0.042, 0.13, 0.058, 0.013), { grad: [C.woodD, C.woodL], facet: 0.08 });
+    b.add(SHAPE.box(0.048, 0.018, 0.064, 0.006), { p: [0, -0.068, 0], c: C.brassD, mat: "metal" });
+  });
+  // The brass arm out from the grip, and the ring at its end.
+  b.add(SHAPE.box(0.026, 0.024, 0.11, 0.007), { p: [0, CY - 0.012, -0.035], grad: [C.brassD, C.brass], mat: "metal" });
+  b.add(SHAPE.torus(0.016, 0.004, 5, 12), { p: [0, CY, -0.1], c: C.brassL, mat: "metal" });
+  b.node("glow", [0, CY, -0.1], [0, 0, 0], (n) => n.add(SHAPE.torus(0.011, 0.003, 5, 12), { c: YOYO_GLOW, mat: "glow", glow: 2 }));
+  // The string from the ring down to the yo-yo, and the yo-yo itself.
+  b.add(SHAPE.cyl(0.0018, 0.0018, Math.abs(z + 0.1), 4), { p: [0, CY, (z - 0.1) / 2], r: [RX, 0, 0], c: C.paper });
+  b.node("yoyo", [0, CY, z], [0, 0, 0], (n) => yoyoHalves(n, 0.036));
+  if (hand) glovedHand(b);
+}
+
+// The yo-yo out on its string, as big as a dream likes it.
+export function yoyoBall(b, { r = 0.16 } = {}) {
+  b.node("spin", [0, 0, 0], [0, 0, 0], (n) => yoyoHalves(n, r));
+}
+
+// The Dream Sand sack: the Sandman's own, a plump indigo velvet sack
+// with gold stars stitched on. Its round bottom sits in your glove, it
+// leans forward, and its neck, a gold drawstring with two tassels tied
+// round it, opens in a frill over a heap of sand that glows. Nodes:
+// "sack" (squeezed on every pinch), "sand" (the heap in its mouth: sinks
+// as it runs hot, puffs on a pinch), "glow" (the drawstring, flares).
+export const SAND_MUZZLE = [0, 0.105, -0.1];
+const SAND_GLOW = 0xffe0a0, SACK_A = 0x5a3aa8;
+
+export function sandSack(b, { hand = true } = {}) {
+  const K = 0.72, TOP = 0.2;
+  // The profile from the round bottom up to the frill: [radius, height].
+  const prof = [[0.001, 0], [0.032, 0.008], [0.056, 0.03], [0.07, 0.068], [0.071, 0.108], [0.06, 0.146], [0.044, 0.172], [0.05, 0.188], [0.062, TOP]];
+  b.node("sack", [0, -0.01, -0.03], [1.05, 0, 0], (n) => {
+    n.at([0, 0, 0], [-RX, 0, 0], K, () => {
+      n.add(SHAPE.lathe(prof, 12), { grad: [shade(SACK_A, 0.55), SACK_A], facet: 0.05 });
+      // Gold stars stitched on its front and sides, a few gold dots.
+      n.add(SHAPE.extrude(starOutline(0.02), 0.003), { p: [0, 0.095, 0.07], c: SAND_GLOW, mat: "glow", glow: 1.4 });
+      n.add(SHAPE.extrude(starOutline(0.013), 0.003), { p: [0.066, 0.07, 0.02], r: [0, RX - 0.3, 0], c: SAND_GLOW, mat: "glow", glow: 1.4 });
+      n.add(SHAPE.extrude(starOutline(0.013), 0.003), { p: [-0.066, 0.12, 0.02], r: [0, -RX + 0.3, 0], c: SAND_GLOW, mat: "glow", glow: 1.4 });
+      for (const [x, y, z] of [[0.035, 0.05, 0.058], [-0.042, 0.075, 0.054], [0.04, 0.13, 0.05], [-0.02, 0.14, 0.055]])
+        n.add(SHAPE.ball(0.0035, 5, 4), { p: [x, y, z], c: SAND_GLOW, mat: "glow", glow: 1.2 });
+      // Two tassels hanging off the knot in front.
+      for (const [x, l] of [[0.012, 0.045], [-0.01, 0.034]]) {
+        n.add(SHAPE.cyl(0.002, 0.002, l, 4), { p: [x, 0.172 - l / 2, 0.05], c: C.brass });
+        n.add(SHAPE.cone(0.008, 0.018, 6), { p: [x, 0.168 - l, 0.05], r: [Math.PI, 0, 0], c: C.brassL, mat: "metal" });
+      }
+    });
+    // The drawstring round its neck.
+    n.node("glow", [0, 0, -0.172 * K], [0, 0, 0], (m) => m.add(SHAPE.torus(0.046 * K, 0.006, 5, 14), { c: C.brassL, mat: "glow", glow: 1.2 }));
+    // The sand heaped in its mouth.
+    n.node("sand", [0, 0, -0.19 * K], [0, 0, 0], (m) => m.add(SHAPE.ball(0.056 * K, 10, 6), { s: [1, 1, 0.55], c: SAND_GLOW, mat: "glow", glow: 1.6 }));
+  });
+  if (hand) glovedHand(b);
+}
+
+// A pinch of sand on its way (bench preview, and the trickle).
+export function sandHeap(b) {
+  b.add(SHAPE.ball(0.2, 10, 6), { s: [1, 0.5, 1], c: SAND_GLOW, mat: "glow", glow: 1.4 });
+}

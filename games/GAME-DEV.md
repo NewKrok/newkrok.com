@@ -249,3 +249,33 @@ spawning / damage / drops, `monsters.js` AI and bosses, `weapons.js`,
   every entity all its fields at creation so objects share one shape.
 - Adaptive resolution (render scale down to 55 %, then no bloom) keeps
   weak GPUs playable without asking the player to find a setting.
+
+## Notes from Dream Fixer
+
+`dream-fixer` is first person, so the 2D nape-js plane was the wrong fit
+(jumps, floating islands, a bridge you walk under). `sim/world.js` is a
+small 3D collider set instead: boxes turned about y, ramps and upright
+cylinders in a uniform grid over (x, z). A body is an upright cylinder:
+walls push it out in the ground plane unless their top is within a step,
+floors below `y + step` hold it, ramps are followed. Ray casts walk the
+grid (2D DDA) and clip each piece plane by plane. It stays render-free,
+so `scripts/bot.js` plays the whole dream headless.
+
+- Every model is code in `render/models/*` over `render/modelkit.js`:
+  chamfered boxes (a convex hull of three boxes), lathes, lumpy blobs,
+  per-shape gradients along y and a little per-face shade jitter, baked
+  into one vertex-coloured mesh per material (solid, metal, glass, glow).
+  The dev viewer (`?model=<id>&yaw=…&t=…`, `scripts/models.mjs`) is where
+  a model gets looked at before it goes into a level.
+- The tool in hand is a second scene rendered after the world with the
+  depth cleared (a `RenderPass` with `clear = false, clearDepth = true`),
+  so it never pokes into walls. Its glowing parts get their own material
+  so the colour can follow the heat.
+- Clamp the frame dt at 0: after a long level build the first rAF stamp
+  is older than `performance.now()` taken before it, and a negative dt
+  through `damp()` blows exponentials up.
+- Crowds: only two fuzzes may be winding up or lunging at once, the rest
+  circle. Without it a casual bot fainted three times per anchor.
+- Headless Chromium runs at a few frames per second: step the sim in
+  small chunks with a `requestAnimationFrame` between, or every effect of
+  a whole second lands in one frame and the screenshot is white.
