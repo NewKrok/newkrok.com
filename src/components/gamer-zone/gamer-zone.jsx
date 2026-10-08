@@ -9,6 +9,13 @@ const HITCH_PARK_DESCRIPTION =
 
 const games = [
   {
+    label: "Dream Fixer",
+    target: "dream-fixer",
+    preview: "/games/dream-fixer/media/preview.webp",
+    url: "/games/dream-fixer/",
+    badge: "new",
+  },
+  {
     label: "Last Lantern",
     target: "last-lantern",
     preview: "/games/last-lantern/media/preview.webp",

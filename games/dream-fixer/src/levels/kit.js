@@ -1,0 +1,172 @@
+import { World } from "../sim/world.js";
+
+// ── Level kit ────────────────────────────────────────────────────────────
+// A level is a build(k, ctx) function over this kit. Every call adds the solid
+// part to the sim's World and records what to draw; the renderer turns the
+// records into meshes later, so levels load headless too (bots, checks).
+
+export class Kit {
+  constructor() {
+    this.world = new World();
+    this.draw = [];            // { kind: "block" | "wedge" | "model", … }
+    this.spawn = { x: 0, y: 0, z: 0, yaw: 0 };
+    this.anchors = [];
+    this.foes = [];
+    this.uses = [];
+    this.memories = [];
+    this.marks = {};           // named points for the story and the spawner
+    this.lights = [];
+    this.waters = [];          // { x, z, w, d, y }: pond surfaces (drawn by the renderer)
+    this.ringables = [];       // things the Lullaby Bell sets off (drawn by the renderer)
+    this.updrafts = [];        // columns of rising air an open umbrella rides up
+    this.pinwheels = [];       // a gust sets them spinning (and their updraft blowing)
+    this.tiles = [];           // paving that can fall away (drawn and moved by the renderer)
+    this.hooks = [];           // star handles the yo-yo catches on (and reels you in to)
+    this.gates = [];           // locks Cog opens (drawn and moved by the renderer)
+    this.spinners = [];        // turning machinery, drawn only (no collider)
+    this.floorLimit = 50;      // indoors: below the ceiling
+  }
+
+  // A solid block: centre (x, z), from y0 to y1, size w × d, turned by yaw.
+  // look: { top, side, bottom colours, bevel, mat, grad: false }
+  block(x, z, w, d, y0, y1, look = {}, yaw = 0) {
+    const c = this.world.box({ x, z, y0, y1, hx: w / 2, hz: d / 2, yaw });
+    if (look !== null) this.draw.push({ kind: "block", x, z, w, d, y0, y1, yaw, look });
+    return c;
+  }
+
+  // A ramp rising from y = ya at its local −x end to yb at +x.
+  ramp(x, z, w, d, ya, yb, look = {}, yaw = 0, y0 = 0) {
+    const c = this.world.ramp({ x, z, y0, ya, yb, hx: w / 2, hz: d / 2, yaw });
+    if (look !== null) this.draw.push({ kind: "wedge", x, z, w, d, y0, ya, yb, yaw, look });
+    return c;
+  }
+
+  // Stairs from (x, z) going along yaw's forward (−z turned by yaw).
+  // Walkable stairs (a low rise) are drawn as steps but walked as a ramp
+  // under them, so the view glides up instead of bumping on every step;
+  // tall ones (bleachers) stay steps.
+  stairs(x, z, w, n, rise, run, y0 = 0, look = {}, yaw = 0) {
+    const sn = Math.sin(yaw), cs = Math.cos(yaw), smooth = rise <= 0.4;
+    for (let i = 0; i < n; i++) {
+      const f = run * (i + 0.5), bx = x - sn * f, bz = z - cs * f, y1 = y0 + rise * (i + 1);
+      if (smooth) this.draw.push({ kind: "block", x: bx, z: bz, w, d: run, y0: y0 - 0.2, y1, yaw, look });
+      else this.block(bx, bz, w, run, y0 - 0.2, y1, look, yaw);
+    }
+    if (!smooth) return;
+    // The ramp runs from the foot of the first step to the top of the last
+    // (its local +x along the stairs), solid down to the foot.
+    const L = run * n;
+    this.world.ramp({ x: x - sn * L / 2, z: z - cs * L / 2, y0: y0 - 0.2, ya: y0, yb: y0 + rise * n, hx: L / 2, hz: w / 2, yaw: yaw + Math.PI / 2 });
+  }
+
+  // A model from the registry. collide: { r, h } (upright cylinder),
+  // { w, d, h } (block, turned with the model) or undefined for decoration.
+  prop(model, x, z, o = {}) {
+    const y = o.y ?? 0, yaw = o.yaw ?? 0, s = o.s ?? 1;
+    this.draw.push({ kind: "model", model, x, y, z, yaw, s, opts: o.opts ?? {} });
+    const col = o.collide;
+    if (col?.r) this.world.cyl({ x: x + (col.dx ?? 0), z: z + (col.dz ?? 0), r: col.r * s, y0: y + (col.y0 ?? 0) * s, y1: y + col.h * s });
+    else if (col?.w) this.world.box({ x, z, y0: y + (col.y0 ?? 0) * s, y1: y + col.h * s, hx: col.w * s / 2, hz: col.d * s / 2, yaw });
+  }
+
+  // Floor height at (x, z) from above y (for dropping props onto terrain).
+  floorAt(x, z, y = this.floorLimit) {
+    let best = -Infinity;
+    for (const c of this.world.query(x, z, 0.01)) {
+      if (!this.world.overlaps(c, x, z, 0.01)) continue;
+      const t = World.topAt(c, x, z);
+      if (t <= y && t > best) best = t;
+    }
+    return best === -Infinity ? 0 : best;
+  }
+
+  start(x, z, yaw = 0) { this.spawn = { x, y: this.floorAt(x, z), z, yaw }; }
+  // A dream anchor. o: { waves: [[progress, [kind, n], …], …], spawns: [[x, z], …], ring, duration }
+  anchor(id, x, z, o = {}) {
+    const y = o.y ?? this.floorAt(x, z);
+    this.anchors.push({ id, x, y, z, ...o });
+    this.world.cyl({ x, z, r: 1.0, y0: y, y1: y + 0.8 });
+  }
+  // Something to use with E: { r (reach), label (i18n key), y }.
+  use(id, x, z, o = {}) { this.uses.push({ id, x, z, y: o.y ?? this.floorAt(x, z), r: o.r ?? 2, label: o.label ?? id }); }
+  // A memory to find.
+  memory(id, x, z, y) { this.memories.push({ id, x, z, y: y ?? this.floorAt(x, z) }); }
+  // A glitch already loose when you arrive.
+  foe(kind, x, z) { this.foes.push({ kind, x, z }); }
+  // Open water: a surface at height y over a w × d rectangle (draw only:
+  // the floor under it is a block of its own).
+  water(x, z, w, d, y) { this.waters.push({ x, z, w, d, y }); }
+  // Water surface height at (x, z), or null on dry land.
+  waterAt(x, z) {
+    for (const p of this.waters) if (Math.abs(x - p.x) < p.w / 2 && Math.abs(z - p.z) < p.d / 2) return p.y;
+    return null;
+  }
+  // Something that answers the Lullaby Bell, drawn and moved by the
+  // renderer. "jelly": wobbles when rung, and while it does it throws you
+  // up (o.boing: take-off speed); "souffle": a tall puffed one that falls
+  // flat for good (a way that opens). o: { r, h, y, color }.
+  ringable(kind, x, z, o = {}) {
+    const y = o.y ?? this.floorAt(x, z);
+    const D = RINGABLE[kind], r = o.r ?? D.r, h = o.h ?? D.h;
+    const c = this.world.cyl({ x, z, r, y0: y - 0.3, y1: y + h, tag: kind });
+    this.ringables.push({ id: `${kind}${this.ringables.length}`, kind, x, z, ...D, ...o, y, r, h, c });
+  }
+  // A column of rising air from (x, z): an open umbrella rides it up to
+  // `top`. o: { r, y (its foot), top, pinwheel (id: blows only while that
+  // pinwheel turns) }. The renderer draws its swirl and leaves.
+  updraft(id, x, z, o = {}) {
+    const y = o.y ?? this.floorAt(x, z), r = o.r ?? 1.6;
+    // Its stone well: a low rim you step up onto (the grate inside it too).
+    this.world.cyl({ x, z, r: r + 0.25, y0: y - 0.3, y1: y + 0.4 });
+    this.updrafts.push({ id, x, z, y, r, top: o.top ?? y + 8, pinwheel: o.pinwheel ?? null });
+  }
+  // A garden pinwheel on a post; a gust sets it spinning for `time` s.
+  // o: { y, h (height of the hub), time, yaw }.
+  pinwheel(id, x, z, o = {}) {
+    const y = o.y ?? this.floorAt(x, z), h = o.h ?? 2.2;
+    this.world.cyl({ x, z, r: 0.12, y0: y, y1: y + h });
+    this.pinwheels.push({ id, x, z, y, h, time: o.time ?? 9, yaw: o.yaw ?? 0 });
+  }
+  // A paving slab that a nightmare can drop out from under you (and that
+  // floats back). o: { y0, y1, look, fixed (never drops) }.
+  tile(id, x, z, w, d, o = {}) {
+    const y1 = o.y1 ?? 0, y0 = o.y0 ?? y1 - 1.2;
+    const c = this.world.box({ x, z, y0, y1, hx: w / 2, hz: d / 2 });
+    this.tiles.push({ id, x, z, w, d, y0, y1, look: o.look ?? {}, fixed: !!o.fixed, c });
+  }
+  // A star handle hanging in the air at (x, y, z): the yo-yo's string
+  // catches on it and reels you in. o: { r (how near the yo-yo must pass) }.
+  hook(id, x, y, z, o = {}) { this.hooks.push({ id, x, y, z, r: o.r ?? 0.7 }); }
+  // A lock across the way at (x, z): a brass shutter `w` wide and `h`
+  // high, turned by yaw (its width runs along the turned x). Cog opens it
+  // when you come near, once `after` anchors hold. o: { w, h, y, yaw, after }.
+  gate(id, x, z, o = {}) {
+    const w = o.w ?? 4, h = o.h ?? 4.2, y = o.y ?? 0, yaw = o.yaw ?? 0;
+    // (Solid well over its top: no ramp of sand gets over a lock.)
+    const c = this.world.box({ x, z, y0: y - 0.5, y1: y + h + 6, hx: w / 2, hz: 0.3, yaw, tag: "gate" });
+    this.gates.push({ id, x, z, y, w, h, yaw, after: o.after ?? 0, c });
+  }
+  // Something that keeps turning (its model's "spin" node), drawn by the
+  // renderer: a big gear in the works. o: { y, yaw, rx (tipped over), opts, speed }.
+  spinner(model, x, z, o = {}) { this.spinners.push({ model, x, y: o.y ?? 0, z, yaw: o.yaw ?? 0, rx: o.rx ?? 0, opts: o.opts ?? {}, speed: o.speed ?? 0.2 }); }
+  mark(name, x, z, y) { this.marks[name] = { x, y: y ?? this.floorAt(x, z), z }; }
+  light(x, y, z, color, intensity = 6, dist = 9) { this.lights.push({ x, y, z, color, intensity, dist }); }
+}
+
+// What each kind of ringable is like unless the level says otherwise.
+const RINGABLE = {
+  jelly: { r: 1.1, h: 1, wobble: 6, boing: 13.5, color: 0xff5a6e },
+  souffle: { r: 1.2, h: 2.6, low: 0.35, color: 0xf2c46a },
+};
+
+// ctx: the player's progress, for a level that shows it (the Factory).
+export function buildLevel(def, ctx) {
+  const k = new Kit();
+  def.build(k, ctx);
+  // The memories are listed in the level's data (the board counts them).
+  for (const [id, x, z, y] of def.memories ?? []) k.memory(id, x, z, y);
+  k.world.killY = def.killY ?? -30;
+  k.world.gravity = def.gravity ?? 1;
+  return k;
+}
