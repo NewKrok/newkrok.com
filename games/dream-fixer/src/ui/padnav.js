@@ -40,7 +40,7 @@ export class PadNav {
   focusables() {
     const scr = this.root.querySelector(".menus .screen");
     if (!scr) return [];
-    return [...scr.querySelectorAll("button, input")].filter(visible);
+    return [...scr.querySelectorAll("button, input, select")].filter(visible);
   }
 
   main(list) { return list.find((b) => b.classList.contains("tile") && b.classList.contains("sel")) ?? list.find((b) => b.classList.contains("big")) ?? list.find((b) => b.classList.contains("btn") && !b.classList.contains("ghost")) ?? list[0]; }
@@ -65,7 +65,7 @@ export class PadNav {
       this.padT = performance.now();
       const list = this.focusables(), el = document.activeElement;
       const target = list.includes(el) ? el : this.main(list);
-      if (target?.type === "range") this.move("right");
+      if (target?.type === "range" || target?.tagName === "SELECT") this.move("right");
       else target?.click();
     }
   }
@@ -84,6 +84,13 @@ export class PadNav {
       cur.value = Math.min(Number(cur.max), Math.max(Number(cur.min), Number(cur.value) + d * Number(cur.step || 0.05)));
       cur.dispatchEvent(new Event("input", { bubbles: true }));
       this.audio.play("click");
+      return;
+    }
+    // A drop-down: left / right step through its options (round the end).
+    if ((dir === "left" || dir === "right") && cur.tagName === "SELECT") {
+      const n = cur.options.length;
+      cur.selectedIndex = (cur.selectedIndex + (dir === "right" ? 1 : -1) + n) % n;
+      cur.dispatchEvent(new Event("change", { bubbles: true }));
       return;
     }
     // Up / down: the nearest row first, then the control in it closest

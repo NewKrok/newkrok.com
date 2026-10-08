@@ -83,9 +83,10 @@ export class Menus {
   settings(S, { onChange, onBack, onReset }) {
     const seg = (key, opts) => `<div class="seg" data-set="${key}">${opts.map(([v, l]) => `<button class="${S[key] === v ? "on" : ""}" data-v="${v}">${esc(l)}</button>`).join("")}</div>`;
     const range = (key, min, max, step) => `<input type="range" min="${min}" max="${max}" step="${step}" value="${S[key]}" data-set="${key}">`;
+    const pick = (key, opts) => `<select class="pick" data-set="${key}">${opts.map(([v, l]) => `<option value="${v}" ${S[key] === v ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
     const check = (key) => `<input type="checkbox" ${S[key] ? "checked" : ""} data-set="${key}">`;
     const el = this.show("settings", `<div class="panel wide"><h2>${esc(t("settings"))}</h2><div class="settings">
-      <h3>${esc(t("set_lang"))}</h3>${seg("lang", LANGS)}
+      <h3>${esc(t("set_lang"))}</h3>${pick("lang", LANGS)}
       <h3>${esc(t("set_sound"))}</h3>
       <label class="row"><span>${esc(t("set_master"))}</span>${range("master", 0, 1, 0.05)}</label>
       <label class="row"><span>${esc(t("set_sfx"))}</span>${range("sfx", 0, 1, 0.05)}</label>
@@ -115,6 +116,7 @@ export class Menus {
       });
     }
     for (const i of el.querySelectorAll("input[data-set]")) i.addEventListener("input", () => onChange(i.dataset.set, i.type === "checkbox" ? i.checked : Number(i.value)));
+    for (const s of el.querySelectorAll("select[data-set]")) s.addEventListener("change", () => { this.audio.play("click"); onChange(s.dataset.set, s.value); });
   }
 
   // The journal: the story so far, chapter by chapter (the Factory, then
