@@ -182,15 +182,6 @@
  "hub_newjob": {
   "hash": "377de13ea643"
  },
- "hub_newjob2": {
-  "hash": "bd182f50ca8b"
- },
- "hub_newjob3": {
-  "hash": "ac50fc3cbfce"
- },
- "hub_newjob4": {
-  "hash": "b6be684e2779"
- },
  "park_streak_1": {
   "hash": "9f69f418d0e0"
  },
@@ -245,12 +236,6 @@
  "park_bossfight_2": {
   "hash": "3fd30f1827e5"
  },
- "school_in1": {
-  "hash": "c3410b54fa40"
- },
- "school_in2": {
-  "hash": "fbd641f1b6a8"
- },
  "school_pencil": {
   "hash": "8c1fbda67efb"
  },
@@ -268,18 +253,6 @@
  },
  "school_dizzy": {
   "hash": "9164fc01f5f2"
- },
- "school_tune": {
-  "hash": "b83c94277e4f"
- },
- "school_fix1": {
-  "hash": "6315390d297a"
- },
- "school_fix2": {
-  "hash": "0dc18bb5e0f5"
- },
- "school_all": {
-  "hash": "fdb64311f0f4"
  },
  "school_core": {
   "hash": "3163e27d47b2"
@@ -299,20 +272,8 @@
  "school_phase": {
   "hash": "c71f97e16ef7"
  },
- "school_faint": {
-  "hash": "d61b5c4d74c8"
- },
- "school_win": {
-  "hash": "44bc11ab04c6"
- },
- "school_memory": {
-  "hash": "619673c87953"
- },
  "school_heart": {
   "hash": "a0bcaee41fb9"
- },
- "school_low_1": {
-  "hash": "7f0592ba4724"
  },
  "school_low_2": {
   "hash": "02fb3fc8f49d"
@@ -323,17 +284,11 @@
  "school_fall_2": {
   "hash": "45381fe53725"
  },
- "school_fall_3": {
-  "hash": "3d1616222197"
- },
  "school_swarm_1": {
   "hash": "fc497457a495"
  },
  "school_swarm_2": {
   "hash": "131e984e27a6"
- },
- "school_swarm_3": {
-  "hash": "4fefebf679b6"
  },
  "school_idle_1": {
   "hash": "1c6b8ef95c3d"
@@ -350,9 +305,6 @@
  "school_streak_1": {
   "hash": "bbd56ca8f3e8"
  },
- "school_streak_2": {
-  "hash": "48515ed33abb"
- },
  "school_streak_3": {
   "hash": "0059b1c8ffe2"
  },
@@ -365,20 +317,8 @@
  "school_fight_2": {
   "hash": "df74790fecb4"
  },
- "school_fight_3": {
-  "hash": "026f8edc1645"
- },
- "school_fight_4": {
-  "hash": "31da88c8c205"
- },
  "school_fight_5": {
   "hash": "b2f2655260e1"
- },
- "school_fight_6": {
-  "hash": "191bffcb2fc9"
- },
- "school_fight_7": {
-  "hash": "9a654e4b981e"
  },
  "school_fight_8": {
   "hash": "b3016c98450f"
@@ -389,23 +329,11 @@
  "school_bossfight_2": {
   "hash": "aafde2879d82"
  },
- "school_bossfight_3": {
-  "hash": "0f10747250f0"
- },
- "school_bossfight_4": {
-  "hash": "28a50fbe25a2"
- },
  "school_bossfight_5": {
   "hash": "18f6011e5043"
  },
  "school_bossfight_6": {
   "hash": "e2a900e3dd9c"
- },
- "kitchen_in1": {
-  "hash": "07163aece55d"
- },
- "kitchen_in2": {
-  "hash": "7137a1c86adf"
  },
  "kitchen_meatball": {
   "hash": "e24f6b53bc0e"
@@ -425,26 +353,8 @@
  "kitchen_grinder": {
   "hash": "13b6f9d25f86"
  },
- "kitchen_dizzy": {
-  "hash": "543b8d825773"
- },
- "kitchen_tune": {
-  "hash": "e17a4e8330b6"
- },
- "kitchen_fix1": {
-  "hash": "c90b06855d5d"
- },
- "kitchen_fix2": {
-  "hash": "7c65ee16c46c"
- },
- "kitchen_all": {
-  "hash": "580df1e27167"
- },
  "kitchen_core": {
   "hash": "757293ed8a47"
- },
- "kitchen_retry": {
-  "hash": "16a8e55e675e"
  },
  "kitchen_boss": {
   "hash": "574fcc816f96"
@@ -455,35 +365,11 @@
  "kitchen_lid": {
   "hash": "63bc5c570251"
  },
- "kitchen_phase": {
-  "hash": "7e7dd84f01f5"
- },
- "kitchen_faint": {
-  "hash": "65217eeef2e2"
- },
- "kitchen_win": {
-  "hash": "d08c1dfe5b13"
- },
- "kitchen_memory": {
-  "hash": "9a6727813143"
- },
  "kitchen_heart": {
   "hash": "78afef387e39"
  },
- "kitchen_low_1": {
-  "hash": "7f0592ba4724"
- },
- "kitchen_low_2": {
-  "hash": "04b3b94c0656"
- },
  "kitchen_fall_1": {
   "hash": "14fdd3afdd10"
- },
- "kitchen_fall_2": {
-  "hash": "f6994e87ebe7"
- },
- "kitchen_fall_3": {
-  "hash": "5837dcc6f0a7"
  },
  "kitchen_swarm_1": {
   "hash": "f482b9d1e429"
@@ -497,17 +383,8 @@
  "kitchen_idle_1": {
   "hash": "0922801a96e8"
  },
- "kitchen_idle_2": {
-  "hash": "949fec1fb3ad"
- },
- "kitchen_idle_3": {
-  "hash": "38fbe138aa35"
- },
  "kitchen_idle_4": {
   "hash": "5b4d71c55483"
- },
- "kitchen_streak_1": {
-  "hash": "66408ebacc73"
  },
  "kitchen_streak_2": {
   "hash": "be21fa4fca9e"
@@ -515,26 +392,14 @@
  "kitchen_streak_3": {
   "hash": "eefacec3e0cb"
  },
- "kitchen_streak_4": {
-  "hash": "cb7cb0d8f31c"
- },
  "kitchen_fight_1": {
   "hash": "7104d8f77d68"
  },
  "kitchen_fight_2": {
   "hash": "5d29a31a823f"
  },
- "kitchen_fight_3": {
-  "hash": "09d207de813f"
- },
- "kitchen_fight_4": {
-  "hash": "63679157cbea"
- },
  "kitchen_fight_5": {
   "hash": "9e7cb0de0f2e"
- },
- "kitchen_fight_6": {
-  "hash": "c7571da47cf0"
  },
  "kitchen_fight_7": {
   "hash": "357c93f4b43f"
@@ -551,20 +416,11 @@
  "kitchen_bossfight_3": {
   "hash": "f4a9642d8ab2"
  },
- "kitchen_bossfight_4": {
-  "hash": "0a5592c58103"
- },
  "kitchen_bossfight_5": {
   "hash": "af335ab4b3cf"
  },
  "kitchen_bossfight_6": {
   "hash": "828a8fb3823c"
- },
- "garden_in1": {
-  "hash": "55291fa44b08"
- },
- "garden_in2": {
-  "hash": "04fa38f9deff"
  },
  "garden_gnome": {
   "hash": "bcf3db9854eb"
@@ -587,26 +443,8 @@
  "garden_sunflower": {
   "hash": "024c6f82c218"
  },
- "garden_dizzy": {
-  "hash": "543b8d825773"
- },
- "garden_tune": {
-  "hash": "54799771c3e3"
- },
- "garden_fix1": {
-  "hash": "544bab3e021b"
- },
- "garden_fix2": {
-  "hash": "b197fe489816"
- },
- "garden_all": {
-  "hash": "b810994f178a"
- },
  "garden_core": {
   "hash": "538fe11ad8e9"
- },
- "garden_retry": {
-  "hash": "48c49153d874"
  },
  "garden_boss": {
   "hash": "28c4269ae725"
@@ -620,23 +458,8 @@
  "garden_unwound": {
   "hash": "6a7777ae5050"
  },
- "garden_phase": {
-  "hash": "f8a0f93131f7"
- },
- "garden_faint": {
-  "hash": "d1d54d288ded"
- },
- "garden_win": {
-  "hash": "d1a5a849505b"
- },
  "garden_memory": {
   "hash": "e551e0d0504d"
- },
- "garden_heart": {
-  "hash": "9ac56b5eaff1"
- },
- "garden_low_1": {
-  "hash": "7f0592ba4724"
  },
  "garden_low_2": {
   "hash": "efaac0cf744b"
@@ -662,44 +485,20 @@
  "garden_idle_1": {
   "hash": "17b5fe6cd672"
  },
- "garden_idle_2": {
-  "hash": "1071c9bd6632"
- },
  "garden_idle_3": {
   "hash": "89b350749108"
- },
- "garden_idle_4": {
-  "hash": "22499084e3f5"
  },
  "garden_streak_1": {
   "hash": "b932b224e9c2"
  },
- "garden_streak_2": {
-  "hash": "18c8adaa75ed"
- },
  "garden_streak_3": {
   "hash": "8d81daa321e2"
- },
- "garden_streak_4": {
-  "hash": "3160a00aaca5"
  },
  "garden_fight_1": {
   "hash": "8de1b42a1a8e"
  },
- "garden_fight_2": {
-  "hash": "80b94647cf9a"
- },
- "garden_fight_3": {
-  "hash": "d475cb647962"
- },
- "garden_fight_4": {
-  "hash": "4955ea7011ce"
- },
  "garden_fight_5": {
   "hash": "3d406e670a42"
- },
- "garden_fight_6": {
-  "hash": "3b25e354b4b1"
  },
  "garden_fight_7": {
   "hash": "8c6899314288"
@@ -716,20 +515,11 @@
  "garden_bossfight_3": {
   "hash": "b32f74f2f78c"
  },
- "garden_bossfight_4": {
-  "hash": "87050ef851a8"
- },
  "garden_bossfight_5": {
   "hash": "c8b9d350d2dd"
  },
  "garden_bossfight_6": {
   "hash": "b7b1dbf548b0"
- },
- "space_in1": {
-  "hash": "ca85e6f76c74"
- },
- "space_in2": {
-  "hash": "ccc72d9773aa"
  },
  "space_robot": {
   "hash": "d19271e9400e"
@@ -743,26 +533,8 @@
  "space_mobile": {
   "hash": "33f26136d072"
  },
- "space_dizzy": {
-  "hash": "073f4cf3a4b8"
- },
- "space_tune": {
-  "hash": "13e66c99bb95"
- },
- "space_fix1": {
-  "hash": "64285c327ec0"
- },
- "space_fix2": {
-  "hash": "5a94e947a8e3"
- },
- "space_all": {
-  "hash": "3c22e91d225a"
- },
  "space_core": {
   "hash": "c587debe9c07"
- },
- "space_retry": {
-  "hash": "46e095d48fe1"
  },
  "space_boss": {
   "hash": "35285823e2b3"
@@ -779,38 +551,14 @@
  "space_tethered": {
   "hash": "569fd80e7526"
  },
- "space_phase": {
-  "hash": "fdef89e16395"
- },
- "space_faint": {
-  "hash": "b9fd341ba6fc"
- },
- "space_win": {
-  "hash": "424f32476c1b"
- },
  "space_memory": {
   "hash": "717de5fe72a9"
- },
- "space_heart": {
-  "hash": "9ac56b5eaff1"
- },
- "space_low_1": {
-  "hash": "7f0592ba4724"
- },
- "space_low_2": {
-  "hash": "c1f0fe80e340"
  },
  "space_fall_1": {
   "hash": "4d851fc8370f"
  },
- "space_fall_2": {
-  "hash": "ba4991a9b334"
- },
  "space_fall_3": {
   "hash": "efee737ee9f2"
- },
- "space_swarm_1": {
-  "hash": "722ec97d23a7"
  },
  "space_swarm_2": {
   "hash": "667371164242"
@@ -821,44 +569,17 @@
  "space_idle_1": {
   "hash": "075213c3fa63"
  },
- "space_idle_2": {
-  "hash": "0c99aad0389f"
- },
  "space_idle_3": {
   "hash": "6de7fb52568b"
- },
- "space_idle_4": {
-  "hash": "fbc3afe451fe"
- },
- "space_streak_1": {
-  "hash": "ab8b16f568a8"
- },
- "space_streak_2": {
-  "hash": "fe73f2c9f36e"
  },
  "space_streak_3": {
   "hash": "c9f2cf7057bd"
  },
- "space_streak_4": {
-  "hash": "f817cb872885"
- },
- "space_fight_1": {
-  "hash": "d520e1e884c7"
- },
  "space_fight_2": {
   "hash": "742cb3689dfe"
  },
- "space_fight_3": {
-  "hash": "6ee232613170"
- },
- "space_fight_4": {
-  "hash": "6c1cee041db8"
- },
  "space_fight_5": {
   "hash": "05dca8205afc"
- },
- "space_fight_6": {
-  "hash": "9a90ba5d45d6"
  },
  "space_fight_7": {
   "hash": "e96b7c51b3c4"
@@ -874,9 +595,6 @@
  },
  "space_bossfight_3": {
   "hash": "de27ce43aba9"
- },
- "space_bossfight_4": {
-  "hash": "5959a98c3c79"
  },
  "space_bossfight_5": {
   "hash": "d95cd96ef9d0"
@@ -902,12 +620,6 @@
  "hub_finale_radio": {
   "hash": "f461ec62210b"
  },
- "oldhum_in1": {
-  "hash": "f1c6847fffcd"
- },
- "oldhum_in2": {
-  "hash": "16a5dc1c2b62"
- },
  "oldhum_gate_west2": {
   "hash": "d6eeeff75f54"
  },
@@ -929,20 +641,8 @@
  "oldhum_robot": {
   "hash": "a5a540fcefef"
  },
- "oldhum_dizzy": {
-  "hash": "073f4cf3a4b8"
- },
- "oldhum_tune": {
-  "hash": "1698676e24bc"
- },
- "oldhum_fix1": {
-  "hash": "3c0f13b26b88"
- },
  "oldhum_fix2": {
   "hash": "6cbb081e7843"
- },
- "oldhum_all": {
-  "hash": "239986f97886"
  },
  "oldhum_core": {
   "hash": "1c0029b07977"
@@ -952,15 +652,6 @@
  },
  "oldhum_memory": {
   "hash": "9c03ae091923"
- },
- "oldhum_heart": {
-  "hash": "9ac56b5eaff1"
- },
- "oldhum_low_1": {
-  "hash": "7f0592ba4724"
- },
- "oldhum_low_2": {
-  "hash": "c1f0fe80e340"
  },
  "oldhum_fall_1": {
   "hash": "ee40d49ecb13"
@@ -995,9 +686,6 @@
  "oldhum_streak_1": {
   "hash": "8aa851e1bb33"
  },
- "oldhum_streak_2": {
-  "hash": "8e581e4a9720"
- },
  "oldhum_streak_3": {
   "hash": "7afe3fd24d59"
  },
@@ -1010,20 +698,11 @@
  "oldhum_fight_2": {
   "hash": "f1b44cedb39f"
  },
- "oldhum_fight_3": {
-  "hash": "9161e1af8bc9"
- },
  "oldhum_fight_4": {
   "hash": "fa8b49fcb23c"
  },
  "oldhum_fight_5": {
   "hash": "c8565195b3e9"
- },
- "oldhum_fight_6": {
-  "hash": "ac75eb1f248e"
- },
- "oldhum_fight_7": {
-  "hash": "592dbddb5b1a"
  },
  "oldhum_fight_8": {
   "hash": "3a29f5d97a3e"
@@ -1064,9 +743,6 @@
  "oldhum_win": {
   "hash": "921de3b849c3"
  },
- "oldhum_retry": {
-  "hash": "192cc54b2a53"
- },
  "hub_end1": {
   "hash": "0536ca5e925b"
  },
@@ -1075,5 +751,329 @@
  },
  "hub_bench": {
   "hash": "2d8f6cf2d036"
+ },
+ "school_in1": {
+  "hash": "ab3937324296"
+ },
+ "school_in2": {
+  "hash": "316a517e268e"
+ },
+ "school_tune": {
+  "hash": "038fe9ac4b70"
+ },
+ "school_fix1": {
+  "hash": "ba757618c393"
+ },
+ "school_fix2": {
+  "hash": "22cb86ffee1e"
+ },
+ "school_all": {
+  "hash": "ff83dced2c37"
+ },
+ "school_faint": {
+  "hash": "93652d3c7465"
+ },
+ "school_win": {
+  "hash": "9884d52fa0b8"
+ },
+ "school_memory": {
+  "hash": "89db15e4235f"
+ },
+ "school_low_1": {
+  "hash": "e02797bc4672"
+ },
+ "school_fall_3": {
+  "hash": "880dd5627e42"
+ },
+ "school_swarm_3": {
+  "hash": "cc7a4f812c8b"
+ },
+ "school_streak_2": {
+  "hash": "dc83f59322f9"
+ },
+ "school_fight_3": {
+  "hash": "f2f4848a40c2"
+ },
+ "school_fight_4": {
+  "hash": "a4a577fccf18"
+ },
+ "school_fight_6": {
+  "hash": "913bd48215bd"
+ },
+ "school_fight_7": {
+  "hash": "27db8a762a8f"
+ },
+ "school_bossfight_3": {
+  "hash": "da3925b1b0fb"
+ },
+ "school_bossfight_4": {
+  "hash": "295c5fca2f29"
+ },
+ "hub_newjob2": {
+  "hash": "cbb3d846a258"
+ },
+ "hub_newjob3": {
+  "hash": "c1134e4e3947"
+ },
+ "kitchen_in1": {
+  "hash": "cb7238a16202"
+ },
+ "kitchen_in2": {
+  "hash": "126714146605"
+ },
+ "kitchen_dizzy": {
+  "hash": "184d1da2c606"
+ },
+ "kitchen_tune": {
+  "hash": "c7a00fde033d"
+ },
+ "kitchen_fix1": {
+  "hash": "630a9c63f022"
+ },
+ "kitchen_fix2": {
+  "hash": "f9be0f6353cc"
+ },
+ "kitchen_all": {
+  "hash": "3bb19156273c"
+ },
+ "kitchen_retry": {
+  "hash": "b0fede3d8b63"
+ },
+ "kitchen_phase": {
+  "hash": "e529cc15920f"
+ },
+ "kitchen_faint": {
+  "hash": "a13c56098d0f"
+ },
+ "kitchen_win": {
+  "hash": "a12df62b7f03"
+ },
+ "kitchen_memory": {
+  "hash": "80eff61c0589"
+ },
+ "kitchen_low_1": {
+  "hash": "ea09428e86a1"
+ },
+ "kitchen_low_2": {
+  "hash": "5981fec3225d"
+ },
+ "kitchen_fall_2": {
+  "hash": "6e6956124a66"
+ },
+ "kitchen_fall_3": {
+  "hash": "b0a21154bdfb"
+ },
+ "kitchen_idle_2": {
+  "hash": "554638881b77"
+ },
+ "kitchen_idle_3": {
+  "hash": "0db2ec0b0a28"
+ },
+ "kitchen_streak_1": {
+  "hash": "8b4d7d3285ff"
+ },
+ "kitchen_streak_4": {
+  "hash": "971592a5b28a"
+ },
+ "kitchen_fight_3": {
+  "hash": "5941229e76be"
+ },
+ "kitchen_fight_4": {
+  "hash": "fdb41a054dd3"
+ },
+ "kitchen_fight_6": {
+  "hash": "f0f2d495db93"
+ },
+ "kitchen_bossfight_4": {
+  "hash": "4d1e99863461"
+ },
+ "garden_in1": {
+  "hash": "5204a211c246"
+ },
+ "garden_in2": {
+  "hash": "a6b26ff94ae4"
+ },
+ "garden_dizzy": {
+  "hash": "fdf88d526e26"
+ },
+ "garden_tune": {
+  "hash": "3f127a597e24"
+ },
+ "garden_fix1": {
+  "hash": "3c0f80fb0427"
+ },
+ "garden_fix2": {
+  "hash": "33604c5ff8a7"
+ },
+ "garden_all": {
+  "hash": "d0bd0063a8f2"
+ },
+ "garden_retry": {
+  "hash": "84cbd2ccaed0"
+ },
+ "garden_phase": {
+  "hash": "eeb33a8b00a3"
+ },
+ "garden_faint": {
+  "hash": "3b4f6b9946df"
+ },
+ "garden_win": {
+  "hash": "6c6d2aa76577"
+ },
+ "garden_heart": {
+  "hash": "467f2521801b"
+ },
+ "garden_low_1": {
+  "hash": "7d3c96be1a97"
+ },
+ "garden_idle_2": {
+  "hash": "e52992d6208c"
+ },
+ "garden_idle_4": {
+  "hash": "c94671af491d"
+ },
+ "garden_streak_2": {
+  "hash": "9c14f802b86d"
+ },
+ "garden_streak_4": {
+  "hash": "50b7e3e78d24"
+ },
+ "garden_fight_2": {
+  "hash": "4d832bc9995c"
+ },
+ "garden_fight_3": {
+  "hash": "00c990c4ec76"
+ },
+ "garden_fight_4": {
+  "hash": "2279ad0ffc2f"
+ },
+ "garden_fight_6": {
+  "hash": "0a866a5c2fb4"
+ },
+ "garden_bossfight_4": {
+  "hash": "602a1d3cbda9"
+ },
+ "hub_newjob4": {
+  "hash": "b71568548e04"
+ },
+ "space_in1": {
+  "hash": "7338dc0b3f99"
+ },
+ "space_in2": {
+  "hash": "ce69cfa38f30"
+ },
+ "space_dizzy": {
+  "hash": "5356f0b9cf29"
+ },
+ "space_tune": {
+  "hash": "0e1a999249e6"
+ },
+ "space_fix1": {
+  "hash": "3e216e2557e9"
+ },
+ "space_fix2": {
+  "hash": "5cacbd68bb1d"
+ },
+ "space_all": {
+  "hash": "7685356d1cec"
+ },
+ "space_retry": {
+  "hash": "29a9fb559227"
+ },
+ "space_phase": {
+  "hash": "d70322d3b4e9"
+ },
+ "space_faint": {
+  "hash": "70d298d0b0db"
+ },
+ "space_win": {
+  "hash": "8818bb9bf3f0"
+ },
+ "space_heart": {
+  "hash": "4e7e74916f5c"
+ },
+ "space_low_1": {
+  "hash": "6980c6249ee2"
+ },
+ "space_low_2": {
+  "hash": "e376a44a28e4"
+ },
+ "space_fall_2": {
+  "hash": "ff6791ae73be"
+ },
+ "space_swarm_1": {
+  "hash": "93914f4f11ec"
+ },
+ "space_idle_2": {
+  "hash": "f204992ad4a7"
+ },
+ "space_idle_4": {
+  "hash": "279b693d0bc7"
+ },
+ "space_streak_1": {
+  "hash": "4d2ba2e000cb"
+ },
+ "space_streak_2": {
+  "hash": "4d4adc8d176b"
+ },
+ "space_streak_4": {
+  "hash": "294c676b66b3"
+ },
+ "space_fight_1": {
+  "hash": "55c889391721"
+ },
+ "space_fight_3": {
+  "hash": "b4388e1bfee7"
+ },
+ "space_fight_4": {
+  "hash": "7bd90f8f6685"
+ },
+ "space_fight_6": {
+  "hash": "2e76024dc70b"
+ },
+ "space_bossfight_4": {
+  "hash": "4a7a107c9dca"
+ },
+ "oldhum_in1": {
+  "hash": "69050d9086ee"
+ },
+ "oldhum_in2": {
+  "hash": "4d51e897f08f"
+ },
+ "oldhum_dizzy": {
+  "hash": "ef118d8cdea2"
+ },
+ "oldhum_tune": {
+  "hash": "fbd024c5d5da"
+ },
+ "oldhum_fix1": {
+  "hash": "1f2b5ad15909"
+ },
+ "oldhum_all": {
+  "hash": "854421b9bb45"
+ },
+ "oldhum_heart": {
+  "hash": "0a88d3685608"
+ },
+ "oldhum_low_1": {
+  "hash": "25e37bc1d8c9"
+ },
+ "oldhum_low_2": {
+  "hash": "5c4aa247a7a0"
+ },
+ "oldhum_streak_2": {
+  "hash": "82a9adbd0df8"
+ },
+ "oldhum_fight_3": {
+  "hash": "ae671fba1226"
+ },
+ "oldhum_fight_6": {
+  "hash": "95b9a6b14ba1"
+ },
+ "oldhum_fight_7": {
+  "hash": "5d7edf46eacb"
+ },
+ "oldhum_retry": {
+  "hash": "f2ac9f22bacb"
  }
 }
