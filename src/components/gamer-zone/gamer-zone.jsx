@@ -9,7 +9,7 @@ const games = [
     target: "dream-fixer",
     preview: "/games/dream-fixer/media/preview.webp",
     url: "/games/dream-fixer/",
-    badge: "in progress",
+    badge: "new",
   },
   {
     label: "Last Lantern",
