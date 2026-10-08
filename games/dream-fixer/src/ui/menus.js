@@ -3,6 +3,7 @@ import { UPGRADES, ITEMS, TABS, level, maxLevel, nextCost, pocketFor, lockOf } f
 import { ACHIEVEMENTS, rankFor, rankProgress } from "../data/progression.js";
 import { ITEM_ICONS } from "./icons.js";
 import { padLabel } from "../input/gamepad.js";
+import { track } from "../analytics.js";
 import { CLIENTS, MEMORY_OWNER, isOpen, memoriesOf } from "../levels/index.js";
 
 // ── Menus and panels ─────────────────────────────────────────────────────
@@ -76,17 +77,18 @@ export class Menus {
     const text = t("share_text"), enc = encodeURIComponent;
     const links = [["x", `https://x.com/intent/post?text=${enc(text)}&url=${enc(SHARE_URL)}`], ["fb", `https://www.facebook.com/sharer/sharer.php?u=${enc(SHARE_URL)}`]];
     const el = this.show("share", `<div class="panel narrow share"><h2>${esc(t("share"))}</h2><p>${esc(t("share_lead"))}</p><div class="menu-buttons">
-      ${links.map(([k, href]) => `<button class="btn" data-a="open" data-href="${esc(href)}">${esc(t(`share_${k}`))}</button>`).join("")}
+      ${links.map(([k, href]) => `<button class="btn" data-a="open" data-k="${k}" data-href="${esc(href)}">${esc(t(`share_${k}`))}</button>`).join("")}
       <button class="btn" data-a="copy">${esc(t("share_copy"))}</button>
       ${navigator.share ? `<button class="btn ghost" data-a="native">${esc(t("share_more"))}</button>` : ""}
       </div><p class="link">${esc(SHARE_URL)}</p><div class="actions"><button class="btn ghost" data-a="back">${esc(t("back"))}</button></div></div>`,
     {
-      open: (b) => window.open(b.dataset.href, "_blank", "noopener"),
+      open: (b) => { track("share", { method: b.dataset.k }); window.open(b.dataset.href, "_blank", "noopener"); },
       copy: async (b) => {
+        track("share", { method: "copy" });
         try { await navigator.clipboard.writeText(SHARE_URL); b.textContent = t("share_copied"); }
         catch { el.querySelector(".link")?.classList.add("pick"); }
       },
-      native: () => navigator.share({ title: "Dream Fixer", text, url: SHARE_URL }).catch(() => {}),
+      native: () => { track("share", { method: "native" }); navigator.share({ title: "Dream Fixer", text, url: SHARE_URL }).catch(() => {}); },
       back: onBack,
     }, "dim");
   }

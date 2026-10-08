@@ -1,10 +1,10 @@
 import { DT } from "./config.js";
 import { loadSettings, saveSettings, loadProgress, saveProgress, resetProgress } from "./storage.js";
-import { setLang, detectLang, hasLine, t } from "./i18n/index.js";
+import { setLang, detectLang, getLang, hasLine, t } from "./i18n/index.js";
 import { Input } from "./input/index.js";
 import { Hud } from "./hud.js";
 import { Run } from "./sim/run.js";
-import { LEVELS } from "./levels/index.js";
+import { LEVELS, CLIENTS } from "./levels/index.js";
 import { TOOL_ORDER } from "./sim/tools.js";
 import { Audio } from "./audio.js";
 import { Sfx } from "./sfx.js";
@@ -74,6 +74,11 @@ async function startGame() {
   const inDream = () => run && !run.def.hub;
 
   let runXp = 0;
+  // What every dream event says about the dream (GA dimensions shared with
+  // the other games: level_id, level_number, rank…).
+  const DREAM_IDS = CLIENTS.filter((c) => c.level).map((c) => c.level);
+  const dreamInfo = (r = run) => ({ level_id: r.def.id, level_number: DREAM_IDS.indexOf(r.def.id) + 1, hard: r.opts.difficulty === "hard", rank: rankFor(progress.xp) });
+  let bossTries = 0, bossSeen = false;
   function startLevel(id, hard = false) {
     const def = LEVELS[id];
     run = new Run(def, runOpts(def, hard));
@@ -92,7 +97,8 @@ async function startGame() {
     hud.rank(progress.xp);
     audio.setSong(def.song ?? id);
     if (!def.hub && !def.walkIn) audio.play("arrive");
-    if (!def.hub && !def.dev) track("dream_start", { dream: id, hard });
+    bossTries = 0; bossSeen = false;
+    if (!def.hub && !def.dev) track("dream_start", { ...dreamInfo(), retry: progress.done.includes(id) });
   }
 
   // ── Screens ──
@@ -134,7 +140,7 @@ async function startGame() {
     onChange: (k, v) => {
       settings[k] = v;
       saveSettings(settings);
-      if (k === "lang") { setLang(v); hud.destroy(); hud = new Hud(app); hud.hub(!!run?.def.hub); hud.rank(progress.xp); showSettings(back); }
+      if (k === "lang") { setLang(v); track("language_change", { lang: v }); hud.destroy(); hud = new Hud(app); hud.hub(!!run?.def.hub); hud.rank(progress.xp); showSettings(back); }
       if (k === "master" || k === "sfx" || k === "music") audio.setVolumes(settings);
       if (k === "voiceVol" || k === "master") dialog.voice.setVolume();
       if (k === "voice" && !v) dialog.voice.stop();
@@ -146,6 +152,8 @@ async function startGame() {
   });
 
   // Dust gathered in a dream is kept even if you leave early (not from a test level).
+  // Leaving a dream half fixed: how far you got (where players give up).
+  const quitDream = () => { if (inDream() && !run.def.dev && !run.won) track("dream_quit", { ...dreamInfo(), time_s: Math.round(run.time), anchors: run.fixedCount, faints: run.faints, boss_reached: bossSeen, boss_tries: bossTries }); };
   const bankDust = () => { if (inDream() && !run.def.dev && !run.banked) { progress.dust += run.dust; progress.stats.dust += run.dust; run.banked = true; achieve(); save(); } };
 
   // ── Rank and achievements ──
@@ -162,7 +170,7 @@ async function startGame() {
   }
   function achieve(ctx) {
     const got = checkAchievements(progress, ctx);
-    for (const id of got) { menus.achievement(id); audio.play("achievement"); track("achievement", { id }); }
+    for (const id of got) { menus.achievement(id); audio.play("achievement"); track("achievement", { achievement: id }); }
     if (got.length) save();
   }
 
@@ -172,8 +180,8 @@ async function startGame() {
     onJournal: () => menus.journal(progress, { onClose: showPause }),
     onAchievements: () => menus.achievements(progress, { onClose: showPause }),
     onSettings: () => showSettings(showPause),
-    onFactory: () => { bankDust(); menus.close(); menus.fade(() => startLevel("factory")); resume(); },
-    onMain: () => { bankDust(); startLevel("factory"); showTitle(); },
+    onFactory: () => { quitDream(); bankDust(); menus.close(); menus.fade(() => startLevel("factory")); resume(); },
+    onMain: () => { quitDream(); bankDust(); startLevel("factory"); showTitle(); },
   });
 
   input.enabled = true;
@@ -216,7 +224,7 @@ async function startGame() {
           progress.dust -= cost; save();
           run.dust = progress.dust;
           audio.play("buy");
-          track(u ? "upgrade" : "kit_buy", { id, level: u ? progress.upgrades[id] : undefined });
+          track(u ? "upgrade" : "kit_buy", u ? { upgrade: id, level: progress.upgrades[id], cost, rank: rankFor(progress.xp) } : { kit: id, cost });
           achieve();
           open();
         },
@@ -225,7 +233,7 @@ async function startGame() {
       openMenu(open);
     } else if (id === "journal") openMenu(() => menus.journal(progress, { onClose: resume }));
     else if (id === "trophies") openMenu(() => menus.achievements(progress, { onClose: resume }));
-    else if (id === "epilogue") openMenu(() => menus.epilogue(progress, { onClose: resume }));
+    else if (id === "epilogue") { track("epilogue_view", { from: "wall" }); openMenu(() => menus.epilogue(progress, { onClose: resume })); }
     else if (id === "window") {
       // Stand and gaze out at the night (and Old Hum); Margo now and then has a word.
       run.gaze = { t: 0 };
@@ -279,6 +287,10 @@ async function startGame() {
         else if (e.type === "respawn" && !e.pulled) S.falls++;
         if (["pop", "catch", "cogZap", "itemUse", "respawn", "anchorFixed", "bossPop", "bossClog", "penBlot", "cookerLid", "bigclockUnwound", "moonTethered", "heartAsleep"].includes(e.type)) achieve({ event: e });
       }
+      if (inDream() && !run.def.dev) {
+        if (e.type === "bossRise" && !bossSeen) { bossSeen = true; track("boss_reached", { ...dreamInfo(), time_s: Math.round(run.time), faints: run.faints }); }
+        if (e.type === "bossReset") bossTries++;
+      }
       if (e.type === "interact") interact(e.id);
       else if (e.type === "memory") {
         menus.memory(e.id);
@@ -287,7 +299,7 @@ async function startGame() {
       } else if (e.type === "toolUnlocked" && !run.def.dev && !progress.tools.includes(e.tool)) { progress.tools.push(e.tool); save(); }
       else if (e.type === "itemUse" && !run.def.dev) {
         progress.items[e.id] = Math.max(0, (progress.items[e.id] || 0) - 1); save();
-        track("kit_use", { id: e.id, dream: run.def.id });
+        track("kit_use", { kit: e.id, level_id: run.def.id });
       }
       else if (e.type === "dreamFixed") {
         const id = run.def.id;
@@ -297,13 +309,17 @@ async function startGame() {
         if (id === "oldhum" && !progress.done.includes(id)) progress.ending = true;
         // (Back at the Factory Margo's word depends on it: a dream fixed the
         // first time moves the week's story on.)
+        const firstClear = !progress.done.includes(id);
         progress.backFirst = progress.done.includes(id) ? null : id;
         if (!progress.done.includes(id)) progress.done.push(id);
         if (run.opts.difficulty === "hard" && !progress.hard.includes(id)) progress.hard.push(id);
         if (!run.def.dev) achieve({ fixed: run });
         progress.picked = null; progress.night = (progress.night || 0) + 1;
         save();
-        track("dream_fixed", { dream: id, time: Math.round(run.time), faints: run.faints });
+        if (!run.def.dev) {
+          track("dream_fixed", { ...dreamInfo(), time_s: Math.round(run.time), faints: run.faints, boss_tries: bossTries + 1, first_clear: firstClear });
+          if (firstClear && id === "oldhum") track("all_complete", { rank: rankFor(progress.xp), nights: progress.night });
+        }
         const done = run, xp = runXp, hard = run.opts.difficulty === "hard";
         setTimeout(() => openMenu(() => menus.result(done, {
           xp,
@@ -326,6 +342,7 @@ async function startGame() {
 
   startLevel("factory");
   showTitle();
+  track("game_open", { lang: getLang(), returning: progress.done.length > 0 || progress.introSeen, dreams_fixed: progress.done.length, rank: rankFor(progress.xp), embedded: window.parent !== window });
   // (dev) ?level=<id> starts there instead, Play goes straight in.
   if (import.meta.env.DEV && LEVELS[q.get("level")]) startLevel(q.get("level"));
 
@@ -383,6 +400,7 @@ async function startGame() {
         epiT = dialog.busy ? 2 : epiT - dt;
         if (epiT <= 0) {
           progress.epilogue = true; save();
+          track("epilogue_view", { from: "ending" });
           openMenu(() => menus.epilogue(progress, { onClose: () => { resume(); dialog.say("hub_end4"); dialog.say("hub_end5"); } }));
         }
       }
