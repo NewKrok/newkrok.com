@@ -67,7 +67,7 @@ export class Menus {
         const tog = (k) => `<label><span>${t(k)}</span><select data-k="${k}"><option value="1" ${S[k] ? "selected" : ""}>${t("on")}</option><option value="0" ${!S[k] ? "selected" : ""}>${t("off")}</option></select></label>`;
         return `
         <h2>${t("settings")}</h2>
-        <div class="settings scroll">
+        <div class="setlist scroll">
           <label><span>${t("language")}</span><select data-k="lang">${LANGS.map(([k, n]) => `<option value="${k}" ${getLang() === k ? "selected" : ""}>${n}</option>`).join("")}</select></label>
           ${range("master", 0, 1, 0.05)}${range("sfx", 0, 1, 0.05)}${range("music", 0, 1, 0.05)}${tog("voice")}${tog("subtitles")}
           ${range("sensitivity", 0.3, 2.5, 0.05)}${range("padSensitivity", 0.3, 2.5, 0.05)}${tog("invertY")}${tog("aimAssist")}${tog("shake")}

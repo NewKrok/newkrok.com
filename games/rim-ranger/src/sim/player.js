@@ -154,7 +154,7 @@ export class Ranger {
     const sp = b.speed2D;
     this.moveK = damp(this.moveK, clamp(sp / P.run, 0, 1), 10, dt);
     if (this.aiming || this.firing || this.aimK > 0.3) this.face = dampAngle(this.face, this.yaw, 18, dt);
-    else if (this.cover) this.face = dampAngle(this.face, Math.atan2(this.cover.nx, this.cover.nz) + Math.PI, 12, dt);
+    else if (this.cover) this.face = dampAngle(this.face, Math.atan2(this.cover.nx, this.cover.nz), 12, dt);
     else if (sp > 0.6) this.face = dampAngle(this.face, Math.atan2(-b.vx, -b.vz), 10, dt);
     if (sp > 0.3 && b.grounded) this.stepPhase += dt * sp * 1.25;
 
@@ -344,7 +344,7 @@ export class Ranger {
   get viewDir() { return [this.cam.dx, this.cam.dy, this.cam.dz]; }
   // How easy you are to see (0 hidden … 1 out in the open, upright).
   get exposure() {
-    let k = this.crouchK > 0.5 ? 0.45 : 1;
+    let k = this.crouchK > 0.5 ? 0.35 : 1;
     if (this.cover && !this.aiming) k *= 0.4;
     if (this.body.speed2D > 3) k *= 1.3;
     return k;

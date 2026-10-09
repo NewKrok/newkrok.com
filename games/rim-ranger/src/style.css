@@ -141,10 +141,10 @@ body.pad-nav .btn:focus, body.pad-nav select:focus, body.pad-nav input:focus, bo
 .controls { max-width: 640px; font-size: 12px; line-height: 1.6; color: var(--ink-dim); }
 .screen.title .controls { position: absolute; bottom: 24px; left: max(6vw, 24px); }
 .controls p { margin: 4px 0; }
-.settings { display: grid; gap: 10px; width: min(520px, 90vw); max-height: 60vh; overflow: auto; padding: 4px; }
-.settings label { display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: 14px; }
-.settings input[type=range] { width: 200px; accent-color: var(--amber); }
-.settings select { font: 14px var(--font); background: #1a2030; color: var(--ink); border: 1px solid var(--line); padding: 4px 8px; }
+.setlist { display: grid; gap: 10px; width: min(520px, 90vw); max-height: 60vh; overflow: auto; padding: 4px; }
+.setlist label { display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: 14px; }
+.setlist input[type=range] { width: 200px; accent-color: var(--amber); }
+.setlist select { font: 14px var(--font); background: #1a2030; color: var(--ink); border: 1px solid var(--line); padding: 4px 8px; }
 .padinfo { font-size: 12px; color: var(--ink-dim); }
 .panel, .logpanel { background: var(--panel); border: 1px solid var(--line); padding: 16px 22px; max-width: 560px; line-height: 1.6; }
 .logpanel h3 { margin: 0 0 8px; font-size: 13px; letter-spacing: 0.25em; text-transform: uppercase; color: #5af0b0; }

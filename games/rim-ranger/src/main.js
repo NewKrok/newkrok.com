@@ -79,6 +79,7 @@ function toTitle() {
   director.clear();
   audio.stopMusic();
   menus.show("title", { canContinue: !!loadSave()?.cp });
+  padnav.focusMain();
   // A slow look over the colony behind the title.
   if (!run) run = new Run(level, { stage: "approach", at: { x: 0, z: 70, yaw: 0 } }, { difficulty: settings.difficulty });
   run.lines.length = 0;
@@ -195,7 +196,8 @@ function openLog(e) {
 let stepSound = 0, allyStep = 0;
 function frame(now) {
   requestAnimationFrame(frame);
-  const dt = Math.min(0.1, (now - last) / 1000);
+  const dt = Math.max(0, Math.min(0.1, (now - last) / 1000));
+  if (import.meta.env.DEV && now < last) (window.__negDt = (window.__negDt ?? 0) + 1);
   last = now; time += dt;
   const playing = state === "play";
   // Aim assist (pad): the look slows over a bug.

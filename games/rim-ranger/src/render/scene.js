@@ -175,6 +175,9 @@ export class GameView {
     }
     this.shake = Math.max(0, this.shake - dt * 2.5);
     cam.updateProjectionMatrix();
+    // Kessler right in front of the lens is hidden rather than filling the screen.
+    const kb = run.ally.body;
+    this.actors.kessler.visible = !!cc || Math.hypot(kb.x - cam.position.x, kb.y + 1 - cam.position.y, kb.z - cam.position.z) > 1.6;
 
     // The noise ring.
     const nr = run.cut ? 0 : p.noiseR;

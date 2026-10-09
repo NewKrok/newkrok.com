@@ -52,10 +52,11 @@ class RangerFigure {
     // Legs.
     const sw = Math.sin(ph) * 0.75 * Math.min(1, mk * 1.6);
     const kneeA = Math.max(0, Math.sin(ph + 1.4)) * 1.0 * Math.min(1, mk * 1.6), kneeB = Math.max(0, Math.sin(ph + 1.4 + Math.PI)) * 1.0 * Math.min(1, mk * 1.6);
-    n.legL.rotation.x = air ? -0.6 : sw - ck * 1.0;
-    n.legR.rotation.x = air ? 0.2 : -sw - ck * 1.0;
-    n.shinL.rotation.x = air ? 1.0 : kneeA + ck * 1.75;
-    n.shinR.rotation.x = air ? 0.5 : kneeB + ck * 1.75;
+    // (+x swings a leg forward; a knee only bends back.)
+    n.legL.rotation.x = air ? 0.7 : sw + ck * 1.0;
+    n.legR.rotation.x = air ? -0.2 : -sw + ck * 1.0;
+    n.shinL.rotation.x = air ? -1.1 : -(kneeA + ck * 1.9);
+    n.shinR.rotation.x = air ? -0.5 : -(kneeB + ck * 1.9);
     n.hips.position.y = 0.95 - ck * 0.36 + Math.abs(Math.sin(ph)) * 0.05 * mk - this.down * 0.6;
     // Upper body: leans into a run, bends when crouched, aims.
     const aim = Math.max(s.aimK, s.firing ? 1 : 0);

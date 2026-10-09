@@ -108,14 +108,17 @@ export class Ally {
 
     // Noise: like yours.
     this.noiseT -= dt;
+    // She knows how to move: while you sneak she is as quiet as you, and
+    // she only makes running noise once there is a fight.
     if (b.speed2D > 0.6 && this.noiseT <= 0) {
-      run.noise(b.x, b.z, b.speed2D > 5 ? NOISE.run : this.crouched ? NOISE.crouch : NOISE.walk, this);
+      const sneak = !fight && (p.crouched || p.cover);
+      run.noise(b.x, b.z, sneak ? NOISE.crouch : fight && b.speed2D > 5 ? NOISE.run : NOISE.walk, this);
       this.noiseT = 0.35;
     }
 
     // Shoot.
     this.#shoot(run, dt, fight && this.mode !== "revive");
-    const faceTo = this.firing || this.aimK > 0.5 ? this.aimYaw : b.speed2D > 0.5 ? Math.atan2(-b.vx, -b.vz) : this.coverN ? Math.atan2(this.coverN[0], this.coverN[1]) + Math.PI : p.face;
+    const faceTo = this.firing || this.aimK > 0.5 ? this.aimYaw : b.speed2D > 0.5 ? Math.atan2(-b.vx, -b.vz) : this.coverN ? Math.atan2(this.coverN[0], this.coverN[1]) : p.face;
     this.face = dampAngle(this.face, faceTo, 9, dt);
   }
 
@@ -150,7 +153,19 @@ export class Ally {
       // Not in your line of fire.
       const cx = -Math.sin(p.yaw), cz = -Math.cos(p.yaw), ax = x - px, az = z - pz, al = Math.hypot(ax, az) || 1;
       if ((ax * cx + az * cz) / al > 0.7) score += 6;
+      // Nor between the camera and you (she would fill the screen).
+      const c = p.cam;
+      if (c.x !== undefined) {
+        const vx = px - c.x, vz = pz - c.z, vl = Math.hypot(vx, vz) || 1, t = ((x - c.x) * vx + (z - c.z) * vz) / (vl * vl);
+        if (t > -0.2 && t < 1.3 && Math.abs((x - c.x) * vz - (z - c.z) * vx) / vl < 1.4) score += 8;
+      }
       if (fight && this.target?.alive && !run.space.clear(x, y + 1.2, z, this.target.x, this.target.y + 0.6, this.target.z)) score += 3;
+      // Sneaking: keep clear of bugs that have not noticed you.
+      if (!fight) for (const g of run.bugs) {
+        if (!g.alive || g.hidden || g.state === "hunt") continue;
+        const d = Math.hypot(g.x - x, g.z - z);
+        if (d < 7) score += (7 - d) * 3;
+      }
       if (!best || score < best.score) best = { x, z, score, cover };
     }
     this.coverN = best?.cover ?? null;

@@ -201,7 +201,9 @@ export class Bug {
         this.pause = Math.random() < 0.4;
       }
       const gd = Math.hypot(this.goalX - this.x, this.goalZ - this.z);
-      if (!this.pause && gd > 0.8) {
+      // A sentry that has something in sight stands still and stares.
+      const staring = this.type === "sentry" && (this.watching || this.detect > 0.15);
+      if (!this.pause && !staring && gd > 0.8) {
         wx = (this.goalX - this.x) / gd; wz = (this.goalZ - this.z) / gd; speed = d.wander;
         if (gd > this.home.r * 2.5) { [wx, wz] = this.#way(run, this.goalX, this.goalZ, "home"); speed = d.speed * 0.5; }
       }
@@ -227,7 +229,7 @@ export class Bug {
     for (const t of [run.player, run.ally]) {
       if (!t || t.downed) continue;
       const dd = Math.hypot(t.body.x - this.x, t.body.z - this.z);
-      if (dd < (t.body.speed2D > 1 ? 3 : 1.6) * (t.crouchK > 0.5 ? 0.8 : 1)) { this.hunt(run, t, true); return; }
+      if (dd < (t.body.speed2D > 1 ? 3 : 1.6) * (t.crouchK > 0.5 ? 0.6 : 1)) { this.hunt(run, t, true); return; }
     }
   }
 
@@ -247,7 +249,7 @@ export class Bug {
       if (k > best) { best = k; seen = t; }
     }
     if (seen) {
-      this.detect += dt * best * 0.75;
+      this.detect += dt * best * 0.5;
       this.watching = seen;
       this.face = dampAngle(this.face, Math.atan2(-(seen.body.x - this.x), -(seen.body.z - this.z)), 2, dt);
       if (this.detect >= 1) this.shriek(run, seen);
