@@ -301,7 +301,7 @@ export class Run {
     // The world keeps breathing (Kessler and the bugs idle in place).
     for (const b of this.bugs) if (b.hidden || b.act === "emerge") b.step(this, dt);
     const sh = c.shots[c.i];
-    if (I.skipPressed && c.t > 0.4) { this.#cutEnd(true); return; }
+    if (I.skipPressed && c.t > 0.2) { this.#cutEnd(true); return; }
     if (c.t >= sh.dur) {
       c.i++; c.t = 0;
       if (c.i >= c.shots.length) { this.#cutEnd(false); return; }
