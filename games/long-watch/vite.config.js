@@ -13,7 +13,7 @@ export default defineConfig({
     emptyOutDir: true,
     chunkSizeWarningLimit: 1600,
     // One JS file: the game is loaded through a dynamic import (the dev
-    // model viewer shares the entry), and the Artifact page serves one script.
+    // model viewer shares the entry); a single script is simpler to serve.
     rollupOptions: { output: { inlineDynamicImports: true } },
   },
 });

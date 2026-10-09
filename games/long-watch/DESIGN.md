@@ -247,8 +247,17 @@ pályán belüli ellenőrzőpontokkal.
 ## 8. Átadás: állapot és tudnivalók a folytatáshoz
 
 **Hol tart:** az 1. fejezet végigjátszható. A `claude/eager-fermi-2sst54` ágon
-van, a főágba még nincs beolvasztva. A lefordított változat privát
-Artifactként fut: https://claude.ai/artifact/SySAgeJFKfWdvERnzLcBrz
+van, a főágba még nincs beolvasztva. Kipróbálni helyben kell, nem
+Artifactként (az a változat elavult, nem frissítjük):
+
+```sh
+npm install                          # egyszer, a repo gyökeréből
+npm run dev -w games/long-watch      # http://localhost:5360/
+```
+
+A modellnéző ugyanitt: `http://localhost:5360/?model=ranger&pose=aim`.
+A teljes oldal a játékkal együtt: `npm run build && npm run preview` a
+gyökérből (http://localhost:4790/, a Gamer Zone iframe-jében).
 
 **Ellenőrzés minden változtatás után** (`npm run dev -w games/long-watch`
 mellett):
@@ -275,14 +284,6 @@ mellett):
   szimulációt közvetlenül léptetik (`window.__longWatch`, csak dev
   módban).
 
-**Új Artifact-változat:**
-1. `npx vite build`.
-2. A `dist/` tartalmát egy `page.html` szolgálja ki:
-   `<title>`, `<style>`, `<link>` a CSS-re, `<div id="app">` és
-   `<script type="module">` a JS-re; doctype és html/head/body nélkül.
-3. Közzététel ugyanarra az URL-re, a `files` alatt az `assets/*` és a
-   `voice/manifest.json` fájlokkal.
-
 **A figurák (2. menet):** a rangerek, a fegyverek, a túlélők és a bogarak
 modellje Synty-szintű részletességű lett, a rangereknek arcuk van, a kar
 kétcsontos IK-val fogja a fegyvert, van animált célzás, újratöltés
@@ -294,7 +295,7 @@ hátravan: a kezek nem fogják pontosan a markolatot (a tenyér a fogáspontra
 mozdulat, a bogarak animációja (ollók, rágók) még a régi.
 
 **Tanulságok, amikre figyelni kell:**
-- A képkocka-idő negatív is lehet (az első rAF-nál); a `main.js` lenullázza.
+- A képkocka-idő negatív is lehet (az első rAF-nál); a `game.js` lenullázza.
   Negatív `dt`-vel a `damp` elszáll (kamera, FOV).
 - Ha egy szereplő lépései zajosak, az a lopakodást is tönkreteszi: Kessler
   csak harcban lehet hangos, és lopakodáskor kerüli a nem riasztott
