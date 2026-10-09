@@ -1,7 +1,7 @@
 import * as T from "three";
 import { make } from "./modelkit.js";
 import { MODELS } from "./models/index.js";
-import { GUNS } from "./models/characters.js";
+import { RangerFigure } from "./rangerfig.js";
 import { angDiff, clamp, lerp } from "../config.js";
 
 // ── Everyone who moves ───────────────────────────────────────────────────
@@ -23,55 +23,8 @@ function instance(name, opts = {}) {
   return o;
 }
 
+const _r = new T.Vector3();
 const lerpPos = (o, b, a) => o.position.set(b.px + (b.x - b.px) * a, b.py + (b.y - b.py) * a, b.pz + (b.z - b.pz) * a);
-
-// ── A ranger figure ──
-class RangerFigure {
-  constructor(scene, skin) {
-    this.obj = instance("ranger", { skin });
-    this.n = this.obj.userData.nodes;
-    this.guns = {};
-    for (const [id, fn] of Object.entries(GUNS)) {
-      const g = make(fn);
-      g.visible = false;
-      this.n.gun.add(g);
-      this.guns[id] = g;
-    }
-    scene.add(this.obj);
-    this.down = 0;
-  }
-  // s: { body, face, yaw, pitch, aimK, crouchK, moveK, stepPhase, firing, recoil, downed, gun }
-  pose(s, a, dt, t) {
-    const n = this.n, b = s.body;
-    lerpPos(this.obj, b, a);
-    this.obj.rotation.y = s.face;
-    for (const [id, g] of Object.entries(this.guns)) g.visible = id === s.gun;
-    const ph = s.stepPhase * Math.PI, mk = s.moveK, ck = s.crouchK;
-    const air = !b.grounded;
-    this.down += ((s.downed ? 1 : 0) - this.down) * Math.min(1, dt * 6);
-    // Legs.
-    const sw = Math.sin(ph) * 0.75 * Math.min(1, mk * 1.6);
-    const kneeA = Math.max(0, Math.sin(ph + 1.4)) * 1.0 * Math.min(1, mk * 1.6), kneeB = Math.max(0, Math.sin(ph + 1.4 + Math.PI)) * 1.0 * Math.min(1, mk * 1.6);
-    // (+x swings a leg forward; a knee only bends back.)
-    n.legL.rotation.x = air ? 0.7 : sw + ck * 1.0;
-    n.legR.rotation.x = air ? -0.2 : -sw + ck * 1.0;
-    n.shinL.rotation.x = air ? -1.1 : -(kneeA + ck * 1.9);
-    n.shinR.rotation.x = air ? -0.5 : -(kneeB + ck * 1.9);
-    n.hips.position.y = 0.95 - ck * 0.36 + Math.abs(Math.sin(ph)) * 0.05 * mk - this.down * 0.6;
-    // Upper body: leans into a run, bends when crouched, aims.
-    const aim = Math.max(s.aimK, s.firing ? 1 : 0);
-    n.torso.rotation.x = -(ck * 0.25 + mk * 0.18 * (1 - aim));
-    n.torso.rotation.y = clamp(angDiff(s.face, s.yaw), -0.7, 0.7) * aim;
-    const low = s.sprint ? -0.9 : -0.55;
-    n.arms.rotation.x = lerp(low, s.pitch + n.torso.rotation.x * -1, aim) + s.recoil * 3;
-    n.arms.rotation.z = Math.sin(ph) * 0.05 * mk * (1 - aim);
-    n.head.rotation.x = s.pitch * 0.4 * aim;
-    // Down: on the ground.
-    this.obj.rotation.x = -this.down * 1.35;
-    void t;
-  }
-  set visible(v) { this.obj.visible = v; }
-}
 
 // ── A bug ──
 class BugFigure {
@@ -152,8 +105,8 @@ class BugFigure {
 export class Actors {
   constructor(scene) {
     this.scene = scene;
-    this.player = new RangerFigure(scene, "player");
-    this.kessler = new RangerFigure(scene, "kessler");
+    this.player = new RangerFigure(scene, "player", ["rifle", "pistol"]);
+    this.kessler = new RangerFigure(scene, "kessler", ["rifle", "pistol"]);
     this.bugs = new Map();
     this.npcs = [];
     this.uses = new Map();
@@ -175,8 +128,25 @@ export class Actors {
 
   update(run, a, dt, t) {
     const p = run.player, k = run.ally;
-    this.player.pose({ body: p.body, face: p.face, yaw: p.yaw, pitch: p.pitch, aimK: p.aimK, crouchK: p.crouchK, moveK: p.moveK, stepPhase: p.stepPhase, firing: p.firing, recoil: p.recoil, downed: p.downed, gun: p.weapon?.id, sprint: p.sprinting }, a, dt, t);
-    this.kessler.pose({ body: k.body, face: k.face, yaw: k.aimYaw, pitch: k.aimPitch, aimK: k.aimK, crouchK: k.crouchK, moveK: k.moveK, stepPhase: k.stepPhase, firing: k.firing, recoil: 0, downed: k.downed, gun: "rifle", sprint: k.body.speed2D > 5.5 }, a, dt, t);
+    const pw = p.def;
+    this.player.pose({
+      body: p.body, face: p.face, yaw: p.yaw, pitch: p.pitch, aimK: p.aimK, crouchK: p.crouchK, moveK: p.moveK, stepPhase: p.stepPhase,
+      firing: p.firing, recoil: p.recoil, downed: p.downed, gun: p.weapon?.id, slots: p.slots.map((g) => g.id), sprint: p.sprinting,
+      reloadK: p.reloadT > 0 && pw?.reload ? 1 - p.reloadT / pw.reload : -1, swapT: p.swapT,
+      cover: p.cover ? (p.cover.low ? "low" : "high") : null, reach: null,
+    }, a, dt, t);
+    // Kessler reaches for you while she gets you up.
+    let reach = null;
+    if (k.mode === "revive" && Math.hypot(p.body.x - k.body.x, p.body.z - k.body.z) < 1.6) {
+      reach = this.kessler.obj.worldToLocal(_r.set(p.body.x, p.body.y + 0.5, p.body.z));
+      reach.y -= k.crouchK > 0.5 ? 0.6 : 1.03; // into the torso's frame (roughly)
+      if (reach.length() > 0.5) reach.setLength(0.5);
+    }
+    this.kessler.pose({
+      body: k.body, face: k.face, yaw: k.aimYaw, pitch: k.aimPitch, aimK: k.aimK, crouchK: k.crouchK, moveK: k.moveK, stepPhase: k.stepPhase,
+      firing: k.firing, recoil: k.recoil ?? 0, downed: k.downed, gun: "rifle", sprint: k.body.speed2D > 5.5,
+      reloadK: k.reloadT > 0 ? 1 - k.reloadT / k.reloadTime : -1, swapT: 0, cover: null, reach,
+    }, a, dt, t);
 
     // Bugs: add new ones, pose all, drop the gone.
     const seen = new Set();

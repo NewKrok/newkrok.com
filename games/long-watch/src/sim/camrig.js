@@ -19,7 +19,7 @@ export function forward(yaw, pitch, out = [0, 0, 0]) {
 export function cameraRig(space, p, x, y, z, out = {}) {
   const k = p.aimK, side = p.shoulder;
   const crouchK = p.crouchK;
-  const h = lerp(C.height, C.crouchHeight, crouchK) + (p.peekUp ?? 0);
+  const h = lerp(C.height, C.crouchHeight, crouchK) + (p.peekUp ?? 0) + (C.aimRaise ?? 0) * k * (1 - crouchK * 0.5);
   const dist = lerp(C.dist, C.aimDist, k), off = lerp(C.side, C.aimSide, k) * side;
   const yaw = p.yaw, pitch = p.pitch;
   const [dx, dy, dz] = forward(yaw, pitch);

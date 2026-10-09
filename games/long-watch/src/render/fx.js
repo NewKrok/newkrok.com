@@ -168,7 +168,7 @@ export class Fx {
   shockRing(x, y, z) { this.ring.position.set(x, y + 0.2, z); this.ring.userData.t = 0; this.ring.visible = true; }
 
   // Things the sim holds (in flight, on the ground, the beam).
-  sync(run) {
+  sync(run, muzzle = null) {
     const live = new Set();
     for (const s of run.shots) {
       live.add(s.id);
@@ -189,9 +189,11 @@ export class Fx {
     for (const [id, m] of this.puddleMeshes) if (!pl.has(id)) { this.scene.remove(m); this.puddleMeshes.delete(id); }
     const b = run.player.beam;
     if (b) {
-      const dx = b.x1 - b.x0, dy = b.y1 - b.y0, dz = b.z1 - b.z0, L = Math.hypot(dx, dy, dz);
-      this.beam.position.set(b.x0, b.y0, b.z0);
-      this.beam.lookAt(b.x0 - dx, b.y0 - dy, b.z0 - dz);
+      // From the figure's muzzle when the renderer knows it.
+      const x0 = muzzle ? muzzle[0] : b.x0, y0 = muzzle ? muzzle[1] : b.y0, z0 = muzzle ? muzzle[2] : b.z0;
+      const dx = b.x1 - x0, dy = b.y1 - y0, dz = b.z1 - z0, L = Math.hypot(dx, dy, dz);
+      this.beam.position.set(x0, y0, z0);
+      this.beam.lookAt(x0 - dx, y0 - dy, z0 - dz);
       this.beam.scale.set(1 + Math.random() * 0.4, 1 + Math.random() * 0.4, L);
       this.beam.visible = true;
       if (b.hit && Math.random() < 0.7) this.sparks(b.x1, b.y1, b.z1, -dx / L, -dy / L, -dz / L, 2, 0x7ef9ff, 2.5, 0.25, 0.07, 4);

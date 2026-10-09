@@ -34,6 +34,8 @@ export class Ally {
     this.aimYaw = yaw; this.aimPitch = 0;
     this.stuckT = 0;
     this.holdFire = false;         // a cutscene or the script can tell her to keep quiet
+    this.mag = 36; this.reloadT = 0; this.reloadTime = 1.7;   // her carbine's magazine (for the animation and the pauses in her fire)
+    this.recoil = 0;
   }
 
   get exposure() { return (this.crouchK > 0.5 ? 0.45 : 1) * (this.coverN ? 0.4 : 1); }
@@ -42,6 +44,8 @@ export class Ally {
     const b = this.body, p = run.player;
     this.shotT -= dt; this.calmT += dt; this.seekT -= dt;
     this.firing = false;
+    this.recoil = damp(this.recoil, 0, 10, dt);
+    if (this.reloadT > 0) this.reloadT = Math.max(0, this.reloadT - dt);
     if (this.downed) {
       this.downT -= dt;
       b.step(run.space, { vx: 0, vz: 0 }, dt);
@@ -201,7 +205,13 @@ export class Ally {
     if (g.type === "charger") { ax += Math.sin(g.face) * 0.9; az += Math.cos(g.face) * 0.9; }
     const dx = ax - mx, dy = ay - my, dz = az - mz, l = Math.hypot(dx, dy, dz);
     this.aimYaw = Math.atan2(-dx, -dz); this.aimPitch = Math.asin(clamp(dy / l, -1, 1));
-    if (this.shotT > 0) return;
+    if (this.shotT > 0 || this.reloadT > 0) return;
+    if (this.mag <= 0) {
+      // A fresh magazine: a pause in her fire, and the figure shows it.
+      this.mag = 36; this.reloadT = this.reloadTime; this.burst = 0;
+      run.fx({ type: "reload", id: "rifle", src: "ally", x: b.x, z: b.z });
+      return;
+    }
     if (this.burst <= 0) { this.burst = 3 + Math.floor(Math.random() * 4); }
     this.burst--;
     this.shotT = this.burst > 0 ? 0.11 : 0.55 + Math.random() * 0.5;
@@ -211,7 +221,7 @@ export class Ally {
     const ul = Math.hypot(ux, uy, uz); ux /= ul; uy /= ul; uz /= ul;
     this.muzzle[0] = mx; this.muzzle[1] = my; this.muzzle[2] = mz;
     bullet(run, this, mx, my, mz, ux, uy, uz, 90, 9, 0xb8f0ff);
-    this.firing = true; this.lastShot = run.time;
+    this.firing = true; this.lastShot = run.time; this.mag--; this.recoil += 0.012;
     run.fx({ type: "shot", id: "rifle", x: mx, y: my, z: mz, dx: ux, dy: uy, dz: uz, src: "ally" });
     run.noise(b.x, b.z, 28, this, true);
   }

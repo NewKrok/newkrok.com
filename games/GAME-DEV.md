@@ -271,3 +271,37 @@ so `scripts/bot.js` plays the whole dream headless.
 - Headless Chromium runs at a few frames per second: step the sim in
   small chunks with a `requestAnimationFrame` between, or every effect of
   a whole second lands in one frame and the screenshot is white.
+
+## Notes from The Long Watch
+
+`long-watch` is third person on the Dream Fixer stack (`sim/` render-free,
+`render/` reads it). What the characters taught us:
+
+- Procedural animation with a jointed figure: build the model with named
+  nodes (`Builder.node`) for hips, legs, shins, torso, head, upper arms,
+  forearms and a gun root, and pose them from the sim's numbers every
+  frame (`render/rangerfig.js`). No clips, no skinning: a state is a few
+  numbers (moveK, crouchK, aimK, stepPhase, reloadK, swapT).
+- Let the gun lead the arms: every stance is a place and a tilt for the gun
+  in the torso's frame, and a two-bone IK (`reachArm`) turns each arm so
+  the palm lands on the grip or the fore-end. Reload and swap are then just
+  other targets for the left hand (the magazine, the belt pouch, the
+  charging handle) and other places for the gun (hip, holster). Damp the
+  hand target so phase changes do not pop.
+- Short arms are the constraint: with ~0.6 m of reach from the shoulder,
+  the fore-end must stay close to the chest. A "bladed" torso (turned a few
+  tenths of a radian away from the gun side while aiming, the gun yawed
+  back by the same amount) brings the far shoulder forward and makes a
+  rifle at the shoulder reachable.
+- Over-the-shoulder cameras hide the gun behind the pauldron and the
+  shooting arm. Check the sight line from the camera to the muzzle at the
+  figure's plane, then move the camera out and the pauldron up until it
+  clears: no amount of arm posing fixes a line that goes through the
+  shoulder plate.
+- A face is cheap: a chamfered box skull, two white balls with an iris and
+  a pupil, brows, a nose wedge, a mouth slit, hair as two or three boxes.
+  Behind a half-transparent glass dome it still reads at TPS distance.
+- A dev model viewer (`?model=<id>&pose=…&k=…`, `scripts/models.mjs`) with
+  posable figures pays for itself in the first hour; so does a `freeze`
+  switch on the dev handle, because headless screenshots take a second
+  and the sim would otherwise run on past the pose you wanted.

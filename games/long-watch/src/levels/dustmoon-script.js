@@ -250,9 +250,10 @@ export const SCRIPT = {
   placeSurvivors(run) {
     if (run.npcs.length) return;
     const b = run.kit.marks.bunker;
-    run.npcs.push({ model: "survivor", x: b.x - 1, y: b.y, z: b.z - 7.6, yaw: Math.PI, opts: { c: 0xd08a2a } });
-    run.npcs.push({ model: "survivor", x: b.x + 2.4, y: b.y, z: b.z - 8.6, yaw: Math.PI + 0.5, opts: { c: 0x4a7ab0, sit: true } });
-    run.npcs.push({ model: "survivor", x: b.x - 3.4, y: b.y, z: b.z - 8.2, yaw: Math.PI - 0.4, opts: { c: 0x7a8a4a } });
+    // Brandt (hard hat, the foreman), a sitting miner with a bandana, a young one without a hat.
+    run.npcs.push({ model: "survivor", x: b.x - 1, y: b.y, z: b.z - 7.6, yaw: Math.PI, opts: { c: 0xd08a2a, skin: 0xb98662, hair: 0x4a3a2a } });
+    run.npcs.push({ model: "survivor", x: b.x + 2.4, y: b.y, z: b.z - 8.6, yaw: Math.PI + 0.5, opts: { c: 0x4a7ab0, sit: true, bandana: 0x8a3a2a, skin: 0x8c5a3e, hair: 0x1e1a18 } });
+    run.npcs.push({ model: "survivor", x: b.x - 3.4, y: b.y, z: b.z - 8.2, yaw: Math.PI - 0.4, opts: { c: 0x7a8a4a, hat: false, female: true, skin: 0xe2b595, hair: 0xb5783a, shirt: 0x6a6a72 } });
   },
 
   // ── The vents ──

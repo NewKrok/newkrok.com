@@ -25,10 +25,18 @@ az Őrség maga a történet.
 - **A játékos elesik:** földre kerül, Kessler odaszalad és felsegíti
   (körülbelül 2,5 mp). Ha Kessler is lent van, vagy lejár a 22 mp-es
   vérzési idő, a küldetés az utolsó ellenőrzőpontra áll vissza.
-- **Vizuális stílus:** kidolgozott low poly, flat shading, vertex colorok.
+- **Vizuális stílus:** kidolgozott low poly, flat shading, vertex colorok,
+  a Synty-csomagok részletességével: tömzsi, lekerekített élű lemezek,
+  kevés, erős színnel, nagy kezekkel és bakancsokkal, olvasható arcokkal.
   A Porfészek-hold rozsdavörös por egy gyűrűs gázóriás alatt. A Kaptár
   elemei (bogarak varratai, szemek, zsákok, sav) világítanak, ezekre fog a
   bloom.
+- **A rangerek páncélja:** Gears of War és Buzz Lightyear keveréke: nehéz,
+  tagolt mellvért, nagy vállpáncél, térdvédők, szegmentált has; fehér (Hetes)
+  vagy kopott szürkészöld (Kessler) héj, lime és lila (vagy narancs és
+  acélkék) sávokkal, mellkasi panel gombokkal, nyakgallér, szárnytáska a
+  háton, nyitott sisak buborékvizorral, amin át látszik az arc. A tartalék
+  fegyver a háton (hosszú fegyver) vagy a comb tokjában (pisztoly) lóg.
 - **Hang:** a zajok és a zene szintetizáltak (`src/audio.js`). A szereplők
   angol hangja ElevenLabs-szal készül (`scripts/voice.mjs`), minden nyelven
   angolul; a felirat a választott nyelven jelenik meg. Aki a hajóról
@@ -202,7 +210,10 @@ pályán belüli ellenőrzőpontokkal.
 | `sim/run.js` | Egy futó küldetés: lépés, zajok, hullámok, lövedékek, feladatok, ellenőrzőpontok, átvezetők. |
 | `levels/dustmoon.js` | A Porfészek-hold terepe és épületei. |
 | `levels/dustmoon-script.js` | A küldetés forgatókönyve: szakaszok, triggerek, csoportok. |
-| `render/…` | Égbolt gázóriással, terep- és pályamodellek darabokban, figurák procedurális animációval, effektek. |
+| `render/…` | Égbolt gázóriással, terep- és pályamodellek darabokban, effektek. |
+| `render/models/characters.js` | A ranger (ízelt váz: csípő, lábak, törzs, fej, két kar könyökkel, fegyvercsomópont, hátitok, combtok), az arc, a fegyverek (tár- és závárcsomóponttal, `GUN_RIG` fogáspontokkal), a túlélők. |
+| `render/rangerfig.js` | A ranger figura procedurális animációja: a fegyver vezet (állások a törzs terében), a karok kétcsontos IK-val érik el; járás, sprint, térdelés, célzás, visszarúgás, újratöltés (tár ki, új tár az övről, be, závár), fegyvercsere (a régi a hátra vagy a tokba, az új onnan), fedezék, elesés, felsegítés. |
+| `viewer.js` | Fejlesztői modellnéző (`?model=…`), a ranger pózaival. |
 | `hud.js`, `ui/menus.js` | DOM-alapú HUD és menük. |
 | `story/director.js`, `voice.js` | Ki beszél, mikor; a hangok rádiós láncon. |
 
@@ -215,6 +226,10 @@ pályán belüli ellenőrzőpontokkal.
   küldetést (teleport, használat, robotlövész), és kiírja, mi teljesült.
 - `node scripts/shot.mjs <előtag> <szakasz>:x,z,yaw,pitch …`:
   képernyőképek.
+- `node scripts/models.mjs <mappa> <modell|all> [query …]`: modellek képei
+  a nézőből (`?model=ranger&pose=reload&k=0.5&skin=kessler&yaw=-2.3`).
+- `node scripts/anim-shots.mjs <előtag>`: a rangerek animációs állapotai a
+  játékban (célzás, lövés, újratöltés, csere, térdelés, sprint, túlélők).
   - Mindkettőhöz `PLAYWRIGHT_CORE` és (ha nem a szokásos helyen van)
     `CHROME` kell.
 - `npm run voice -w games/long-watch`: a hangok legenerálása (ElevenLabs
@@ -247,6 +262,13 @@ mellett):
   - `kesslerFiredUnprovoked: false`;
   - `revived: true`, `failed: "failed"`.
 - `node scripts/shot.mjs <előtag> <szakasz>:x,z,yaw,pitch`: képek.
+- `node scripts/models.mjs <mappa> ranger "pose=aim&yaw=1.57"` és
+  `node scripts/anim-shots.mjs <előtag>`: a figurák és az animáció; a
+  modellnéző a böngészőben `?model=ranger&pose=…` (pózok: idle, walk, run,
+  sprint, crouch, crouchWalk, aim, aimUp, fire, reload, swap, cover, down,
+  pistol, pistolAim, pistolReload, launcher, laser, jump; `&k=` az
+  újratöltés / csere állása, `&skin=kessler`). A `mechanics.mjs` egyik
+  száma (`huntedCrouching`) néha nem 0 a véletlen miatt: újrafuttatva az.
 - A szkriptekhez kell `PLAYWRIGHT_CORE` (egy playwright-core
   `index.mjs`-e); a Chromium alapból a `/opt/pw-browsers/chromium`. A
   fej nélküli böngésző nagyon lassan renderel, ezért a szkriptek a
@@ -261,6 +283,16 @@ mellett):
 3. Közzététel ugyanarra az URL-re, a `files` alatt az `assets/*` és a
    `voice/manifest.json` fájlokkal.
 
+**A figurák (2. menet):** a rangerek, a fegyverek, a túlélők és a bogarak
+modellje Synty-szintű részletességű lett, a rangereknek arcuk van, a kar
+kétcsontos IK-val fogja a fegyvert, van animált célzás, újratöltés
+(Kesslernél is: 36 lövésenként tölt), fegyvercsere, térdelés, sprint,
+fedezék. A célzókamera kicsit kijjebb és feljebb került (`CAMERA.aimSide`,
+`aimRaise`), hogy a puska kilátsszon a vállpáncél mellett. Ami még
+hátravan: a kezek nem fogják pontosan a markolatot (a tenyér a fogáspontra
+ül, az ujjak nincsenek), a csere 0,45 mp alatt inkább jelzés, mint
+mozdulat, a bogarak animációja (ollók, rágók) még a régi.
+
 **Tanulságok, amikre figyelni kell:**
 - A képkocka-idő negatív is lehet (az első rAF-nál); a `main.js` lenullázza.
   Negatív `dt`-vel a `damp` elszáll (kamera, FOV).
@@ -271,12 +303,23 @@ mellett):
   kellékek tetejéből. Lejtőn álló kelléknél ez számít.
 - Ha új épületet teszel a terepre, simítsd el alatta a magasságmezőt
   (lásd a bunkert a `dustmoon.js`-ben), különben a terep átdöf a padlón.
+- A ranger rigje a `RIG` (characters.js): a vállak és a karhosszak ott
+  vannak; a fegyverállások (`POSE`, `AIM` a rangerfig.js-ben) a törzs
+  terében értendők, és a bal kéz csak kb. 0,59 m-re ér a válltól: ha egy
+  új állásban a kéz nem éri el a fogáspontot, közelebb kell hozni a
+  fegyvert, nem a kart nyújtani. A nézőben (`?model=ranger&pose=…`) lehet
+  ellenőrizni.
+- A fegyvercsere és az újratöltés animációját a sim `swapT` és `reloadT`
+  számlálója hajtja (a figura `reloadK`-t és `swapT`-t kap); a csere felénél
+  vált a kézben lévő modell, a szim már az elején.
 - Rajzolási hívások: nagyjából 400–500 egy képen, árnyékkal és bloommal
-  együtt. Nagyobb pályán a statikus darabok mérete (`buildChunks(40)`) és a
+  együtt. Egy ranger kb. 16 csomópont (hívás anyagonként), a bogarak lábai
+  külön csomópontok. Nagyobb pályán a statikus darabok mérete (`buildChunks(40)`) és a
   bogarak lábai (árnyék nélkül) a fő emelők.
 
 **Javasolt következő lépések** (a felhasználó kipróbálása után pontosítva):
-- harc érzete: célzás, visszarúgás, kitérés, fedezék be- és kilépés;
+- harc érzete: célzás, visszarúgás, kitérés, fedezék be- és kilépés; a
+  bogarak animációja (rágók, ugrás, köpés) a részletesebb modellekhez;
 - egyensúly: a bogarak sebzése és száma, az őrszem észlelési ideje, a boss
   hossza;
 - hangok legenerálása (`npm run voice -w games/long-watch`, kulccsal);

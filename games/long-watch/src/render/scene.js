@@ -45,6 +45,7 @@ export class GameView {
     this.power = false; this.relay = false;
     this.setQuality(settings.quality);
     this._v = new T.Vector3();
+    this._mz = [0, 0, 0];
   }
 
   setQuality(q) {
@@ -102,6 +103,9 @@ export class GameView {
     const F = this.fx;
     switch (e.type) {
       case "tracer": {
+        // Shots leave the figure's actual muzzle (the sim's is a rough spot).
+        const m = this.muzzleOf(e.src);
+        if (m) { e.x0 = m[0]; e.y0 = m[1]; e.z0 = m[2]; }
         if (e.src !== "ally" || Math.random() < 0.8) F.tracer(e.x0, e.y0, e.z0, e.x1, e.y1, e.z1, e.color);
         if (e.hit === "spark") F.sparks(e.x1, e.y1, e.z1, e.nx, e.ny, e.nz, 5, 0xffc27a, 3);
         if (e.hit === "spark") F.puff(e.x1, e.y1, e.z1, 2, 0x8a6a58, 0.25, 0.8, 0.5, 0.3);
@@ -109,7 +113,8 @@ export class GameView {
         if (e.hit === "splat") F.sparks(e.x1, e.y1, e.z1, 0, 0.6, 0, 7, 0x9cff3a, 3, 0.4, 0.08, 12);
         break;
       }
-      case "shot": F.flash(e.x, e.y, e.z, e.dx, e.dy, e.dz, e.id === "launcher" ? 1.6 : e.id === "pistol" ? 0.8 : 1, e.id === "laser" ? 0x7ef9ff : 0xffd27a); if (e.src === "player") this.kick(e.id === "launcher" ? 0.25 : 0.05); break;
+      case "shot": { const m = this.muzzleOf(e.src); if (m) { e.x = m[0]; e.y = m[1]; e.z = m[2]; } }
+        F.flash(e.x, e.y, e.z, e.dx, e.dy, e.dz, e.id === "launcher" ? 1.6 : e.id === "pistol" ? 0.8 : 1, e.id === "laser" ? 0x7ef9ff : 0xffd27a); if (e.src === "player") this.kick(e.id === "launcher" ? 0.25 : 0.05); break;
       case "blast": F.blast(e.x, e.y, e.z, e.r); this.kick(Math.max(0, 0.9 - Math.hypot(run.player.body.x - e.x, run.player.body.z - e.z) / 30)); break;
       case "bugDie": F.sparks(e.x, e.y + 0.4, e.z, 0, 1, 0, e.boss ? 80 : 18, 0x9cff3a, e.boss ? 8 : 4, 0.6, e.boss ? 0.2 : 0.1, 10); F.puff(e.x, e.y, e.z, e.boss ? 30 : 6, 0x5a3a40, e.boss ? 2 : 0.6); break;
       case "emerge": case "burrow": F.puff(e.x, e.y, e.z, 12, 0x8e4a31, 0.8, 2.5, 1.0, 2.5); break;
@@ -139,6 +144,10 @@ export class GameView {
     }
   }
   kick(k) { this.shake = Math.min(1.2, this.shake + k); }
+  muzzleOf(src) {
+    const f = src === "player" ? this.actors.player : src === "ally" ? this.actors.kessler : null;
+    return f && f.obj.visible ? f.muzzle(this._mz) : null;
+  }
 
   // ── A frame ──
   // look: { yaw, pitch } the live view angles (the mouse moves them between
@@ -146,7 +155,7 @@ export class GameView {
   render(run, look, a, dt, t, settings) {
     const p = run.player, b = p.body;
     this.actors.update(run, a, dt, t);
-    this.fx.sync(run);
+    this.fx.sync(run, this.actors.player.muzzle(this._mz));
     this.fx.update(dt);
 
     // Camera.

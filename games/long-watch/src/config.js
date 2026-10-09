@@ -47,11 +47,12 @@ export const NOISE = {
 
 export const CAMERA = {
   dist: 3.6,
-  aimDist: 1.9,
+  aimDist: 2.0,
   height: 1.55,
   crouchHeight: 1.05,
   side: 0.72,          // over the right shoulder (mirrored when swapped)
-  aimSide: 0.62,
+  aimSide: 0.95,       // further out and a touch higher when aiming, so the gun shows under the pauldron
+  aimRaise: 0.08,
   fov: 66,
   aimFov: 46,
 };
