@@ -228,3 +228,57 @@ pályán belüli ellenőrzőpontokkal.
 - A szereplők végleges ElevenLabs-hangjai (most az előre elkészített
   hangtár hangjaival számol a szkript).
 - A többi nyelv.
+
+## 8. Átadás: állapot és tudnivalók a folytatáshoz
+
+**Hol tart:** az 1. fejezet végigjátszható. A `claude/eager-fermi-2sst54` ágon
+van, a főágba még nincs beolvasztva. A lefordított változat privát
+Artifactként fut: https://claude.ai/artifact/SySAgeJFKfWdvERnzLcBrz
+
+**Ellenőrzés minden változtatás után** (`npm run dev -w games/long-watch`
+mellett):
+
+- `node scripts/flow.mjs [képelőtag]`: a teljes küldetés; az utolsó sorban
+  `"over":"won"` kell.
+- `node scripts/mechanics.mjs`: az alapmechanikák. A várt eredmény:
+  - van fedezék;
+  - `huntedCrouching: 0`, `huntedWalking > 0`;
+  - az őrszem guggolva később sikít;
+  - `kesslerFiredUnprovoked: false`;
+  - `revived: true`, `failed: "failed"`.
+- `node scripts/shot.mjs <előtag> <szakasz>:x,z,yaw,pitch`: képek.
+- A szkriptekhez kell `PLAYWRIGHT_CORE` (egy playwright-core
+  `index.mjs`-e); a Chromium alapból a `/opt/pw-browsers/chromium`. A
+  fej nélküli böngésző nagyon lassan renderel, ezért a szkriptek a
+  szimulációt közvetlenül léptetik (`window.__longWatch`, csak dev
+  módban).
+
+**Új Artifact-változat:**
+1. `npx vite build`.
+2. A `dist/` tartalmát egy `page.html` szolgálja ki:
+   `<title>`, `<style>`, `<link>` a CSS-re, `<div id="app">` és
+   `<script type="module">` a JS-re; doctype és html/head/body nélkül.
+3. Közzététel ugyanarra az URL-re, a `files` alatt az `assets/*` és a
+   `voice/manifest.json` fájlokkal.
+
+**Tanulságok, amikre figyelni kell:**
+- A képkocka-idő negatív is lehet (az első rAF-nál); a `main.js` lenullázza.
+  Negatív `dt`-vel a `damp` elszáll (kamera, FOV).
+- Ha egy szereplő lépései zajosak, az a lopakodást is tönkreteszi: Kessler
+  csak harcban lehet hangos, és lopakodáskor kerüli a nem riasztott
+  bogarakat.
+- A használati pontok magassága a terepből jön (`run.addUse`), nem a
+  kellékek tetejéből. Lejtőn álló kelléknél ez számít.
+- Ha új épületet teszel a terepre, simítsd el alatta a magasságmezőt
+  (lásd a bunkert a `dustmoon.js`-ben), különben a terep átdöf a padlón.
+- Rajzolási hívások: nagyjából 400–500 egy képen, árnyékkal és bloommal
+  együtt. Nagyobb pályán a statikus darabok mérete (`buildChunks(40)`) és a
+  bogarak lábai (árnyék nélkül) a fő emelők.
+
+**Javasolt következő lépések** (a felhasználó kipróbálása után pontosítva):
+- harc érzete: célzás, visszarúgás, kitérés, fedezék be- és kilépés;
+- egyensúly: a bogarak sebzése és száma, az őrszem észlelési ideje, a boss
+  hossza;
+- hangok legenerálása (`npm run voice -w games/long-watch`, kulccsal);
+- hub a hajón, fejlesztések, utána a 2. fejezet (Fagyhatár);
+- Gamer Zone bejegyzés előnézeti képpel, ha már megmutatható.
