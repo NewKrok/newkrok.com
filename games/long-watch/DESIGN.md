@@ -37,6 +37,13 @@ az Őrség maga a történet.
   acélkék) sávokkal, mellkasi panel gombokkal, nyakgallér, szárnytáska a
   háton, nyitott sisak buborékvizorral, amin át látszik az arc. A tartalék
   fegyver a háton (hosszú fegyver) vagy a comb tokjában (pisztoly) lóg.
+- **A bogarak:** bogárszerűek, a WoW silithidjeinek mintájára: nagy,
+  kupolás, középen gerinccel kettéosztott szárnyfedő sötét tigriscsíkos
+  mintával, alá tűrt, gyűrűs potroh, kis szarvas fej alacsonyan elöl,
+  pengeszerű lábak fogazott úszóval és hegyes lábvéggel, a nagyokon
+  kasza-mellső végtag. Típusonként más a páncél színe: a rajzó rozsdás
+  narancs, a köpködő türkiz, a rohamozó mélylila arany szegéllyel és nagy
+  homlokszarvval, az őrszem lila, a Kaptárőr sötétlila arannyal.
 - **Hang:** a zajok és a zene szintetizáltak (`src/audio.js`). A szereplők
   angol hangja ElevenLabs-szal készül (`scripts/voice.mjs`), minden nyelven
   angolul; a felirat a választott nyelven jelenik meg. Aki a hajóról
@@ -295,8 +302,17 @@ mellvért, kupola-vállpáncél, gömbsisak (hátul kemény héj, elöl
 a mellvért elé (ready z = −0,3; a mellvért eleje ≈ −0,2), a kar 0,61 m-re
 nőtt (`RIG.upper` 0,31, `fore` 0,3). A vállpáncél lapított (y 0,72), mert
 a célzókamera fölötte néz a puskára. Ami megmaradt a régiből: az arc, a
-kezek (dobozok), a fegyverek, a túlélők és a bogarak. Egy ranger a négy
-fegyverével kb. 10 ezer háromszög, 42 mesh.
+kezek (dobozok), a fegyverek és a túlélők. Egy ranger a négy fegyverével
+kb. 10 ezer háromszög, 42 mesh.
+
+**A bogarak (3. menet):** a felhasználó silithid-képeket mutatott (WoW),
+ilyet kért Synty-stílusban. A `models/bugs.js` teljesen új: `shell()`
+(kupola, sötét perem, gerinc és tigriscsíkok tóruszívekből, a sátor
+`at()` keretében skálázva), `abdomen()` (bevágott esztergált potroh, +y →
++z forgatva), `head()`, `leg()` fogazott úszóval (`fin()`), a rohamozón és
+a Kaptárőrön kaszapenge (`S.extrude`). A csomópontnevek (body, head, l0…,
+sac, frill, jaw, sacL/R/T) és a találati gömbök (`sim/bugs.js`,
+`sim/warden.js`) változatlanok, a formák azokba illeszkednek.
 
 **A következő sessionnek (helyi környezetben):**
 - A felhasználó mindent helyben csinál: `npm run dev -w games/long-watch`
@@ -308,9 +324,10 @@ fegyverével kb. 10 ezer háromszög, 42 mesh.
   mutatott): kerek, lapokból álló formák, bordázott ízületek, gömbsisak,
   egy erős kiegészítő szín, világító csíkok. A 3. menet ezt rakta le a
   rangerre; a felhasználó még nem látta, az első dolog a visszajelzése.
-- Ahol folytatni érdemes: a túlélők és a bogarak ugyanebben a stílusban
-  (még dobozok), a kezek ujjai, a csere mozdulata, utána a „Javasolt
-  következő lépések" lent.
+- Ahol folytatni érdemes: a túlélők ugyanebben a stílusban (még
+  dobozok), a bogarak animációja az új modellekhez (rágók, kaszák, a
+  potroh), a kezek ujjai, a csere mozdulata, utána a „Javasolt következő
+  lépések" lent.
 - Gyors ellenőrzés a nézőben: `?model=ranger&pose=aim&yaw=1.57`,
   `?model=ranger&pose=reload&k=0.5&yaw=-2.3`, `?model=all`.
 
