@@ -301,6 +301,19 @@ so `scripts/bot.js` plays the whole dream headless.
 - A face is cheap: a chamfered box skull, two white balls with an iris and
   a pupil, brows, a nose wedge, a mouth slit, hair as two or three boxes.
   Behind a half-transparent glass dome it still reads at TPS distance.
+- Boxes do not read as Synty. The look of the Polygon packs is a round
+  form with a few flat facets: build limbs and the chest as surfaces of
+  revolution with ten segments (a cylinder with a slight belly and
+  rounded ends), joints as stacked rings in the soft-suit colour, pads
+  and pauldrons as domes, the helmet as a hard shell open at the front
+  with a glass ball inside. Scale a lathe in z to flatten a chest or a
+  hip. Turn each lathe by half a segment so a facet, not an edge, faces
+  the camera. A shell is back-face culled from inside: add a mirrored
+  copy (scale −1 in x) as the lining where the player can see in.
+- Hands end up inside the body when a stance puts the gun's grip behind
+  the chest's front plane. Decide the chest depth first, then place every
+  stance in front of it and check the fore-end is still within the left
+  arm's reach (a low ready has to yaw the gun hard to the left).
 - A dev model viewer (`?model=<id>&pose=…&k=…`, `scripts/models.mjs`) with
   posable figures pays for itself in the first hour; so does a `freeze`
   switch on the dev handle, because headless screenshots take a second

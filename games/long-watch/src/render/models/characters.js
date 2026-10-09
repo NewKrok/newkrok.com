@@ -22,8 +22,8 @@ export const RIG = {
   torso: 0.08,                     // torso pivot above the hips
   head: [0, 0.56, 0],              // head pivot in torso space
   shoulder: [0.27, 0.45, 0.0],     // shoulder pivots in torso space (±x)
-  upper: 0.3,                      // upper arm, pivot to elbow
-  fore: 0.29,                      // forearm, elbow to the palm
+  upper: 0.31,                     // upper arm, pivot to elbow
+  fore: 0.3,                       // forearm, elbow to the palm
   pouch: [-0.2, -0.06, -0.17],     // the spare magazine on the belt (torso space)
   chest: [-0.08, 0.28, -0.26],     // where a free left hand rests
   stow: [0.14, 0.12, 0.27],        // the slung long gun (torso space): grip at the right hip, muzzle over the left shoulder
@@ -76,111 +76,141 @@ export function face(h, o) {
   if (o.scar) h.add(S.box(0.008, 0.07, 0.006, 0), { p: [0.065 * f, 0.19, -0.102], r: [0, 0, 0.25], c: shade(skin, 0.78) });
 }
 
+// ── Rounded parts for the suit ──
+// A surface of revolution with ten facets gives the Synty look (flat
+// facets on a round form) that a chamfered box never does. Everything
+// below is a lathe, a ring or a dome; boxes are left to the pouches, the
+// boots and the hands.
+const SEG = 10;
+const FACE = [0, Math.PI / SEG, 0];     // turn a lathe so a flat facet, not an edge, faces −z
+// A rounded segment: a cylinder with a slight belly and rounded ends.
+const pod = (rTop, rBot, h, bulge = 1.04) => {
+  const y = h / 2, c = Math.min(0.03, h * 0.22), rm = ((rTop + rBot) / 2) * bulge;
+  return S.lathe([[0, -y], [rBot * 0.78, -y], [rBot, -y + c], [rm, 0], [rTop, y - c], [rTop * 0.78, y], [0, y]], SEG);
+};
+// A dome standing on y = 0.
+const dome = (r) => S.lathe([[r, 0], [r * 0.97, r * 0.25], [r * 0.87, r * 0.5], [r * 0.7, r * 0.72], [r * 0.45, r * 0.9], [0, r]], SEG);
+// The helmet shell: a ball open at the front, wrapping a little past the
+// equator (pole at +y, rim at −0.33 R).
+const shell = (R) => S.lathe([[R * 0.95, -R * 0.33], [R, 0], [R * 0.96, R * 0.33], [R * 0.84, R * 0.6], [R * 0.63, R * 0.82], [R * 0.33, R * 0.95], [0, R]], 12);
+// Soft-suit ribbing at a joint: stacked rings, every other one lighter.
+function ribs(b, p, r, h, n, c, s = 1) {
+  const pitch = h / n;
+  b.add(S.cyl(r * 0.92, r * 0.92, h, SEG), { p, s, c: shade(c, 0.9) });
+  for (let i = 0; i < n; i++) b.add(S.cyl(r, r, pitch * 0.55, SEG), { p: [p[0], p[1] - h / 2 + pitch * (i + 0.5), p[2]], s, c: i % 2 ? shade(c, 1.4) : c });
+}
+
 export function ranger(b, o = {}) {
   const k = RANGER_SKINS[o.skin ?? "player"];
   const A = k.armour, A2 = k.armour2, U = k.under, C = k.accent, P = k.trim, G = k.glove, L = k.light;
   const dark = 0x1f2326;
+  const gA = [shade(A, 0.86), shade(A, 1.03)], gA2 = [shade(A2, 0.88), A2];
   b.node("hips", [0, RIG.hips, 0], [0, 0, 0], (h) => {
-    // Pelvis: undersuit, a plated front, the belt with its buckle and pouches.
-    h.add(S.box(0.36, 0.24, 0.26, 0.07), { p: [0, -0.04, 0], c: U });
-    h.add(S.box(0.38, 0.12, 0.27, 0.04), { p: [0, -0.1, -0.005], c: A2, grad: [shade(A2, 0.85), A2] });
-    h.add(S.box(0.42, 0.085, 0.3, 0.03), { p: [0, 0.06, 0], c: P });
-    h.add(S.box(0.09, 0.06, 0.025, 0.008), { p: [0, 0.06, -0.158], c: C });
-    for (const s of [-1, 1]) h.add(S.box(0.1, 0.11, 0.07, 0.02), { p: [s * 0.16, -0.03, 0.14], c: shade(U, 1.35) });
-    h.add(S.box(0.09, 0.12, 0.06, 0.02), { p: [-0.17, -0.06, -0.12], c: shade(U, 1.35) });     // spare magazines
-    h.add(S.box(0.095, 0.02, 0.065, 0), { p: [-0.17, -0.005, -0.12], c: P });
+    // Pelvis: the soft suit, a rounded hip shell, the belt with its buckle and pouches.
+    h.add(S.cyl(0.17, 0.13, 0.16, SEG), { p: [0, -0.1, 0], r: FACE, s: [1.15, 1, 0.85], c: U });
+    h.add(S.lathe([[0, -0.1], [0.14, -0.1], [0.19, -0.03], [0.2, 0.05], [0.17, 0.1], [0, 0.1]], SEG), { p: [0, -0.04, 0], r: FACE, s: [1.1, 1, 0.8], c: A2, grad: gA2 });
+    h.add(S.cyl(0.215, 0.215, 0.07, SEG), { p: [0, 0.07, 0], r: FACE, s: [1.08, 1, 0.8], c: P });
+    h.add(S.box(0.09, 0.05, 0.03, 0.01), { p: [0, 0.07, -0.175], c: C });
+    for (const s of [-1, 1]) h.add(S.box(0.1, 0.11, 0.07, 0.03), { p: [s * 0.17, -0.02, 0.13], c: shade(U, 1.35) });
+    h.add(S.box(0.09, 0.12, 0.06, 0.025), { p: [-0.19, -0.05, -0.1], c: shade(U, 1.35) });     // spare magazines
+    h.add(S.box(0.095, 0.02, 0.065, 0.005), { p: [-0.19, 0.005, -0.1], c: P });
     // The holster on the right thigh (the pistol is parented here at run time).
     h.node("holster", RIG.holster, [0, 0, 0], (hs) => {
-      hs.add(S.box(0.05, 0.2, 0.09, 0.015), { p: [0.02, -0.1, 0.0], c: dark });
-      hs.add(S.box(0.07, 0.03, 0.12, 0.01), { p: [0.0, -0.04, 0], c: P });
-      hs.add(S.box(0.07, 0.03, 0.12, 0.01), { p: [0.0, -0.17, 0], c: P });
+      hs.add(S.box(0.05, 0.2, 0.09, 0.02), { p: [0.02, -0.1, 0.0], c: dark });
+      hs.add(S.box(0.07, 0.03, 0.12, 0.012), { p: [0.0, -0.04, 0], c: P });
+      hs.add(S.box(0.07, 0.03, 0.12, 0.012), { p: [0.0, -0.17, 0], c: P });
     });
     for (const side of [-1, 1]) {
       h.node(side < 0 ? "legL" : "legR", [side * 0.13, -0.06, 0], [0, 0, 0], (l) => {
-        // Thigh: undersuit, front and outer plates, a strap.
-        l.add(S.box(0.18, 0.4, 0.2, 0.05), { p: [0, -0.2, 0], c: U });
-        l.add(S.box(0.19, 0.26, 0.13, 0.04), { p: [0, -0.16, -0.065], c: A2, grad: [shade(A2, 0.9), A2] });
-        l.add(S.box(0.06, 0.24, 0.19, 0.02), { p: [side * 0.085, -0.17, 0.01], c: A2 });
-        l.add(S.box(0.19, 0.035, 0.21, 0), { p: [0, -0.33, 0], c: P });
+        // Thigh: ribbed hip joint, an armoured shell with an accent ring.
+        ribs(l, [0, -0.05, 0], 0.09, 0.1, 3, U);
+        l.add(pod(0.105, 0.088, 0.32), { p: [0, -0.24, 0], r: FACE, c: A, grad: gA });
+        l.add(S.cyl(0.096, 0.096, 0.028, SEG), { p: [0, -0.36, 0], r: FACE, c: C });
         l.node(side < 0 ? "shinL" : "shinR", [0, -0.42, 0], [0, 0, 0], (s) => {
-          // Knee pad, shin, guard, boot.
-          s.add(S.box(0.19, 0.17, 0.15, 0.055), { p: [0, -0.01, -0.06], c: A, grad: [shade(A, 0.88), shade(A, 1.05)] });
-          s.add(S.box(0.16, 0.34, 0.18, 0.05), { p: [0, -0.2, 0], c: U });
-          s.add(S.box(0.17, 0.26, 0.1, 0.03), { p: [0, -0.22, -0.07], c: A2 });
-          s.add(S.box(0.172, 0.035, 0.07, 0), { p: [0, -0.14, -0.1], c: C });
-          s.add(S.box(0.19, 0.07, 0.21, 0.02), { p: [0, -0.355, 0.0], c: C });
-          s.add(S.box(0.18, 0.13, 0.3, 0.04), { p: [0, -0.4, -0.045], c: A, grad: [shade(A, 0.9), A] });
-          s.add(S.box(0.17, 0.08, 0.09, 0.03), { p: [0, -0.4, -0.175], c: P });
-          s.add(S.box(0.19, 0.05, 0.32, 0.01), { p: [0, -0.445, -0.045], c: dark });
+          // Knee joint and pad, shin shell, ankle, boot.
+          ribs(s, [0, -0.01, 0], 0.078, 0.09, 3, U);
+          s.add(S.ball(0.08, 8, 6), { p: [0, -0.02, -0.05], s: [1, 1.1, 0.75], c: A, grad: gA });
+          s.add(pod(0.085, 0.072, 0.26), { p: [0, -0.2, 0], r: FACE, c: A, grad: gA });
+          s.add(S.cyl(0.088, 0.088, 0.025, SEG), { p: [0, -0.15, 0], r: FACE, c: C });
+          ribs(s, [0, -0.365, 0], 0.066, 0.06, 2, U);
+          s.add(S.box(0.17, 0.1, 0.27, 0.045), { p: [0, -0.415, -0.04], c: A2, grad: gA2 });
+          s.add(S.box(0.16, 0.07, 0.09, 0.03), { p: [0, -0.43, -0.15], c: P });
+          s.add(S.box(0.18, 0.04, 0.29, 0.012), { p: [0, -0.45, -0.04], c: dark });
         });
       });
     }
     h.node("torso", [0, RIG.torso, 0], [0, 0, 0], (t) => {
-      // Abdomen: undersuit under two segmented plates.
-      t.add(S.box(0.36, 0.22, 0.24, 0.06), { p: [0, 0.1, 0], c: U });
-      t.add(S.box(0.38, 0.065, 0.26, 0.02), { p: [0, 0.05, -0.005], c: A2 });
-      t.add(S.box(0.4, 0.07, 0.27, 0.02), { p: [0, 0.14, -0.01], c: A2 });
-      // Chest plate with pectoral plates, a centre panel and its buttons.
-      t.add(S.box(0.5, 0.33, 0.34, 0.08), { p: [0, 0.37, -0.01], c: A, grad: [shade(A, 0.86), A] });
-      for (const s of [-1, 1]) t.add(S.box(0.19, 0.14, 0.05, 0.025), { p: [s * 0.14, 0.45, -0.175], c: shade(A, 1.04) });
-      t.add(S.box(0.2, 0.11, 0.035, 0.01), { p: [0.0, 0.3, -0.19], c: P });
-      [[-0.06, 0xff4a3a], [0, 0x5af07a], [0.06, 0x4aa0ff]].forEach(([x, c]) => t.add(S.box(0.028, 0.028, 0.012, 0), { p: [x, 0.285, -0.207], c, mat: "glow", glow: 1.3 }));
-      t.add(S.box(0.1, 0.03, 0.012, 0), { p: [0, 0.33, -0.207], c: L, mat: "glow", glow: 1.1 });
-      t.add(S.box(0.07, 0.03, 0.025, 0), { p: [-0.17, 0.5, -0.175], c: C });                    // rank stripe
+      // Abdomen: the ribbed soft suit.
+      ribs(t, [0, 0.1, 0], 0.16, 0.2, 4, U, [1.2, 1, 0.82]);
+      // Chest: one rounded shell from the waist to the shoulders, pectoral
+      // plates, the centre panel with its buttons and light bar.
+      t.add(S.lathe([[0, 0.17], [0.19, 0.17], [0.26, 0.27], [0.285, 0.4], [0.275, 0.5], [0.2, 0.565], [0, 0.58]], SEG), { r: FACE, s: [1, 1, 0.72], c: A, grad: gA });
+      for (const s of [-1, 1]) t.add(S.box(0.2, 0.16, 0.06, 0.035), { p: [s * 0.12, 0.44, -0.185], r: [0, s * 0.35, 0], c: shade(A, 1.04) });
+      t.add(S.box(0.16, 0.12, 0.04, 0.012), { p: [0.0, 0.3, -0.19], c: P });
+      [[-0.05, 0xff4a3a], [0, 0x5af07a], [0.05, 0x4aa0ff]].forEach(([x, c]) => t.add(S.box(0.026, 0.026, 0.012, 0), { p: [x, 0.28, -0.212], c, mat: "glow", glow: 1.3 }));
+      t.add(S.box(0.1, 0.025, 0.012, 0), { p: [0, 0.33, -0.212], c: L, mat: "glow", glow: 1.1 });
+      t.add(S.box(0.2, 0.018, 0.012, 0), { p: [0, 0.525, -0.19], c: L, mat: "glow", glow: 1.0 });
+      t.add(S.box(0.07, 0.03, 0.025, 0.005), { p: [-0.19, 0.53, -0.13], r: [0, -0.55, 0], c: C });   // rank stripe
       // Collar ring and the plate behind the neck.
-      t.add(S.torus(0.125, 0.045, 6, 14), { p: [0, 0.55, 0.0], r: [Math.PI / 2, 0, 0], c: P });
-      t.add(S.box(0.3, 0.1, 0.1, 0.03), { p: [0, 0.57, 0.1], c: A });
-      // The wing pack: a flat pack, two folded wing stubs, thrusters, antenna.
-      t.add(S.box(0.36, 0.38, 0.14, 0.05), { p: [0, 0.33, 0.23], c: shade(A, 0.92), grad: [shade(A, 0.8), shade(A, 0.98)] });
-      t.add(S.box(0.3, 0.05, 0.145, 0.01), { p: [0, 0.33, 0.235], c: P });
+      t.add(S.torus(0.145, 0.04, 6, 14), { p: [0, 0.57, 0.01], r: [Math.PI / 2, 0, 0], c: P });
+      t.add(S.box(0.3, 0.1, 0.1, 0.045), { p: [0, 0.58, 0.11], c: A });
+      // The pack: a rounded pack, two tanks, folded wing stubs, antenna.
+      t.add(S.box(0.34, 0.38, 0.15, 0.07), { p: [0, 0.35, 0.24], c: shade(A, 0.92), grad: [shade(A, 0.8), shade(A, 0.98)] });
+      t.add(S.box(0.3, 0.05, 0.155, 0.015), { p: [0, 0.35, 0.245], c: P });
       for (const s of [-1, 1]) {
-        t.add(S.box(0.1, 0.36, 0.04, 0.015), { p: [s * 0.2, 0.36, 0.3], r: [0, 0, s * -0.22], c: P });
-        t.add(S.box(0.102, 0.12, 0.042, 0.01), { p: [s * 0.225, 0.5, 0.3], r: [0, 0, s * -0.22], c: C });
-        t.add(S.cyl(0.04, 0.045, 0.1, 7), { p: [s * 0.1, 0.12, 0.25], c: shade(U, 1.3), mat: "metal" });
-        t.add(S.cyl(0.025, 0.025, 0.02, 7), { p: [s * 0.1, 0.06, 0.25], c: L, mat: "glow", glow: 0.9 });
+        t.add(S.cyl(0.05, 0.05, 0.28, 8, 0.015), { p: [s * 0.1, 0.3, 0.32], c: A2, grad: gA2, mat: "metal" });
+        t.add(S.cyl(0.03, 0.035, 0.035, 8), { p: [s * 0.1, 0.46, 0.32], c: P });
+        t.add(S.cyl(0.028, 0.028, 0.02, 7), { p: [s * 0.1, 0.15, 0.32], c: L, mat: "glow", glow: 0.9 });
+        t.add(S.box(0.09, 0.3, 0.035, 0.015), { p: [s * 0.22, 0.42, 0.3], r: [0, 0, s * -0.25], c: P });
+        t.add(S.box(0.092, 0.1, 0.037, 0.012), { p: [s * 0.245, 0.53, 0.3], r: [0, 0, s * -0.25], c: C });
       }
       t.add(S.cyl(0.006, 0.006, 0.42, 4), { p: [0.15, 0.72, 0.26], c: 0x111111 });
-      t.add(S.box(0.16, 0.02, 0.012, 0), { p: [0, 0.42, 0.302], c: L, mat: "glow", glow: 0.9 });
-      t.node("stow", RIG.stow, [0, 0, 0], (st) => { st.add(S.box(0.06, 0.05, 0.05, 0.01), { c: dark }); });
-      // Pauldrons: big, tilted outward, with an accent band.
+      t.node("stow", RIG.stow, [0, 0, 0], (st) => { st.add(S.box(0.06, 0.05, 0.05, 0.015), { c: dark }); });
+      // Pauldrons: domes tilted outward, with an accent band and a rim.
       for (const s of [-1, 1]) {
-        t.add(S.box(0.19, 0.11, 0.26, 0.05), { p: [s * 0.3, 0.53, 0], r: [0, 0, s * -0.32], c: A, grad: [shade(A, 0.9), shade(A, 1.06)] });
-        t.add(S.box(0.195, 0.03, 0.1, 0.01), { p: [s * 0.3, 0.57, -0.0], r: [0, 0, s * -0.32], c: C });
-        t.add(S.box(0.05, 0.12, 0.27, 0.02), { p: [s * 0.385, 0.5, 0], r: [0, 0, s * -0.32], c: P });
+        // (Flattened: the aim camera looks over the right one at the gun.)
+        t.at([s * 0.29, 0.51, 0], [0, 0, s * -0.5], 1, (p) => {
+          p.add(dome(0.135), { s: [1, 0.72, 1.1], c: A, grad: gA });
+          p.add(S.cyl(0.135, 0.125, 0.03, SEG), { p: [0, -0.015, 0], s: [1, 1, 1.1], c: P });
+          p.add(S.torus(0.128, 0.016, 5, 14), { p: [0, 0.028, 0], r: [Math.PI / 2, 0, 0], s: [1, 1, 1.1], c: C });
+        });
       }
       t.node("head", RIG.head, [0, 0, 0], (hd) => {
         face(hd, k);
-        // An open-face helmet shell: cap, back, cheeks, brow ridge, chin
-        // guard, ear cups with lights; and the bubble visor over the face.
-        hd.add(S.box(0.3, 0.11, 0.3, 0.06), { p: [0, 0.345, 0.025], c: A, grad: [shade(A, 0.92), shade(A, 1.08)] });
-        hd.add(S.box(0.3, 0.26, 0.1, 0.05), { p: [0, 0.19, 0.145], c: A });
+        // The helmet: a hard shell over the top and back, a glass bubble in
+        // front, a rim where they meet, a seal on the collar, ear cups with
+        // lights and a lamp on the brow.
+        const hc = [0, 0.2, 0.02], R = 0.215;
+        hd.add(shell(R), { p: hc, r: [Math.PI / 2, 0, 0], c: A, grad: [shade(A, 1.04), shade(A, 0.9)] });
+        hd.add(shell(R * 0.97), { p: hc, r: [Math.PI / 2, 0, 0], s: [-1, 1, 1], c: 0x30353a, facet: 0 });   // the inside (mirrored: faces inward)
+        hd.add(S.ball(R * 0.94, 12, 8), { p: hc, c: 0xd8ecff, mat: "glass", smooth: true });
+        hd.add(S.torus(R * 0.95, 0.016, 5, 16), { p: [0, 0.2, 0.02 - R * 0.33], c: P });
+        hd.add(S.cyl(0.165, 0.14, 0.05, SEG), { p: [0, 0.0, 0.02], r: FACE, c: P });
         for (const s of [-1, 1]) {
-          hd.add(S.box(0.05, 0.22, 0.24, 0.03), { p: [s * 0.15, 0.19, 0.04], c: A });
-          hd.add(S.cyl(0.055, 0.055, 0.04, 8), { p: [s * 0.175, 0.19, 0.03], r: [0, 0, Math.PI / 2], c: A2 });
-          hd.add(S.cyl(0.03, 0.03, 0.012, 8), { p: [s * 0.2, 0.19, 0.03], r: [0, 0, Math.PI / 2], c: L, mat: "glow", glow: 1.2 });
+          hd.add(S.cyl(0.06, 0.06, 0.04, 8), { p: [s * 0.21, 0.2, 0.03], r: [0, 0, Math.PI / 2], c: A2 });
+          hd.add(S.cyl(0.034, 0.034, 0.012, 8), { p: [s * 0.236, 0.2, 0.03], r: [0, 0, Math.PI / 2], c: L, mat: "glow", glow: 1.2 });
         }
-        hd.add(S.box(0.3, 0.05, 0.1, 0.02), { p: [0, 0.325, -0.1], c: P });
-        hd.add(S.box(0.1, 0.03, 0.03, 0.01), { p: [0.1, 0.36, -0.14], c: C });
-        hd.add(S.box(0.24, 0.045, 0.08, 0.02), { p: [0, 0.045, -0.09], c: A2 });
-        hd.add(S.lathe([[0.175, 0], [0.17, 0.045], [0.15, 0.095], [0.115, 0.135], [0.065, 0.163], [0, 0.175]], 12), { p: [0, 0.2, 0.03], r: [-Math.PI / 2, 0, 0], c: 0xd8ecff, mat: "glass", smooth: true });
+        hd.add(S.box(0.08, 0.035, 0.04, 0.012), { p: [0, 0.395, -0.06], c: C });
       });
       // Arms: shoulder pivot, upper arm hanging −y, forearm with the hand.
       for (const side of [-1, 1]) {
         const [sx, sy, sz] = RIG.shoulder;
         t.node(side < 0 ? "armL" : "armR", [side * sx, sy, sz], [0, 0, 0], (a) => {
-          a.add(S.box(0.14, 0.3, 0.15, 0.05), { p: [0, -0.15, 0], c: U });
-          a.add(S.box(0.1, 0.17, 0.165, 0.03), { p: [side * 0.045, -0.12, 0], c: A2 });
-          a.add(S.box(0.145, 0.1, 0.12, 0.04), { p: [0, -0.28, 0.035], c: A });                 // elbow pad (bends about x, pad at +z)
+          a.add(pod(0.072, 0.06, 0.2), { p: [0, -0.13, 0], r: FACE, c: U });
+          a.add(S.cyl(0.086, 0.078, 0.13, SEG, 0.015), { p: [0, -0.1, 0], r: FACE, c: A2, grad: gA2 });   // the bicep plate
+          ribs(a, [0, -0.265, 0], 0.062, 0.08, 3, U);
+          a.add(S.ball(0.062, 8, 6), { p: [0, -0.3, 0.035], s: [1, 1.1, 0.8], c: A, grad: gA });        // elbow pad (bends about x, pad at +z)
           a.node(side < 0 ? "foreL" : "foreR", [0, -RIG.upper, 0], [0, 0, 0], (f) => {
-            f.add(S.box(0.13, 0.24, 0.14, 0.04), { p: [0, -0.12, 0], c: U });
-            f.add(S.box(0.165, 0.19, 0.175, 0.055), { p: [0, -0.15, 0], c: A, grad: [shade(A, 0.9), shade(A, 1.04)] });
-            f.add(S.box(0.17, 0.03, 0.18, 0), { p: [0, -0.055, 0], c: C });
+            f.add(pod(0.068, 0.084, 0.2), { p: [0, -0.14, 0], r: FACE, c: A, grad: gA });               // the gauntlet
+            f.add(S.cyl(0.082, 0.082, 0.025, SEG), { p: [0, -0.07, 0], r: FACE, c: C });
+            ribs(f, [0, -0.262, 0], 0.058, 0.05, 2, U);
             if (side < 0) {
-              f.add(S.box(0.05, 0.065, 0.075, 0.012), { p: [-0.095, -0.14, 0.0], c: P });
-              f.add(S.box(0.012, 0.025, 0.035, 0), { p: [-0.122, -0.135, 0], c: 0xff4a3a, mat: "glow", glow: 1.2 });
+              f.add(S.box(0.055, 0.07, 0.085, 0.02), { p: [-0.095, -0.15, 0.0], c: P });                // the wrist computer
+              f.add(S.box(0.012, 0.028, 0.04, 0), { p: [-0.124, -0.145, 0], c: 0xff4a3a, mat: "glow", glow: 1.2 });
             }
-            f.add(S.box(0.095, 0.1, 0.1, 0.03), { p: [0, -RIG.fore - 0.01, -0.01], c: G });   // the hand
-            f.add(S.box(0.035, 0.05, 0.04, 0.012), { p: [side * -0.05, -RIG.fore + 0.01, -0.04], c: G });   // thumb
+            f.add(S.box(0.095, 0.1, 0.1, 0.035), { p: [0, -RIG.fore - 0.01, -0.01], c: G });            // the hand
+            f.add(S.box(0.04, 0.055, 0.045, 0.015), { p: [side * -0.05, -RIG.fore + 0.01, -0.04], c: G });   // thumb
+            f.add(S.box(0.075, 0.03, 0.05, 0.012), { p: [0, -RIG.fore + 0.02, 0.045], c: A2 });           // knuckle plate
             if (side < 0) f.node("magL", [0, -RIG.fore - 0.02, -0.04], [0.3, 0, 0], (m) => magazine(m));
           });
         });

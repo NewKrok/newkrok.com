@@ -48,15 +48,17 @@ function reachArm(arm, fore, S, H, pole, L1 = RIG.upper, L2 = RIG.fore) {
 // arms are short (0.59 m from the shoulder), so every stance keeps the
 // fore-end within the left hand's reach.
 const POSE = {
-  ready: { p: [0.1, 0.33, -0.14], r: [-0.45, 0.25, -0.1] },      // at the chest, muzzle down and a little across
-  crouch: { p: [0.09, 0.3, -0.13], r: [-0.5, 0.3, -0.1] },
-  sprint: { p: [0.05, 0.3, -0.18], r: [-0.9, 0.5, 0.0] },         // slung low, across the body
-  cover: { p: [0.08, 0.3, -0.17], r: [1.2, 0.0, 0.0] },           // up against the chest, muzzle high
-  reload: { p: [0.04, 0.28, -0.22], r: [-0.35, 0.1, -0.5] },      // tilted so the magazine well faces the left hand
+  // Low ready: at the chest, held clear of the chest plate, the muzzle
+  // down and across to the left (the fore-end near the left hip).
+  ready: { p: [0.14, 0.32, -0.3], r: [-0.75, 0.95, -0.15] },
+  crouch: { p: [0.13, 0.3, -0.28], r: [-0.8, 1.0, -0.15] },
+  sprint: { p: [0.08, 0.3, -0.27], r: [-1.0, 0.75, 0.0] },        // slung low, across the body
+  cover: { p: [0.12, 0.32, -0.27], r: [1.2, 0.1, 0.0] },          // up against the chest, muzzle high
+  reload: { p: [0.08, 0.28, -0.28], r: [-0.45, 0.35, -0.5] },     // tilted so the magazine well faces the left hand
   stow: { p: [0.3, 0.08, 0.2], r: [1.5, 2.6, 0.3] },                // a long gun goes to the right hip, outside, muzzle up (the swap's midpoint)
   stowShort: { p: [0.24, -0.08, -0.06], r: [-1.4, 0, 0] },          // a pistol goes to the holster
   down: { p: [0.3, 0.55, -0.15], r: [1.4, 0, 0] },                // lying forward on the ground
-  idlePistol: { p: [0.22, 0.12, -0.12], r: [-1.2, 0, 0] },        // by the leg, muzzle down
+  idlePistol: { p: [0.26, 0.1, -0.14], r: [-1.2, 0, 0] },         // by the leg, muzzle down
 };
 // Aiming: the stock stays at the shoulder (the pistol: arms out in front);
 // the gun pitches and yaws about that pivot. The torso turns sideways a

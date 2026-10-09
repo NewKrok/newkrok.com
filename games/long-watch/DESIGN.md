@@ -284,30 +284,35 @@ mellett):
   szimulációt közvetlenül léptetik (`window.__longWatch`, csak dev
   módban).
 
-**A figurák (2. menet):** a rangerek, a fegyverek, a túlélők és a bogarak
-modellje Synty-szintű részletességű lett, a rangereknek arcuk van, a kar
-kétcsontos IK-val fogja a fegyvert, van animált célzás, újratöltés
-(Kesslernél is: 36 lövésenként tölt), fegyvercsere, térdelés, sprint,
-fedezék. A célzókamera kicsit kijjebb és feljebb került (`CAMERA.aimSide`,
-`aimRaise`), hogy a puska kilátsszon a vállpáncél mellett. Ami még
-hátravan: a kezek nem fogják pontosan a markolatot (a tenyér a fogáspontra
-ül, az ujjak nincsenek), a csere 0,45 mp alatt inkább jelzés, mint
-mozdulat, a bogarak animációja (ollók, rágók) még a régi.
+**A figurák (3. menet, Synty-irány):** a felhasználó első visszajelzése a
+2. menetre: a kezek a testben voltak, és az egész figura dobozokból állt.
+A 3. menet ezért a ranger modellt teljesen újraépítette esztergált
+(lathe) formákból: lekerekített, tízlapú tagok (`pod`), kupolák (`dome`),
+bordázott puhaöltözet az ízületeknél (`ribs`), egy darabból esztergált
+mellvért, kupola-vállpáncél, gömbsisak (hátul kemény héj, elöl
+üvegbúra, perem a találkozásnál, belül tükrözött bélés, hogy ne lássunk
+át rajta). A fegyverállások (`POSE` a rangerfig.js-ben) előrébb kerültek,
+a mellvért elé (ready z = −0,3; a mellvért eleje ≈ −0,2), a kar 0,61 m-re
+nőtt (`RIG.upper` 0,31, `fore` 0,3). A vállpáncél lapított (y 0,72), mert
+a célzókamera fölötte néz a puskára. Ami megmaradt a régiből: az arc, a
+kezek (dobozok), a fegyverek, a túlélők és a bogarak. Egy ranger a négy
+fegyverével kb. 10 ezer háromszög, 42 mesh.
 
 **A következő sessionnek (helyi környezetben):**
 - A felhasználó mindent helyben csinál: `npm run dev -w games/long-watch`
-  mellett dolgozunk, Artifact nincs. A fej nélküli szkriptekhez a gépén
-  kell `PLAYWRIGHT_CORE` (egy `playwright-core/index.mjs`) és `CHROME`.
-- Az elvárt stílus: Synty-szintű részletesség, a rangerek Gears of War ×
-  Buzz Lightyear páncélban, arccal. A 2. menet (ez az ág utolsó két
-  commitja) ezt rakta le; a felhasználó még nem próbálta ki, az első dolog
-  az ő visszajelzése a figurákról, az animációról és a kijjebb tett
-  célzókameráról.
-- Ahol folytatni érdemes: a kezek fogása (ujjak), a csere mozdulata, a
-  bogarak animációja az új modellekhez, utána a „Javasolt következő
-  lépések" lent.
+  mellett dolgozunk, Artifact nincs. A fej nélküli szkriptekhez a gépén a
+  `PLAYWRIGHT_CORE` alapértelmezése (`~/work/nape-js/...`) jó, a `CHROME`
+  pedig `~/Library/Caches/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-mac-arm64/chrome-headless-shell`.
+  A Claude beépített böngészője (`?model=…`) gyorsabb a képekhez.
+- Az elvárt stílus: Synty Polygon Sci-Fi Worlds (a felhasználó képet
+  mutatott): kerek, lapokból álló formák, bordázott ízületek, gömbsisak,
+  egy erős kiegészítő szín, világító csíkok. A 3. menet ezt rakta le a
+  rangerre; a felhasználó még nem látta, az első dolog a visszajelzése.
+- Ahol folytatni érdemes: a túlélők és a bogarak ugyanebben a stílusban
+  (még dobozok), a kezek ujjai, a csere mozdulata, utána a „Javasolt
+  következő lépések" lent.
 - Gyors ellenőrzés a nézőben: `?model=ranger&pose=aim&yaw=1.57`,
-  `?model=ranger&pose=reload&k=0.4&yaw=-2.3`, `?model=all`.
+  `?model=ranger&pose=reload&k=0.5&yaw=-2.3`, `?model=all`.
 
 **Tanulságok, amikre figyelni kell:**
 - A képkocka-idő negatív is lehet (az első rAF-nál); a `game.js` lenullázza.
@@ -321,10 +326,17 @@ mozdulat, a bogarak animációja (ollók, rágók) még a régi.
   (lásd a bunkert a `dustmoon.js`-ben), különben a terep átdöf a padlón.
 - A ranger rigje a `RIG` (characters.js): a vállak és a karhosszak ott
   vannak; a fegyverállások (`POSE`, `AIM` a rangerfig.js-ben) a törzs
-  terében értendők, és a bal kéz csak kb. 0,59 m-re ér a válltól: ha egy
+  terében értendők, és a bal kéz csak kb. 0,61 m-re ér a válltól: ha egy
   új állásban a kéz nem éri el a fogáspontot, közelebb kell hozni a
   fegyvert, nem a kart nyújtani. A nézőben (`?model=ranger&pose=…`) lehet
-  ellenőrizni.
+  ellenőrizni. Egy állás z-je a mellvért elé (< −0,22) kell essen,
+  különben a kéz a testben van; az alacsony készenlétben a puska erősen
+  balra és lefelé fordul (ry ≈ 0,95, rx ≈ −0,75), csak így éri el a bal
+  kéz az előagyat.
+- Esztergált (lathe) test: a `FACE` elforgatás kell, hogy a −z felé egy
+  lap nézzen, ne egy él. Egy nyitott héj belseje nem látszik (hátlapok):
+  ha át lehet látni rajta, tükrözött (`s: [-1, 1, 1]`) példány kell
+  belülre.
 - A fegyvercsere és az újratöltés animációját a sim `swapT` és `reloadT`
   számlálója hajtja (a figura `reloadK`-t és `swapT`-t kap); a csere felénél
   vált a kézben lévő modell, a szim már az elején.
