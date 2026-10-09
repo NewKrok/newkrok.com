@@ -294,6 +294,21 @@ hátravan: a kezek nem fogják pontosan a markolatot (a tenyér a fogáspontra
 ül, az ujjak nincsenek), a csere 0,45 mp alatt inkább jelzés, mint
 mozdulat, a bogarak animációja (ollók, rágók) még a régi.
 
+**A következő sessionnek (helyi környezetben):**
+- A felhasználó mindent helyben csinál: `npm run dev -w games/long-watch`
+  mellett dolgozunk, Artifact nincs. A fej nélküli szkriptekhez a gépén
+  kell `PLAYWRIGHT_CORE` (egy `playwright-core/index.mjs`) és `CHROME`.
+- Az elvárt stílus: Synty-szintű részletesség, a rangerek Gears of War ×
+  Buzz Lightyear páncélban, arccal. A 2. menet (ez az ág utolsó két
+  commitja) ezt rakta le; a felhasználó még nem próbálta ki, az első dolog
+  az ő visszajelzése a figurákról, az animációról és a kijjebb tett
+  célzókameráról.
+- Ahol folytatni érdemes: a kezek fogása (ujjak), a csere mozdulata, a
+  bogarak animációja az új modellekhez, utána a „Javasolt következő
+  lépések" lent.
+- Gyors ellenőrzés a nézőben: `?model=ranger&pose=aim&yaw=1.57`,
+  `?model=ranger&pose=reload&k=0.4&yaw=-2.3`, `?model=all`.
+
 **Tanulságok, amikre figyelni kell:**
 - A képkocka-idő negatív is lehet (az első rAF-nál); a `game.js` lenullázza.
   Negatív `dt`-vel a `damp` elszáll (kamera, FOV).
