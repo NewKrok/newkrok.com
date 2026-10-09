@@ -15,7 +15,7 @@ function seg(b, [ax, ay], [bx, by], thick, c) {
 
 // A leg from the body (pivot at height y above the ground) out to a knee
 // high over it, then down to a foot on the ground.
-function leg(b, name, x, y, z, side, len, thick, c, splay = 0.7, rise = 0.5) {
+function leg(b, name, x, y, z, side, len, thick, c, splay = 0.7, rise = 0.8) {
   b.node(name, [x, y, z], [0, 0, 0], (l) => {
     const knee = [side * len * 0.42, len * rise * 0.55], foot = [side * len * (0.55 + splay * 0.25), -y + thick * 0.4];
     seg(l, [0, 0], knee, thick, c);
@@ -61,7 +61,7 @@ export function spitter(b) {
   });
   for (let i = 0; i < 6; i++) {
     const side = i % 2 ? 1 : -1, row = Math.floor(i / 2);
-    leg(b, `l${i}`, side * 0.3, 0.6, -0.3 + row * 0.32, side, 0.85, 0.08, H.chitin, 0.6, 0.4);
+    leg(b, `l${i}`, side * 0.3, 0.6, -0.3 + row * 0.32, side, 0.85, 0.08, H.chitin, 0.6, 0.8);
   }
 }
 
@@ -83,7 +83,7 @@ export function charger(b) {
   });
   for (let i = 0; i < 6; i++) {
     const side = i % 2 ? 1 : -1, row = Math.floor(i / 2);
-    leg(b, `l${i}`, side * 0.55, 0.85, -0.55 + row * 0.55, side, 1.15, 0.13, H.chitin, 0.6, 0.35);
+    leg(b, `l${i}`, side * 0.55, 0.85, -0.55 + row * 0.55, side, 1.15, 0.15, H.chitin, 0.6, 0.8);
   }
 }
 
@@ -141,7 +141,7 @@ export function warden(b) {
   });
   for (let i = 0; i < 8; i++) {
     const side = i % 2 ? 1 : -1, row = Math.floor(i / 2);
-    leg(b, `l${i}`, side * 1.2, 2.0, -1.4 + row * 1.0, side, 2.8, 0.26, H.chitin, 0.6, 0.45);
+    leg(b, `l${i}`, side * 1.2, 2.0, -1.4 + row * 1.0, side, 3.0, 0.34, H.chitin, 0.6, 1.0);
   }
 }
 

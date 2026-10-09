@@ -51,6 +51,9 @@ function height(x, z) {
     const wall = S(7, 12, cd);
     h += north * (wall * (13 + 2 * Math.sin(x * 0.2) + Math.sin(z * 0.31) * 1.5) - 1.2 * (1 - wall));
   }
+  // The bunker's pad at the canyon's end: level ground under the building.
+  const bd = Math.max(Math.abs(x + 22) - 7.5, Math.abs(z + 126) - 6);
+  if (bd < 4) h += (-1.2 - h) * S(4, 0.5, bd);
   // The west ridge: a steep-sided plateau, a trail winding up.
   const rd = Math.hypot(x - RIDGE.x, z - RIDGE.z);
   const ridge = S(RIDGE.r + 4, RIDGE.r, rd) * RIDGE.h;

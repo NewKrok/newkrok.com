@@ -231,25 +231,28 @@ export const SCRIPT = {
 
   // ── The bunker ──
   survivors(run) {
-    const K = run.kit.marks, b = K.bunker;
+    const K = run.kit.marks, b = K.bunker, y = b.y;
     run.say("kessler_bunker");
     run.fx({ type: "bunkerOpen" });
     this.placeSurvivors(run);
-    const y = b.y;
+    // The rangers step inside for the talk.
+    const put = (who, x, z) => who.body.place(x, run.space.floor(x, z, y + 0.5) + 0.02, z);
+    put(run.player, b.x + 0.9, b.z - 3); put(run.ally, b.x - 0.9, b.z - 3.4);
+    run.player.face = run.ally.face = 0;
     run.cutscene("survivors", [
-      { dur: 4.2, from: [b.x + 3, y + 1.7, b.z - 8], look: [b.x - 1, y + 1.3, b.z - 13], line: "brandt_1" },
-      { dur: 7.5, from: [b.x - 3.5, y + 1.6, b.z - 9.5], to: [b.x - 3, y + 1.7, b.z - 10.5], look: [b.x + 0.5, y + 1.4, b.z - 12.5], line: "brandt_2" },
-      { dur: 2.6, from: [b.x + 2, y + 1.7, b.z - 9], look: [b.x, y + 1.4, b.z - 6], line: "kessler_brandt" },
-      { dur: 5.8, from: [b.x - 1, y + 1.5, b.z - 7], look: [b.x - 1, y + 1.4, b.z - 13], line: "brandt_3" },
+      { dur: 4.2, from: [b.x + 3.4, y + 1.7, b.z - 2.6], look: [b.x - 1, y + 1.3, b.z - 7.6], line: "brandt_1" },
+      { dur: 7.5, from: [b.x - 4, y + 1.6, b.z - 4], to: [b.x - 3.6, y + 1.7, b.z - 4.8], look: [b.x + 0.5, y + 1.3, b.z - 8.4], line: "brandt_2" },
+      { dur: 2.6, from: [b.x + 1.5, y + 1.6, b.z - 6.8], look: [b.x - 0.9, y + 1.4, b.z - 3.4], line: "kessler_brandt" },
+      { dur: 5.8, from: [b.x - 0.5, y + 1.5, b.z - 3.6], look: [b.x - 1, y + 1.4, b.z - 7.6], line: "brandt_3" },
       { dur: 4.8, from: [b.x, y + 9, b.z + 14], to: [b.x + 6, y + 13, b.z + 24], look: [b.x, y + 1, b.z], line: "oduya_vents" },
     ], (r) => { this.enter(r, "vents"); r.checkpoint("vents"); });
   },
   placeSurvivors(run) {
     if (run.npcs.length) return;
     const b = run.kit.marks.bunker;
-    run.npcs.push({ model: "survivor", x: b.x - 1, y: b.y, z: b.z - 12, yaw: Math.PI, opts: { c: 0xd08a2a } });
-    run.npcs.push({ model: "survivor", x: b.x + 2.2, y: b.y, z: b.z - 13.2, yaw: Math.PI + 0.5, opts: { c: 0x4a7ab0, sit: true } });
-    run.npcs.push({ model: "survivor", x: b.x - 3.5, y: b.y, z: b.z - 13.5, yaw: Math.PI - 0.4, opts: { c: 0x7a8a4a } });
+    run.npcs.push({ model: "survivor", x: b.x - 1, y: b.y, z: b.z - 7.6, yaw: Math.PI, opts: { c: 0xd08a2a } });
+    run.npcs.push({ model: "survivor", x: b.x + 2.4, y: b.y, z: b.z - 8.6, yaw: Math.PI + 0.5, opts: { c: 0x4a7ab0, sit: true } });
+    run.npcs.push({ model: "survivor", x: b.x - 3.4, y: b.y, z: b.z - 8.2, yaw: Math.PI - 0.4, opts: { c: 0x7a8a4a } });
   },
 
   // ── The vents ──
@@ -274,8 +277,8 @@ export const SCRIPT = {
     run.say("voss_warden");
     const y = run.kit.h(PIT.x, PIT.z);
     run.cutscene("warden", [
-      { dur: 2.2, from: [PIT.x - 30, y + 14, PIT.z + 24], look: [PIT.x, y + 1, PIT.z], act: (r) => this.spawnWarden(r, false) },
-      { dur: 3.6, from: [PIT.x - 14, y + 4, PIT.z + 14], to: [PIT.x - 12, y + 3, PIT.z + 12], look: [PIT.x, y + 2.5, PIT.z], lookTo: [PIT.x, y + 3.5, PIT.z], line: "kessler_warden" },
+      { dur: 2.2, from: [PIT.x - 26, y + 14, PIT.z - 22], look: [PIT.x, y + 1, PIT.z], act: (r) => this.spawnWarden(r, false) },
+      { dur: 3.6, from: [PIT.x - 15, y + 4, PIT.z - 9], to: [PIT.x - 13, y + 3, PIT.z - 7], look: [PIT.x, y + 2.5, PIT.z], lookTo: [PIT.x, y + 3.5, PIT.z], line: "kessler_warden" },
     ], (r) => { r.say("voss_maw", { once: true }); });
   },
   spawnWarden(run, quick) {
@@ -287,10 +290,10 @@ export const SCRIPT = {
   // ── The intro and the end ──
   intro(run) {
     const L = run.kit.marks.lz;
-    run.dropship = { path: [[30, 70, 230], [0, 22, 150], [0, 5.5, 125], [0, 0.4, 125]], t0: run.time, dur: 9, yaw: 0 };
+    run.dropship = { path: [[24, 55, 190], [4, 20, 148], [0, 5.5, 125], [0, 0.4, 125]], t0: run.time, dur: 9, yaw: 0 };
     run.ally.holdFire = true;
     run.cutscene("intro", [
-      { dur: 5.5, from: [46, 34, 176], to: [28, 22, 158], look: [0, 10, 128], lookTo: [0, 4, 124], line: "oduya_intro1" },
+      { dur: 5.5, from: [-30, 20, 98], to: [-22, 15, 104], look: [4, 16, 150], lookTo: [0, 4, 124], line: "oduya_intro1" },
       { dur: 4.4, from: [-18, 5, 140], to: [-14, 4, 136], look: [0, 3, 124], lookTo: [0, 2, 122], line: "oduya_intro2" },
       { dur: 3.4, from: [4.2, 2.3, 121], to: [3.2, 2.1, 119.5], look: [0, 1.4, 108], line: "kessler_intro1" },
     ], (r) => {
