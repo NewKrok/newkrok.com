@@ -14,13 +14,13 @@ import { Body } from "./body.js";
 
 export const BUGS = {
   // Small, fast, many. Bites, and leaps the last few metres.
-  swarmer: { hp: 34, speed: 7.4, wander: 1.8, radius: 0.42, height: 0.7, hearing: 1, bite: 8, reach: 1.45, biteCool: 0.85, leap: true, xp: 10 },
+  swarmer: { hp: 48, speed: 7.4, wander: 1.8, radius: 0.42, height: 0.7, hearing: 1, bite: 8, reach: 1.45, biteCool: 0.85, leap: true, xp: 10 },
   // Keeps its distance and lobs acid. Its glowing sac is the soft spot.
-  spitter: { hp: 70, speed: 4.6, wander: 1.4, radius: 0.6, height: 1.2, hearing: 1.1, spit: 15, near: 9, far: 24, spitCool: 2.6, xp: 25 },
+  spitter: { hp: 115, speed: 4.6, wander: 1.4, radius: 0.6, height: 1.2, hearing: 1.1, spit: 15, near: 9, far: 24, spitCool: 2.6, xp: 25 },
   // Armoured head-on; charges in a straight line and stuns itself on walls.
-  charger: { hp: 280, speed: 3.6, wander: 1.2, radius: 0.95, height: 1.5, hearing: 0.9, ram: 28, chargeSpeed: 15, xp: 60 },
+  charger: { hp: 400, speed: 3.6, wander: 1.2, radius: 0.95, height: 1.5, hearing: 0.9, ram: 28, chargeSpeed: 15, xp: 60 },
   // Sees (and only sees): a long look at you and it shrieks.
-  sentry: { hp: 50, speed: 3.2, wander: 0.8, radius: 0.5, height: 1.7, hearing: 0.6, sight: 34, fov: 1.05, xp: 30 },
+  sentry: { hp: 80, speed: 3.2, wander: 0.8, radius: 0.5, height: 1.7, hearing: 0.6, sight: 34, fov: 1.05, xp: 30 },
 };
 
 let nextId = 1;

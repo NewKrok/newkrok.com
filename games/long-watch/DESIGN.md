@@ -277,6 +277,12 @@ mellett):
   - az őrszem guggolva később sikít;
   - `kesslerFiredUnprovoked: false`;
   - `revived: true`, `failed: "failed"`.
+- `node scripts/fight.mjs [seed]`: isten mód nélkül végigharcolja a
+  rovert, a kolóniát és a generátort egy átlagos célzású bottal (fedezék
+  és lőszerfelvétel nélkül), és szakaszonként kiírja a leütéseket, a
+  kapott találatokat, a legkisebb hp-t és a maradék lőszert. A mostani
+  kiosztással: a roverig és a kolóniáig 0 leütés, a generátornál 1–2
+  (Kessler felsegít), a puska a végére kifogy, a pisztoly marad.
 - `node scripts/shot.mjs <előtag> <szakasz>:x,z,yaw,pitch`: képek.
 - `node scripts/models.mjs <mappa> ranger "pose=aim&yaw=1.57"` és
   `node scripts/anim-shots.mjs <előtag>`: a figurák és az animáció; a
@@ -331,6 +337,20 @@ sac, frill, jaw, sacL/R/T) és a találati gömbök (`sim/bugs.js`,
 - Gyors ellenőrzés a nézőben: `?model=ranger&pose=aim&yaw=1.57`,
   `?model=ranger&pose=reload&k=0.5&yaw=-2.3`, `?model=all`.
 
+**Egyensúly (3. menet):** a felhasználó szerint túl kevés volt az
+ellenfél, túl kevés élettel. Életerő: rajzó 34 → 48 (4 puskalövés
+testre), köpködő 70 → 115, rohamozó 280 → 400, őrszem 50 → 80, Kaptárőr
+3400 → 4200. Elhelyezett bogarak 46 → 76: új csoportok az úton (`road`),
+a kolónia déli peremén (`south`), a generátor udvarán (`yard`), a gerinc
+lábánál (`ridgeFoot`), és minden régi csoport bővült. A generátornál öt
+hullám (52 mp), a relé bekapcsolására hullám jön a nyugati lyukakból
+(`relaywave`), a kürtők hullámai nagyobbak (a harmadiknál rohamozó is).
+Javítva: ellenőrzőpontról visszatérve a kanyon és a gödör csoportjai
+kétszer jöttek létre. A bot (`fight.mjs`) előtte egyetlen találatot sem
+kapott a generátorig; most a generátornál 1–2-szer leütik. A felhasználó
+még nem próbálta ki: az első dolog az ő visszajelzése, utána lehet
+finomítani (harapás 8, köpés 15, roham 28 maradt).
+
 **Tanulságok, amikre figyelni kell:**
 - A képkocka-idő negatív is lehet (az első rAF-nál); a `game.js` lenullázza.
   Negatív `dt`-vel a `damp` elszáll (kamera, FOV).
@@ -365,8 +385,8 @@ sac, frill, jaw, sacL/R/T) és a találati gömbök (`sim/bugs.js`,
 **Javasolt következő lépések** (a felhasználó kipróbálása után pontosítva):
 - harc érzete: célzás, visszarúgás, kitérés, fedezék be- és kilépés; a
   bogarak animációja (rágók, ugrás, köpés) a részletesebb modellekhez;
-- egyensúly: a bogarak sebzése és száma, az őrszem észlelési ideje, a boss
-  hossza;
+- egyensúly: a bogarak sebzése, az őrszem észlelési ideje, a boss hossza;
+  a `fight.mjs` bot kiterjesztése a gerincre és a kanyonra;
 - hangok legenerálása (`npm run voice -w games/long-watch`, kulccsal);
 - hub a hajón, fejlesztések, utána a 2. fejezet (Fagyhatár);
 - Gamer Zone bejegyzés előnézeti képpel, ha már megmutatható.

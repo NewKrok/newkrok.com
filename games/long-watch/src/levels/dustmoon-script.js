@@ -17,18 +17,22 @@ const LOGS = ["log1", "log2", "log3", "log4", "log5"];
 
 // Bug groups, placed at the start (skipped once wiped out).
 const GROUPS = {
-  rover: [["swarmer", 4, 82, { roam: 4 }], ["swarmer", 10, 77, { roam: 4 }], ["swarmer", 12, 84, { roam: 4 }], ["swarmer", 6, 86, { roam: 4 }]],
-  colonyS: [["swarmer", -4, 28, {}], ["swarmer", 2, 24, {}], ["swarmer", 20, 34, {}], ["spitter", -18, 22, {}]],
-  colonyN: [["swarmer", -8, -32, {}], ["swarmer", -2, -28, {}], ["swarmer", 6, -36, {}], ["sentry", -30, -40, { roam: 2 }]],
-  east: [["swarmer", 54, 0, {}], ["swarmer", 58, 6, {}], ["swarmer", 50, -6, {}]],
-  west: [["swarmer", -62, 8, {}], ["swarmer", -66, 14, {}], ["spitter", -80, 2, {}]],
-  ridge: [["swarmer", -104, -18, { roam: 6 }], ["swarmer", -110, -14, { roam: 6 }], ["charger", -116, -28, { roam: 6 }], ["sentry", -122, -20, { roam: 2 }]],
-  can1: [["sentry", -5, -72, { roam: 1.5, yaw: 0 }], ["swarmer", 2, -80, { roam: 3 }], ["swarmer", 4, -76, { roam: 3 }]],
-  can2: [["sentry", 9, -92, { roam: 1.5, yaw: 0.6 }], ["charger", -2, -94, { roam: 3 }], ["swarmer", -6, -88, { roam: 3 }], ["swarmer", -4, -96, { roam: 3 }]],
-  can3: [["sentry", -14, -106, { roam: 1.5, yaw: 0.2 }], ["swarmer", -16, -114, { roam: 3 }], ["swarmer", -22, -110, { roam: 3 }], ["spitter", -10, -116, { roam: 3 }]],
-  pit1: [["swarmer", PIT.x - 22, PIT.z - 10, {}], ["swarmer", PIT.x - 26, PIT.z - 16, {}], ["spitter", PIT.x - 30, PIT.z - 8, {}]],
-  pit2: [["swarmer", PIT.x + 20, PIT.z + 14, {}], ["swarmer", PIT.x + 24, PIT.z + 20, {}], ["sentry", PIT.x + 30, PIT.z + 12, { roam: 2 }]],
-  pit3: [["swarmer", PIT.x + 6, PIT.z - 22, {}], ["swarmer", PIT.x + 12, PIT.z - 28, {}], ["charger", PIT.x, PIT.z - 4, {}]],
+  rover: [["swarmer", 4, 82, { roam: 4 }], ["swarmer", 10, 77, { roam: 4 }], ["swarmer", 12, 84, { roam: 4 }], ["swarmer", 6, 86, { roam: 4 }], ["swarmer", 14, 80, { roam: 4 }], ["swarmer", 9, 88, { roam: 4 }]],
+  road: [["swarmer", -12, 62, { roam: 5 }], ["swarmer", -16, 58, { roam: 5 }], ["spitter", -20, 66, { roam: 3 }]],
+  colonyS: [["swarmer", -4, 28, {}], ["swarmer", 2, 24, {}], ["swarmer", 20, 34, {}], ["swarmer", 24, 28, {}], ["swarmer", -8, 34, {}], ["spitter", -18, 22, {}]],
+  south: [["swarmer", -30, 12, { roam: 3 }], ["swarmer", -34, 6, { roam: 3 }], ["spitter", -40, 14, { roam: 2 }]],
+  colonyN: [["swarmer", -8, -32, {}], ["swarmer", -2, -28, {}], ["swarmer", 6, -36, {}], ["swarmer", 0, -40, {}], ["spitter", 10, -30, {}], ["sentry", -30, -40, { roam: 2 }]],
+  yard: [["swarmer", 30, -2, { roam: 3 }], ["swarmer", 34, 4, { roam: 3 }], ["swarmer", 28, -8, { roam: 3 }]],
+  east: [["swarmer", 54, 0, {}], ["swarmer", 58, 6, {}], ["swarmer", 50, -6, {}], ["swarmer", 62, -2, {}], ["spitter", 56, -10, {}]],
+  west: [["swarmer", -62, 8, {}], ["swarmer", -66, 14, {}], ["swarmer", -58, 2, {}], ["swarmer", -70, 8, {}], ["spitter", -80, 2, {}]],
+  ridgeFoot: [["swarmer", -90, -8, { roam: 4 }], ["swarmer", -94, -12, { roam: 4 }], ["charger", -88, -16, { roam: 4 }]],
+  ridge: [["swarmer", -104, -18, { roam: 6 }], ["swarmer", -110, -14, { roam: 6 }], ["swarmer", -106, -30, { roam: 6 }], ["spitter", -118, -34, { roam: 4 }], ["charger", -116, -28, { roam: 6 }], ["sentry", -122, -20, { roam: 2 }]],
+  can1: [["sentry", -5, -72, { roam: 1.5, yaw: 0 }], ["swarmer", 2, -80, { roam: 3 }], ["swarmer", 4, -76, { roam: 3 }], ["swarmer", -6, -78, { roam: 3 }]],
+  can2: [["sentry", 9, -92, { roam: 1.5, yaw: 0.6 }], ["charger", -2, -94, { roam: 3 }], ["swarmer", -6, -88, { roam: 3 }], ["swarmer", -4, -96, { roam: 3 }], ["spitter", 6, -98, { roam: 3 }]],
+  can3: [["sentry", -14, -106, { roam: 1.5, yaw: 0.2 }], ["swarmer", -16, -114, { roam: 3 }], ["swarmer", -22, -110, { roam: 3 }], ["swarmer", -12, -112, { roam: 3 }], ["spitter", -10, -116, { roam: 3 }]],
+  pit1: [["swarmer", PIT.x - 22, PIT.z - 10, {}], ["swarmer", PIT.x - 26, PIT.z - 16, {}], ["swarmer", PIT.x - 18, PIT.z - 14, {}], ["spitter", PIT.x - 30, PIT.z - 8, {}]],
+  pit2: [["swarmer", PIT.x + 20, PIT.z + 14, {}], ["swarmer", PIT.x + 24, PIT.z + 20, {}], ["swarmer", PIT.x + 16, PIT.z + 18, {}], ["charger", PIT.x + 26, PIT.z + 6, {}], ["sentry", PIT.x + 30, PIT.z + 12, { roam: 2 }]],
+  pit3: [["swarmer", PIT.x + 6, PIT.z - 22, {}], ["swarmer", PIT.x + 12, PIT.z - 28, {}], ["swarmer", PIT.x - 2, PIT.z - 26, {}], ["spitter", PIT.x + 16, PIT.z - 20, {}], ["charger", PIT.x, PIT.z - 4, {}]],
 };
 
 const STAGES = ["approach", "colony", "tasks", "survivors", "vents", "boss", "extract"];
@@ -85,7 +89,7 @@ export const SCRIPT = {
         break;
       case "tasks":
         done("ops");
-        for (const [n, l] of Object.entries(GROUPS)) if (n.startsWith("can")) run.spawnGroup(n, l);
+        for (const [n, l] of Object.entries(GROUPS)) if (n.startsWith("can") && !run.groups.has(n)) run.spawnGroup(n, l);
         if (!run.flags.power) {
           run.obj("power", { marker: K.generator });
           run.addUse({ id: "generator", x: K.generator.x, z: K.generator.z + 2.3, r: 2.2, hold: 2, loud: 18, label: () => ["use_generator"], act: (r) => this.defend(r) });
@@ -95,6 +99,7 @@ export const SCRIPT = {
           run.addUse({ id: "relay", x: K.relay.x, z: K.relay.z, r: 2, hold: 3, loud: 12, label: () => ["use_relay"], act: (r) => {
             r.flags.relay = true; r.objDone("relay"); r.fx({ type: "relayOn" });
             r.say("kessler_relay_up"); r.say("oduya_relay"); r.say("marsh_intro"); r.say("kessler_marsh");
+            r.wave(["west1", "west2"], [["swarmer", 5], ["spitter", 1]], { group: "relaywave" });
             this.taskDone(r);
           } });
         }
@@ -112,7 +117,7 @@ export const SCRIPT = {
         done("bunker");
         run.fx({ type: "powerOn", instant: true }); run.fx({ type: "relayOn", instant: true }); run.fx({ type: "bunkerOpen" });
         this.placeSurvivors(run);
-        for (const [n, l] of Object.entries(GROUPS)) if (n.startsWith("pit")) run.spawnGroup(n, l);
+        for (const [n, l] of Object.entries(GROUPS)) if (n.startsWith("pit") && !run.groups.has(n)) run.spawnGroup(n, l);
         const n = [1, 2, 3].filter((i) => run.flags[`vent${i}`]).length;
         run.obj("vents", { n, markers: [1, 2, 3].filter((i) => !run.flags[`vent${i}`]).map((i) => K[`vent${i}`]) });
         for (const i of [1, 2, 3]) {
@@ -200,18 +205,18 @@ export const SCRIPT = {
   // ── The generator: hold the shed against waves ──
   defend(run) {
     run.say("kessler_gen_start"); run.say("voss_gen");
-    run.defend = { t: 45, next: 0, i: 0 };
-    run.obj("defend", { s: 45, marker: run.kit.marks.generator });
+    run.defend = { t: 52, next: 0, i: 0 };
+    run.obj("defend", { s: 52, marker: run.kit.marks.generator });
     run.fx({ type: "genSpin" });
   },
   defendStep(run, dt) {
     const d = run.defend;
     d.t -= dt; d.next -= dt;
-    const W = [[["swarmer", 4]], [["swarmer", 5], ["spitter", 1]], [["swarmer", 3], ["charger", 1]], [["swarmer", 6], ["spitter", 2]]];
+    const W = [[["swarmer", 5]], [["swarmer", 5], ["spitter", 1]], [["swarmer", 4], ["charger", 1]], [["swarmer", 6], ["spitter", 2]], [["swarmer", 4], ["spitter", 1], ["charger", 1]]];
     if (d.i < W.length && d.next <= 0 && d.t > 4) {
       run.wave(["col1", "col2", "col3", "col4"], W[d.i], { group: "defend" });
       if (d.i === 0) run.say("kessler_gen_wave");
-      d.i++; d.next = 10.5;
+      d.i++; d.next = 10;
     }
     run.obj("defend", { s: Math.max(0, Math.ceil(d.t)) });
     // Done when the clock has run out and the last wave is down.
@@ -264,7 +269,7 @@ export const SCRIPT = {
     const K = run.kit.marks;
     run.obj("vents", { n, markers: [1, 2, 3].filter((k) => !run.flags[`vent${k}`]).map((k) => K[`vent${k}`]) });
     const holes = { 1: ["pit1", "pit3"], 2: ["pit2", "pit4"], 3: ["pit3", "pit4"] }[i];
-    run.wave(holes, n === 3 ? [["swarmer", 5], ["spitter", 1]] : [["swarmer", 3 + n], ["spitter", n === 2 ? 1 : 0]].filter(([, c]) => c), { group: `ventwave${i}` });
+    run.wave(holes, n === 3 ? [["swarmer", 6], ["spitter", 2], ["charger", 1]] : [["swarmer", 4 + n], ["spitter", 1]], { group: `ventwave${i}` });
     if (n === 1) run.say("voss_vent_wave");
     if (n < 3) { run.say("kessler_charge", { gap: 5 }); run.checkpoint("vents"); }
     else { run.say("kessler_charges_done"); run.flags.detonate = 4; }

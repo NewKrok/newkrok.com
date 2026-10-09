@@ -10,7 +10,7 @@ import { Bug } from "./bugs.js";
 //   2. + roars up swarmers from the burrows round the pit
 //   3. faster, + leaps and slams the ground: a shockwave ring to jump over
 
-export const WARDEN = { hp: 3400, speed: 3.4, wander: 1, radius: 2.1, height: 3.4, hearing: 2, xp: 500 };
+export const WARDEN = { hp: 4200, speed: 3.4, wander: 1, radius: 2.1, height: 3.4, hearing: 2, xp: 500 };
 
 export class Warden extends Bug {
   constructor(x, y, z, o = {}) {
