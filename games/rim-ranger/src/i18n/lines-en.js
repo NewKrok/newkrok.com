@@ -1,0 +1,86 @@
+// ── Story lines, English ─────────────────────────────────────────────────
+// id: [speaker, text]. These are also what scripts/voice.mjs reads aloud
+// (the voices are English in every language; the subtitles follow the
+// chosen language). Speakers: kessler (Sgt. Mara Kessler, the ally),
+// oduya (Cmdr. Idris Oduya, on the Long Watch), voss (Dr. Lena Voss,
+// xenobiologist), marsh (Julian Marsh, Deepcore), brandt (Teo Brandt,
+// survivor).
+
+export const LINES_EN = {
+  // Intro.
+  oduya_intro1: ["oduya", "Long Watch to ground team. Dustnest colony went silent thirty-one hours ago. Forty-two people on the roster."],
+  oduya_intro2: ["oduya", "No distress call. No reactor alarm. Just nothing. Find out why."],
+  kessler_intro1: ["kessler", "Copy, Long Watch. Boots on the dust."],
+  kessler_intro2: ["kessler", "Stay close, Seven. And keep it quiet until we know what we're walking into."],
+  // The road.
+  kessler_road: ["kessler", "Colony's straight up the road. Eyes open."],
+  kessler_rover: ["kessler", "Hold up. Something's moving by that rover. Get low."],
+  kessler_contact: ["kessler", "Contact! Weapons free!"],
+  voss_first: ["voss", "Long Watch science, this is Voss. Your helmet feed... those aren't in any registry. Keep the cameras on them, please."],
+  kessler_voss: ["kessler", "We'll try to get their good side, Doctor."],
+  voss_hearing: ["voss", "Interesting. They didn't turn to look at you. They turned to the sound. I don't think they see much at all."],
+  kessler_sneak: ["kessler", "Then we walk soft. Crouch, stick to cover, and they won't know we're here."],
+  kessler_gate: ["kessler", "Gate's open. Too quiet in there."],
+  // The colony.
+  kessler_colony: ["kessler", "No bodies. No blood. Where did forty-two people go?"],
+  oduya_ops: ["oduya", "The ops centre should have the colony logs. Pull them."],
+  kessler_log: ["kessler", "Last entry's from the night shift. Power failure, then the north bunker sealed from the inside. Someone made it."],
+  oduya_tasks: ["oduya", "That bunker door needs power. And I need the comms relay on the west ridge back up before I bring a ship down. Your call which first."],
+  kessler_tasks: ["kessler", "Generator shed's on the east side. Relay's up the trail to the west."],
+  // The generator.
+  kessler_gen_start: ["kessler", "That turbine's going to scream when it spins up. Everything in the valley will hear it."],
+  voss_gen: ["voss", "Then they'll come to you. Hold the shed until it's stable."],
+  kessler_gen_wave: ["kessler", "Here they come. Out of the ground!"],
+  kessler_gen_done: ["kessler", "Power's holding. Nice work."],
+  oduya_gen: ["oduya", "I see your grid on the board. The bunker door should open now."],
+  // The relay.
+  kessler_relay_up: ["kessler", "Relay's up. Long Watch, you hearing us clean?"],
+  oduya_relay: ["oduya", "Loud and clear. And Deepcore's on the line. They want a word."],
+  marsh_intro: ["marsh", "Rangers. Julian Marsh, Deepcore Consolidated. We're grateful. Please remember the colony's equipment is company property. Try not to break anything you don't have to."],
+  kessler_marsh: ["kessler", "Noted."],
+  kessler_laser: ["kessler", "Deepcore crate. A prototype cutting laser, quiet as a whisper. Why would a mining company need one of those up here?"],
+  // The canyon and the bunker.
+  oduya_bunker: ["oduya", "The bunker's up the north canyon. Thermals show three warm bodies inside."],
+  voss_sentry: ["voss", "Careful. The tall one with the frills? That one isn't listening. It's watching. If it sees you, it calls the others."],
+  kessler_sentry: ["kessler", "Stay low, stay behind rock. We slip past, or we take it out quietly."],
+  kessler_spotted: ["kessler", "We're spotted! Get ready!"],
+  kessler_quiet: ["kessler", "Clean. Nobody heard that."],
+  kessler_bunker: ["kessler", "Door's live. Opening up."],
+  kessler_nopower: ["kessler", "Door's dead. No power. We need that generator running."],
+  brandt_1: ["brandt", "Rangers? Oh, thank God. I'm Teo Brandt, shift foreman. There are three of us left."],
+  brandt_2: ["brandt", "They came out of the pit. We broke into a pocket on level nine. Hollow, warm, like a hive. The next night they came up the shafts."],
+  kessler_brandt: ["kessler", "Easy. You're safe now."],
+  brandt_3: ["brandt", "The company man had us seal that level a year ago. Said it was a gas pocket. It wasn't gas."],
+  oduya_vents: ["oduya", "Then we close it for good. Seal the vents in the pit and you'll have a ship on the pad."],
+  // The pit.
+  kessler_vents: ["kessler", "Three vents. We plant a charge on each, then we light it up."],
+  kessler_charge: ["kessler", "Charge set. Next one."],
+  voss_vent_wave: ["voss", "The drilling is waking them. Expect company."],
+  kessler_charges_done: ["kessler", "All charges set. Fire in the hole!"],
+  voss_warden: ["voss", "Something big is moving under the floor. Much bigger."],
+  kessler_warden: ["kessler", "That's no worker. Seven, hit those glowing sacs!"],
+  voss_sac: ["voss", "Those sacs are vital organs. Keep at them!"],
+  voss_maw: ["voss", "When it opens its mouth, it's soft inside. Aim there."],
+  voss_warden2: ["voss", "It's calling the others! Watch the burrows!"],
+  kessler_warden3: ["kessler", "It's getting desperate. Jump the shockwave!"],
+  kessler_stunned: ["kessler", "It's stunned! Open up!"],
+  kessler_warden_dead: ["kessler", "It's down. It's actually down."],
+  oduya_extract: ["oduya", "Good work, both of you. Dropship's inbound. Get back to the pad."],
+  // The end.
+  marsh_outro: ["marsh", "Deepcore thanks you, rangers. We'll handle the site from here. No need for a full report. Our people will take care of it."],
+  kessler_outro: ["kessler", "Funny. He didn't sound surprised."],
+  oduya_outro1: ["oduya", "Not our only problem. Frostreach station stopped answering an hour ago."],
+  oduya_outro2: ["oduya", "Get some sleep. We burn for the ice at oh-six-hundred."],
+  // Barks.
+  kessler_downed: ["kessler", "Seven's down! I'm coming!"],
+  kessler_reviving: ["kessler", "Hold still. I've got you."],
+  kessler_revived: ["kessler", "Up you get. Stay with me."],
+  kessler_hit: ["kessler", "I'm hit! I'm down!"],
+  kessler_up: ["kessler", "I'm back up. Let's move."],
+  kessler_clear: ["kessler", "Area clear."],
+  kessler_charger: ["kessler", "Big one, armoured front! Get round behind it!"],
+  kessler_spitter: ["kessler", "Spitter! Watch the acid!"],
+  kessler_launcher: ["kessler", "A grenade launcher. Now we're talking."],
+  kessler_ammo: ["kessler", "Ammo. Top up while you can."],
+  kessler_log_found: ["kessler", "A data pad. Might be worth a read."],
+};
