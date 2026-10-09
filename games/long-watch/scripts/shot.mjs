@@ -15,15 +15,13 @@ await p.waitForTimeout(1500);
 let i = 0;
 for (const v of views.length ? views : ["menu"]) {
   if (v !== "menu") {
-    const [stage, rest = ""] = v.split(":");
-    const [x, z, yaw, pitch, steps] = rest.split(",").map(Number);
-    await p.evaluate(([stage, x, z, yaw, pitch, steps]) => {
+    const [x, z, yaw, pitch, steps] = v.split(",").map(Number);
+    await p.evaluate(([x, z, yaw, pitch, steps]) => {
       const D = window.__longWatch;
-      D.stage(stage);
-      D.skipCut();
+      D.play();
       if (!Number.isNaN(x)) D.place(x, z, yaw || 0, Number.isNaN(pitch) ? -0.1 : pitch);
       D.steps(steps || 2);
-    }, [stage, x, z, yaw, pitch, steps]);
+    }, [x, z, yaw, pitch, steps]);
   }
   await p.waitForTimeout(1200);
   await p.screenshot({ path: `${out}-${i++}.png` });

@@ -218,6 +218,35 @@ export function burrow(b) {
   b.add(S.cyl(0.8, 0.6, 0.06, 10), { p: [0, 0.04, 0], c: 0x140e10 });
   b.add(S.cyl(0.35, 0.35, 0.04, 8), { p: [0, 0.06, 0], c: HIVE.glow, mat: "glow", glow: 0.35 });
 }
+// The reactor: a fat ringed cylinder with a glowing core and a cage.
+export function reactor(b) {
+  const C = 0x8d8a86, D = 0x4a5058, G = 0x8fe8ff;
+  b.add(S.cyl(2.2, 2.4, 0.5, 12, 0.08), { p: [0, 0.25, 0], c: D, grad: [0x3a4048, D] });
+  b.add(S.cyl(1.5, 1.7, 2.2, 12, 0.1), { p: [0, 1.6, 0], c: C, grad: [0x6e6b67, 0x9d9a96] });
+  for (let i = 0; i < 3; i++) b.add(S.torus(1.62, 0.09, 5, 16), { p: [0, 0.9 + i * 0.6, 0], r: [Math.PI / 2, 0, 0], c: 0xd8862e });
+  b.add(S.cyl(0.9, 0.9, 0.5, 12), { p: [0, 2.95, 0], c: D, mat: "metal" });
+  b.node("core", [0, 1.6, 0], [0, 0, 0], (c) => c.add(S.ball(0.62, 10, 7), { c: G, mat: "glow", glow: 1.5, smooth: true }));
+  for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; b.add(S.box(0.16, 2.4, 0.16, 0.03), { p: [Math.sin(a) * 1.78, 1.6, Math.cos(a) * 1.78], c: D, mat: "metal" }); }
+  for (let i = 0; i < 4; i++) { const a = (i / 4) * Math.PI * 2 + 0.4; b.add(S.box(0.6, 0.06, 0.06, 0), { p: [Math.sin(a) * 1.75, 2.2, Math.cos(a) * 1.75], r: [0, a, 0], c: G, mat: "glow", glow: 1.1 }); }
+  b.add(S.cyl(0.12, 0.12, 1.6, 6), { p: [0, 4.0, 0], c: 0x111111 });
+  b.add(S.ball(0.12, 6, 5), { p: [0, 4.85, 0], c: 0xff5040, mat: "glow", glow: 1.3 });
+}
+// A crystal: the hive's resource, a cluster of glowing shards.
+export function crystal(b) {
+  const G = 0x9cff3a;
+  b.add(S.cone(0.14, 0.5, 5), { p: [0, 0.26, 0], r: [0.1, 0, -0.15], c: G, mat: "glow", glow: 1.2 });
+  b.add(S.cone(0.1, 0.34, 5), { p: [0.16, 0.16, 0.06], r: [0.2, 0, 0.5], c: 0xd6ff7a, mat: "glow", glow: 1.0 });
+  b.add(S.cone(0.08, 0.28, 5), { p: [-0.14, 0.14, -0.08], r: [-0.3, 0, -0.5], c: 0xd6ff7a, mat: "glow", glow: 1.0 });
+  b.add(S.cyl(0.26, 0.3, 0.08, 7), { p: [0, 0.04, 0], c: 0x3a2a36 });
+}
+// A supply crate out on the dust: amber stripes and a beacon.
+export function lootCrate(b) {
+  b.add(S.box(1.1, 0.7, 0.8, 0.05), { p: [0, 0.35, 0], c: 0x5b6670, grad: [0x4a535c, 0x6b7680] });
+  b.add(S.box(1.12, 0.1, 0.82, 0), { p: [0, 0.5, 0], c: HAZ });
+  b.add(S.box(0.3, 0.72, 0.82, 0), { p: [0, 0.36, 0], c: 0xd8862e });
+  b.add(S.cyl(0.05, 0.05, 0.5, 5), { p: [0.4, 0.95, 0.25], c: 0x222222 });
+  b.add(S.ball(0.07, 6, 5), { p: [0.4, 1.22, 0.25], c: 0xffc46a, mat: "glow", glow: 1.4 });
+}
 export function ammoBox(b) {
   b.add(S.box(0.9, 0.45, 0.5, 0.04), { p: [0, 0.23, 0], c: 0x4a5a3a, grad: [0x3a4a2e, 0x55663f] });
   b.add(S.box(0.92, 0.06, 0.52, 0), { p: [0, 0.42, 0], c: HAZ });

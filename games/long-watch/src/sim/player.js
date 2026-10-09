@@ -7,9 +7,9 @@ import { bullet, trace } from "./combat.js";
 // ── The ranger ───────────────────────────────────────────────────────────
 // Movement (walk, sprint, crouch, jump, dash), cover against walls and
 // low barriers, two weapons, health with a recharging shield, and being
-// downed (the ally gets you up, or the mission falls back to the last
-// checkpoint). Everything here also makes noise: that is what the bugs
-// hunt by.
+// downed (a defender gets you up, or you respawn at the base). Upgrades
+// bought at the base live here too: damage, magazine, health, shield,
+// speed. Everything here also makes noise, and the bugs hear it.
 
 const _h = {};
 const COVER_REACH = 1.5;
@@ -27,6 +27,9 @@ export class Ranger {
     this.aiming = false;
     this.cover = null;               // { nx, nz (out of the wall), low, snapT, edge }
     this.peekX = 0; this.peekZ = 0; this.peekUp = 0;
+    this.maxHp = P.hp; this.maxShield = P.shield;
+    this.dmgMul = 1; this.magMul = 1; this.speedMul = 1;
+    this.up = { dmg: 0, mag: 0, hp: 0, shield: 0, speed: 0 };   // levels bought
     this.hp = P.hp; this.shield = P.shield; this.calmT = 99;
     this.downed = false; this.downT = 0; this.reviveK = 0;
     this.dead = false;
@@ -49,9 +52,10 @@ export class Ranger {
     this.godMode = false;
   }
 
+  magOf(id) { return Math.round(WEAPONS[id].mag * this.magMul); }
   give(id, slot = null) {
     const w = WEAPONS[id];
-    const g = { id, mag: w.mag, reserve: w.reserve, heat: 0, hot: false };
+    const g = { id, mag: this.magOf(id), reserve: w.reserve, heat: 0, hot: false };
     if (slot === null) { if (this.slots.length < 2) { this.slots.push(g); return g; } slot = this.cur; }
     this.slots[slot] = g;
     return g;
@@ -86,7 +90,7 @@ export class Ranger {
     let mx = fx * I.forward + rx * I.strafe, mz = fz * I.forward + rz * I.strafe;
     const ml = Math.hypot(mx, mz);
     if (ml > 1) { mx /= ml; mz /= ml; }
-    let speed = this.sprinting ? P.run : this.crouched ? P.crouch : P.walk;
+    let speed = (this.sprinting ? P.run : this.crouched ? P.crouch : P.walk) * this.speedMul;
     if (this.aiming && !this.sprinting) speed *= P.aimMul;
 
     let low = false;
@@ -172,7 +176,7 @@ export class Ranger {
     this.#weapons(run, I, dt);
 
     // ── Shield ──
-    if (this.calmT > P.shieldDelay) this.shield = Math.min(P.shield, this.shield + P.shieldRate * dt);
+    if (this.calmT > P.shieldDelay) this.shield = Math.min(this.maxShield, this.shield + P.shieldRate * dt);
 
     // ── Use points ──
     this.#use(run, I, dt);
@@ -188,11 +192,24 @@ export class Ranger {
     this.firing = false; this.beam = null;
     if (this.reviveK >= 1) {
       this.downed = false; this.reviveK = 0;
-      this.hp = P.hp * 0.45; this.shield = 0; this.calmT = 0;
+      this.hp = this.maxHp * 0.45; this.shield = 0; this.calmT = 0;
       this.iframes = 1.5;
       run.fx({ type: "revived" });
       run.say("kessler_revived");
     } else if (this.downT <= 0) this.dead = true;
+  }
+
+  // Back on your feet at the base, the worse for it.
+  respawn(run, x, z, yaw) {
+    const b = this.body;
+    b.place(x, run.space.floor(x, z, run.kit.h(x, z) + 2) + 0.05, z);
+    b.vx = b.vz = b.vy = 0;
+    this.downed = false; this.dead = false; this.reviveK = 0;
+    this.hp = this.maxHp * 0.5; this.shield = 0; this.calmT = 0;
+    this.iframes = 2; this.cover = null; this.crouched = false;
+    this.face = this.yaw = yaw;
+    for (const g of this.slots) if (g.mag === 0 && g.reserve > 0) { const take = Math.min(this.magOf(g.id), g.reserve); g.mag = take; if (g.reserve !== Infinity) g.reserve -= take; }
+    run.fx({ type: "respawn" });
   }
 
   // ── Cover ─────────────────────────────────────────────────────────────
@@ -240,13 +257,13 @@ export class Ranger {
     if (this.reloadT) {
       this.reloadT = Math.max(0, this.reloadT - dt);
       if (!this.reloadT) {
-        const need = w.mag - g.mag, take = Math.min(need, g.reserve);
+        const need = this.magOf(g.id) - g.mag, take = Math.min(need, g.reserve);
         g.mag += take; if (g.reserve !== Infinity) g.reserve -= take;
         run.fx({ type: "reloaded" });
       }
       return;
     }
-    if (I.reloadPressed && w.mag && g.mag < w.mag && g.reserve > 0) { this.#reload(run); return; }
+    if (I.reloadPressed && w.mag && g.mag < this.magOf(g.id) && g.reserve > 0) { this.#reload(run); return; }
     if (this.sprinting || !I.fire) return;
 
     // Where the shot goes: what the camera's centre is on, reached from the
@@ -269,7 +286,7 @@ export class Ranger {
       g.heat += w.heatUp * dt;
       if (g.heat >= 1) { g.heat = 1; g.hot = true; run.fx({ type: "overheat" }); }
       const h = trace(run, mx, my, mz, dx, dy, dz, w.range);
-      if (h.bug) { h.bug.damage(run, w.dmg * dt, this, h.part, dx, dz, true); this.lastHit = h.bug; }
+      if (h.bug) { h.bug.damage(run, w.dmg * this.dmgMul * dt, this, h.part, dx, dz, true); this.lastHit = h.bug; }
       this.beam = { x0: mx, y0: my, z0: mz, x1: mx + dx * h.t, y1: my + dy * h.t, z1: mz + dz * h.t, hit: !!h.bug || h.solid };
       if (this.fireT <= 0) { run.noise(b.x, b.z, w.noise, this, true); this.fireT = 0.3; }
       this.recoil += w.kick * dt * 60 * 0.3;
@@ -288,8 +305,8 @@ export class Ranger {
     const ux = Math.cos(this.yaw), uz = -Math.sin(this.yaw);
     let ddx = dx + ux * sx, ddy = dy + sy, ddz = dz + uz * sx;
     const l = Math.hypot(ddx, ddy, ddz); ddx /= l; ddy /= l; ddz /= l;
-    if (w.kind === "grenade") run.launchGrenade(this, mx, my, mz, ddx, ddy + 0.06, ddz, w);
-    else bullet(run, this, mx, my, mz, ddx, ddy, ddz, w.range, w.dmg, w.color);
+    if (w.kind === "grenade") run.launchGrenade(this, mx, my, mz, ddx, ddy + 0.06, ddz, { ...w, dmg: w.dmg * this.dmgMul });
+    else bullet(run, this, mx, my, mz, ddx, ddy, ddz, w.range, w.dmg * this.dmgMul, w.color);
     this.recoil += w.kick;
     run.fx({ type: "shot", id: g.id, x: mx, y: my, z: mz, dx, dy, dz, src: "player" });
     run.noise(b.x, b.z, w.noise, this, true);
@@ -307,7 +324,9 @@ export class Ranger {
     for (const u of run.uses) {
       if (u.done || (u.when && !u.when(run))) continue;
       const d = Math.hypot(u.x - b.x, u.z - b.z);
-      if (d < (u.r ?? 1.8) && Math.abs(u.y - b.y) < 3 && d < nd) { near = u; nd = d; }
+      if (d >= (u.r ?? 1.8) || Math.abs(u.y - b.y) > 3) continue;
+      if (u.auto) { run.activate(u); continue; }           // pickups: just walk over them
+      if (d < nd) { near = u; nd = d; }
     }
     if (near !== this.interact) this.useK = 0;
     this.interact = near;

@@ -1,17 +1,18 @@
 # Hosszú Őrség (angolul: *The Long Watch*)
 
-Történetes, külső nézetes (TPS) akciójáték böngészőre, asztali gépre,
-billentyűzettel és egérrel vagy gamepaddel. Komolyabb hangvételű sci-fi:
-rovarszerű idegen faj, elhallgató kolóniák, nagy, bejárható bolygófelszínek.
-Kidolgozott low poly világ, ugyanazon a stacken, mint a Dream Fixer.
+Külső nézetes (TPS) bázisvédő-túlélő akciójáték böngészőre, asztali
+gépre, billentyűzettel és egérrel vagy gamepaddel. Komolyabb hangvételű
+sci-fi: rovarszerű idegen faj, egy ostromlott bányászkolónia egy
+porhold felszínén. Kidolgozott low poly világ, ugyanazon a stacken, mint
+a Dream Fixer.
 
-> Egy mondatban: a Peremvidék rangereinek újonca vagy, és bolygóról
-> bolygóra visszavered a Kaptárt, míg végül le nem jutsz a fészek mélyére,
-> a királynőhöz.
+> Egy mondatban: tartsd a kolóniát, amíg a Hosszú Őrség ideér: öt
+> percenként jön egy hullám, köztük ki kell menned nyersanyagért, és a
+> huszadik perc után a föld alól előbújik a Kaptárőr.
 
-**Állapot:** az 1. fejezet (Porfészek-hold) játszható az elejétől a végéig.
-A többi fejezet csak a sztoriívben létezik. A cím a rangerek hajójáé is:
-az Őrség maga a történet.
+**Állapot:** a játékmód (ostrom, lásd 3–4.) épül; a korábbi, hosszú
+sztorikampány ki lett dobva (a 8. fejezet mondja, miért). A pálya, a
+bogarak, a ranger és Kessler onnan jönnek.
 
 ---
 
@@ -22,9 +23,9 @@ az Őrség maga a történet.
   rádióforgalomban.
 - **Ellenfelek:** a legyőzött bogarak összeesnek, a lábuk behúzódik, és
   elporladnak. Vér helyett világító, savzöld nedv.
-- **A játékos elesik:** földre kerül, Kessler odaszalad és felsegíti
-  (körülbelül 2,5 mp). Ha Kessler is lent van, vagy lejár a 22 mp-es
-  vérzési idő, a küldetés az utolsó ellenőrzőpontra áll vissza.
+- **A játékos elesik:** földre kerül; ha egy védő elér hozzá, felsegíti
+  (körülbelül 2,5 mp). Kint a pályán 10 mp vérzés után a bázison éled
+  újra 50% élettel, és a nála lévő kristály fele ott marad a földön.
 - **Vizuális stílus:** kidolgozott low poly, flat shading, vertex colorok,
   a Synty-csomagok részletességével: tömzsi, lekerekített élű lemezek,
   kevés, erős színnel, nagy kezekkel és bakancsokkal, olvasható arcokkal.
@@ -48,46 +49,60 @@ az Őrség maga a történet.
   angol hangja ElevenLabs-szal készül (`scripts/voice.mjs`), minden nyelven
   angolul; a felirat a választott nyelven jelenik meg. Aki a hajóról
   beszél, rádión szól (szűrt sáv, zörej, squelch), Kessler sisak-rádión
-  (tisztább), a túlélő élőben. Amíg nincs legenerált hangfájl, a sor csak
-  feliratként jelenik meg.
+  (tisztább). Amíg nincs legenerált hangfájl, a sor csak feliratként
+  jelenik meg. A rádió rövid, egymondatos: hullámjelzés, boss, lőszer,
+  elesés, a bázis állapota.
 
 ## 2. Szereplők
 
 | Ki | Szerep | Hang |
 | --- | --- | --- |
-| **Te, „Hetes” (Seven)** | Néma újonc ranger. Páncélos, sisakos figura, külső nézetből. | – |
-| **Mara Kessler őrmester** | Tapasztalt ranger, végig veled tart, az MI irányítja. Ő beszél a helyszínen. | ElevenLabs |
-| **Idris Oduya parancsnok** | A Hosszú Őrség (*Long Watch*) parancsnoka, a rádióhang. Fáradt veterán. | ElevenLabs |
-| **Dr. Lena Voss** | Xenobiológus a hajón. Ő magyarázza a bogártípusokat. | ElevenLabs |
-| **Julian Marsh** | A Deepcore Consolidated összekötője. Udvarias, és mindenről tudott. | ElevenLabs |
-| **Teo Brandt** | Túlélő műszakvezető a porfészki bunkerben. | ElevenLabs |
-| **A Kaptár királynője** | A végső ellenfél, a 6. fejezetben. | – |
+| **Te, „Hetes” (Seven)** | Néma ranger. Páncélos, sisakos figura, külső nézetből. Egyedül jár ki a bázisról. | – |
+| **Mara Kessler őrmester** | Tapasztalt ranger, a bázis parancsnoka: a reaktor mellett tart ki, a hullámokat ő és két ranger veri vissza veled. A rádión ő szól a helyszínen. | ElevenLabs |
+| **Két ranger (Ruiz, Okafor)** | A bázis másik két védője. Nem beszélnek. | – |
+| **Idris Oduya parancsnok** | A Hosszú Őrség parancsnoka, a rádióhang: hullámjelzés, a boss, az eredmény. | ElevenLabs |
+| **Dr. Lena Voss** | Xenobiológus a hajón, a bogarakról és a repülőről beszél. | ElevenLabs |
 
-## 3. Sztoriív
+## 3. Keret
 
-A Peremvidék a galaxis széle: bányászkolóniák, farmholdak, egy
-kereskedőállomás, és nagyon kevés ranger. A kolóniák egymás után
-elhallgatnak. A helyszínen kiderül, hogy egy rovarszerű faj rajzott elő a
-mélyből: a **Kaptár**.
-
-1. **Porfészek-hold, első kontaktus** (kész, lásd lent). A Deepcore
-   bányája áttört egy üregbe a kilences szinten, és felébresztette a
-   fészket. A naplókból kiderül, hogy a cég egy éve tudott róla, és Marsh
-   titkos csomagot küldött a fagyhatári állomásra.
-2. **Jégvilág (Fagyhatár, *Frostreach*), terjedés.** Az 1. fejezet vége
-   felvezeti: az állomás nem válaszol.
-3. **Dzsungelbolygó, terjedés:** a bogarak összehangoltan mozognak.
-4. **Kereskedőállomás, fordulópont:** ostrom és evakuálás; kiderül, hogy a
-   fészkeket egy királynő irányítja, és hogy a Deepcore mit akart a
-   Kaptárral.
-5. **Vulkánhold, felkutatás:** a fő fészek bejárata.
-6. **Finálé, a fészek mélye:** a királynő, többfázisú bossharc.
-
-A történet csatornái: rádióforgalom a pálya közben (nem veszi el az
-irányítást), Kessler megjegyzései, gyűjthető adatlapok (fejezetenként 5),
-átvezetők a játékmotorban (átugorhatók), és később a hub.
+A Porfészek-hold Deepcore-kolóniája ostrom alatt áll: a bánya áttört egy
+üregbe, és felébredt a **Kaptár**. A kolóniából egy reaktor, három
+ranger és te maradtatok. A Hosszú Őrség úton van, de a Kaptár előbb ér
+ide: a huszadik percben a fészek a **Kaptárőrt** is felküldi. Ennyi a
+történet; nincs kampány, átvezető és adatlap. A rádió egy-egy mondatot
+mond, a többit a hullámóra.
 
 ## 4. Játékmenet
+
+### A kör
+
+- **A bázis:** a kolónia közepe. A **reaktor** a tér közepén áll, van
+  életereje; ha elfogy, vége a futamnak. Mellette az **ellátó
+  terminál** (a bolt). Kessler és két ranger a reaktor körül tart ki,
+  nem követnek. Egy kisebb hullámot ők is elbírnak, a nagyokhoz te
+  kellesz.
+- **Hullámóra:** a HUD-on állandó visszaszámláló. Hullám 5, 10, 15 és
+  20 perckor, 45 mp-cel előtte figyelmeztetés rádión. Egyre nagyobbak:
+  rajzók, köpködők, a harmadiktól rohamozók, több lyukból egyszerre; a
+  reaktort támadják, de aki az útjukba kerül, azt is.
+- **A két hullám között** mész ki: ládák véletlen tartalommal (lőszer,
+  kristály, egy-egy fejlesztő), őrjáratok, a menekülő repülő, fegyverek.
+  A **kristály** a nyersanyag: a bogarakból, a ládákból és a repülőből
+  esik, odamenve felveszed. Csak a bázisra visszaérve kerül a kasszába.
+- **A bázison:** a terminálnál kristályért: gyógyulás, lőszer,
+  fegyverfejlesztés (sebzés, tár), saját fejlesztés (élet, pajzs,
+  sebesség), reaktorjavítás, torony.
+- **A Kaptárőr:** a 20. perc hulláma után véletlen helyen, a bázistól
+  legalább 100 m-re bújik elő a földből, és lassan indul a reaktor felé
+  (kb. 3 perc az út). Elé mész, vagy a bázisnál várod. Ha meghal: az
+  eredmény (idő, hullámok, ölések, kristály), és a futam **végtelen
+  módban** megy tovább: négypercenként hullám, minden harmadikkal egy
+  újabb, erősebb Kaptárőr. Ranglista: a túlélt idő.
+- **Ha elesel:** ha egy védő a közeledben van, felsegít. Különben 10 mp
+  vérzés, aztán a bázison éledsz újra 50% élettel, pajzs nélkül, a nálad
+  lévő kristály fele a halál helyén marad egy jelölővel (vissza lehet
+  menni érte). Hullám közben ez súlyos.
+- **Kezdés:** a reaktor mellett, karabéllyal és pisztollyal.
 
 ### Harc
 
@@ -97,94 +112,75 @@ irányítást), Kessler megjegyzései, gyűjthető adatlapok (fejezetenként 5),
 - **Fedezék:** egy gombbal a legközelebbi falhoz vagy korláthoz tapadsz. A
   fal mentén csúszol; alacsony fedezékből célzáskor felemelkedsz és lősz,
   magas fedezék szélén kihajolsz. Alacsony fedezéken ugrással átvetődsz.
-  Ha elhúzod a kart a faltól, kilépsz.
+  Ha elhúzod a kart a faltól, kilépsz. Harci eszköz, nem rejtőzés.
 - **Két fegyver:** egyszerre csak kettő lehet nálad. Fegyverállványnál
-  vagy egy földön heverő fegyvernél cserélsz (a régit leteszed, később
-  visszaveheted). Ugyanolyan fegyvernél a lőszerét veszed el.
+  vagy egy földön heverő fegyvernél cserélsz. Ugyanolyan fegyvernél a
+  lőszerét veszed el.
 
 | Fegyver | Jellemző |
 | --- | --- |
-| **P9 oldalfegyver** (pisztoly) | Végtelen tartalék, pontos, közepesen hangos. Fejlövéssel egy rajzót vagy őrszemet csendben leszed. |
-| **AR-7 karabély** (géppuska) | Automata, a fő fegyver, hangos. |
-| **GL-4 gránátvető** | Íves lövedék, területi sebzés, nagyon hangos; a műveleti központ fegyvertárában van. |
-| **Lándzsa lézer** | Folyamatos sugár, nincs tár, de túlhevül. Szinte néma: a lopakodás fegyvere. A relénél, egy Deepcore-ládában van. |
+| **P9 oldalfegyver** (pisztoly) | Végtelen tartalék, pontos. |
+| **AR-7 karabély** (géppuska) | Automata, a fő fegyver. |
+| **GL-4 gránátvető** | Íves lövedék, területi sebzés; a műveleti központ fegyvertárában. |
+| **Lándzsa lézer** | Folyamatos sugár, nincs tár, de túlhevül; a nyugati gerincen, egy Deepcore-ládában. |
 
-Lőszer: lőszerládák a pályán, és a pályán heverő fegyverek.
+Lőszer: a boltban, lőszerládákban a pályán, és a pályán heverő
+fegyverekből.
 
-### Érzékelés és lopakodás
+### Érzékelés
 
-A bogarak **hallanak és tapintanak**, csak az őrszemek látnak.
+A bogarak **látnak és hallanak**. Nincs lopakodás.
 
-- Zaj (méterben): guggolás 1,6, séta 6, futás 15, kitérés 11, nagy
-  esés 9, lövés fegyverenként (lézer 4, karabély 30). Fedezékben a lépések
-  zaja feleződik. Fal mögül a hang rövidebbre jut. A ranger lába körüli
-  kör mutatja, meddig hallatszik a zajod.
-- Egy bogár, amelyik hall valamit, **odamegy megnézni** („?” jel), amelyik
-  rád talál, **vadászni kezd**, és a közelieket is riasztja (csiripelés).
-  Ha elég ideig csendben maradsz, elveszít.
-- Közvetlen közelről (1,5–3 m) mindenképp megérez.
-- **Őrszem:** látókúp, falon nem lát át. A guggolás és a fedezék sokat
-  segít. Amíg néz, egy szem telik fölötte; ha megtelik, sikít, és 48 m-es
-  körben minden bogarat rád uszít. Halk fegyverrel (lézer, pisztoly-fejlövés)
-  egy pillanat alatt leszedhető, mielőtt reagálna.
+- Látás: nyitott terepen 20–30 m-ről, széles kúpban; közvetlen közelről
+  mindenképp. Fal mögül nem.
+- Zaj: a lövés és a futás messzire hallatszik; aki hall valamit,
+  odamegy megnézni, aki rád talál, vadászni kezd, és a közelieket is
+  riasztja.
+- Sehol nincs nyugalom: a lyukakból folyamatosan **őrjáratok** jönnek,
+  amik két pont között vándorolnak a pályán.
 
 ### Bogártípusok
 
-| Típus | Viselkedés | Gyenge pont |
-| --- | --- | --- |
-| **Rajzó** | Kicsi, gyors, tömegesen jön, harap, az utolsó métereket ugrással teszi meg. | fej |
-| **Köpködő** | Távolságot tart, íves savat köp, ami tócsát hagy. | a hátán világító zsák |
-| **Páncélos rohamozó** | Elölről páncélos, nekifut és egyenesen rohamoz; ha falnak megy, elkábul. | hát, és kábultan bármi |
-| **Őrszem** | Lát és riaszt, nem támad. | fej |
-| **Kaptárőr** (1. fejezet bossa) | Lásd lent. | 3 zsák, és a nyitott szája |
-| *Ásók, repülők* | Későbbi fejezetekbe. | |
+| Típus | Viselkedés | Gyenge pont | Kristály |
+| --- | --- | --- | --- |
+| **Rajzó** | Kicsi, gyors, tömegesen jön, harap, az utolsó métereket ugrással teszi meg. | fej | 3 |
+| **Köpködő** | Távolságot tart, íves savat köp, ami tócsát hagy. | a hátán világító zsák | 7 |
+| **Páncélos rohamozó** | Elölről páncélos, nekifut és egyenesen rohamoz; ha falnak megy, elkábul. | hát, és kábultan bármi | 18 |
+| **Repülő (szedő)** | Nem támad. A pálya fölött köröz, ha közeledsz, menekül; ha leszeded, sok kristályt ad. | – | 60 |
+| **Kaptárőr** (boss) | Lásd lent. | 3 zsák, és a nyitott szája | 120 |
+| *Őrszem* | A régi módból maradt (lát és riaszt); az ostromban nem jön. | fej | – |
 
-### Az MI-társ (Kessler)
-
-- **Nem irányítható.** Követ: kicsit mögötted, oldalt, a lövésvonaladon
-  kívül, és ha van, fal mellé húzódik.
-- **Amíg nem harcolsz:** ha guggolsz vagy fedezékben vagy, ő is lent
-  marad, halkan mozog, és nem lő.
-- **Ha támadsz** (vagy a bogarak rátok támadnak), ő is harcba száll,
-  sorozatokkal lő, a páncélosoknak a hátát célozza. Ettől kezdve ugyanúgy
-  zajt csap, és ugyanúgy észrevehetik, mint téged.
-- **Csendes leszedés:** ha egy halk lövéssel kiszedsz egy bogarat, és
-  senki sem vadászik rátok, Kessler csak azt a célpontot segít leszedni,
-  a többit nem ébreszti fel.
-- Felsegít, ha elestél. Ha őt ütik ki, 12 mp múlva feláll: nem lehet
-  elveszíteni. Ha nagyon lemarad és nem látod, utánad zárkózik.
-
-### Pályák
-
-Egy terület 320 × 320 m, nagyjából 20 perc, több alküldetéssel és
-pályán belüli ellenőrzőpontokkal.
-
-### Az 1. fejezet: Porfészek-hold
-
-- **Bevezető átvezető:** a leszállóegység leteszi a csapatot.
-- **Az út a kolóniáig:** az első kontaktus egy felborult rovernél. Itt
-  jönnek a tippek: guggolás, zaj, fedezék.
-- **A kolónia:** a műveleti központ naplóiból kiderül, hogy az északi
-  bunkerben túlélők vannak. Két feladat jön, tetszőleges sorrendben:
-  - **Áram:** a generátor beindítása után 45 mp-ig hullámokban jönnek a
-    bogarak a földből; ki kell tartani.
-  - **Relé:** a nyugati gerincen; az ösvényen és a tetőn bogarak és egy
-    őrszem. Itt van a lézer, és itt szól először Marsh.
-- **A kanyon:** három őrszem és alvó csapatok. Ez a fejezet lopakodós
-  része. A végén a bunker, átvezetővel Teo Brandttal.
-- **A gödör:** három szellőzőre kell töltetet tenni. Mindegyik ébreszt egy
-  hullámot. Robbanás után a **Kaptárőr** jön elő (átvezető).
 - **Kaptárőr:**
   - Csak a három világító zsákja és a nyitott szája sebezhető rendesen;
     a szája akkor nyílik ki, amikor üvölt, köp vagy rohamra készül.
   - Egy zsák szétlövése megtántorítja.
   - 1. fázis: csapás közelről, savzápor, roham (ha falnak megy, elkábul).
-  - 2. fázis: ezen felül bogarakat hív a járatokból.
+  - 2. fázis: ezen felül bogarakat hív a lyukakból.
   - 3. fázis: gyorsabb, ráugrik a célpontjára, és a becsapódás lökéshulláma
     gyűrűként terjed (át kell ugrani).
-- **Kimenekítés:** vissza a leszállóhelyre. A záró átvezetőben Marsh
-  „rendezi az ügyet”, Oduya pedig közli, hogy Fagyhatár nem válaszol.
-- **Adatlapok (5):** a kolónisták naplói a Deepcore titkolózásáról.
+  - A reaktorhoz érve azt üti.
+
+### A védők (Kessler és a két ranger)
+
+- **Nem irányíthatók.** Mindegyiknek van egy posztja a reaktor körül,
+  azon belül mozognak, fal mellé húzódnak, és mindenre lőnek, ami 40
+  m-en belül jön; a páncélosoknak a hátát célozzák.
+- Felsegítenek, ha a közelükben estél el. Ha őket ütik ki, 12 mp múlva
+  felállnak: nem lehet elveszíteni őket.
+
+### A pálya
+
+A régi Porfészek-hold, 320 × 320 m: a kolónia középen (bázis), a
+leszállóhely délen, a gerinc nyugaton, a kanyon északon, a gödör
+keleten. A lyukak (ahonnan a hullámok és az őrjáratok jönnek) egy
+gyűrűben vannak a bázis körül 70–80 m-re, plusz a régi, távolabbiak.
+
+### Később
+
+- Meta-fejlődés futamok között (csak halálkor vagy győzelemkor kapott
+  pont, állandó fejlesztésekre): ha a kör stabil.
+- Ranglista a túlélt időre, a Hitch & Park infrájával.
+- Tornyok és több védő a boltban, ásók, újabb pálya.
 
 ## 5. Platform és vezérlés
 
@@ -193,11 +189,11 @@ pályán belüli ellenőrzőpontokkal.
   - **Billentyűzet:** WASD, egér, bal klikk tűz, jobb klikk célzás, Szóköz
     ugrás, Shift futás, V kitérés, C / Ctrl guggolás, Q fedezék,
     R újratöltés, E használat, 1 / 2 / görgő / Tab fegyvercsere, X vállcsere,
-    Esc szünet, Enter átvezető átugrása.
+    Esc szünet.
   - **Gamepad:** bal kar mozgás (benyomva futás), jobb kar nézés (benyomva
     vállcsere), RT tűz, LT célzás, A ugrás, B kitérés, X használat vagy
-    újratöltés, Y fegyvercsere, RB fedezék, LB guggolás, Start szünet,
-    Back átvezető átugrása. Célzássegítés: a nézés lelassul bogár fölött.
+    újratöltés, Y fegyvercsere, RB fedezék, LB guggolás, Start szünet.
+    Célzássegítés: a nézés lelassul bogár fölött.
 - **Mobil:** most nincs rá fókusz.
 - **Nyelvek:** angol és magyar. A többi oldalnyelv (de, es, fr, zh) akkor
   jön, ha a szövegek véglegesek.
@@ -208,35 +204,33 @@ pályán belüli ellenőrzőpontokkal.
 
 | Fájl | Feladat |
 | --- | --- |
-| `sim/terrain.js`, `sim/space.js` | Magasságmező-terep (2 m-es cellák, pont úgy háromszögelve, ahogy kirajzolódik) és a Dream Fixer dobozos-hengeres világa együtt: sugarak, padló. |
+| `sim/terrain.js`, `sim/space.js` | Magasságmező-terep (2 m-es cellák) és a Dream Fixer dobozos-hengeres világa együtt: sugarak, padló. |
 | `sim/body.js` | A Dream Fixer testmozgása, terepre, lejtőkorlátra és kitérésre bővítve. |
-| `sim/player.js`, `sim/camrig.js` | A ranger: mozgás, fedezék, fegyverek, zaj; a vállkamera a szimulációban is ki van számolva, mert a lövés oda megy, ahová a kamera néz. |
-| `sim/ally.js` | Kessler. |
-| `sim/bugs.js`, `sim/warden.js` | A Kaptár és a boss. |
+| `sim/player.js`, `sim/camrig.js` | A ranger: mozgás, fedezék, fegyverek, zaj, fejlesztések (sebzés, tár, élet, pajzs, sebesség); a vállkamera a szimulációban is ki van számolva. |
+| `sim/ally.js` | A védők: poszt körül, fedezékben, lőnek, felsegítenek. |
+| `sim/core.js` | A reaktor: életerő, a bogarak célpontja. |
+| `sim/bugs.js`, `sim/warden.js` | A Kaptár (látás, hallás, őrjárat, a reaktor ostroma) és a boss (menetelés a bázisra). |
 | `sim/nav.js` | 2 m-es járásrács, távolságmező célpontonként (Dijkstra). |
-| `sim/run.js` | Egy futó küldetés: lépés, zajok, hullámok, lövedékek, feladatok, ellenőrzőpontok, átvezetők. |
-| `levels/dustmoon.js` | A Porfészek-hold terepe és épületei. |
-| `levels/dustmoon-script.js` | A küldetés forgatókönyve: szakaszok, triggerek, csoportok. |
+| `sim/run.js` | Egy futam: lépés, zajok, hullámok, lövedékek, kristály, bolt, újraéledés. |
+| `levels/dustmoon.js` | A Porfészek-hold terepe és épületei, a bázis, a lyukak. |
+| `levels/siege.js` | Az ostrom forgatókönyve: hullámóra, őrjáratok, ládák, repülő, boss, végtelen mód, pontszám. |
 | `render/…` | Égbolt gázóriással, terep- és pályamodellek darabokban, effektek. |
-| `render/models/characters.js` | A ranger (ízelt váz: csípő, lábak, törzs, fej, két kar könyökkel, fegyvercsomópont, hátitok, combtok), az arc, a fegyverek (tár- és závárcsomóponttal, `GUN_RIG` fogáspontokkal), a túlélők. |
-| `render/rangerfig.js` | A ranger figura procedurális animációja: a fegyver vezet (állások a törzs terében), a karok kétcsontos IK-val érik el; járás, sprint, térdelés, célzás, visszarúgás, újratöltés (tár ki, új tár az övről, be, závár), fegyvercsere (a régi a hátra vagy a tokba, az új onnan), fedezék, elesés, felsegítés. |
+| `render/models/characters.js` | A ranger (ízelt váz), az arc, a fegyverek; `render/rangerfig.js` a procedurális animáció. |
+| `render/models/bugs.js` | A Kaptár modelljei. |
 | `viewer.js` | Fejlesztői modellnéző (`?model=…`), a ranger pózaival. |
-| `hud.js`, `ui/menus.js` | DOM-alapú HUD és menük. |
+| `hud.js`, `ui/menus.js` | DOM-alapú HUD (hullámóra, reaktor, kristály) és menük (cím, szünet, bolt, eredmény). |
 | `story/director.js`, `voice.js` | Ki beszél, mikor; a hangok rádiós láncon. |
 
-- A szimuláció fix 60 Hz-en fut, renderfüggetlen; az ellenőrzőpont egy
-  kis pillanatkép (szakasz, flagek, felszerelés, hely), visszaálláskor
-  ebből épül egy új Run.
+- A szimuláció fix 60 Hz-en fut, renderfüggetlen. Egy futam egy Run;
+  nincs ellenőrzőpont és mentés.
 - A távoli, nyugodt bogarak csak minden negyedik lépésben frissülnek.
 - `npm run dev -w games/long-watch` (port 5360).
-- `node scripts/flow.mjs [képelőtag]`: fej nélkül végigjátssza a teljes
-  küldetést (teleport, használat, robotlövész), és kiírja, mi teljesült.
-- `node scripts/shot.mjs <előtag> <szakasz>:x,z,yaw,pitch …`:
-  képernyőképek.
+- `node scripts/siege.mjs [perc] [seed]`: fej nélkül, isten mód nélkül
+  végigjátssza a futam első perceit egy bottal, és kiírja hullámonként a
+  reaktor életét, a leütéseket, a kristályt.
+- `node scripts/shot.mjs <előtag> x,z,yaw,pitch …`: képernyőképek.
 - `node scripts/models.mjs <mappa> <modell|all> [query …]`: modellek képei
   a nézőből (`?model=ranger&pose=reload&k=0.5&skin=kessler&yaw=-2.3`).
-- `node scripts/anim-shots.mjs <előtag>`: a rangerek animációs állapotai a
-  játékban (célzás, lövés, újratöltés, csere, térdelés, sprint, túlélők).
   - Mindkettőhöz `PLAYWRIGHT_CORE` és (ha nem a szokásos helyen van)
     `CHROME` kell.
 - `npm run voice -w games/long-watch`: a hangok legenerálása (ElevenLabs
@@ -245,17 +239,23 @@ pályán belüli ellenőrzőpontokkal.
 
 ## 7. Nyitott kérdések
 
-- A hub (a Hosszú Őrség fedélzete), fejlesztések, fejezetválasztó.
-- A 2–6. fejezet tartalma, az ásók és a repülők.
-- A szereplők végleges ElevenLabs-hangjai (most az előre elkészített
-  hangtár hangjaival számol a szkript).
+- A meta-fejlődés tartalma és a ranglista (túlélt idő) bekötése.
+- Tornyok, több védő, ásók; egy második pálya.
+- A szereplők végleges ElevenLabs-hangjai.
 - A többi nyelv.
 
 ## 8. Átadás: állapot és tudnivalók a folytatáshoz
 
-**Hol tart:** az 1. fejezet végigjátszható. A `claude/eager-fermi-2sst54` ágon
-van, a főágba még nincs beolvasztva. Kipróbálni helyben kell, nem
-Artifactként (az a változat elavult, nem frissítjük):
+**Miért lett új a játék:** a felhasználó a 3. menet után úgy döntött,
+hogy a hosszú sztori keveseket érdekelne, és a játékot bázisvédő-túlélő
+körre építi át (lásd 3–4.). A döntései: egyedül vagy kint (Kessler a
+bázison marad), a fedezék marad, meta-fejlődés később (csak halálkor
+vagy győzelemkor), elesésnél 10 mp és 50% élet, a boss után végtelen mód
+és ranglista. A sztori szkriptje, az ellenőrzőpontok, a lopakodás, az
+őrszemek szerepe és az adatlapok kikerültek.
+
+**Hol tart:** a `claude/eager-fermi-2sst54` ágon, a főágba még nincs
+beolvasztva. Kipróbálni helyben:
 
 ```sh
 npm install                          # egyszer, a repo gyökeréből
@@ -263,39 +263,38 @@ npm run dev -w games/long-watch      # http://localhost:5360/
 ```
 
 A modellnéző ugyanitt: `http://localhost:5360/?model=ranger&pose=aim`.
-A teljes oldal a játékkal együtt: `npm run build && npm run preview` a
-gyökérből (http://localhost:4790/, a Gamer Zone iframe-jében).
+
+**Hol tart a mód (4. menet):** a kör végigjátszható: reaktor és három
+védő a téren, hullámóra (5 percenként, 45 mp figyelmeztetés), hullámok
+a bázis körüli nyolc gyűrű-lyukból (`ring1…8`), őrjáratok a távoli
+lyukakból (max. 52 élő bogár), ládák (kristály / lőszer / nagy
+kristály), a menekülő repülő (`skimmer`, 75 mp-ig él), a Kaptárőr a 4.
+hullám után véletlen helyről a reaktorra menetel, végtelen mód a boss
+után (4 percenként hullám, minden harmadikkal új, +25% életerejű
+Kaptárőr), bolt (ellátás, lőszer, reaktorjavítás, sebzés, tár, páncél,
+pajzs, lábak), újraéledés 10 mp után 50% élettel, a kristály felét
+hátrahagyva, eredményképernyő pontszámmal (idő + 2·ölés + kristály).
+Hullám n: 10+5n rajzó, n+1 köpködő, ⌊n/2⌋ rohamozó (a 2.-tól). A
+reaktor felé tartó bogár 7 m-en belül (köpködő 4) vált élő célpontra,
+és rátámad arra, aki 18 m-en belülről meglövi. A bot (`siege.mjs`, 16
+perc, 3 hullám, fejlesztés nélkül): az 1–2. hullám veszélytelen, a 3.
+a reaktort 1486-ról 641-re vitte, a botot háromszor ütötték le; 263
+kristályt gyűjtött. A 4. hullám és a boss fejlesztés nélkül durva lesz:
+a felhasználó kipróbálása dönt (állítható: a védők sebzése 7/lövés,
+életük 120; a hullámméret; a reaktor 1500; a bolt árai). A Kaptárőr
+menetelése 1,1 m/s, 22 m-en belül teljes tempó. Még nincs: torony,
+ranglista, meta-fejlődés. A `sentry` típus a kódban maradt, az ostrom
+nem hívja.
 
 **Ellenőrzés minden változtatás után** (`npm run dev -w games/long-watch`
-mellett):
-
-- `node scripts/flow.mjs [képelőtag]`: a teljes küldetés; az utolsó sorban
-  `"over":"won"` kell.
-- `node scripts/mechanics.mjs`: az alapmechanikák. A várt eredmény:
-  - van fedezék;
-  - `huntedCrouching: 0`, `huntedWalking > 0`;
-  - az őrszem guggolva később sikít;
-  - `kesslerFiredUnprovoked: false`;
-  - `revived: true`, `failed: "failed"`.
-- `node scripts/fight.mjs [seed]`: isten mód nélkül végigharcolja a
-  rovert, a kolóniát és a generátort egy átlagos célzású bottal (fedezék
-  és lőszerfelvétel nélkül), és szakaszonként kiírja a leütéseket, a
-  kapott találatokat, a legkisebb hp-t és a maradék lőszert. A mostani
-  kiosztással: a roverig és a kolóniáig 0 leütés, a generátornál 1–2
-  (Kessler felsegít), a puska a végére kifogy, a pisztoly marad.
-- `node scripts/shot.mjs <előtag> <szakasz>:x,z,yaw,pitch`: képek.
-- `node scripts/models.mjs <mappa> ranger "pose=aim&yaw=1.57"` és
-  `node scripts/anim-shots.mjs <előtag>`: a figurák és az animáció; a
-  modellnéző a böngészőben `?model=ranger&pose=…` (pózok: idle, walk, run,
-  sprint, crouch, crouchWalk, aim, aimUp, fire, reload, swap, cover, down,
-  pistol, pistolAim, pistolReload, launcher, laser, jump; `&k=` az
-  újratöltés / csere állása, `&skin=kessler`). A `mechanics.mjs` egyik
-  száma (`huntedCrouching`) néha nem 0 a véletlen miatt: újrafuttatva az.
-- A szkriptekhez kell `PLAYWRIGHT_CORE` (egy playwright-core
-  `index.mjs`-e); a Chromium alapból a `/opt/pw-browsers/chromium`. A
-  fej nélküli böngésző nagyon lassan renderel, ezért a szkriptek a
-  szimulációt közvetlenül léptetik (`window.__longWatch`, csak dev
-  módban).
+mellett): `node scripts/siege.mjs 11` (két hullám és a köztes kijárás;
+a reaktor nem eshet 0-ra, a bot 0–2 leütést kaphat), és a
+`?model=…` néző a figurákhoz. A fej nélküli szkriptekhez a gépen a
+`PLAYWRIGHT_CORE` alapértelmezése (`~/work/nape-js/...`) jó, a `CHROME`
+pedig `~/Library/Caches/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-mac-arm64/chrome-headless-shell`.
+A Claude beépített böngészője gyorsabb a képekhez. A dev fogantyú
+(`window.__longWatch`): `play()`, `place(x,z,yaw,pitch)`, `steps(n, I)`,
+`god()`, `freeze()`, `warp(mp)` (a hullámóra előretekerése).
 
 **A figurák (3. menet, Synty-irány):** a felhasználó első visszajelzése a
 2. menetre: a kezek a testben voltak, és az egész figura dobozokból állt.
@@ -319,37 +318,6 @@ ilyet kért Synty-stílusban. A `models/bugs.js` teljesen új: `shell()`
 a Kaptárőrön kaszapenge (`S.extrude`). A csomópontnevek (body, head, l0…,
 sac, frill, jaw, sacL/R/T) és a találati gömbök (`sim/bugs.js`,
 `sim/warden.js`) változatlanok, a formák azokba illeszkednek.
-
-**A következő sessionnek (helyi környezetben):**
-- A felhasználó mindent helyben csinál: `npm run dev -w games/long-watch`
-  mellett dolgozunk, Artifact nincs. A fej nélküli szkriptekhez a gépén a
-  `PLAYWRIGHT_CORE` alapértelmezése (`~/work/nape-js/...`) jó, a `CHROME`
-  pedig `~/Library/Caches/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-mac-arm64/chrome-headless-shell`.
-  A Claude beépített böngészője (`?model=…`) gyorsabb a képekhez.
-- Az elvárt stílus: Synty Polygon Sci-Fi Worlds (a felhasználó képet
-  mutatott): kerek, lapokból álló formák, bordázott ízületek, gömbsisak,
-  egy erős kiegészítő szín, világító csíkok. A 3. menet ezt rakta le a
-  rangerre; a felhasználó még nem látta, az első dolog a visszajelzése.
-- Ahol folytatni érdemes: a túlélők ugyanebben a stílusban (még
-  dobozok), a bogarak animációja az új modellekhez (rágók, kaszák, a
-  potroh), a kezek ujjai, a csere mozdulata, utána a „Javasolt következő
-  lépések" lent.
-- Gyors ellenőrzés a nézőben: `?model=ranger&pose=aim&yaw=1.57`,
-  `?model=ranger&pose=reload&k=0.5&yaw=-2.3`, `?model=all`.
-
-**Egyensúly (3. menet):** a felhasználó szerint túl kevés volt az
-ellenfél, túl kevés élettel. Életerő: rajzó 34 → 48 (4 puskalövés
-testre), köpködő 70 → 115, rohamozó 280 → 400, őrszem 50 → 80, Kaptárőr
-3400 → 4200. Elhelyezett bogarak 46 → 76: új csoportok az úton (`road`),
-a kolónia déli peremén (`south`), a generátor udvarán (`yard`), a gerinc
-lábánál (`ridgeFoot`), és minden régi csoport bővült. A generátornál öt
-hullám (52 mp), a relé bekapcsolására hullám jön a nyugati lyukakból
-(`relaywave`), a kürtők hullámai nagyobbak (a harmadiknál rohamozó is).
-Javítva: ellenőrzőpontról visszatérve a kanyon és a gödör csoportjai
-kétszer jöttek létre. A bot (`fight.mjs`) előtte egyetlen találatot sem
-kapott a generátorig; most a generátornál 1–2-szer leütik. A felhasználó
-még nem próbálta ki: az első dolog az ő visszajelzése, utána lehet
-finomítani (harapás 8, köpés 15, roham 28 maradt).
 
 **Tanulságok, amikre figyelni kell:**
 - A képkocka-idő negatív is lehet (az első rAF-nál); a `game.js` lenullázza.
@@ -382,11 +350,17 @@ finomítani (harapás 8, köpés 15, roham 28 maradt).
   külön csomópontok. Nagyobb pályán a statikus darabok mérete (`buildChunks(40)`) és a
   bogarak lábai (árnyék nélkül) a fő emelők.
 
+- A bogarak célpontja bárki lehet, akinek `kind`, `body` (x, y, z, vx,
+  vz, r, h), `downed` és `hurt()` van: a játékos, a védők és a reaktor
+  (`sim/core.js`). A `run.foes()` adja a listát; új célpontfajtát oda
+  kell felvenni, nem a bogarak kódjába.
+
 **Javasolt következő lépések** (a felhasználó kipróbálása után pontosítva):
-- harc érzete: célzás, visszarúgás, kitérés, fedezék be- és kilépés; a
-  bogarak animációja (rágók, ugrás, köpés) a részletesebb modellekhez;
-- egyensúly: a bogarak sebzése, az őrszem észlelési ideje, a boss hossza;
-  a `fight.mjs` bot kiterjesztése a gerincre és a kanyonra;
+- egyensúly a bottal és játékteszttel: hullámméret, a reaktor élete, a
+  bolt árai, a kristály hozama;
+- ládák és a repülő, ha még nincsenek; tornyok;
+- ranglista (túlélt idő), utána a meta-fejlődés;
+- a bogarak animációja az új modellekhez, a túlélők stílusa (ha
+  maradnak), a kezek ujjai;
 - hangok legenerálása (`npm run voice -w games/long-watch`, kulccsal);
-- hub a hajón, fejlesztések, utána a 2. fejezet (Fagyhatár);
 - Gamer Zone bejegyzés előnézeti képpel, ha már megmutatható.

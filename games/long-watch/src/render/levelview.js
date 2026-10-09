@@ -49,7 +49,7 @@ export function groundMeshes(kit) {
 }
 
 // Props that move or change (doors, vents, the generator) are kept apart.
-const DYNAMIC = new Set(["bunkerDoor", "vent", "generator", "relayTower"]);
+const DYNAMIC = new Set(["bunkerDoor", "vent", "generator", "relayTower", "reactor"]);
 
 // Blocks, wedges and props: one Builder, cut into chunks. Returns
 // { meshes, dynamic: [{ model, obj, d }] }.

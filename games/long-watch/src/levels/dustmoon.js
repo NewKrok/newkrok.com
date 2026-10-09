@@ -104,7 +104,7 @@ export function buildDustmoon() {
   const wallLook = { top: 0x9aa0a4, side: 0xc4c6c4, bottom: 0x7b7f82, bevel: 0.08, stripe: 0xd8862e };
   const roofLook = { top: 0x5a6068, side: 0x4c5158, bevel: 0.1 };
 
-  k.mark("start", 0, 116, { yaw: 0 });
+  k.mark("start", 2, 4, { yaw: Math.PI });      // by the reactor, facing south
   k.mark("lz", 0, 122);
   k.mark("gate", 0, 49);
   k.mark("rover", 8, 80);
@@ -142,7 +142,6 @@ export function buildDustmoon() {
 
   // Ops centre.
   k.building(-16, -14, 18, 12, 4.4, { look: wallLook, roof: roofLook, doors: [{ side: "s", at: -3, w: 2.6 }, { side: "e", at: 2, w: 2.2 }] });
-  k.mark("terminal", -21, -17.6);
   k.prop("console", -21, -18.4, { y: 0.15, collide: { w: 2.6, d: 0.8, h: 1.1 } });
   k.prop("screenWall", -15, -19.6, { y: 0.15 });
   k.box(-11, -12, 4, 1.2, 0.95, steel);           // desk
@@ -183,7 +182,18 @@ export function buildDustmoon() {
   k.prop("waterTower", -36, -26, { collide: { r: 2.6, h: 9, y0: 4.5 } });
   for (const [x, z] of [[-34, -24], [-38, -24], [-34, -28], [-38, -28]]) k.world.cyl({ x, z, r: 0.25, y0: 0, y1: 4.6 });
   k.prop("dish", 0, -36, { collide: { r: 1.2, h: 3 } });
-  for (const [x, z] of [[-8, 44], [8, -44], [-40, 8], [40, -8], [0, 0], [-20, -32], [24, 16], [-26, 30]]) { k.prop("lamp", x, z, { collide: { r: 0.18, h: 6 } }); }
+  for (const [x, z] of [[-8, 44], [8, -44], [-40, 8], [40, -8], [8, 8], [-20, -32], [24, 16], [-26, 30]]) { k.prop("lamp", x, z, { collide: { r: 0.18, h: 6 } }); }
+
+  // ── The base: the reactor in the square, the supply terminal beside it, the defenders' posts ──
+  k.mark("reactor", 0, -2);
+  k.prop("reactor", 0, -2, { collide: { r: 2.4, h: 3.4 } });
+  k.light(0, 4.2, -2, 0x8fe8ff, 16, 0.9);
+  k.mark("terminal", 7, -2);
+  k.prop("console", 7, -2.9, { collide: { w: 2.6, d: 0.8, h: 1.1 }, yaw: 0 });
+  k.mark("postKessler", -5, 5);
+  k.mark("postRuiz", 9, -11);
+  k.mark("postOkafor", -11, -9);
+  for (const [x, z, yaw] of [[-5, 8, 0.1], [12, -8, 1.5], [-13, -4, 1.2], [6, 6, 0.2]]) k.prop("barrier", x, z, { yaw, collide: { w: 3.0, d: 0.6, h: 1.1 } });
 
   // ── West: the trail and the relay ridge ──
   for (let i = 0; i < TRAIL.length - 1; i++) {
@@ -235,8 +245,13 @@ export function buildDustmoon() {
   k.mark("pit", PIT.x, PIT.z);
   for (const [x, z] of [[PIT.x - 8, PIT.z + 4], [PIT.x + 6, PIT.z - 6]]) k.prop("drillRig", x, z, { collide: { w: 2.4, d: 2.4, h: 4 }, yaw: R() * 3 });
 
-  // Burrows: where waves come up.
-  [[22, 12], [12, -24], [32, -20], [36, 0]].forEach(([x, z], i) => k.burrow(`col${i + 1}`, x, z));
+  // Burrows: the ring round the base is where the waves come up; the far ones feed the patrols.
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + 0.3, r = 74 + (i % 2) * 8;
+    let x = Math.sin(a) * r, z = Math.cos(a) * r;
+    if (Math.abs(x) < 8 && z > 60) x += 12;                     // not on the south road
+    k.burrow(`ring${i + 1}`, x, z);
+  }
   [[PIT.x - 12, PIT.z + 10], [PIT.x + 12, PIT.z + 8], [PIT.x - 4, PIT.z - 12], [PIT.x + 10, PIT.z - 10]].forEach(([x, z], i) => k.burrow(`pit${i + 1}`, x, z));
   [[-74, 14], [-96, -2]].forEach(([x, z], i) => k.burrow(`west${i + 1}`, x, z));
   [[-2, -84], [-10, -110]].forEach(([x, z], i) => k.burrow(`can${i + 1}`, x, z));

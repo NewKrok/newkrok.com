@@ -2,25 +2,28 @@ import { clamp, dampAngle, angDiff } from "../config.js";
 import { Body } from "./body.js";
 
 // ── The Hive ─────────────────────────────────────────────────────────────
-// The bugs are nearly blind. They hear footsteps and shots and feel the
-// ground; only the sentries see, and a sentry that spots you shrieks the
-// whole area awake. A bug that notices something calls the ones around it
-// (a chittering wave spreads through a nest), searches where the noise was,
-// and hunts whoever it finds. It loses you if you go quiet long enough.
+// The bugs see and hear. One that spots or hears something calls the ones
+// around it (a chittering wave spreads through a pack), searches where the
+// noise was, and hunts whoever it finds: the ranger, a defender or the
+// reactor. Waves come up out of the burrows already hunting the reactor
+// and turn on anyone who gets in the way. Patrols wander the whole area
+// from point to point.
 //
-// States: idle (wander round home) → search (go to a noise, look about)
-// → hunt (go for a target and attack) → back to search / idle. Dead bugs
-// stay a moment for the renderer, then go.
+// States: idle (wander round home) / patrol (point to point) → search (go
+// to a noise, look about) → hunt (go for a target and attack) → back to
+// search / idle. Dead bugs stay a moment for the renderer, then go.
 
 export const BUGS = {
   // Small, fast, many. Bites, and leaps the last few metres.
-  swarmer: { hp: 48, speed: 7.4, wander: 1.8, radius: 0.42, height: 0.7, hearing: 1, bite: 8, reach: 1.45, biteCool: 0.85, leap: true, xp: 10 },
+  swarmer: { hp: 48, speed: 7.4, wander: 1.8, radius: 0.42, height: 0.7, hearing: 1, sight: 24, bite: 8, reach: 1.45, biteCool: 0.85, leap: true, crystal: 3 },
   // Keeps its distance and lobs acid. Its glowing sac is the soft spot.
-  spitter: { hp: 115, speed: 4.6, wander: 1.4, radius: 0.6, height: 1.2, hearing: 1.1, spit: 15, near: 9, far: 24, spitCool: 2.6, xp: 25 },
+  spitter: { hp: 115, speed: 4.6, wander: 1.4, radius: 0.6, height: 1.2, hearing: 1.1, sight: 28, spit: 15, near: 9, far: 24, spitCool: 2.6, crystal: 7 },
   // Armoured head-on; charges in a straight line and stuns itself on walls.
-  charger: { hp: 400, speed: 3.6, wander: 1.2, radius: 0.95, height: 1.5, hearing: 0.9, ram: 28, chargeSpeed: 15, xp: 60 },
-  // Sees (and only sees): a long look at you and it shrieks.
-  sentry: { hp: 80, speed: 3.2, wander: 0.8, radius: 0.5, height: 1.7, hearing: 0.6, sight: 34, fov: 1.05, xp: 30 },
+  charger: { hp: 400, speed: 3.6, wander: 1.2, radius: 0.95, height: 1.5, hearing: 0.9, sight: 22, ram: 28, chargeSpeed: 15, crystal: 18 },
+  // Sees far and shrieks the area awake (kept from the old mode; not spawned by the siege).
+  sentry: { hp: 80, speed: 3.2, wander: 0.8, radius: 0.5, height: 1.7, hearing: 0.6, sight: 34, fov: 1.05, crystal: 10 },
+  // The skimmer: flies, never attacks, runs from anyone who comes near, and is full of crystal.
+  skimmer: { hp: 90, speed: 9.5, wander: 3, radius: 0.6, height: 1.0, hearing: 1.4, sight: 30, fly: 4.5, flee: 24, life: 75, crystal: 60 },
 };
 
 let nextId = 1;
@@ -50,6 +53,10 @@ export class Bug {
     this.called = false;
     this.pathKey = `bug${this.id}`;
     this.tag = o.tag ?? null;
+    this.route = null;                      // patrol: the next point to walk to
+    this.seeT = Math.random() * 0.3;
+    this.patrolling = !!o.patrol;
+    if (o.patrol) { this.state = "patrol"; this.goalX = x; this.goalZ = z; }
     if (o.emerge) { this.hidden = true; this.emergeT = 0.9 + Math.random() * 0.6; this.act = "emerge"; }
     if (o.hunt) this.hunt(null, o.hunt, false);
   }
@@ -66,6 +73,7 @@ export class Bug {
       case "spitter": add(0, 0.7, 0.62, "body"); add(-0.55, 1.05, 0.36, "sac"); add(0.6, 0.75, 0.3, "head"); break;
       case "charger": add(1.0, 0.85, 0.72, "plate"); add(-0.1, 0.9, 0.9, "body"); add(-1.0, 1.0, 0.5, "back"); break;
       case "sentry": add(0, 0.95, 0.45, "body"); add(0.1, 1.6, 0.3, "head"); break;
+      case "skimmer": add(0, 0.5, 0.75, "body"); add(0.7, 0.55, 0.35, "head"); break;
     }
     return s;
   }
@@ -84,7 +92,9 @@ export class Bug {
     if (!quiet || this.hp <= 0) run.fx({ type: "bugHit", id: this.id, part, armour, x: this.x, y: this.y + this.def.height * 0.6, z: this.z });
     if (this.hp <= 0) { this.die(run, src); return armour; }
     // Shot: it knows roughly where from. A quiet weapon (or a sentry's
-    // slow wits) gives a moment to finish it before it reacts.
+    // slow wits) gives a moment to finish it before it reacts. One on its
+    // way to the reactor turns on a shooter who is close.
+    if (src && src.body && this.state === "hunt" && this.target?.kind === "core" && Math.hypot(src.body.x - this.x, src.body.z - this.z) < 18) { this.hunt(run, src, false); return armour; }
     if (src && src.body && this.state !== "hunt" && this.state !== "shriek") {
       if (quiet || this.type === "sentry") { if (this.startle == null) { this.startle = 0.55; this.startleSrc = src; } }
       else this.hunt(run, src, true);
@@ -105,6 +115,7 @@ export class Bug {
     if (d > r) return;
     if (!run.space.clear(this.x, this.y + 0.8, this.z, n.x, run.space.terrain.height(n.x, n.z) + 1, n.z)) { r *= 0.6; if (d > r) return; }
     const team = n.src && n.src.body && (n.src.kind === "player" || n.src.kind === "ally");
+    if (team && n.src.downed) return;
     if (this.state === "hunt") {
       if (team && n.src === this.target) { this.knownX = n.x; this.knownZ = n.z; this.lostT = 0; }
       else if (team && this.target && Math.hypot(this.target.body.x - this.x, this.target.body.z - this.z) > d + 6 && !n.src.downed) this.hunt(run, n.src, false);
@@ -116,13 +127,15 @@ export class Bug {
 
   search(x, z) {
     if (this.type === "sentry") { this.face = Math.atan2(-(x - this.x), -(z - this.z)); this.detect = Math.max(this.detect, 0.3); return; }
+    this.target = null;
     this.state = "search"; this.stateT = 6 + Math.random() * 3;
     this.goalX = x + (Math.random() - 0.5) * 4; this.goalZ = z + (Math.random() - 0.5) * 4;
     this.act = "alert"; this.actT = 0;
   }
 
   hunt(run, target, call) {
-    if (!target || target.downed) return;
+    if (!target || target.downed || this.def.fly) return;
+    if (target.kind === "core" && this.target && this.target.kind !== "core" && this.state === "hunt") return;   // a live target beats the reactor
     if (this.type === "sentry") { if (run) this.shriek(run, target); return; }
     const was = this.state;
     this.state = "hunt"; this.target = target; this.lostT = 0;
@@ -146,6 +159,7 @@ export class Bug {
   step(run, dt) {
     const b = this.body, d = this.def;
     this.actT += dt; this.hitT -= dt; this.cool -= dt;
+    if (d.fly) { this.#fly(run, dt); return; }
     if (!this.alive) { this.deadT += dt; b.step(run.space, { vx: 0, vz: 0 }, dt); return; }
     if (this.hidden) {
       this.emergeT -= dt;
@@ -165,25 +179,28 @@ export class Bug {
     const T = this.target;
     if (this.state === "hunt" && T) {
       if (T.downed) {
-        // Lost interest in someone who is down: the other one, else search.
-        const other = T === run.player ? run.ally : run.player;
-        if (other && !other.downed && Math.hypot(other.body.x - this.x, other.body.z - this.z) < 30) this.hunt(run, other, false);
+        // Lost interest in someone who is down: the nearest other one, else the reactor, else search.
+        const other = this.#nearestFoe(run, 30, T);
+        if (other) this.hunt(run, other, false);
+        else if (run.core && !run.core.downed) this.hunt(run, run.core, false);
         else this.search(T.body.x, T.body.z);
       } else {
         const td = Math.hypot(T.body.x - this.x, T.body.z - this.z);
-        // Close by, it feels you whatever you do.
-        if (td < 6) { this.knownX = T.body.x; this.knownZ = T.body.z; this.lostT = 0; } else this.lostT += dt;
+        // Close by, it feels you whatever you do; the reactor does not move.
+        if (td < 6 || T.kind === "core") { this.knownX = T.body.x; this.knownZ = T.body.z; this.lostT = 0; } else this.lostT += dt;
         if (this.lostT > 7) this.search(this.knownX, this.knownZ);
         else [wx, wz, speed] = this.#attack(run, T, td, dt);
+        // On the way to the reactor, anyone close and in sight is the better prey.
+        if (T.kind === "core") { this.seeT -= dt; if (this.seeT <= 0) { this.seeT = 0.3; const f = this.#nearestFoe(run, this.type === "spitter" ? 4 : 7, T); if (f && run.space.clear(this.x, this.y + 0.6, this.z, f.body.x, f.body.y + 0.8, f.body.z)) this.hunt(run, f, false); } }
       }
     } else if (this.state === "search") {
       this.stateT -= dt;
       const gd = Math.hypot(this.goalX - this.x, this.goalZ - this.z);
       if (gd > 1.5) { [wx, wz] = this.#way(run, this.goalX, this.goalZ, `pt`); speed = d.speed * 0.6; }
       else if (Math.random() < dt * 0.8) { this.goalX = this.x + (Math.random() - 0.5) * 8; this.goalZ = this.z + (Math.random() - 0.5) * 8; }
-      if (this.stateT <= 0) { this.state = "idle"; this.called = false; this.act = "idle"; }
-      // Feel anyone who walks right up.
+      if (this.stateT <= 0) { this.state = this.patrolling ? "patrol" : "idle"; this.called = false; this.act = "idle"; }
       this.#feel(run);
+      this.#see(run, dt);
     } else if (this.state === "shriek") {
       this.stateT -= dt;
       if (this.stateT <= 0) {
@@ -191,6 +208,14 @@ export class Bug {
         this.state = "idle"; this.detect = 0.5;
         this.home.x += (Math.random() - 0.5) * 10; this.home.z += (Math.random() - 0.5) * 10;
       }
+    } else if (this.state === "patrol") {
+      // Point to point across the area, by the walking grid.
+      const gd = Math.hypot(this.goalX - this.x, this.goalZ - this.z);
+      if (gd < 2.5 || this.stuckT > 4) { const p = run.openSpot(this.x, this.z, 30, 70); if (p) { this.goalX = p.x; this.goalZ = p.z; } this.stuckT = 0; }
+      else { [wx, wz] = this.#way(run, this.goalX, this.goalZ, "pt"); speed = d.speed * 0.55; }
+      this.stuckT = b.speed2D < 0.3 ? (this.stuckT ?? 0) + dt : 0;
+      this.#feel(run);
+      this.#see(run, dt);
     } else {
       // Idle: potter about home, now and then stop and listen.
       this.stateT -= dt;
@@ -208,7 +233,7 @@ export class Bug {
         if (gd > this.home.r * 2.5) { [wx, wz] = this.#way(run, this.goalX, this.goalZ, "home"); speed = d.speed * 0.5; }
       }
       this.#feel(run);
-      if (this.type === "sentry") this.#look(run, dt);
+      if (this.type === "sentry") this.#look(run, dt); else this.#see(run, dt);
     }
 
     // Keep apart from each other.
@@ -225,9 +250,70 @@ export class Bug {
     if (b.fell) { this.alive = false; this.deadT = 99; }
   }
 
+  // The skimmer: hovers over the ground, drifts between points, and flees
+  // from anyone within `flee`; shot, it flees harder. Gone after `life` seconds.
+  #fly(run, dt) {
+    const b = this.body, d = this.def;
+    b.px = b.x; b.py = b.y; b.pz = b.z;
+    if (!this.alive) { this.deadT += dt; b.y = Math.max(run.kit.h(b.x, b.z) + 0.3, b.y - 9 * dt); b.vx *= 0.9; b.vz *= 0.9; b.x += b.vx * dt; b.z += b.vz * dt; return; }
+    this.lifeT = (this.lifeT ?? 0) + dt;
+    if (this.lifeT > d.life) { this.alive = false; this.deadT = 99; run.fx({ type: "skimmerGone", x: b.x, z: b.z }); return; }
+    let fx = 0, fz = 0, scared = false;
+    for (const t of run.foes()) {
+      if (t.kind === "core" || t.downed) continue;
+      const dx = b.x - t.body.x, dz = b.z - t.body.z, dd = Math.hypot(dx, dz);
+      if (dd < d.flee || (this.hitT > -2 && dd < d.flee * 2)) { fx += dx / (dd || 1) * (1.5 - dd / (d.flee * 2)); fz += dz / (dd || 1) * (1.5 - dd / (d.flee * 2)); scared = true; }
+    }
+    let wx, wz, speed;
+    if (scared) { const l = Math.hypot(fx, fz) || 1; wx = fx / l; wz = fz / l; speed = d.speed; this.act = "flee"; }
+    else {
+      const gd = Math.hypot(this.goalX - b.x, this.goalZ - b.z);
+      if (gd < 4 || this.stateT <= 0) { const p = run.openSpot(b.x, b.z, 20, 50) ?? { x: b.x, z: b.z }; this.goalX = p.x; this.goalZ = p.z; this.stateT = 12; }
+      this.stateT -= dt;
+      wx = (this.goalX - b.x) / (gd || 1); wz = (this.goalZ - b.z) / (gd || 1); speed = d.wander; this.act = "walk";
+    }
+    // Stay over the area.
+    if (Math.abs(b.x) > 130) wx -= Math.sign(b.x); if (Math.abs(b.z) > 130) wz -= Math.sign(b.z);
+    const l = Math.hypot(wx, wz) || 1;
+    b.vx += (wx / l * speed - b.vx) * Math.min(1, dt * 3); b.vz += (wz / l * speed - b.vz) * Math.min(1, dt * 3);
+    b.x += b.vx * dt; b.z += b.vz * dt;
+    const want = run.kit.h(b.x, b.z) + d.fly + Math.sin(run.time * 1.3 + this.id) * 0.4;
+    b.y += (want - b.y) * Math.min(1, dt * 4);
+    b.grounded = false;
+    if (b.speed2D > 0.5) this.face = dampAngle(this.face, Math.atan2(-b.vx, -b.vz), 6, dt);
+  }
+
+  // The nearest live target (not the reactor) within r, other than `not`.
+  #nearestFoe(run, r, not = null) {
+    let best = null, bd = r;
+    for (const t of run.foes()) {
+      if (t === not || t.kind === "core" || t.downed) continue;
+      const d = Math.hypot(t.body.x - this.x, t.body.z - this.z);
+      if (d < bd) { bd = d; best = t; }
+    }
+    return best;
+  }
+
+  // Sight: a wide cone out to `sight` metres, anything within 5 m all round, blocked by walls.
+  #see(run, dt) {
+    this.seeT -= dt;
+    if (this.seeT > 0) return;
+    this.seeT = 0.25 + Math.random() * 0.1;
+    const d = this.def, sight = d.sight ?? 22;
+    for (const t of run.foes()) {
+      if (t.kind === "core" || t.downed) continue;
+      const dx = t.body.x - this.x, dz = t.body.z - this.z, dist = Math.hypot(dx, dz);
+      if (dist > sight) continue;
+      if (dist > 5 && Math.abs(angDiff(this.face, Math.atan2(-dx, -dz))) > 1.3) continue;
+      if (!run.space.clear(this.x, this.y + d.height * 0.7, this.z, t.body.x, t.body.y + t.body.h * 0.7, t.body.z)) continue;
+      this.hunt(run, t, true);
+      return;
+    }
+  }
+
   #feel(run) {
-    for (const t of [run.player, run.ally]) {
-      if (!t || t.downed) continue;
+    for (const t of run.foes()) {
+      if (!t || t.downed || t.kind === "core") continue;
       const dd = Math.hypot(t.body.x - this.x, t.body.z - this.z);
       if (dd < (t.body.speed2D > 1 ? 3 : 1.6) * (t.crouchK > 0.5 ? 0.6 : 1)) { this.hunt(run, t, true); return; }
     }
@@ -237,8 +323,8 @@ export class Bug {
   #look(run, dt) {
     const d = this.def;
     let seen = null, best = 0;
-    for (const t of [run.player, run.ally]) {
-      if (!t || t.downed) continue;
+    for (const t of run.foes()) {
+      if (!t || t.downed || t.kind === "core") continue;
       const dx = t.body.x - this.x, dz = t.body.z - this.z, dist = Math.hypot(dx, dz);
       if (dist > d.sight) continue;
       const a = Math.abs(angDiff(this.face, Math.atan2(-dx, -dz)));
@@ -274,13 +360,14 @@ export class Bug {
   #attack(run, T, td, dt) {
     const d = this.def, b = this.body;
     const tx = T.body.x, tz = T.body.z;
-    const key = T.kind === "player" ? "player" : "ally";
+    const key = T.kind === "player" ? "player" : T.kind === "core" ? "core" : `ally${T.idx ?? 0}`;
+    const reachT = d.reach + (T.body.r > 1 ? T.body.r : 0.5);
     const faceT = () => { this.face = dampAngle(this.face, Math.atan2(-(tx - this.x), -(tz - this.z)), 10, dt); };
     if (this.act === "bite" || this.act === "spit" || this.act === "windup" || this.act === "recover") {
       faceT();
       if (this.act === "bite" && this.actT >= 0.22 && !this.struck) {
         this.struck = true;
-        if (td < d.reach + 0.5) T.hurt(run, d.bite, this.x, this.z, "bite");
+        if (td < reachT) T.hurt(run, d.bite, this.x, this.z, "bite");
       }
       if (this.act === "spit" && this.actT >= 0.55 && !this.struck) { this.struck = true; run.spit(this, T); }
       if (this.act === "windup" && this.actT >= 0.8) {
@@ -297,8 +384,8 @@ export class Bug {
     const [wx, wz] = this.#way(run, this.knownX, this.knownZ, key);
     switch (this.type) {
       case "swarmer": {
-        if (td < d.reach && this.cool <= 0) { this.act = "bite"; this.actT = 0; this.struck = false; this.cool = d.biteCool; return [0, 0, 0]; }
-        if (d.leap && td < 5.5 && td > 2.6 && this.cool <= 0 && b.grounded && run.space.clear(this.x, this.y + 0.5, this.z, tx, T.body.y + 0.5, tz)) {
+        if (td < reachT - 0.3 && this.cool <= 0) { this.act = "bite"; this.actT = 0; this.struck = false; this.cool = d.biteCool; return [0, 0, 0]; }
+        if (d.leap && T.kind !== "core" && td < 5.5 && td > 2.6 && this.cool <= 0 && b.grounded && run.space.clear(this.x, this.y + 0.5, this.z, tx, T.body.y + 0.5, tz)) {
           const l = td;
           b.vx = (tx - this.x) / l * 9; b.vz = (tz - this.z) / l * 9; b.vy = 5.2; b.grounded = false;
           this.act = "leap"; this.actT = 0; this.struck = false; this.cool = 1.6;
@@ -321,7 +408,7 @@ export class Bug {
       case "charger": {
         const see = run.space.clear(this.x, this.y + 0.8, this.z, tx, T.body.y + 0.8, tz);
         if (see && td < 16 && td > 4 && this.cool <= 0) { this.act = "windup"; this.actT = 0; this.cool = 4.5; run.fx({ type: "windup", id: this.id, x: this.x, y: this.y, z: this.z }); return [0, 0, 0]; }
-        if (td < 2.6 && this.cool <= 2) { this.act = "bite"; this.actT = 0; this.struck = false; this.cool = 3; return [0, 0, 0]; }
+        if (td < reachT + 1.2 && this.cool <= 2) { this.act = "bite"; this.actT = 0; this.struck = false; this.cool = 3; return [0, 0, 0]; }
         return [wx, wz, d.speed];
       }
     }
@@ -333,9 +420,9 @@ export class Bug {
     const b = this.body, d = this.def;
     if (this.act === "leap") {
       b.step(run.space, { vx: b.vx, vz: b.vz }, dt, 0);
-      if (!this.struck) for (const t of [run.player, run.ally]) {
+      if (!this.struck) for (const t of run.foes()) {
         if (!t || t.downed) continue;
-        if (Math.hypot(t.body.x - this.x, t.body.z - this.z) < d.radius + 0.7 && Math.abs(t.body.y + 0.8 - this.y) < 1.4) { this.struck = true; t.hurt(run, d.bite * 1.3, this.x, this.z, "leap"); }
+        if (Math.hypot(t.body.x - this.x, t.body.z - this.z) < d.radius + 0.7 + (t.body.r > 1 ? t.body.r : 0) && Math.abs(t.body.y + 0.8 - this.y) < 1.4) { this.struck = true; t.hurt(run, d.bite * 1.3, this.x, this.z, "leap"); }
       }
       if (b.grounded && this.actT > 0.15) { this.act = "walk"; this.actT = 0; }
       return;
@@ -345,12 +432,12 @@ export class Bug {
     const ox = b.x, oz = b.z;
     b.step(run.space, { vx: this.cx * sp, vz: this.cz * sp }, dt, 6);
     this.face = Math.atan2(-this.cx, -this.cz);
-    if (!this.struck) for (const t of [run.player, run.ally]) {
+    if (!this.struck) for (const t of run.foes()) {
       if (!t || t.downed) continue;
-      if (Math.hypot(t.body.x - this.x, t.body.z - this.z) < d.radius + 0.8) {
+      if (Math.hypot(t.body.x - this.x, t.body.z - this.z) < d.radius + 0.8 + (t.body.r > 1 ? t.body.r : 0)) {
         this.struck = true;
         t.hurt(run, d.ram, this.x, this.z, "ram");
-        t.body.vx += this.cx * 9; t.body.vz += this.cz * 9; t.body.vy = 4; t.body.grounded = false;
+        if (t.kind !== "core") { t.body.vx += this.cx * 9; t.body.vz += this.cz * 9; t.body.vy = 4; t.body.grounded = false; }
         run.fx({ type: "ram", x: t.body.x, y: t.body.y, z: t.body.z });
       }
     }

@@ -2,7 +2,7 @@ import "./analytics.js";
 import { track } from "./analytics.js";
 import { DT } from "./config.js";
 import { setLang, guessLang, t } from "./i18n/index.js";
-import { loadSettings, saveSettings, loadSave, saveSave, clearSave } from "./storage.js";
+import { loadSettings, saveSettings } from "./storage.js";
 import { Audio } from "./audio.js";
 import { Voice } from "./voice.js";
 import { Director } from "./story/director.js";
@@ -12,15 +12,15 @@ import { Hud } from "./hud.js";
 import { Menus } from "./ui/menus.js";
 import { PadNav } from "./ui/padnav.js";
 import { buildDustmoon } from "./levels/dustmoon.js";
-import { SCRIPT } from "./levels/dustmoon-script.js";
+import { SCRIPT } from "./levels/siege.js";
 import { Run } from "./sim/run.js";
 import { Nav } from "./sim/nav.js";
 import { rayBugs } from "./sim/combat.js";
 
 // ── The Long Watch ───────────────────────────────────────────────────────────
 // Wires it together: the menus, the fixed-step sim, the renderer, sound,
-// voices and the HUD. The level is built once; a Run is rebuilt from a
-// checkpoint whenever the mission falls back.
+// voices and the HUD. The level is built once; every run is a fresh Run
+// on it.
 
 const app = document.getElementById("app");
 const settings = loadSettings();
@@ -52,15 +52,16 @@ let endT = 0;
 let frozen = false;            // dev: the sim holds still (for pictures of a pose)
 
 const menus = new Menus(app, settings, {
-  start: () => { clearSave(); begin(null); track("start", { difficulty: settings.difficulty }); },
-  cont: () => { const s = loadSave(); begin(s?.cp ?? null); track("continue", { stage: s?.cp?.stage }); },
+  start: () => { begin(); track("start", { difficulty: settings.difficulty }); },
   resume: () => resume(),
-  restartCp: () => { begin(run?.cp ?? loadSave()?.cp ?? null); },
-  restart: () => { clearSave(); begin(null); },
+  restart: () => begin(),
   quit: () => toTitle(),
   settingsChanged: (k) => applySettings(k),
   click: () => audio.play("click"),
   padInfo: () => (input.pad.info?.length ? input.pad.info.map((p) => p.id.slice(0, 40)).join(", ") : null),
+  shop: () => (run ? SCRIPT.shop(run) : []),
+  bank: () => run?.bank ?? 0,
+  buy: (id) => { const ok = run ? SCRIPT.buy(run, id) : false; if (ok) { audio.play("pickup"); events(); } else audio.play("dry"); return ok; },
 });
 const padnav = new PadNav(app, audio);
 
@@ -79,34 +80,36 @@ function toTitle() {
   input.unlock();
   director.clear();
   audio.stopMusic();
-  menus.show("title", { canContinue: !!loadSave()?.cp });
+  menus.show("title");
   padnav.focusMain();
   // A slow look over the colony behind the title.
-  if (!run) run = new Run(level, { stage: "approach", at: { x: 0, z: 70, yaw: 0 } }, { difficulty: settings.difficulty });
+  if (!run) { view.reset(); run = new Run(level, { difficulty: settings.difficulty, seed: 1 }); }
   run.lines.length = 0;
 }
 
-function begin(cp) {
+function begin(opts = {}) {
   audio.unlock();
   view.reset();
   director.clear();
-  run = new Run(level, cp, { difficulty: settings.difficulty });
+  run = new Run(level, { difficulty: settings.difficulty, ...opts });
   input.setView(run.player.yaw, -0.08);
-  acc = 0;
+  acc = 0; endT = 0;
   state = "play";
   menus.close();
   input.enabled = true;
   input.lock();
   audio.music(true);
+  hud.showHint("hint_move");
+  setTimeout(() => { if (state === "play") hud.showHint("hint_siege"); }, 9000);
 }
 
-function pause() {
+function pause(screen = "pause", data) {
   if (state !== "play") return;
   state = "paused";
   input.unlock();
   voice.pause(true);
   audio.suspend(false);
-  menus.show("pause");
+  menus.show(screen, data);
   padnav.focusMain();
 }
 function resume() {
@@ -151,6 +154,7 @@ function events() {
       case "hurt": audio.play(e.shield ? "shield" : "hurt"); if (p.hurtDir) hud.hurtFrom(p.hurtDir.a); break;
       case "downed": audio.play("downed"); break;
       case "revived": audio.play("revived"); break;
+      case "respawn": audio.play("revived"); hud.showToast(t("downedAlone", { s: 0 }).split("…")[0]); break;
       case "bugAlert": at("chitter"); break;
       case "leap": at("leap"); break;
       case "spit": at("spit"); break;
@@ -159,42 +163,40 @@ function events() {
       case "charge": at("charge"); break;
       case "stun": at("stun"); break;
       case "shriek": at("shriek"); hud.spotted(); break;
-      case "emerge": case "burrow": at("emerge"); break;
+      case "emerge": at("emerge"); break;
+      case "burrow": if (!e.quiet) at("emerge"); break;
       case "roar": if (!e.quiet) at("roar"); else at("windup"); break;
       case "slam": at("slam"); break;
       case "swipe": at("swipe"); break;
       case "sacPop": at("sacPop"); break;
       case "quake": audio.play("quake"); break;
       case "use": audio.play("use"); break;
-      case "objNew": audio.play("objective"); break;
-      case "objDone": audio.play("objDone"); hud.showToast(t(`obj_${e.id}`, { n: 3, s: 0 })); break;
-      case "checkpoint": hud.showToast(t("checkpoint")); audio.play("checkpoint"); saveSave({ cp: run.cp }); break;
       case "hint": hud.showHint(e.key); audio.play("hint"); break;
       case "powerOn": if (!e.instant) audio.play("powerOn"); break;
-      case "genSpin": audio.play("genSpin"); break;
-      case "relayOn": if (!e.instant) audio.play("relay"); break;
-      case "bunkerOpen": audio.play("door"); break;
-      case "ventCharge": if (!e.instant) audio.play("beep"); break;
-      case "ventBlown": if (!e.instant) audio.play("blast"); break;
-      case "log": openLog(e); break;
-      case "won": endT = 1.5; track("won", { time: Math.round(run.stats.time), kills: run.stats.kills }); clearSave(); break;
-      case "failed": endT = 2.2; track("failed", { stage: run.stage }); break;
+      // The siege.
+      case "waveWarn": hud.showToast(t("toast_warn", { n: e.n, s: e.s })); audio.play("objective"); break;
+      case "wave": hud.showToast(t("toast_wave", { n: e.n })); audio.play("checkpoint"); break;
+      case "coreHit": if (Math.random() < 0.4) at("armor"); view.kick(0.08); break;
+      case "coreDown": audio.play("blast"); view.kick(1); break;
+      case "crystal": audio.play("pickup"); break;
+      case "bank": hud.showToast(t("toast_bank", { n: e.n, total: e.total })); audio.play("objDone"); break;
+      case "crystalLost": hud.showToast(t("toast_lost", { n: e.n })); break;
+      case "loot": audio.play("ammo"); break;
+      case "bossEmerge": audio.play("quake"); audio.play("roar"); hud.showToast(t("toast_boss")); break;
+      case "bossDead": audio.play("objDone"); break;
+      case "survived": hud.showToast(t("toast_survived", { score: e.score })); track("survived", { time: Math.round(run.stats.time), kills: run.stats.kills, score: e.score }); break;
+      case "bought": hud.showToast(t("toast_bought")); break;
+      case "shop": pause("shop", { bank: run.bank }); break;
+      case "failed": endT = 2.2; track("failed", { time: Math.round(run.stats.time), waves: run.stats.waves, score: SCRIPT.score(run) }); break;
       case "cutStart": hud.root.classList.add("cut"); break;
       case "cutEnd": if (e.skipped) director.clear(); break;
     }
   }
 }
 
-function openLog(e) {
-  state = "paused";
-  input.unlock();
-  voice.pause(true);
-  menus.show("log", e);
-  padnav.focusMain();
-}
-
 // ── The loop ──
-let stepSound = 0, allyStep = 0;
+let stepSound = 0;
+const allyStep = [];
 function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.max(0, Math.min(0.1, (now - last) / 1000));
@@ -230,16 +232,16 @@ function frame(now) {
     }
     if (acc > DT * 6) acc = 0;
     // Footsteps.
-    const p = run.player, A = run.ally;
+    const p = run.player;
     if (Math.floor(p.stepPhase) !== stepSound) { stepSound = Math.floor(p.stepPhase); audio.play("step", p.sprinting ? 1.6 : p.crouchK > 0.5 ? 0.4 : 1); }
-    if (Math.floor(A.stepPhase) !== allyStep) { allyStep = Math.floor(A.stepPhase); audio.play("step", A.crouched ? 0.25 : 0.6, A.body.x, A.body.z); }
+    run.allies.forEach((A, i) => { if (Math.floor(A.stepPhase) !== allyStep[i]) { allyStep[i] = Math.floor(A.stepPhase); audio.play("step", A.crouched ? 0.25 : 0.6, A.body.x, A.body.z); } });
     // Loops and music.
     audio.listener(p.body.x, p.body.z, input.yaw);
     audio.loop("laser", !!p.beam, p.weapon?.heat ?? 0);
-    const D = run.dropship, ds = view.actors.dropship;
-    audio.loop("dropship", !!D && ds.visible, 1, ds.position.x, ds.position.z);
+    audio.loop("dropship", false, 1, 0, 0);
     const near = run.bugs.filter((b) => b.alive && b.state === "hunt" && Math.hypot(b.x - p.body.x, b.z - p.body.z) < 40).length;
-    audio.intensity += ((Math.min(1, near / 5) + (run.defend ? 0.4 : 0)) - audio.intensity) * Math.min(1, dt * 0.8);
+    const waveOn = run.siege && (run.siege.next < 45 || run.bugs.some((b) => b.alive && b.target === run.core));
+    audio.intensity += ((Math.min(1, near / 5) + (waveOn ? 0.4 : 0)) - audio.intensity) * Math.min(1, dt * 0.8);
     audio.boss = !!run.boss?.alive;
     // Over.
     if (run.over && endT > 0) {
@@ -247,8 +249,8 @@ function frame(now) {
       if (endT <= 0) {
         state = "end";
         input.unlock();
-        if (run.over === "failed") director.clear();
-        menus.show("end", { won: run.over === "won", stats: run.stats });
+        director.clear();
+        menus.show("end", { summary: SCRIPT.summary(run) });
         padnav.focusMain();
       }
     }
@@ -278,16 +280,15 @@ requestAnimationFrame(frame);
 if (import.meta.env.DEV) {
   window.__longWatch = {
     get run() { return run; }, get state() { return state; }, view, input, settings,
-    play: (cp) => begin(cp ?? null),
-    stage: (stage) => begin({ stage, flags: stage === "survivors" || stage === "vents" || stage === "boss" ? { power: true, relay: true } : {} }),
+    play: (opts) => begin(opts ?? {}),
     place: (x, z, yaw = 0, pitch = -0.1) => {
       const g = (x2, z2) => run.space.floor(x2, z2, run.space.terrain.height(x2, z2) + 0.6) + 0.05;
       run.player.body.place(x, g(x, z), z); input.setView(yaw, pitch);
-      run.ally.body.place(x + 1.5, g(x + 1.5, z + 1.5), z + 1.5);
     },
     steps: (n, I = {}) => { for (let i = 0; i < n; i++) { run.step({ forward: 0, strafe: 0, yaw: input.yaw, pitch: input.pitch, ...I }); events(); } },
     skipCut: () => { if (run.cut) run.step({ skipPressed: true, yaw: input.yaw, pitch: input.pitch, forward: 0, strafe: 0 }); },
     god: (on = true) => { run.player.godMode = on; },
     freeze: (on = true) => { frozen = on; },
+    warp: (minutes) => { run.siege.next -= minutes * 60; run.siege.t += minutes * 60; },
   };
 }

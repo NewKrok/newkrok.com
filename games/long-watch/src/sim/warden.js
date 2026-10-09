@@ -9,8 +9,10 @@ import { Bug } from "./bugs.js";
 //   1. stomps after you, swipes up close, spits volleys, charges
 //   2. + roars up swarmers from the burrows round the pit
 //   3. faster, + leaps and slams the ground: a shockwave ring to jump over
+// In the siege it comes up far from the base and marches on the reactor
+// along the walking grid, turning on anyone who gets close.
 
-export const WARDEN = { hp: 4200, speed: 3.4, wander: 1, radius: 2.1, height: 3.4, hearing: 2, xp: 500 };
+export const WARDEN = { hp: 4200, speed: 3.4, wander: 1, radius: 2.1, height: 3.4, hearing: 2, sight: 40, crystal: 120 };
 
 export class Warden extends Bug {
   constructor(x, y, z, o = {}) {
@@ -82,15 +84,22 @@ export class Warden extends Bug {
     this.maw += ((open ? 1 : 0) - this.maw) * Math.min(1, dt * 8);
     if (this.stunT > 0) { this.stunT -= dt; b.step(run.space, { vx: 0, vz: 0 }, dt); if (this.stunT <= 0) { this.act = "walk"; this.actT = 0; } return; }
 
-    // Target: whoever is closer and up.
-    const P = run.player, A = run.ally;
-    let T = !P.downed ? P : A && !A.downed ? A : null;
-    if (A && !A.downed && !P.downed && Math.hypot(A.body.x - this.x, A.body.z - this.z) + 6 < Math.hypot(P.body.x - this.x, P.body.z - this.z)) T = A;
+    // Target: the nearest ranger within reach, else the reactor.
+    let T = null, bd = 26;
+    for (const t of run.foes()) {
+      if (t.downed || t.kind === "core") continue;
+      const d = Math.hypot(t.body.x - this.x, t.body.z - this.z) - (t.kind === "player" ? 6 : 0);
+      if (d < bd) { bd = d; T = t; }
+    }
+    if (!T && run.core && !run.core.downed) T = run.core;
     this.target = T;
     if (!T) { b.step(run.space, { vx: 0, vz: 0 }, dt); return; }
+    const foes = run.foes().filter((t) => !t.downed);
     const tx = T.body.x, tz = T.body.z, td = Math.hypot(tx - this.x, tz - this.z);
     const turn = (k) => { this.face = dampAngle(this.face, Math.atan2(-(tx - this.x), -(tz - this.z)), k, dt); };
-    const sp = this.def.speed * (ph === 3 ? 1.35 : 1);
+    // The march on the reactor is slow; near anyone, or near the reactor, the full pace.
+    const marching = T.kind === "core" && td > 22;
+    const sp = marching ? 1.1 : this.def.speed * (ph === 3 ? 1.35 : 1);
     let wx = 0, wz = 0, speed = 0;
 
     switch (this.act) {
@@ -98,11 +107,10 @@ export class Warden extends Bug {
       case "swipeUp":
         turn(5);
         if (this.actT > 0.55) {
-          for (const t of [P, A]) {
-            if (!t || t.downed) continue;
+          for (const t of foes) {
             const dx = t.body.x - this.x, dz = t.body.z - this.z, d = Math.hypot(dx, dz);
             const fx = -Math.sin(this.face), fz = -Math.cos(this.face);
-            if (d < 5.6 && (dx * fx + dz * fz) / (d || 1) > 0.25) { t.hurt(run, 26, this.x, this.z, "swipe"); t.body.vx += dx / d * 7; t.body.vz += dz / d * 7; t.body.vy = 3.5; t.body.grounded = false; }
+            if (d < 5.6 + (t.body.r > 1 ? t.body.r : 0) && (dx * fx + dz * fz) / (d || 1) > 0.25) { t.hurt(run, t.kind === "core" ? 60 : 26, this.x, this.z, "swipe"); if (t.kind !== "core") { t.body.vx += dx / d * 7; t.body.vz += dz / d * 7; t.body.vy = 3.5; t.body.grounded = false; } }
           }
           run.fx({ type: "swipe", id: this.id, x: this.x, y: this.y, z: this.z, face: this.face });
           this.act = "swipe"; this.actT = 0;
@@ -130,9 +138,9 @@ export class Warden extends Bug {
         const ox = b.x, oz = b.z, cs = 13;
         b.step(run.space, { vx: this.cx * cs, vz: this.cz * cs }, dt, 6);
         this.face = Math.atan2(-this.cx, -this.cz);
-        for (const t of [P, A]) {
-          if (!t || t.downed || this.struck) continue;
-          if (Math.hypot(t.body.x - this.x, t.body.z - this.z) < 3.0) { this.struck = true; t.hurt(run, 34, this.x, this.z, "ram"); t.body.vx += this.cx * 11; t.body.vz += this.cz * 11; t.body.vy = 5; t.body.grounded = false; }
+        for (const t of foes) {
+          if (this.struck) continue;
+          if (Math.hypot(t.body.x - this.x, t.body.z - this.z) < 3.0 + (t.body.r > 1 ? t.body.r : 0)) { this.struck = true; t.hurt(run, t.kind === "core" ? 80 : 34, this.x, this.z, "ram"); if (t.kind !== "core") { t.body.vx += this.cx * 11; t.body.vz += this.cz * 11; t.body.vy = 5; t.body.grounded = false; } }
         }
         const a = this.arena, out = a && Math.hypot(b.x - a.x, b.z - a.z) > a.r;
         if ((this.actT > 0.3 && Math.hypot(b.x - ox, b.z - oz) < cs * dt * 0.35) || out) {
@@ -167,10 +175,18 @@ export class Warden extends Bug {
         // Walk at the target and pick the next move.
         this.nextMove -= dt;
         turn(2.5);
-        if (td > 4) { const dx = tx - this.x, dz = tz - this.z; wx = dx / td; wz = dz / td; speed = sp; }
-        if (this.nextMove <= 0) {
+        const near = td - (T.body.r > 1 ? T.body.r : 0);
+        if (near > 4) {
+          // Straight at it when the way is clear, else by the walking grid (the march on the base).
+          const dx = tx - this.x, dz = tz - this.z;
+          if (td < 16 && run.space.clear(this.x, this.y + 1.5, this.z, tx, T.body.y + 1.5, tz)) { wx = dx / td; wz = dz / td; }
+          else { const f = run.nav.field("warden", tx, tz, run.time, 0.5), w = run.nav.dir(f, this.x, this.z); if (w) [wx, wz] = w; else { wx = dx / td; wz = dz / td; } }
+          speed = sp;
+        }
+        if (this.nextMove <= 0 && (T.kind !== "core" || near < 7)) {
           const r = Math.random();
-          if (td < 5.5) this.#start(run, "swipeUp");
+          if (near < 5.5) this.#start(run, "swipeUp");
+          else if (T.kind === "core") this.#start(run, "spitUp");
           else if (ph === 3 && r < 0.35) this.#start(run, "leap", T);
           else if (r < 0.5) this.#start(run, "spitUp");
           else if (r < 0.85 && td > 7) this.#start(run, "chargeUp");
@@ -209,8 +225,8 @@ export class Warden extends Bug {
     const g = this.ring;
     if (!g) return;
     g.t += dt; g.r = 1 + g.t * 16;
-    for (const t of [run.player, run.ally]) {
-      if (!t || t.downed || g.hit.has(t)) continue;
+    for (const t of run.foes()) {
+      if (!t || t.downed || t.kind === "core" || g.hit.has(t)) continue;
       const d = Math.hypot(t.body.x - g.x, t.body.z - g.z);
       if (Math.abs(d - g.r) < 1.1 && t.body.grounded) { g.hit.add(t); t.hurt(run, 22, g.x, g.z, "slam"); t.body.vy = 5; t.body.grounded = false; }
     }

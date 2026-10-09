@@ -253,4 +253,32 @@ export function warden(b) {
   }
 }
 
-export const BUG_MODELS = { swarmer, spitter, charger, sentry, warden };
+// ── Skimmer: a wasp, teal and amber, wings on nodes for the flap ──
+export function skimmer(b) {
+  const C = 0x3fb0b8, D = 0x1c3a40, B = 0x4a3a2a, W = 0xe8d8a8;
+  b.node("body", [0, 0.5, 0], [0, 0, 0], (bd) => {
+    bd.add(pod(0.2, 0.24, 0.5), { p: [0, 0, -0.1], r: [Math.PI / 2, 0, 0], c: B });                     // thorax
+    bd.add(abdomen(0.26, 0.9), { p: [0, -0.05, 0.1], r: [Math.PI / 2 + 0.25, 0, 0], s: [1, 0.85, 1], c: shade(B, 0.9), grad: [shade(B, 0.7), B] });
+    for (let i = 0; i < 3; i++) bd.add(S.cyl(0.24 - i * 0.04, 0.24 - i * 0.04, 0.05, SEG), { p: [0, -0.1 - i * 0.05, 0.35 + i * 0.2], r: [-0.25, 0, 0], c: C });   // bands
+    shell(bd, [0, 0.05, -0.1], 0.26, [1, 0.55, 1.1], C, D);
+    bd.add(S.cone(0.06, 0.35, 5), { p: [0, -0.25, 0.95], r: [Math.PI / 2 + 0.5, 0, 0], c: D });          // the sting
+    bd.add(S.ball(0.3, 8, 6), { p: [0, -0.02, 0.2], s: [1, 0.7, 1.2], c: HIVE.acid, mat: "glow", glow: 0.7, smooth: true });   // the full crop, glowing through
+    bd.node("head", [0, 0.0, -0.42], [0, 0, 0], (h) => head(h, 0.15, B, D, 0x9cff3a, 0.6));
+    for (const s of [-1, 1]) {
+      bd.node(s < 0 ? "wL" : "wR", [s * 0.12, 0.3, -0.05], [0, 0, 0], (w) => {
+        w.add(S.extrude([[0, 0], [s * 0.3, 0.06], [s * 0.9, 0.1], [s * 1.2, 0.0], [s * 0.9, -0.18], [s * 0.3, -0.14]], 0.02, 0.005), { r: [Math.PI / 2, 0, 0], c: W, mat: "glass", smooth: true });
+        w.add(S.cyl(0.015, 0.02, 1.15, 4), { p: [s * 0.58, 0, 0.02], r: [0, 0, Math.PI / 2], c: D });
+        w.add(S.extrude([[0, 0], [s * 0.2, 0.05], [s * 0.6, 0.05], [s * 0.75, -0.02], [s * 0.5, -0.12], [s * 0.2, -0.1]], 0.02, 0.005), { p: [0, -0.04, 0.12], r: [Math.PI / 2, 0, 0], c: W, mat: "glass", smooth: true });
+      });
+    }
+    for (let i = 0; i < 6; i++) {
+      const side = i % 2 ? 1 : -1, row = Math.floor(i / 2);
+      bd.at([side * 0.18, -0.2, -0.2 + row * 0.18], [0.9 - row * 0.4, 0, side * 0.9], 1, (l) => {
+        l.add(S.cyl(0.03, 0.04, 0.45, 5), { p: [0, -0.22, 0], c: B });
+        l.add(S.cone(0.03, 0.3, 4), { p: [0, -0.55, 0], r: [Math.PI, 0, 0], c: D });
+      });
+    }
+  });
+}
+
+export const BUG_MODELS = { swarmer, spitter, charger, sentry, warden, skimmer };

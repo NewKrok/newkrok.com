@@ -30,7 +30,7 @@ export const PLAYER = {
   shield: 60,          // recharges after a few calm seconds
   shieldDelay: 4,
   shieldRate: 22,
-  bleedOut: 22,        // seconds downed before the mission falls back to a checkpoint
+  bleedOut: 10,        // seconds downed, out on the field, before you respawn at the base
   revive: 2.6,         // seconds the ally needs to get you up
 };
 

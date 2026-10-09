@@ -8,12 +8,11 @@ import { Warden } from "./warden.js";
 import { blast } from "./combat.js";
 import { WEAPONS } from "../data/weapons.js";
 
-// ── A mission being played ───────────────────────────────────────────────
+// ── A run ────────────────────────────────────────────────────────────────
 // The level's static part (ground, solid world, walking grid) is built
-// once; a Run is everything that moves: the ranger, Kessler, the bugs,
-// projectiles, the objectives and the story script. A checkpoint is a
-// small snapshot (script stage and flags, loadout, where you stood); a
-// fall-back builds a fresh Run from it on the same level.
+// once; a Run is everything that moves: the ranger, the defenders, the
+// reactor, the bugs, projectiles, pickups and the mode's script. A run is
+// one sitting: no checkpoints, no saves.
 
 export const DIFFICULTY = {
   easy: { dmg: 0.6, allyDmg: 0.5, hp: 0.8 },
@@ -22,15 +21,16 @@ export const DIFFICULTY = {
 };
 
 export class Run {
-  // level: { kit, nav, script }, cp: a checkpoint (or null for a new start)
-  constructor(level, cp = null, opts = {}) {
+  // level: { kit, nav, script }
+  constructor(level, opts = {}) {
     this.level = level;
     this.kit = level.kit;
     this.space = level.kit.space;
     this.nav = level.nav ??= new Nav(this.space);
     this.script = level.script;
     this.diff = DIFFICULTY[opts.difficulty ?? "normal"];
-    this.rng = rng(opts.seed ?? 7);
+    this.seed = opts.seed ?? (Date.now() % 100000);
+    this.rng = rng(this.seed);
     this.time = 0;
     this.events = [];
     this.noises = [];
@@ -40,25 +40,34 @@ export class Run {
     this.uses = [];
     this.objectives = [];
     this.flags = {};
-    this.lines = [];               // story lines waiting to be said
-    this.cut = null;               // the cutscene playing
-    this.stats = { kills: 0, shots: 0, spotted: 0, downs: 0, time: 0, logs: 0, ...(cp?.stats ?? {}) };
-    this.over = null;              // "won" | "failed"
-    this.cp = cp;
+    this.lines = [];               // radio lines waiting to be said
+    this.cut = null;               // a cutscene playing (unused by the siege, kept for the camera rails)
+    this.stats = { kills: 0, shots: 0, downs: 0, time: 0, waves: 0, crystals: 0 };
+    this.over = null;              // "failed" (the reactor is gone)
     this.groups = new Map();
     this.boss = null;
     this.saidAt = {};
-    const s = cp?.at ?? this.kit.marks.start;
+    this.allies = [];
+    this.core = null;
+    this.crystals = 0;             // carried
+    this.bank = 0;                 // banked at the base
+    const s = this.kit.marks.start;
     this.player = new Ranger(s.x, this.space.floor(s.x, s.z, (s.y ?? 0) + 2) + 0.05, s.z, s.yaw ?? 0);
-    const a = cp?.ally ?? { x: s.x + 1.6, z: s.z + 1.2 };
-    this.ally = new Ally(a.x, this.space.floor(a.x, a.z, (s.y ?? 0) + 2) + 0.05, a.z, s.yaw ?? 0);
-    for (const w of cp?.loadout ?? [{ id: "rifle" }, { id: "pistol" }]) {
-      const g = this.player.give(w.id);
-      if (w.reserve != null) g.reserve = w.reserve === "inf" ? Infinity : Math.max(w.reserve, WEAPONS[w.id].mag * 2);
-    }
-    this.player.cur = cp?.cur ?? 0;
-    this.flags = { ...(cp?.flags ?? {}) };
-    this.script.start(this, cp);
+    for (const id of opts.loadout ?? ["rifle", "pistol"]) this.player.give(id);
+    this.player.cur = 0;
+    this.script.start(this, opts);
+  }
+
+  get ally() { return this.allies[0]; }
+  // Everyone the bugs may go for: the ranger, the defenders, the reactor.
+  foes() { return this._foes ??= [this.player, ...this.allies, ...(this.core ? [this.core] : [])]; }
+  // A defender near a point (for the bugs' feel and the revive).
+  addAlly(x, z, o) {
+    const a = new Ally(x, this.space.floor(x, z, this.kit.h(x, z) + 2) + 0.05, z, o.yaw ?? 0, o);
+    a.idx = this.allies.length;
+    this.allies.push(a);
+    this._foes = null;
+    return a;
   }
 
   // ── Step ──────────────────────────────────────────────────────────────
@@ -70,11 +79,12 @@ export class Run {
     this.stats.time += dt;
     const p = this.player;
     p.step(this, I, dt);
-    this.ally.step(this, dt);
+    for (const a of this.allies) a.step(this, dt);
+    if (this.core) this.core.hitT -= dt;
     // Bugs far off and minding their own business only potter about now and then.
     const far = (this.frame = (this.frame ?? 0) + 1) % 4;
     for (const b of this.bugs) {
-      if (b.state === "idle" && !b.boss && Math.abs(b.x - p.body.x) + Math.abs(b.z - p.body.z) > 110) { if ((b.id & 3) === far) b.step(this, dt * 4); continue; }
+      if ((b.state === "idle" || b.state === "patrol") && !b.boss && Math.abs(b.x - p.body.x) + Math.abs(b.z - p.body.z) > 110) { if ((b.id & 3) === far) b.step(this, dt * 4); continue; }
       b.step(this, dt);
     }
     this.bugs = this.bugs.filter((b) => !b.gone);
@@ -86,8 +96,9 @@ export class Run {
     if (p.body.fell) { p.hp = 0; p.downed = true; p.dead = true; }
     if (p.dead && !this.over) {
       this.stats.downs++;
-      this.over = "failed";
-      this.fx({ type: "failed" });
+      p.dead = false;
+      if (this.script.onDead) this.script.onDead(this);
+      else { this.over = "failed"; this.fx({ type: "failed" }); }
     }
   }
 
@@ -98,7 +109,7 @@ export class Run {
   noise(x, z, r, src, loud = false) { this.noises.push({ x, z, r, src, loud }); }
 
   say(id, o = {}) {
-    // The same line at most once in a while (barks), once ever for story.
+    // The same line at most once in a while (barks), once ever with `once`.
     const last = this.saidAt[id];
     if (o.once && last != null) return;
     if (last != null && this.time - last < (o.gap ?? 20)) return;
@@ -109,31 +120,43 @@ export class Run {
   // ── Bugs ──
   spawn(type, x, z, o = {}) {
     const y = this.space.floor(x, z, (o.y ?? this.space.terrain.height(x, z)) + 1) + 0.02;
-    const b = type === "warden" ? new Warden(x, y, z, o) : new Bug(type, x, y, z, { ...o, hpMul: this.diff.hp });
+    const b = type === "warden" ? new Warden(x, y, z, { ...o, hpMul: this.diff.hp * (o.hpMul ?? 1) }) : new Bug(type, x, y, z, { ...o, hpMul: this.diff.hp * (o.hpMul ?? 1) });
     if (o.hunt === true) b.hunt(this, this.player, false);
     this.bugs.push(b);
     if (o.group) { const g = this.groups.get(o.group) ?? []; g.push(b); this.groups.set(o.group, g); }
     if (type === "warden") this.boss = b;
     return b;
   }
-
-  // A group placed by the level: skipped when a checkpoint says it was wiped out.
   spawnGroup(name, list) {
-    if (this.flags[`cleared_${name}`]) return;
     for (const [type, x, z, o] of list) this.spawn(type, x, z, { ...(o ?? {}), group: name });
   }
   groupAlive(name) { return (this.groups.get(name) ?? []).filter((b) => b.alive).length; }
+  get alive() { return this.bugs.filter((b) => b.alive).length; }
 
-  // A wave out of the burrows (by name), going for the ranger.
+  // A wave out of the burrows (by name), going for `target` (the reactor by default).
   wave(burrows, list, o = {}) {
     const holes = this.kit.burrows.filter((h) => burrows.includes(h.name));
+    if (!holes.length) return;
     let i = 0;
     for (const [type, n] of list) for (let k = 0; k < n; k++) {
       const h = holes[i++ % holes.length];
-      const a = this.rng() * Math.PI * 2, r = this.rng() * 1.5;
-      this.spawn(type, h.x + Math.sin(a) * r, h.z + Math.cos(a) * r, { emerge: true, hunt: o.target ?? this.player, group: o.group });
+      const a = this.rng() * Math.PI * 2, r = this.rng() * 2;
+      this.spawn(type, h.x + Math.sin(a) * r, h.z + Math.cos(a) * r, { emerge: true, hunt: o.target ?? this.core ?? this.player, group: o.group, hpMul: o.hpMul });
     }
     for (const h of holes) this.fx({ type: "burrow", x: h.x, y: h.y, z: h.z });
+  }
+
+  // A random open spot on the walking grid, `rMin`…`rMax` from (cx, cz).
+  openSpot(cx, cz, rMin, rMax, tries = 40) {
+    for (let i = 0; i < tries; i++) {
+      const a = this.rng() * Math.PI * 2, r = rMin + this.rng() * (rMax - rMin);
+      const x = cx + Math.sin(a) * r, z = cz + Math.cos(a) * r;
+      if (Math.abs(x) > 135 || Math.abs(z) > 135) continue;
+      if (!this.nav.isOpen(x, z)) continue;
+      if (this.kit.h(x, z) > 12) continue;
+      return { x, z };
+    }
+    return null;
   }
 
   alertBugs(x, z, r, target, from) {
@@ -150,29 +173,37 @@ export class Run {
     this.stats.kills++;
     this.fx({ type: "bugDie", id: b.id, bug: b.type, x: b.x, y: b.y, z: b.z, boss: !!b.boss });
     if (src?.kind === "player") this.fx({ type: "kill", bug: b.type });
-    // A group wiped out stays wiped out after a fall-back.
-    for (const [name, list] of this.groups) if (list.includes(b) && list.every((g) => !g.alive)) this.flags[`cleared_${name}`] = true;
     this.script.onKill?.(this, b, src);
   }
   onEngage(b, target) { this.script.onEngage?.(this, b, target); }
   onSpotted(b, target) {
-    this.stats.spotted++;
-    // The shriek: everything near enough comes.
     for (const g of this.bugs) {
       if (g === b || !g.alive || g.hidden || g.type === "sentry") continue;
       if (Math.hypot(g.x - b.x, g.z - b.z) < 48) { g.called = true; g.hunt(this, target, false); }
     }
     this.noise(b.x, b.z, 30, b, false);
-    this.say("kessler_spotted", { gap: 25 });
     this.script.onSpotted?.(this, b, target);
   }
   onWardenSummon(w, n) {
-    const holes = this.kit.burrows.filter((h) => h.name.startsWith("pit"));
+    // Out of the burrows nearest the Warden.
+    const holes = this.kit.burrows.map((h) => [h, Math.hypot(h.x - w.x, h.z - w.z)]).sort((a, b) => a[1] - b[1]).slice(0, 2).map((h) => h[0]);
     for (let i = 0; i < n; i++) {
       const h = holes[i % holes.length];
       this.spawn(i % 3 === 2 && w.phase === 3 ? "spitter" : "swarmer", h.x + (this.rng() - 0.5) * 2, h.z + (this.rng() - 0.5) * 2, { emerge: true, hunt: this.player });
     }
     for (const h of holes) this.fx({ type: "burrow", x: h.x, y: h.y, z: h.z });
+  }
+
+  // ── Crystals ──
+  // A pickup on the ground; the ranger takes it by walking over it.
+  dropCrystal(x, z, n, y = null) {
+    if (n <= 0) return;
+    const u = this.addUse({ id: `cr${this.time.toFixed(2)}_${Math.round(x)}_${Math.round(z)}`, x, z, y: y ?? undefined, r: 1.7, auto: true, model: "crystal", amount: n, label: () => ["use_crystal"], act: (r) => {
+      r.crystals += n; r.stats.crystals += n;
+      r.fx({ type: "crystal", n, x, z });
+    } });
+    u.born = this.time;
+    return u;
   }
 
   // ── Projectiles ──
@@ -198,6 +229,7 @@ export class Run {
 
   #shotsStep(dt) {
     const keep = [];
+    const foes = this.foes();
     for (const s of this.shots) {
       s.t += dt;
       const g = s.kind === "grenade" ? 14 : s.g;
@@ -209,7 +241,6 @@ export class Run {
       let boom = null;
       if (hit) boom = [ox + dx / L * hit.t, oy + dy / L * hit.t, oz + dz / L * hit.t];
       if (s.kind === "grenade") {
-        // Bursts on a bug it touches, or on anything solid.
         for (const b of this.bugs) if (b.alive && !b.hidden && Math.hypot(b.x - s.x, b.y + b.def.height * 0.5 - s.y, b.z - s.z) < b.def.radius + 0.5) { boom = [s.x, s.y, s.z]; break; }
         if (boom || s.t > 4) {
           const [x, y, z] = boom ?? [s.x, s.y, s.z];
@@ -217,9 +248,9 @@ export class Run {
           continue;
         }
       } else {
-        // Acid splashes whoever it reaches.
+        // Acid splashes whoever it reaches (the reactor too).
         let hitT = null;
-        for (const t of [this.player, this.ally]) {
+        for (const t of foes) {
           if (t.downed) continue;
           const b = t.body;
           if (Math.hypot(b.x - s.x, b.z - s.z) < 0.6 * s.size + b.r && s.y > b.y && s.y < b.y + b.h + 0.2) { hitT = t; break; }
@@ -238,8 +269,8 @@ export class Run {
     // Puddles sting for a while.
     for (const p of this.puddles) {
       p.t -= dt;
-      for (const t of [this.player, this.ally]) {
-        if (t.downed || !t.body.grounded) continue;
+      for (const t of foes) {
+        if (t.kind === "core" || t.downed || !t.body.grounded) continue;
         if (Math.hypot(t.body.x - p.x, t.body.z - p.z) < p.r && Math.abs(t.body.y - p.y) < 1) { p.sting = (p.sting ?? 0) + dt; if (p.sting > 0.5) { p.sting = 0; t.hurt(this, 4, p.x, p.z, "puddle"); } }
       }
     }
@@ -247,19 +278,20 @@ export class Run {
   }
 
   // ── Use points ──
-  // u: { id, x, y, z, r, label, hold, when(run), act(run), loud }
+  // u: { id, x, y, z, r, label, hold, when(run), act(run), loud, auto, model }
   addUse(u) { u.y ??= this.space.floor(u.x, u.z, this.space.terrain.height(u.x, u.z) + 0.4); this.uses.push(u); return u; }
   activate(u) {
     if (u.done) return;
     if (!u.repeat) u.done = true;
     this.fx({ type: "use", id: u.id, x: u.x, y: u.y, z: u.z });
     u.act(this, u);
+    if (u.done) this.uses = this.uses.filter((q) => q !== u);
   }
 
-  // ── Objectives ──
+  // ── Objectives (markers on the HUD) ──
   obj(id, o = {}) {
     let ob = this.objectives.find((q) => q.id === id);
-    if (!ob) { ob = { id, done: false, ...o }; this.objectives.push(ob); this.fx({ type: "objNew", id }); }
+    if (!ob) { ob = { id, done: false, ...o }; this.objectives.push(ob); }
     else Object.assign(ob, o);
     return ob;
   }
@@ -267,28 +299,10 @@ export class Run {
     const ob = this.objectives.find((q) => q.id === id);
     if (!ob || ob.done) return;
     ob.done = true; ob.doneAt = this.time;
-    this.fx({ type: "objDone", id });
   }
-  // Finished objectives drop off the list after a moment.
-  get openObjectives() { return this.objectives.filter((o) => !o.done || this.time - o.doneAt < 4); }
+  get openObjectives() { return this.objectives.filter((o) => !o.done && !o.hidden); }
 
-  // ── Checkpoints ──
-  checkpoint(stage) {
-    const p = this.player;
-    this.cp = {
-      stage, flags: { ...this.flags },
-      at: { x: p.body.x, z: p.body.z, y: p.body.y, yaw: p.yaw },
-      ally: { x: this.ally.body.x, z: this.ally.body.z },
-      loadout: p.slots.map((g) => ({ id: g.id, reserve: g.reserve === Infinity ? "inf" : g.reserve + g.mag })),
-      cur: p.cur,
-      stats: { ...this.stats },
-    };
-    this.fx({ type: "checkpoint" });
-    return this.cp;
-  }
-
-  // ── Cutscenes ──
-  // shots: [{ dur, from: [x, y, z], to?: [x, y, z], look: [x, y, z], lookTo?, line?, act?(run) }]
+  // ── Cutscenes (camera rails) ──
   cutscene(name, shots, onEnd) {
     this.cut = { name, shots, i: 0, t: 0, onEnd };
     shots[0]?.act?.(this);
@@ -298,7 +312,6 @@ export class Run {
   #cutStep(I, dt) {
     const c = this.cut;
     c.t += dt;
-    // The world keeps breathing (Kessler and the bugs idle in place).
     for (const b of this.bugs) if (b.hidden || b.act === "emerge") b.step(this, dt);
     const sh = c.shots[c.i];
     if (I.skipPressed && c.t > 0.2) { this.#cutEnd(true); return; }
@@ -312,14 +325,11 @@ export class Run {
   }
   #cutEnd(skipped) {
     const c = this.cut;
-    // Skipping still does what the rest of the shots would have done (but
-    // their lines are dropped).
     if (skipped) for (let i = c.i + 1; i < c.shots.length; i++) c.shots[i].act?.(this);
     this.cut = null;
     this.fx({ type: "cutEnd", name: c.name, skipped });
     c.onEnd?.(this);
   }
-  // Where the cutscene camera is now: { x, y, z, lx, ly, lz }.
   cutCamera() {
     const c = this.cut;
     if (!c) return null;
@@ -331,5 +341,5 @@ export class Run {
     return { x: p[0], y: p[1], z: p[2], lx: q[0], ly: q[1], lz: q[2] };
   }
 
-  win() { if (!this.over) { this.over = "won"; this.fx({ type: "won" }); } }
+  fail() { if (!this.over) { this.over = "failed"; this.fx({ type: "failed" }); } }
 }

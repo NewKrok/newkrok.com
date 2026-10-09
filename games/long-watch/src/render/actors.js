@@ -71,6 +71,12 @@ class BugFigure {
         if (head && g.type !== "warden") head.rotation.x *= 0.9;
     }
     if (g.type === "sentry" && head) head.rotation.y = Math.sin(t * 0.7 + g.id) * 0.3 * (g.watching ? 0 : 1);
+    if (g.type === "skimmer") {
+      const flap = g.alive ? Math.sin(t * 60 + g.id) * 0.55 : 0.2;
+      if (n.wL) n.wL.rotation.z = flap; if (n.wR) n.wR.rotation.z = -flap;
+      n.body.rotation.x = g.alive ? Math.min(0.4, b.speed2D * 0.04) : 0.8;
+      by = this.base;
+    }
     if (g.type === "warden") {
       n.jaw.rotation.x = g.maw * 0.75;
       n.sacL.visible = g.sacs.sacL > 0; n.sacR.visible = g.sacs.sacR > 0; n.sacT.visible = g.sacs.sacT > 0;
@@ -87,7 +93,7 @@ class BugFigure {
     const hit = g.hitT > 0 ? g.hitT / 0.12 : 0;
     this.scale += ((1 + hit * 0.08) - this.scale) * Math.min(1, dt * 30);
     // Dead: legs curl, the body sinks and shrinks away.
-    if (!g.alive) {
+    if (!g.alive && g.type !== "skimmer") {
       const d = Math.min(1, g.deadT / 0.5);
       this.legs.forEach((l, i) => { l.rotation.z = (i % 2 ? 1 : -1) * -1.2 * d; });
       by -= d * this.base * 0.6;
@@ -106,7 +112,7 @@ export class Actors {
   constructor(scene) {
     this.scene = scene;
     this.player = new RangerFigure(scene, "player", ["rifle", "pistol"]);
-    this.kessler = new RangerFigure(scene, "kessler", ["rifle", "pistol"]);
+    this.allies = [];              // one figure per defender, made as they appear
     this.bugs = new Map();
     this.npcs = [];
     this.uses = new Map();
@@ -120,14 +126,22 @@ export class Actors {
   clear() {
     for (const f of this.bugs.values()) f.dispose(this.scene);
     this.bugs.clear();
+    for (const f of this.allies) this.scene.remove(f.obj);
+    this.allies = [];
     for (const o of this.npcs) this.scene.remove(o.obj);
     this.npcs = [];
     for (const o of this.uses.values()) this.scene.remove(o);
     this.uses.clear();
   }
 
+  ally(i, k) {
+    let f = this.allies[i];
+    if (!f) { f = new RangerFigure(this.scene, k.skin, ["rifle", "pistol"]); this.allies[i] = f; }
+    return f;
+  }
+
   update(run, a, dt, t) {
-    const p = run.player, k = run.ally;
+    const p = run.player;
     const pw = p.def;
     this.player.pose({
       body: p.body, face: p.face, yaw: p.yaw, pitch: p.pitch, aimK: p.aimK, crouchK: p.crouchK, moveK: p.moveK, stepPhase: p.stepPhase,
@@ -135,18 +149,21 @@ export class Actors {
       reloadK: p.reloadT > 0 && pw?.reload ? 1 - p.reloadT / pw.reload : -1, swapT: p.swapT,
       cover: p.cover ? (p.cover.low ? "low" : "high") : null, reach: null,
     }, a, dt, t);
-    // Kessler reaches for you while she gets you up.
-    let reach = null;
-    if (k.mode === "revive" && Math.hypot(p.body.x - k.body.x, p.body.z - k.body.z) < 1.6) {
-      reach = this.kessler.obj.worldToLocal(_r.set(p.body.x, p.body.y + 0.5, p.body.z));
-      reach.y -= k.crouchK > 0.5 ? 0.6 : 1.03; // into the torso's frame (roughly)
-      if (reach.length() > 0.5) reach.setLength(0.5);
-    }
-    this.kessler.pose({
-      body: k.body, face: k.face, yaw: k.aimYaw, pitch: k.aimPitch, aimK: k.aimK, crouchK: k.crouchK, moveK: k.moveK, stepPhase: k.stepPhase,
-      firing: k.firing, recoil: k.recoil ?? 0, downed: k.downed, gun: "rifle", sprint: k.body.speed2D > 5.5,
-      reloadK: k.reloadT > 0 ? 1 - k.reloadT / k.reloadTime : -1, swapT: 0, cover: null, reach,
-    }, a, dt, t);
+    // The defenders; a reviver reaches for you while they get you up.
+    run.allies.forEach((k, i) => {
+      const fig = this.ally(i, k);
+      let reach = null;
+      if (k.mode === "revive" && Math.hypot(p.body.x - k.body.x, p.body.z - k.body.z) < 1.6) {
+        reach = fig.obj.worldToLocal(_r.set(p.body.x, p.body.y + 0.5, p.body.z));
+        reach.y -= k.crouchK > 0.5 ? 0.6 : 1.03; // into the torso's frame (roughly)
+        if (reach.length() > 0.5) reach.setLength(0.5);
+      }
+      fig.pose({
+        body: k.body, face: k.face, yaw: k.aimYaw, pitch: k.aimPitch, aimK: k.aimK, crouchK: k.crouchK, moveK: k.moveK, stepPhase: k.stepPhase,
+        firing: k.firing, recoil: k.recoil ?? 0, downed: k.downed, gun: "rifle", sprint: k.body.speed2D > 5.5,
+        reloadK: k.reloadT > 0 ? 1 - k.reloadT / k.reloadTime : -1, swapT: 0, cover: null, reach,
+      }, a, dt, t);
+    });
 
     // Bugs: add new ones, pose all, drop the gone.
     const seen = new Set();
@@ -168,7 +185,7 @@ export class Actors {
     }
     for (const [i, o] of this.npcs.entries()) o.obj.position.y = o.d.y + Math.sin(t * 1.3 + i) * 0.008;
 
-    // Use points with a model (data pads, ammo, guns on racks or the ground).
+    // Use points with a model (crystals, crates, ammo, guns on racks or the ground).
     const live = new Set();
     for (const u of run.uses) {
       if (!u.model || u.done) continue;
@@ -182,6 +199,7 @@ export class Actors {
         this.uses.set(u, o);
       }
       if (u.model === "dropGun") o.position.y = u.y + 0.1 + Math.sin(t * 2) * 0.03;
+      if (u.model === "crystal") { o.rotation.y = t * 1.5; o.position.y = u.y + 0.05 + Math.sin(t * 3 + u.x) * 0.05; }
     }
     for (const [u, o] of this.uses) if (!live.has(u)) { this.scene.remove(o); this.uses.delete(u); }
 

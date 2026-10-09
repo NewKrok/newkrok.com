@@ -156,3 +156,34 @@ body.pad-nav .btn:focus, body.pad-nav select:focus, body.pad-nav input:focus, bo
 .stats b { font-size: 24px; }
 
 @keyframes pulse { 50% { opacity: 0.45; } }
+
+/* ── The siege panel ── */
+.objs .clock { margin-bottom: 8px; }
+.objs .clock span { display: block; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--amber); }
+.objs .clock b { font-size: 34px; font-weight: 800; letter-spacing: 0.04em; line-height: 1.1; }
+.objs .clock.warn span { color: var(--red); animation: pulse 0.6s infinite; }
+.objs .clock.warn b { color: var(--red); }
+.objs .react span, .objs .cry span { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); }
+.objs .react .bar { width: 220px; height: 8px; margin-top: 3px; }
+.objs .react .bar i { background: linear-gradient(#bff4ff, var(--cyan)); }
+.objs .react.low .bar i { background: linear-gradient(#ffb0a0, var(--red)); animation: pulse 0.5s infinite; }
+.objs .react.hit .bar { border-color: var(--red); }
+.objs .cry { margin-top: 8px; font-size: 14px; }
+.objs .cry b { font-size: 18px; color: var(--acid); }
+.objs .cry em { font-style: normal; font-size: 11px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.1em; }
+.objs .bossnote { margin-top: 8px; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--red); animation: pulse 0.8s infinite; }
+.vitals .allies { display: flex; gap: 10px; margin-top: 8px; }
+.vitals .allies .ally { margin-top: 0; flex: 1; }
+.vitals .allies .ally .bar { width: 100%; }
+
+/* ── The supply terminal ── */
+.wares { display: grid; grid-template-columns: repeat(2, minmax(220px, 300px)); gap: 8px; max-height: 60vh; overflow: auto; padding: 4px; }
+.wares .item { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; text-align: left; font: 14px var(--font); color: var(--ink); background: rgba(20, 26, 36, 0.85); border: 1px solid var(--line); padding: 10px 14px; cursor: pointer; }
+.wares .item:hover, .wares .item:focus-visible { border-color: var(--amber); background: rgba(240, 160, 64, 0.2); outline: none; }
+.wares .item.off { opacity: 0.45; cursor: default; }
+.wares .item .iname { font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.wares .item .iname small { font-weight: 400; color: var(--ink-dim); letter-spacing: 0; text-transform: none; margin-left: 6px; }
+.wares .item .idesc { grid-column: 1; font-size: 12px; color: var(--ink-dim); }
+.wares .item .iprice { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-size: 18px; font-weight: 700; color: var(--acid); }
+.sub.bank { color: var(--acid); font-weight: 700; }
+@media (max-width: 640px) { .wares { grid-template-columns: 1fr; } }

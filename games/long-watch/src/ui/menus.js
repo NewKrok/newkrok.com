@@ -1,7 +1,7 @@
 import { t, LANGS, getLang } from "../i18n/index.js";
 
 // ── Menus ────────────────────────────────────────────────────────────────
-// Title, pause, settings, the end screens and the data pad reader. Each is
+// Title, pause, settings, the supply terminal and the end screen. Each is
 // a ".screen" in ".menus"; buttons carry data-a (the action) so PadNav can
 // press the right ones (back / resume) from the pad.
 
@@ -13,7 +13,7 @@ export class Menus {
     this.el.className = "menus";
     root.appendChild(this.el);
     this.settings = settings;
-    this.A = actions;           // { start, cont, resume, restartCp, restart, quit, settingsChanged, click }
+    this.A = actions;           // { start, resume, restart, quit, settingsChanged, click, buy, shop }
     this.stack = [];
     this.el.addEventListener("click", (e) => {
       const b = e.target.closest("[data-a]");
@@ -45,8 +45,7 @@ export class Menus {
       case "title": return `
         <div class="titleart"><h1>${t("title")}</h1><h2>${t("subtitle")}</h2></div>
         <div class="col">
-          ${d?.canContinue ? `<button class="btn big" data-a="cont">${t("continue")}</button>` : ""}
-          <button class="btn ${d?.canContinue ? "" : "big"}" data-a="start">${t("newGame")}</button>
+          <button class="btn big" data-a="start">${t("newGame")}</button>
           <div class="seg">${["easy", "normal", "hard"].map((k) => `<button class="${this.settings.difficulty === k ? "on" : ""}" data-a="diff" data-v="${k}">${t(`diff_${k}`)}</button>`).join("")}</div>
           <button class="btn ghost" data-a="settings">${t("settings")}</button>
           <button class="btn ghost" data-a="credits">${t("credits")}</button>
@@ -56,7 +55,7 @@ export class Menus {
         <h2>${t("paused")}</h2>
         <div class="col">
           <button class="btn big" data-a="resume">${t("resume")}</button>
-          <button class="btn" data-a="restartCp">${t("restartCp")}</button>
+          <button class="btn" data-a="restart">${t("restartCp")}</button>
           <button class="btn" data-a="settings">${t("settings")}</button>
           <button class="btn ghost" data-a="quit">${t("quit")}</button>
         </div>
@@ -81,25 +80,35 @@ export class Menus {
         <div class="panel"><p>${t("credit")}</p><p>${t("creditVoices")}</p><p><a href="https://threejs.org" target="_blank" rel="noopener">three.js</a></p></div>
         <div class="row"><button class="btn big" data-a="back">${t("back")}</button></div>`;
       case "end": {
-        const won = d.won, s = d.stats;
+        const s = d.summary;
         return `
-        <h2>${won ? t("won") : t("failed")}</h2>
-        <p class="sub">${won ? t("wonSub") : t("failedSub")}</p>
-        ${won ? `<div class="stats">
-          <div><span>${t("stats_time")}</span><b>${fmtTime(s.time)}</b></div>
+        <h2>${s.survived ? t("won") : t("failed")}</h2>
+        <p class="sub">${t("failedSub", { t: s.timeText })}</p>
+        <div class="stats">
+          <div><span>${t("stats_score")}</span><b>${s.score}</b></div>
+          <div><span>${t("stats_time")}</span><b>${s.timeText}</b></div>
+          <div><span>${t("stats_waves")}</span><b>${s.waves}</b></div>
           <div><span>${t("stats_kills")}</span><b>${s.kills}</b></div>
-          <div><span>${t("stats_spotted")}</span><b>${s.spotted}</b></div>
-          <div><span>${t("stats_logs")}</span><b>${s.logs} / 5</b></div>
+          <div><span>${t("stats_bosses")}</span><b>${s.bosses}</b></div>
+          <div><span>${t("stats_crystals")}</span><b>${s.crystals}</b></div>
           <div><span>${t("stats_downs")}</span><b>${s.downs}</b></div>
-        </div>` : ""}
+        </div>
         <div class="col">
-          ${won ? `<button class="btn big" data-a="quit">${t("quit")}</button><button class="btn" data-a="restart">${t("restartMission")}</button>`
-            : `<button class="btn big" data-a="restartCp">${t("retry")}</button><button class="btn ghost" data-a="quit">${t("quit")}</button>`}
+          <button class="btn big" data-a="restart">${t("retry")}</button><button class="btn ghost" data-a="quit">${t("quit")}</button>
         </div>`;
       }
-      case "log": return `
-        <div class="logpanel"><h3>${t("log_title")} ${d.n}/5</h3><p>${t(d.id)}</p></div>
+      case "shop": {
+        const items = this.A.shop();
+        const rows = items.map((it) => `<button class="item${it.ok ? "" : " off"}" data-a="buy" data-v="${it.id}" ${it.ok ? "" : "aria-disabled=true"}>
+            <span class="iname">${t(`shop_${it.id}`)}${it.max > 1 ? ` <small>${it.maxed ? t("shop_max") : t("shop_lvl", { n: it.level + 1 })}</small>` : ""}</span>
+            <span class="idesc">${t(`shop_${it.id}_d`)}</span>
+            <span class="iprice">${it.maxed ? "—" : `◆ ${it.price}`}</span></button>`).join("");
+        return `
+        <h2>${t("shop_title")}</h2>
+        <p class="sub bank">${t("shop_bank", { n: d.bank })}</p>
+        <div class="wares">${rows}</div>
         <div class="row"><button class="btn big" data-a="resume">${t("close")}</button></div>`;
+      }
     }
     return "";
   }
@@ -107,10 +116,9 @@ export class Menus {
   #act(a, b) {
     switch (a) {
       case "start": this.A.start(); break;
-      case "cont": this.A.cont(); break;
       case "resume": this.A.resume(); break;
-      case "restartCp": this.A.restartCp(); break;
       case "restart": this.A.restart(); break;
+      case "buy": if (this.A.buy(b.dataset.v)) { this.top.data.bank = this.A.bank(); this.render(); } break;
       case "quit": this.A.quit(); break;
       case "settings": this.push("settings"); break;
       case "credits": this.push("credits"); break;

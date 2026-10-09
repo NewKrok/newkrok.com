@@ -87,6 +87,7 @@ export class GameView {
     for (const v of this.vents) v.obj.userData.nodes.charge.visible = false;
     this.door = this.dyn.find((d) => d.model === "bunkerDoor");
     this.gen = this.dyn.find((d) => d.model === "generator");
+    this.reactor = this.dyn.find((d) => d.model === "reactor");
     this.tower = this.dyn.find((d) => d.model === "relayTower");
     this.doorOpen = 0; this.doorWant = 0; this.genSpin = 0; this.genK = 0;
   }
@@ -104,7 +105,7 @@ export class GameView {
     switch (e.type) {
       case "tracer": {
         // Shots leave the figure's actual muzzle (the sim's is a rough spot).
-        const m = this.muzzleOf(e.src);
+        const m = this.muzzleOf(e.src, e.who);
         if (m) { e.x0 = m[0]; e.y0 = m[1]; e.z0 = m[2]; }
         if (e.src !== "ally" || Math.random() < 0.8) F.tracer(e.x0, e.y0, e.z0, e.x1, e.y1, e.z1, e.color);
         if (e.hit === "spark") F.sparks(e.x1, e.y1, e.z1, e.nx, e.ny, e.nz, 5, 0xffc27a, 3);
@@ -113,7 +114,7 @@ export class GameView {
         if (e.hit === "splat") F.sparks(e.x1, e.y1, e.z1, 0, 0.6, 0, 7, 0x9cff3a, 3, 0.4, 0.08, 12);
         break;
       }
-      case "shot": { const m = this.muzzleOf(e.src); if (m) { e.x = m[0]; e.y = m[1]; e.z = m[2]; } }
+      case "shot": { const m = this.muzzleOf(e.src, e.who); if (m) { e.x = m[0]; e.y = m[1]; e.z = m[2]; } }
         F.flash(e.x, e.y, e.z, e.dx, e.dy, e.dz, e.id === "launcher" ? 1.6 : e.id === "pistol" ? 0.8 : 1, e.id === "laser" ? 0x7ef9ff : 0xffd27a); if (e.src === "player") this.kick(e.id === "launcher" ? 0.25 : 0.05); break;
       case "blast": F.blast(e.x, e.y, e.z, e.r); this.kick(Math.max(0, 0.9 - Math.hypot(run.player.body.x - e.x, run.player.body.z - e.z) / 30)); break;
       case "bugDie": F.sparks(e.x, e.y + 0.4, e.z, 0, 1, 0, e.boss ? 80 : 18, 0x9cff3a, e.boss ? 8 : 4, 0.6, e.boss ? 0.2 : 0.1, 10); F.puff(e.x, e.y, e.z, e.boss ? 30 : 6, 0x5a3a40, e.boss ? 2 : 0.6); break;
@@ -144,8 +145,8 @@ export class GameView {
     }
   }
   kick(k) { this.shake = Math.min(1.2, this.shake + k); }
-  muzzleOf(src) {
-    const f = src === "player" ? this.actors.player : src === "ally" ? this.actors.kessler : null;
+  muzzleOf(src, who = 0) {
+    const f = src === "player" ? this.actors.player : src === "ally" ? this.actors.allies[who] : null;
     return f && f.obj.visible ? f.muzzle(this._mz) : null;
   }
 
@@ -184,9 +185,15 @@ export class GameView {
     }
     this.shake = Math.max(0, this.shake - dt * 2.5);
     cam.updateProjectionMatrix();
-    // Kessler right in front of the lens is hidden rather than filling the screen.
-    const kb = run.ally.body;
-    this.actors.kessler.visible = !!cc || Math.hypot(kb.x - cam.position.x, kb.y + 1 - cam.position.y, kb.z - cam.position.z) > 1.6;
+    // A defender right in front of the lens is hidden rather than filling the screen.
+    run.allies.forEach((k, i) => { const f = this.actors.allies[i]; if (f) f.visible = !!cc || Math.hypot(k.body.x - cam.position.x, k.body.y + 1 - cam.position.y, k.body.z - cam.position.z) > 1.6; });
+    // The reactor's core pulses, and flares when hit.
+    if (this.reactor) {
+      const C = run.core, core = this.reactor.obj.userData.nodes.core;
+      const k = C ? C.hp / C.maxHp : 1;
+      core.scale.setScalar((0.8 + 0.2 * k) * (1 + Math.sin(t * 4) * 0.05) + (C && C.hitT > 0 ? 0.25 : 0));
+      core.rotation.y = t * 0.8;
+    }
 
     // The noise ring.
     const nr = run.cut ? 0 : p.noiseR;

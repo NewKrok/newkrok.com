@@ -35,6 +35,8 @@ export const RANGER_SKINS = {
   player: { armour: 0xe4e8eb, armour2: 0xc4ccd3, under: 0x2b3036, accent: 0x74d14a, trim: 0x5a46a8, glove: 0x3a3f46, light: 0x6fe8ff, skin: 0xd9a98a, hair: 0x4a3324, eye: 0x3a5f8a, hairStyle: "short" },
   // Kessler: worn grey-green shell, orange, steel-blue trim, amber lights.
   kessler: { armour: 0x8a948f, armour2: 0x6b7670, under: 0x2b302e, accent: 0xe08a2a, trim: 0x3d4c58, glove: 0x33382f, light: 0xffc46a, skin: 0xc68f6c, hair: 0x1f1b19, eye: 0x4a2f20, hairStyle: "bun", female: true },
+  // The base's other two rangers: olive shell, amber and slate.
+  guard: { armour: 0x7f8a74, armour2: 0x626c59, under: 0x2b302e, accent: 0xf0b860, trim: 0x46525c, glove: 0x33382f, light: 0xffe08a, skin: 0x9a6a48, hair: 0x2a1f18, eye: 0x3a2a1a, hairStyle: "short" },
 };
 
 // ── A face ──

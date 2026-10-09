@@ -5,10 +5,9 @@ import { PLAYER } from "./config.js";
 
 // ── The HUD ──────────────────────────────────────────────────────────────
 // Plain DOM over the canvas: crosshair and hit marker, shield and health,
-// the two weapons, objectives with markers on screen, subtitles, the use
-// prompt, what the bugs know about you (a sentry's eye filling up, a "?"
-// over one that heard something), hints (the noise you make is a ring on the ground, drawn in 3D), the boss bar, the downed
-// overlay, cutscene bars and the data pad reader.
+// the defenders, the two weapons, the siege panel (wave clock, reactor,
+// crystals), markers on screen, subtitles, the use prompt, a "?" over a
+// bug that heard something, hints, the boss bar, the downed overlay.
 
 const KEYS = {
   move: ["WASD", "LS"], look: ["Mouse", "RS"], jump: ["Space", "A"], sprint: ["Shift", "L3"], crouch: ["C", "LB"], cover: ["Q", "RB"],
@@ -31,7 +30,7 @@ export class Hud {
     this.markers = el("markers", R);
     this.tags = el("tags", R);
     this.vitals = el("vitals", R);
-    this.vitals.innerHTML = `<div class="bar shield"><i></i></div><div class="bar hp"><i></i></div><div class="ally"><span></span><div class="bar mini"><i></i></div></div>`;
+    this.vitals.innerHTML = `<div class="bar shield"><i></i></div><div class="bar hp"><i></i></div><div class="allies"></div>`;
     this.weapons = el("weapons", R);
     this.sub = el("subtitle", R);
     this.prompt = el("prompt", R);
@@ -88,13 +87,11 @@ export class Hud {
     this.hitT -= dt; if (this.hitT <= 0) this.hitmark.classList.remove("on");
 
     // Vitals.
-    this.vitals.querySelector(".shield i").style.width = `${(p.shield / PLAYER.shield) * 100}%`;
-    this.vitals.querySelector(".hp i").style.width = `${(p.hp / PLAYER.hp) * 100}%`;
+    this.vitals.querySelector(".shield i").style.width = `${(p.shield / p.maxShield) * 100}%`;
+    this.vitals.querySelector(".hp i").style.width = `${(p.hp / p.maxHp) * 100}%`;
     this.vitals.querySelector(".hp").classList.toggle("low", p.hp < 35);
-    const A = run.ally;
-    this.vitals.querySelector(".ally span").textContent = A.downed ? `${t("speaker_kessler")} ✕` : t("speaker_kessler");
-    this.vitals.querySelector(".ally i").style.width = `${(A.hp / A.maxHp) * 100}%`;
-    this.vitals.querySelector(".ally").classList.toggle("down", A.downed);
+    const ah = run.allies.map((A) => `<div class="ally${A.downed ? " down" : ""}"><span>${t(`speaker_${A.name}`)}${A.downed ? " ✕" : ""}</span><div class="bar mini"><i style="width:${((A.hp / A.maxHp) * 100).toFixed(0)}%"></i></div></div>`).join("");
+    if (ah !== this.aHtml) { this.vitals.querySelector(".allies").innerHTML = ah; this.aHtml = ah; }
 
     // Weapons.
     const slots = p.slots.map((s, i) => {
@@ -108,12 +105,19 @@ export class Hud {
     const html = slots + reload + `<div class="swaphint">${this.key("swap")}</div>`;
     if (html !== this.wHtml) { this.weapons.innerHTML = html; this.wHtml = html; }
 
-    // Objectives.
-    const list = run.openObjectives.map((o) => {
-      const txt = t(`obj_${o.id}`, { n: o.n ?? 0, s: o.s ?? 0 });
-      return `<li class="${o.done ? "done" : ""}${o.optional ? " opt" : ""}">${txt}</li>`;
-    }).join("");
-    if (list !== this.oHtml) { this.objs.innerHTML = `<h4>${t("objectives")}</h4><ul>${list}</ul>`; this.oHtml = list; }
+    // The siege panel: the wave clock, the reactor, the crystals.
+    const S = run.siege, C = run.core;
+    if (S && C) {
+      const sec = Math.max(0, Math.ceil(S.next)), warn = S.next <= 45;
+      const boss = run.boss?.alive;
+      const clock = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+      const title = warn ? t("siege_incoming", { n: S.wave + 1 }) : `${t("siege_next")} · ${t("siege_wave", { n: S.wave + 1 })}${S.endless ? ` · ${t("siege_endless")}` : ""}`;
+      const sh = `<div class="clock${warn ? " warn" : ""}"><span>${title}</span><b>${clock}</b></div>` +
+        `<div class="react${C.hitT > 0 ? " hit" : ""}${C.hp < C.maxHp * 0.3 ? " low" : ""}"><span>${t("reactor")}</span><div class="bar"><i style="width:${((C.hp / C.maxHp) * 100).toFixed(0)}%"></i></div></div>` +
+        `<div class="cry"><span>${t("crystals")}</span><b>${run.crystals}</b> <em>${t("carried")}</em> · <b>${run.bank}</b> <em>${t("banked")}</em></div>` +
+        (boss ? `<div class="bossnote">${t("siege_boss")}</div>` : "");
+      if (sh !== this.oHtml) { this.objs.innerHTML = sh; this.oHtml = sh; }
+    }
 
     // Markers on screen (or pinned to the edge, with the distance).
     let mh = "";
@@ -123,6 +127,7 @@ export class Hud {
       const ms = o.markers ?? (o.marker ? [o.marker] : []);
       for (const m of ms) {
         const d = Math.hypot(m.x - p.body.x, m.z - p.body.z);
+        if (o.minDist && d < o.minDist) continue;
         let s = view.project(m.x, (m.y ?? 0) + 2.2, m.z);
         let edge = false;
         if (!s || s.x < 30 || s.x > W - 30 || s.y < 30 || s.y > H - 30) {
@@ -139,15 +144,14 @@ export class Hud {
     }
     if (mh !== this.mHtml) { this.markers.innerHTML = mh; this.mHtml = mh; }
 
-    // What the bugs know: a sentry's eye filling, "?" over the curious.
+    // "?" over a bug that heard something, "!" over one that just found you; crystal markers near you.
     let th = "";
     for (const b of run.bugs) {
       if (!b.alive || b.hidden) continue;
       const d = Math.hypot(b.x - p.body.x, b.z - p.body.z);
       if (d > 45) continue;
       let icon = null;
-      if (b.type === "sentry" && (b.detect > 0.05 || b.state === "shriek")) icon = `<div class="eye${b.state === "shriek" ? " full" : ""}"><i style="height:${Math.min(1, b.detect) * 100}%"></i></div>`;
-      else if (b.state === "search") icon = `<div class="q">?</div>`;
+      if (b.state === "search") icon = `<div class="q">?</div>`;
       else if (b.state === "hunt" && b.actT < 1.2 && b.act === "alert") icon = `<div class="q hunt">!</div>`;
       if (!icon) continue;
       const s = view.project(b.x, b.y + b.def.height + 0.7, b.z);
@@ -189,6 +193,9 @@ export class Hud {
 
     // Down.
     this.downed.classList.toggle("on", p.downed);
-    if (p.downed) this.downed.innerHTML = `<div>${run.ally.downed ? t("downedAlone") : t("downed")}</div><div class="bleed"><i style="width:${(p.downT / PLAYER.bleedOut) * 100}%"></i></div>${p.reviveK > 0 ? `<div class="revive"><i style="width:${p.reviveK * 100}%"></i></div>` : ""}`;
+    if (p.downed) {
+      const coming = run.allies.some((a) => a.mode === "revive");
+      this.downed.innerHTML = `<div>${coming ? t("downed") : t("downedAlone", { s: Math.max(0, Math.ceil(p.downT)) })}</div><div class="bleed"><i style="width:${(p.downT / PLAYER.bleedOut) * 100}%"></i></div>${p.reviveK > 0 ? `<div class="revive"><i style="width:${p.reviveK * 100}%"></i></div>` : ""}`;
+    }
   }
 }
