@@ -10,7 +10,7 @@ const logs = [];
 p.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") logs.push(m.text()); });
 p.on("pageerror", (e) => logs.push("PAGEERROR " + e.message));
 await p.goto(URL, { waitUntil: "load" });
-await p.waitForFunction(() => window.__rimRanger, null, { timeout: 60000 });
+await p.waitForFunction(() => window.__longWatch, null, { timeout: 60000 });
 await p.waitForTimeout(1500);
 let i = 0;
 for (const v of views.length ? views : ["menu"]) {
@@ -18,7 +18,7 @@ for (const v of views.length ? views : ["menu"]) {
     const [stage, rest = ""] = v.split(":");
     const [x, z, yaw, pitch, steps] = rest.split(",").map(Number);
     await p.evaluate(([stage, x, z, yaw, pitch, steps]) => {
-      const D = window.__rimRanger;
+      const D = window.__longWatch;
       D.stage(stage);
       D.skipCut();
       if (!Number.isNaN(x)) D.place(x, z, yaw || 0, Number.isNaN(pitch) ? -0.1 : pitch);

@@ -1,4 +1,4 @@
-# Peremőr (munkacím, angolul: *Rim Ranger*)
+# Hosszú Őrség (angolul: *The Long Watch*)
 
 Történetes, külső nézetes (TPS) akciójáték böngészőre, asztali gépre,
 billentyűzettel és egérrel vagy gamepaddel. Komolyabb hangvételű sci-fi:
@@ -10,8 +10,8 @@ Kidolgozott low poly világ, ugyanazon a stacken, mint a Dream Fixer.
 > a királynőhöz.
 
 **Állapot:** az 1. fejezet (Porfészek-hold) játszható az elejétől a végéig.
-A többi fejezet csak a sztoriívben létezik. A végleges cím még nincs
-kiválasztva (a mappa neve, `rim-ranger`, a cím után változhat).
+A többi fejezet csak a sztoriívben létezik. A cím a rangerek hajójáé is:
+az Őrség maga a történet.
 
 ---
 
@@ -210,20 +210,19 @@ pályán belüli ellenőrzőpontokkal.
   kis pillanatkép (szakasz, flagek, felszerelés, hely), visszaálláskor
   ebből épül egy új Run.
 - A távoli, nyugodt bogarak csak minden negyedik lépésben frissülnek.
-- `npm run dev -w games/rim-ranger` (port 5360).
+- `npm run dev -w games/long-watch` (port 5360).
 - `node scripts/flow.mjs [képelőtag]`: fej nélkül végigjátssza a teljes
   küldetést (teleport, használat, robotlövész), és kiírja, mi teljesült.
 - `node scripts/shot.mjs <előtag> <szakasz>:x,z,yaw,pitch …`:
   képernyőképek.
   - Mindkettőhöz `PLAYWRIGHT_CORE` és (ha nem a szokásos helyen van)
     `CHROME` kell.
-- `npm run voice -w games/rim-ranger`: a hangok legenerálása (ElevenLabs
+- `npm run voice -w games/long-watch`: a hangok legenerálása (ElevenLabs
   kulcs az `elevenlabs.txt`-ben vagy `ELEVENLABS_API_KEY`-ben); a
   szereplők hangja és a színészi utasítások a `scripts/cast.mjs`-ben.
 
 ## 7. Nyitott kérdések
 
-- Végleges cím (javaslatok a beszélgetésben).
 - A hub (a Hosszú Őrség fedélzete), fejlesztések, fejezetválasztó.
 - A 2–6. fejezet tartalma, az ásók és a repülők.
 - A szereplők végleges ElevenLabs-hangjai (most az előre elkészített

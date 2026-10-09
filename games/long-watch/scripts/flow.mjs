@@ -10,15 +10,15 @@ const logs = [];
 p.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") logs.push(m.text()); });
 p.on("pageerror", (e) => logs.push("PAGEERROR " + e.message + "\n" + e.stack));
 await p.goto(URL, { waitUntil: "load" });
-await p.waitForFunction(() => window.__rimRanger, null, { timeout: 60000 });
+await p.waitForFunction(() => window.__longWatch, null, { timeout: 60000 });
 const step = (fn, arg) => p.evaluate(fn, arg);
-await step(() => { const D = window.__rimRanger; D.play(null); });
+await step(() => { const D = window.__longWatch; D.play(null); });
 let n = 0;
 const shot = async (name) => { if (shots) { await p.waitForTimeout(600); await p.screenshot({ path: `${shots}-${String(n++).padStart(2, "0")}-${name}.png` }); } };
 await shot("intro");
 // Fight bot: aim at the nearest hunting bug and fire, a number of steps.
 const play = (steps, goal, stay) => step(([steps, goal, stay]) => {
-  const D = window.__rimRanger, run = D.run;
+  const D = window.__longWatch, run = D.run;
   const out = { stage: run.stage, msgs: [] };
   for (let i = 0; i < steps; i++) {
     if (run.cut) { D.skipCut(); continue; }
@@ -47,13 +47,13 @@ const play = (steps, goal, stay) => step(([steps, goal, stay]) => {
   out.objs = run.objectives.filter((o) => !o.done).map((o) => o.id);
   return out;
 }, [steps, goal, stay]);
-const tp = (x, z) => { at = [x, z]; return step(([x, z]) => { const D = window.__rimRanger; D.place(x, z, 0, -0.1); D.god(true); }, [x, z]); };
+const tp = (x, z) => { at = [x, z]; return step(([x, z]) => { const D = window.__longWatch; D.place(x, z, 0, -0.1); D.god(true); }, [x, z]); };
 let at = null;
 const log = (s, r) => console.log(s.padEnd(14), JSON.stringify(r));
-const M = await step(() => window.__rimRanger.run.kit.marks);
+const M = await step(() => window.__longWatch.run.kit.marks);
 const t0 = Date.now();
 log("intro", await play(30));
-await step(() => window.__rimRanger.god(true));
+await step(() => window.__longWatch.god(true));
 log("road", await play(900, [0, 60]));
 await shot("road");
 log("gate", await play(400, [M.gate.x, M.gate.z - 2]));

@@ -30,7 +30,7 @@ if (enabled) {
   window.gtag = function gtag() { window.dataLayer.push(arguments); };
   window.gtag("consent", "default", { analytics_storage: "denied", ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied" });
   window.gtag("js", new Date());
-  window.gtag("config", GA_ID, { page_title: "Rim Ranger" });
+  window.gtag("config", GA_ID, { page_title: "The Long Watch" });
   if (consent() === "granted") start();
   // Accepted (or withdrawn) on the site while the game is open.
   window.addEventListener("storage", (e) => {
@@ -40,10 +40,10 @@ if (enabled) {
   });
 }
 
-// Every event is named rim_ranger_<name> and carries game: "rim-ranger",
+// Every event is named long_watch_<name> and carries game: "long-watch",
 // so the game's events never mix with the rest of the site's. Events from
 // before consent wait in the dataLayer and are only sent if it is given.
 export function track(name, params = {}) {
   if (!enabled) return;
-  try { window.gtag("event", `rim_ranger_${name}`, { game: "rim-ranger", ...params }); } catch { /* never break the game */ }
+  try { window.gtag("event", `long_watch_${name}`, { game: "long-watch", ...params }); } catch { /* never break the game */ }
 }

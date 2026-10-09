@@ -2,8 +2,8 @@
 // localStorage, guarded for private mode / blocked storage (the game still
 // runs, it just forgets).
 
-const KEY_SETTINGS = "rim-ranger.settings.v1";
-const KEY_SAVE = "rim-ranger.save.v1";
+const KEY_SETTINGS = "long-watch.settings.v1";
+const KEY_SAVE = "long-watch.save.v1";
 
 const read = (key) => { try { return JSON.parse(localStorage.getItem(key) || "null"); } catch { return null; } };
 const write = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode */ } };

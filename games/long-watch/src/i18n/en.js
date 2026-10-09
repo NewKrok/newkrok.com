@@ -1,5 +1,5 @@
 export const EN = {
-  title: "Rim Ranger",
+  title: "The Long Watch",
   subtitle: "Chapter 1 · Dustnest Moon",
   newGame: "New mission",
   continue: "Continue from checkpoint",

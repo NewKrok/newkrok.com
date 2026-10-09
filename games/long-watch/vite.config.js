@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 
-// Relative base: the build works under /games/rim-ranger/ on newkrok.com
+// Relative base: the build works under /games/long-watch/ on newkrok.com
 // and from any other folder too.
 export default defineConfig({
   base: "./",

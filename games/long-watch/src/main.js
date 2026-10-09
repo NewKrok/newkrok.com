@@ -17,7 +17,7 @@ import { Run } from "./sim/run.js";
 import { Nav } from "./sim/nav.js";
 import { rayBugs } from "./sim/combat.js";
 
-// ── Rim Ranger ───────────────────────────────────────────────────────────
+// ── The Long Watch ───────────────────────────────────────────────────────────
 // Wires it together: the menus, the fixed-step sim, the renderer, sound,
 // voices and the HUD. The level is built once; a Run is rebuilt from a
 // checkpoint whenever the mission falls back.
@@ -275,7 +275,7 @@ requestAnimationFrame(frame);
 
 // Dev handle for headless checks.
 if (import.meta.env.DEV) {
-  window.__rimRanger = {
+  window.__longWatch = {
     get run() { return run; }, get state() { return state; }, view, input, settings,
     play: (cp) => begin(cp ?? null),
     stage: (stage) => begin({ stage, flags: stage === "survivors" || stage === "vents" || stage === "boss" ? { power: true, relay: true } : {} }),

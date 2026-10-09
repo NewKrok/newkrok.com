@@ -1,5 +1,5 @@
 export const HU = {
-  title: "Peremőr",
+  title: "Hosszú Őrség",
   subtitle: "1. fejezet · Porfészek-hold",
   newGame: "Új küldetés",
   continue: "Folytatás az ellenőrzőponttól",

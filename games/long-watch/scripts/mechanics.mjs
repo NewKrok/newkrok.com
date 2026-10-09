@@ -8,9 +8,9 @@ const p = await b.newPage({ viewport: { width: 800, height: 450 } });
 const errors = [];
 p.on("pageerror", (e) => errors.push(e.message));
 await p.goto(URL, { waitUntil: "load" });
-await p.waitForFunction(() => window.__rimRanger, null, { timeout: 60000 });
+await p.waitForFunction(() => window.__longWatch, null, { timeout: 60000 });
 const res = await p.evaluate(() => {
-  const D = window.__rimRanger, out = {};
+  const D = window.__longWatch, out = {};
   const I0 = () => ({ forward: 0, strafe: 0, yaw: D.input.yaw, pitch: D.input.pitch });
   const run = () => D.run;
   const steps = (n, I = {}) => { for (let i = 0; i < n; i++) run().step({ ...I0(), ...I }); };
