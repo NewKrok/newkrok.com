@@ -8,6 +8,8 @@ import { Voice } from "./voice.js";
 import { Director } from "./story/director.js";
 import { Input } from "./input/index.js";
 import { GameView } from "./render/scene.js";
+import { loadAssets } from "./render/glb.js";
+import { GLB_LIST } from "./render/actors.js";
 import { Hud } from "./hud.js";
 import { Menus } from "./ui/menus.js";
 import { PadNav } from "./ui/padnav.js";
@@ -27,16 +29,19 @@ const settings = loadSettings();
 setLang(settings.lang ?? guessLang());
 document.title = t("title");
 
+const loading = document.createElement("div");
+loading.className = "loading";
+loading.textContent = t("loading");
+app.appendChild(loading);
+// The generated figures (public/models); ?code=1 keeps the code-built ones.
+if (!new URLSearchParams(location.search).has("code")) await loadAssets(GLB_LIST);
+
 const audio = new Audio();
 const voice = new Voice(audio, settings);
 const director = new Director(voice);
 const view = new GameView(app, settings);
 const input = new Input(view.renderer.domElement, settings);
 const hud = new Hud(app);
-const loading = document.createElement("div");
-loading.className = "loading";
-loading.textContent = t("loading");
-app.appendChild(loading);
 
 // The level (built once; the walking grid takes a moment).
 const kit = buildDustmoon();
@@ -156,7 +161,7 @@ function events() {
       case "revived": audio.play("revived"); break;
       case "respawn": audio.play("revived"); hud.showToast(t("downedAlone", { s: 0 }).split("…")[0]); break;
       case "bugAlert": at("chitter"); break;
-      case "leap": at("leap"); break;
+      case "leap": if (!e.hop) at("leap"); break;
       case "spit": at("spit"); break;
       case "acidSplash": case "acidHit": at("acid"); break;
       case "windup": at("windup"); break;
@@ -178,8 +183,7 @@ function events() {
       case "wave": hud.showToast(t("toast_wave", { n: e.n })); audio.play("checkpoint"); break;
       case "coreHit": if (Math.random() < 0.4) at("armor"); view.kick(0.08); break;
       case "coreDown": audio.play("blast"); view.kick(1); break;
-      case "crystal": audio.play("pickup"); break;
-      case "bank": hud.showToast(t("toast_bank", { n: e.n, total: e.total })); audio.play("objDone"); break;
+      case "crystal": audio.play("pickup"); if (e.n >= 20) hud.showToast(t("toast_bank", { n: e.n, total: e.total })); break;
       case "crystalLost": hud.showToast(t("toast_lost", { n: e.n })); break;
       case "loot": audio.play("ammo"); break;
       case "bossEmerge": audio.play("quake"); audio.play("roar"); hud.showToast(t("toast_boss")); break;
@@ -292,5 +296,7 @@ if (import.meta.env.DEV) {
     god: (on = true) => { run.player.godMode = on; },
     freeze: (on = true) => { frozen = on; },
     warp: (minutes) => { run.siege.next -= minutes * 60; run.siege.t += minutes * 60; },
+    colliders: (on = true) => view.showColliders(kit, on),
+    nav: (on = true) => view.showNav(level.nav, on),
   };
 }

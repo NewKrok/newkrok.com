@@ -14,6 +14,10 @@ const KEYS = {
   aim: ["RMB", "LT"], fire: ["LMB", "RT"], reload: ["R", "X"], swap: ["1/2", "Y"], dash: ["V", "B"], use: ["E", "X"], shoulder: ["X", "R3"], skip: ["Enter", "Back"],
 };
 
+// The stations' letters and colours, on the minimap and over the stations themselves.
+export const STATION_LETTERS = [["medbay", "+"], ["ammoShop", "A"], ["armoury", "W"], ["workshop", "U"], ["droneBay", "D"], ["command", "C"]];
+export const STATION_COLORS = { medbay: "#5af07a", ammoShop: "#f0b860", armoury: "#ff8a5a", workshop: "#7ef9ff", droneBay: "#b89cff", command: "#ffd84a" };
+
 const el = (cls, parent, tag = "div") => { const e = document.createElement(tag); if (cls) e.className = cls; parent?.appendChild(e); return e; };
 
 export class Hud {
@@ -29,6 +33,7 @@ export class Hud {
     this.objs = el("objs", R);
     this.markers = el("markers", R);
     this.tags = el("tags", R);
+    this.stations = el("stations", R);
     this.vitals = el("vitals", R);
     this.vitals.innerHTML = `<div class="bar shield"><i></i></div><div class="bar hp"><i></i></div><div class="bar stam"><i></i></div><div class="allies"></div>`;
     this.weapons = el("weapons", R);
@@ -112,12 +117,19 @@ export class Hud {
     // The base: the reactor and the stations (letters), the turrets, the defenders.
     const K = kit.marks, C = run.core;
     if (C) { const [x, z] = clampTo(C.x, C.z); dot(x, z, 7, C.hp < C.maxHp * 0.3 ? "#ff5a48" : "#6fe8ff", "#fff"); }
-    ctx.font = "bold 13px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    for (const [st, letter] of [["medbay", "+"], ["ammoShop", "A"], ["armoury", "W"], ["workshop", "U"], ["droneBay", "D"], ["command", "C"]]) {
+    ctx.font = "bold 15px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    for (const [st, letter] of STATION_LETTERS) {
       const m = K[st]; if (!m) continue;
       const d = Math.hypot(m.x - p.x, m.z - p.z); if (d > span / 2) continue;
-      dot(m.x, m.z, 7, "rgba(10,14,20,0.85)", st === "medbay" ? "#5af07a" : "#f0a040");
-      ctx.fillStyle = st === "medbay" ? "#5af07a" : "#f0a040"; ctx.fillText(letter, sx(m.x), sz(m.z) + 0.5);
+      const col = STATION_COLORS[st];
+      dot(m.x, m.z, 9, "rgba(10,14,20,0.9)", col);
+      ctx.fillStyle = col; ctx.fillText(letter, sx(m.x), sz(m.z) + 0.5);
+    }
+    // The fixed ammo caches and weapon racks, when they are in the window.
+    for (const u of run.uses) {
+      if (u.done || (u.model !== "ammoBox" && u.model !== "rackGun")) continue;
+      if (Math.hypot(u.x - p.x, u.z - p.z) > span / 2) continue;
+      dot(u.x, u.z, 3.5, u.model === "ammoBox" ? "#f0b860" : "#7ef9ff");
     }
     for (const u of run.turrets) dot(u.x, u.z, 4, "#d8862e", "#fff");
     for (const a of run.allies) dot(a.body.x, a.body.z, 4, a.downed ? "#ff5a48" : "#8fe8d0");
@@ -189,7 +201,7 @@ export class Hud {
       const title = warn ? t("siege_incoming", { n: S.wave + 1 }) : `${t("siege_next")} · ${t("siege_wave", { n: S.wave + 1 })}${S.endless ? ` · ${t("siege_endless")}` : ""}`;
       const sh = `<div class="clock${warn ? " warn" : ""}"><span>${title}</span><b>${clock}</b></div>` +
         `<div class="react${C.hitT > 0 ? " hit" : ""}${C.hp < C.maxHp * 0.3 ? " low" : ""}"><span>${t("reactor")}</span><div class="bar"><i style="width:${((C.hp / C.maxHp) * 100).toFixed(0)}%"></i></div></div>` +
-        `<div class="cry"><span>${t("crystals")}</span><b>${run.crystals}</b> <em>${t("carried")}</em> · <b>${run.bank}</b> <em>${t("banked")}</em></div>` +
+        `<div class="cry"><span>${t("crystals")}</span><b>${run.bank}</b></div>` +
         (boss ? `<div class="bossnote">${t("siege_boss")}</div>` : "");
       if (sh !== this.oHtml) { this.objs.innerHTML = sh; this.oHtml = sh; }
     }
@@ -235,10 +247,27 @@ export class Hud {
     }
     if (th !== this.tHtml) { this.tags.innerHTML = th; this.tHtml = th; }
 
+    // The stations' names float over them while you are about the base and
+    // not aiming, so you can see from anywhere in the colony what is where.
+    let sh2 = "";
+    if (p.aimK < 0.5 && !p.downed) {
+      const K2 = run.kit.marks;
+      for (const [st, letter] of STATION_LETTERS) {
+        const m = K2[st]; if (!m) continue;
+        const d = Math.hypot(m.x - p.body.x, m.z - p.body.z);
+        if (d > 80 || d < 3) continue;
+        const s = view.project(m.x, (m.y ?? 0) + 4.2, m.z);
+        if (!s || s.x < 0 || s.x > W || s.y < 0 || s.y > H) continue;
+        const k = Math.max(0.45, 1 - d / 90);
+        sh2 += `<div class="st" style="transform:translate(${s.x.toFixed(0)}px,${s.y.toFixed(0)}px);opacity:${k.toFixed(2)};--c:${STATION_COLORS[st]}"><b>${letter}</b><span>${t(`st_${st}`)}</span><em>${Math.round(d)} m</em></div>`;
+      }
+    }
+    if (sh2 !== this.sHtml) { this.stations.innerHTML = sh2; this.sHtml = sh2; }
+
     // Use prompt.
     const u = p.interact;
     if (u && !p.downed) {
-      const [key, vars] = u.label(run);
+      const [key, vars] = u.label(run, u);
       const v = vars ? Object.fromEntries(Object.entries(vars).map(([k2, x]) => [k2, t(x)])) : undefined;
       const txt = t(key, v);
       const k = u.hold ? this.keyText(t("hold", { key: "{use}" })) : this.key("use");

@@ -74,7 +74,7 @@ export class Body {
   }
 
   move(space, dt) {
-    const world = space.world;
+    const world = space.world, P = this.P;
     const mx = this.vx * dt, mz = this.vz * dt;
     const n = Math.max(1, Math.ceil(Math.hypot(mx, mz) / (this.r * 0.5)));
     const T = space.terrain;
@@ -82,10 +82,11 @@ export class Body {
       const ox = this.x, oz = this.z;
       this.x += mx / n; this.z += mz / n;
       this.resolveWalls(space);
-      // Ground too steep to walk up (about 50°) stops you like a wall.
+      // Ground too steep to walk up stops you like a wall (P.climb: the
+      // rise per metre; the ranger manages about 50°, a bug far less).
       if (this.grounded && this.dashT <= 0) {
         const d = Math.hypot(this.x - ox, this.z - oz), rise = T.height(this.x, this.z) - T.height(ox, oz);
-        if (rise > 0.06 && rise > d * 1.25 && T.height(this.x, this.z) > this.y + 0.05) {
+        if (rise > 0.06 && rise > d * (P.climb ?? 1.25) && T.height(this.x, this.z) > this.y + 0.05) {
           this.x = ox; this.z = oz;
           const nrm = T.normal(ox, oz), l = Math.hypot(nrm[0], nrm[2]) || 1, gx = nrm[0] / l, gz = nrm[2] / l;
           const vn = this.vx * gx + this.vz * gz;

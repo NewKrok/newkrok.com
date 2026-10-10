@@ -318,3 +318,28 @@ so `scripts/bot.js` plays the whole dream headless.
   posable figures pays for itself in the first hour; so does a `freeze`
   switch on the dev handle, because headless screenshots take a second
   and the sim would otherwise run on past the pose you wanted.
+
+What the open map taught us:
+
+- "I bump into nothing" has two causes worth checking first: a collider
+  that does not match the model's shape at foot level (a rock blob is
+  widest at its middle, so a cylinder of its full radius stands out
+  from the stone where your feet are), and level blocks that end up
+  buried in terrain (a roof over a cutting through a hill: the ends of
+  the blocks are inside the slope, invisible, solid). A dev switch that
+  draws every collider as a wireframe finds both in a minute.
+- Walking-grid thresholds must agree with the body: the grid said 57°
+  was open while the body stopped at 51°, so bugs pushed into slopes
+  forever. Give monsters a lower climb limit than the player, make the
+  grid stricter than the body, and keep a stuck detector that switches
+  a straight-line chaser onto the field for a few seconds.
+- Low obstacles as a third cell state: a leaper's field crosses them at
+  a price and it hops when it meets one; everyone else routes round.
+  Cheaper and more robust than a real jump planner.
+- An over-the-shoulder camera in cover must pick the shoulder away from
+  the wall; collapsing the side offset when the wall is in the way puts
+  the figure exactly over the crosshair.
+- A 480 m heightfield at 1 m cells (231k corners) builds in well under
+  a second, the ground mesh is a few hundred thousand triangles in
+  frustum-culled chunks; the cost that does grow is the pathfinding
+  field (one float per 2 m cell), so cap the cache of fields.

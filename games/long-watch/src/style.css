@@ -191,6 +191,12 @@ body.pad-nav .btn:focus, body.pad-nav select:focus, body.pad-nav input:focus, bo
 .sub.bank { color: var(--acid); font-weight: 700; }
 @media (max-width: 640px) { .wares { grid-template-columns: 1fr; } }
 
+/* ── Station names over the base ── */
+.stations .st { position: absolute; left: 0; top: 0; pointer-events: none; }
+.stations .st b { position: absolute; left: -11px; top: -34px; width: 22px; height: 22px; line-height: 22px; border-radius: 50%; text-align: center; font-size: 12px; background: rgba(10, 14, 20, 0.85); color: var(--c); border: 1.5px solid var(--c); }
+.stations .st span { position: absolute; left: 14px; top: -33px; white-space: nowrap; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8); }
+.stations .st em { position: absolute; left: 14px; top: -18px; white-space: nowrap; font-size: 10px; font-style: normal; color: rgba(255, 255, 255, 0.7); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8); }
+
 /* ── The minimap ── */
 .minimap { position: absolute; right: calc(24px + env(safe-area-inset-right)); top: calc(24px + env(safe-area-inset-top)); width: 176px; height: 176px; border: 1px solid var(--line); background: rgba(10, 14, 20, 0.6); box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35); }
 .minimap canvas { display: block; width: 176px; height: 176px; }

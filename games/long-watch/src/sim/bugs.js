@@ -19,7 +19,7 @@ export const BUGS = {
   // Keeps its distance and lobs acid. Its glowing sac is the soft spot.
   spitter: { hp: 115, speed: 4.6, wander: 1.4, radius: 0.6, height: 1.2, hearing: 1.1, sight: 28, spit: 15, near: 9, far: 24, spitCool: 2.6, crystal: 7 },
   // Armoured head-on; charges in a straight line and stuns itself on walls.
-  charger: { hp: 400, speed: 3.6, wander: 1.2, radius: 0.95, height: 1.5, hearing: 0.9, sight: 22, ram: 28, chargeSpeed: 15, crystal: 18 },
+  charger: { hp: 400, speed: 3.6, wander: 1.2, radius: 0.95, height: 1.5, hearing: 0.9, sight: 22, ram: 28, chargeSpeed: 15, bite: 22, reach: 1.8, crystal: 18 },
   // Sees far and shrieks the area awake (kept from the old mode; not spawned by the siege).
   sentry: { hp: 80, speed: 3.2, wander: 0.8, radius: 0.5, height: 1.7, hearing: 0.6, sight: 34, fov: 1.05, crystal: 10 },
   // The skimmer: flies, never attacks, runs from anyone who comes near, and is full of crystal.
@@ -27,6 +27,7 @@ export const BUGS = {
 };
 
 let nextId = 1;
+const _hit = {};
 
 export class Bug {
   constructor(type, x, y, z, o = {}) {
@@ -34,7 +35,8 @@ export class Bug {
     this.type = type;
     this.def = BUGS[type] ?? o.def;
     const d = this.def;
-    this.body = new Body(x, y, z, { radius: d.radius, height: d.height, step: 0.9, jump: 6, gravity: 22, fallGravity: 26, accel: 40, friction: 10 });
+    // Bugs climb far less than the ranger (about 36°): steep ground is a wall to them and the grid routes round it.
+    this.body = new Body(x, y, z, { radius: d.radius, height: d.height, step: d.leap ? 0.9 : 0.6, jump: 6.2, gravity: 22, fallGravity: 26, accel: 40, friction: 10, climb: 0.72 });
     this.hp = d.hp * (o.hpMul ?? 1); this.maxHp = this.hp;
     this.face = o.yaw ?? Math.random() * Math.PI * 2;
     this.home = { x, z, r: o.roam ?? 7 };
@@ -54,6 +56,11 @@ export class Bug {
     this.pathKey = `bug${this.id}`;
     this.tag = o.tag ?? null;
     this.route = null;                      // patrol: the next point to walk to
+    this.blockT = 0;                        // how long it has been pushing against something
+    this.detourT = 0;                       // follow the grid instead of going straight, for a while
+    this.hop = false;                       // jump this step (a leaper over a low obstacle)
+    this.stuckT = 0;                        // how long it has wanted to move and not moved
+    this.unstick = null;                    // { x, z, t }: a nearby spot to go to first, to get out of a corner
     this.seeT = Math.random() * 0.3;
     this.patrolling = !!o.patrol;
     if (o.patrol) { this.state = "patrol"; this.goalX = x; this.goalZ = z; }
@@ -250,8 +257,32 @@ export class Bug {
       }
     }
 
-    if (this.act !== "charge" && this.act !== "leap") b.step(run.space, { vx: wx * speed, vz: wz * speed }, dt);
+    // Pushing against something and getting nowhere: a leaper hops a low
+    // obstacle (a barrier, a crate), anyone else gives up the straight line
+    // and follows the grid for a while.
+    this.hop = false;
+    this.detourT -= dt;
+    if (speed > 0.3 && this.act !== "charge" && this.act !== "leap") {
+      const stuck = b.grounded && b.speed2D < speed * 0.3;
+      this.blockT = stuck ? this.blockT + dt : Math.max(0, this.blockT - dt * 2);
+      this.stuckT = stuck ? this.stuckT + dt : Math.max(0, this.stuckT - dt);
+      if (this.blockT > 0.3) {
+        this.blockT = 0;
+        if (d.leap && this.#lowAhead(run, wx, wz)) { this.hop = true; this.act = "walk"; }
+        else this.detourT = 2 + Math.random();
+      }
+      // Still stuck after the detour: wander to an open spot nearby first and try again from there.
+      if (this.stuckT > 3 && !this.unstick) { const p = run.openSpot(this.x, this.z, 5, 14, 20); if (p) this.unstick = { x: p.x, z: p.z, t: 3 }; this.stuckT = 0; }
+      if (this.unstick) {
+        this.unstick.t -= dt;
+        const ux = this.unstick.x - this.x, uz = this.unstick.z - this.z, ul = Math.hypot(ux, uz) || 1;
+        if (this.unstick.t <= 0 || ul < 1.5) this.unstick = null;
+        else [wx, wz] = this.#way(run, this.unstick.x, this.unstick.z, "pt");
+      }
+    } else { this.blockT = 0; this.stuckT = 0; }
+    if (this.act !== "charge" && this.act !== "leap") b.step(run.space, { vx: wx * speed, vz: wz * speed, jumpPressed: this.hop }, dt);
     else this.#lunge(run, dt);
+    if (this.hop) run.fx({ type: "leap", id: this.id, x: this.x, y: this.y, z: this.z, hop: true });
     if (speed > 0.3 && this.act !== "spit" && this.act !== "windup") this.face = dampAngle(this.face, Math.atan2(-wx, -wz), 8, dt);
     if (this.act === "idle" || this.act === "walk" || this.act === "alert") this.act = b.speed2D > 0.4 ? "walk" : this.act === "alert" && this.actT < 0.6 ? "alert" : "idle";
     if (b.fell) { this.alive = false; this.deadT = 99; }
@@ -280,7 +311,8 @@ export class Bug {
       wx = (this.goalX - b.x) / (gd || 1); wz = (this.goalZ - b.z) / (gd || 1); speed = d.wander; this.act = "walk";
     }
     // Stay over the area.
-    if (Math.abs(b.x) > 130) wx -= Math.sign(b.x); if (Math.abs(b.z) > 130) wz -= Math.sign(b.z);
+    const m = run.nav.margin;
+    if (Math.abs(b.x) > m) wx -= Math.sign(b.x); if (Math.abs(b.z) > m) wz -= Math.sign(b.z);
     const l = Math.hypot(wx, wz) || 1;
     b.vx += (wx / l * speed - b.vx) * Math.min(1, dt * 3); b.vz += (wz / l * speed - b.vz) * Math.min(1, dt * 3);
     b.x += b.vx * dt; b.z += b.vz * dt;
@@ -354,13 +386,25 @@ export class Bug {
     }
   }
 
-  // Wanted direction to (gx, gz): straight when it can, else the field.
+  // Wanted direction to (gx, gz): straight when the line is clear and the
+  // ground on it walkable, else the field (a leaper's field may cross low
+  // obstacles, which it then jumps).
   #way(run, gx, gz, key) {
-    const dx = gx - this.x, dz = gz - this.z, dist = Math.hypot(dx, dz) || 1;
-    if (dist < 14 && run.space.clear(this.x, this.y + 0.5, this.z, gx, run.space.terrain.height(gx, gz) + 0.5, gz)) return [dx / dist, dz / dist];
-    const f = run.nav.field(key === "pt" ? `pt${Math.round(gx / 4)},${Math.round(gz / 4)}` : key === "home" ? `home${this.id}` : key, gx, gz, run.time, key === "pt" ? 2 : 0.35);
+    const dx = gx - this.x, dz = gz - this.z, dist = Math.hypot(dx, dz) || 1, jump = !!this.def.leap;
+    if (this.detourT <= 0 && dist < 14 && run.space.clear(this.x, this.y + 0.5, this.z, gx, run.space.terrain.height(gx, gz) + 0.5, gz) && run.nav.straight(this.x, this.z, gx, gz, false)) return [dx / dist, dz / dist];
+    const f = run.nav.field(key === "pt" ? `pt${Math.round(gx / 4)},${Math.round(gz / 4)}` : key === "home" ? `home${this.id}` : key, gx, gz, run.time, key === "pt" ? 2 : 0.35, jump);
     const w = run.nav.dir(f, this.x, this.z);
     return w ?? [dx / dist, dz / dist];
+  }
+
+  // Is what stops it a low, jumpable piece (its top within reach of a hop)?
+  #lowAhead(run, wx, wz) {
+    const b = this.body, l = Math.hypot(wx, wz) || 1;
+    const h = run.space.world.raycast(b.x, b.y + 0.35, b.z, wx / l, 0, wz / l, b.r + 0.8, _hit);
+    if (h && h.c) return h.c.y1 - b.y <= 1.4;
+    // Nothing solid: maybe a step in the ground it cannot climb; a hop may still do it.
+    const T = run.space.terrain;
+    return T.height(b.x + wx / l * 1.2, b.z + wz / l * 1.2) - b.y <= 1.2;
   }
 
   // ── Attacks ── returns [wx, wz, speed].

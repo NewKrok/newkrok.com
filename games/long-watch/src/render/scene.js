@@ -89,6 +89,42 @@ export class GameView {
     this.doorOpen = 0; this.doorWant = 0; this.genSpin = 0; this.genK = 0;
   }
 
+  // Dev: the solid world as magenta wireframes (what the sim really bumps
+  // into), to find colliders that do not match what is drawn.
+  showColliders(kit, on = true) {
+    if (this.dbgCol) { this.scene.remove(this.dbgCol); this.dbgCol.traverse((o) => o.geometry?.dispose()); this.dbgCol = null; }
+    if (!on) return;
+    const g = new T.Group();
+    const mat = new T.MeshBasicMaterial({ color: 0xff40ff, wireframe: true, depthTest: false, transparent: true, opacity: 0.7 });
+    for (const c of kit.world.colliders) {
+      const h = Math.max(0.05, c.y1 - c.y0);
+      const geo = c.kind === "cyl" ? new T.CylinderGeometry(c.r, c.r, h, 10, 1) : new T.BoxGeometry(c.hx * 2, h, c.hz * 2);
+      const m = new T.Mesh(geo, mat);
+      m.position.set(c.x, (c.y0 + c.y1) / 2, c.z); m.rotation.y = c.yaw;
+      m.renderOrder = 50;
+      g.add(m);
+    }
+    this.dbgCol = g; this.scene.add(g);
+  }
+  // Dev: the walking grid, blocked cells red, jumpable ones yellow.
+  showNav(nav, on = true) {
+    if (this.dbgNav) { this.scene.remove(this.dbgNav); this.dbgNav.geometry.dispose(); this.dbgNav = null; }
+    if (!on) return;
+    const pos = [], col = [];
+    for (let k = 0; k < nav.open.length; k++) {
+      if (nav.open[k] === 1) continue;
+      const [x, z] = nav.centre(k);
+      pos.push(x, nav.h[k] + 0.4, z);
+      if (nav.open[k] === 2) col.push(1, 0.9, 0.2); else col.push(1, 0.2, 0.2);
+    }
+    const geo = new T.BufferGeometry();
+    geo.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
+    geo.setAttribute("color", new T.Float32BufferAttribute(col, 3));
+    const pts = new T.Points(geo, new T.PointsMaterial({ size: 0.5, vertexColors: true, depthTest: false, transparent: true, opacity: 0.8 }));
+    pts.renderOrder = 51; pts.frustumCulled = false;
+    this.dbgNav = pts; this.scene.add(pts);
+  }
+
   // A fresh run on the loaded level (after a fall-back too).
   reset() {
     this.actors.clear();

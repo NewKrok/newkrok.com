@@ -19,8 +19,11 @@ export function forward(yaw, pitch, out = [0, 0, 0]) {
 export function cameraRig(space, p, x, y, z, out = {}) {
   const k = p.aimK, side = p.shoulder;
   const crouchK = p.crouchK;
-  const h = lerp(C.height, C.crouchHeight, crouchK) + (p.peekUp ?? 0) + (C.aimRaise ?? 0) * k * (1 - crouchK * 0.5);
-  const dist = lerp(C.dist, C.aimDist, k), off = lerp(C.side, C.aimSide, k) * side;
+  // In cover (not aiming) the camera sits a little higher and further out,
+  // looking over the figure pressed to the wall rather than at its back.
+  const coverK = p.cover ? 1 - k : 0;
+  const h = lerp(C.height, C.crouchHeight, crouchK) + (p.peekUp ?? 0) + (C.aimRaise ?? 0) * k * (1 - crouchK * 0.5) + (C.coverRaise ?? 0) * coverK;
+  const dist = lerp(C.dist, C.aimDist, k), off = (lerp(C.side, C.aimSide, k) + (C.coverSide ?? 0) * coverK) * side;
   const yaw = p.yaw, pitch = p.pitch;
   const [dx, dy, dz] = forward(yaw, pitch);
   const rx = Math.cos(yaw), rz = -Math.sin(yaw);
@@ -31,7 +34,17 @@ export function cameraRig(space, p, x, y, z, out = {}) {
   const sl = Math.abs(off);
   if (sl > 0.01) {
     const hs = space.ray(px, py, pz, sx / sl, 0, sz / sl, sl + 0.25, _h);
-    if (hs) { const f = Math.max(0, hs.t - 0.25) / sl; sx *= f; sz *= f; }
+    if (hs) {
+      let f = Math.max(0, hs.t - 0.25) / sl;
+      // No room on this side: use the other shoulder if it is freer, so
+      // the camera never ends up straight behind the head.
+      if (f < 0.5) {
+        const ho = space.ray(px, py, pz, -sx / sl, 0, -sz / sl, sl + 0.25, _h);
+        const fo = ho ? Math.max(0, ho.t - 0.25) / sl : 1;
+        if (fo > f + 0.2) { sx = -sx; sz = -sz; f = fo; }
+      }
+      sx *= f; sz *= f;
+    }
   }
   const qx = px + sx, qz = pz + sz;
   let t = dist;

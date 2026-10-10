@@ -155,6 +155,13 @@ export class Ranger {
     const tpx = c ? -c.nz * pk * 0.75 : 0, tpz = c ? c.nx * pk * 0.75 : 0;
     this.peekX = damp(this.peekX, tpx, 12, dt); this.peekZ = damp(this.peekZ, tpz, 12, dt);
     if (pk) this.shoulder = pk;
+    else if (c) {
+      // In cover the camera goes over the shoulder away from the wall:
+      // with the wall beside the pivot the usual side has no room, and a
+      // camera straight behind the head puts the figure over the crosshair.
+      const rx = Math.cos(this.yaw), rz = -Math.sin(this.yaw), side = rx * c.nx + rz * c.nz;
+      if (Math.abs(side) > 0.35) this.shoulder = side > 0 ? 1 : -1;
+    }
 
     // ── Facing ──
     const sp = b.speed2D;

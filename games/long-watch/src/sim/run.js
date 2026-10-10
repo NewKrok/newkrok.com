@@ -51,8 +51,7 @@ export class Run {
     this.drones = [];
     this.turrets = [];
     this.core = null;
-    this.crystals = 0;             // carried
-    this.bank = 0;                 // banked at the base
+    this.bank = 0;                 // crystals: yours the moment you pick them up, spent at the stations
     const s = this.kit.marks.start;
     this.player = new Ranger(s.x, this.space.floor(s.x, s.z, (s.y ?? 0) + 2) + 0.05, s.z, s.yaw ?? 0);
     for (const id of opts.loadout ?? ["rifle", "pistol"]) this.player.give(id);
@@ -164,7 +163,7 @@ export class Run {
     for (let i = 0; i < tries; i++) {
       const a = this.rng() * Math.PI * 2, r = rMin + this.rng() * (rMax - rMin);
       const x = cx + Math.sin(a) * r, z = cz + Math.cos(a) * r;
-      if (Math.abs(x) > 135 || Math.abs(z) > 135) continue;
+      if (Math.abs(x) > this.nav.margin || Math.abs(z) > this.nav.margin) continue;
       if (!this.nav.isOpen(x, z)) continue;
       if (this.kit.h(x, z) > 12) continue;
       if (pad && ![[pad, 0], [-pad, 0], [0, pad], [0, -pad]].every(([dx, dz]) => this.nav.isOpen(x + dx, z + dz))) continue;
@@ -213,8 +212,8 @@ export class Run {
   dropCrystal(x, z, n, y = null) {
     if (n <= 0) return;
     const u = this.addUse({ id: `cr${this.time.toFixed(2)}_${Math.round(x)}_${Math.round(z)}`, x, z, y: y ?? undefined, r: 1.7, auto: true, model: "crystal", amount: n, label: () => ["use_crystal"], act: (r) => {
-      r.crystals += n; r.stats.crystals += n;
-      r.fx({ type: "crystal", n, x, z });
+      r.bank += n; r.stats.crystals += n;
+      r.fx({ type: "crystal", n, x, z, total: r.bank });
     } });
     u.born = this.time;
     return u;

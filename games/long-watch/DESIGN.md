@@ -307,15 +307,66 @@ csúcsokkal, a mező saját normáljaival (varrat nélkül) és csempézett
 porszemcse-textúrával (`levelview.js groundTexture`). Még nincs: ásó,
 új pálya, ranglista.
 
+**6. menet (a második játékteszt hét pontja):**
+- *Új pálya* (`dustmoon.js`, 480 × 480 m, a régi 320-as helyett): a bázis
+  változatlan, a terep újraírva. Szelíd síkság (`plain()`, legfeljebb
+  ~16°), rajta a tereptárgyak: pit keletre (150, 10), relé-gerinc
+  nyugatra (−165, −34) ösvénnyel, északon a kanyon már csak egy
+  masszívumon vezet át (`massif`, a plató két oldalt visszasimul a
+  síkba) a bunkerig (−32, −190), északkeleten kráter a lezuhant
+  dropshippel (`WRECK`, benne gránátvető-állvány), délkeleten kiszáradt
+  tómeder (`LAKE`, r 45) elhagyott felmérőtáborral, délnyugaton dűnék
+  (`dunes()`), kis kráter roverrel, nyolc mesa, kettőre ösvény vezet
+  (`MESA_TRAILS`, a tetejükön lőszer). A fedett átjáró (barlang)
+  kikerült: tetőblokkjai a mesa oldalába temetve láthatatlan falak
+  voltak. 12 fix lőszerkészlet (`ammo1…12` jelek, 90 mp újratöltés),
+  25 odú (8 gyűrű + 17 távoli).
+- *Állomások szétszórva* (`STATION_SPOTS`): gyengélkedő (−22, 29),
+  lőszerraktár (31, −14), fegyvertár (−31, −12), műhely (26, 35),
+  drónállomás (4, 27), parancsnoki poszt (0, −10). Mindegyiknél
+  jelzőoszlop (`beacon` modell) saját színnel, ugyanezek a színek a
+  minitérképen (nagyobb betűk) és a terepen lebegő feliratokon
+  (`hud.js .stations`, 80 m-ig, célzáskor eltűnnek). A rögzített
+  készletek és állványok is látszanak a minitérképen.
+- *Ládák*: 35 % kristály, 30 % lőszer (tartalék +60 %, tárak tele),
+  20 % fegyver (gránátvető vagy lézer, amelyik még nincs; a láda mellé
+  kerül, E-vel cserélhető), 15 % nagy kristály. 30 mp-enként, max. 16.
+- *Nincs bank*: a felvett kristály azonnal `run.bank`-ba kerül
+  (`run.crystals` megszűnt), halálkor nem veszik el semmi. A HUD egy
+  számot mutat.
+- *Útkeresés*: a rács nyitott cellája 39°-nál laposabb (volt 57°),
+  lépcső 1,1 m (volt 1,3), a bogarak teste 36°-nál meredekebbre nem megy
+  fel (`climb: 0.72`, a ranger 51°-ot bír). Új „alacsony" cellaréteg
+  (`open = 2`): 1,35 m-nél nem magasabb akadály (korlát, láda); a rajzók
+  mezője (`+j` kulcs) átmegy rajta (+5 m költség), és ha falnak feszülnek
+  (`blockT` > 0,3 mp), átugorják (`#lowAhead`, `hop`). A többi bogár
+  ilyenkor 2–3 mp-re a mezőt követi az egyenes helyett (`detourT`). Az
+  egyenes vonalhoz már a talajnak is járhatónak kell lennie
+  (`nav.straight`). A mezők gyorsítótára 48 darabra korlátozva (LRU).
+- *Fedezék-kamera*: fedezékben a kamera a faltól távolabbi váll fölé
+  megy (`player.js`, a `shoulder` a fal normálisából), és ha a választott
+  oldalon nincs hely, a rig magától a másik vállat választja
+  (`camrig.js`); fedezékben célzás nélkül 0,3 m-rel feljebb és kijjebb
+  (`CAMERA.coverRaise/coverSide`).
+- *Láthatatlan ütközők*: a sziklák hengere a kő talajszinti kerületéhez
+  igazodik (rock 1,25·s, volt 1,6·s; rockLow 1,3·s), mert a gömbforma
+  a derekánál a legszélesebb, a lábnál keskenyebb, és a régi henger
+  ebbe a résbe akasztott be. A dev fogantyú `colliders()` hívása
+  lila drótvázként mutatja az ütközőket, a `nav()` a rács tiltott
+  (piros) és ugorható (sárga) celláit.
+
 **Ellenőrzés minden változtatás után** (`npm run dev -w games/long-watch`
 mellett): `node scripts/siege.mjs 11` (két hullám és a köztes kijárás;
 a reaktor nem eshet 0-ra, a bot 0–2 leütést kaphat), és a
 `?model=…` néző a figurákhoz. A fej nélküli szkriptekhez a gépen a
 `PLAYWRIGHT_CORE` alapértelmezése (`~/work/nape-js/...`) jó, a `CHROME`
 pedig `~/Library/Caches/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-mac-arm64/chrome-headless-shell`.
-A Claude beépített böngészője gyorsabb a képekhez. A dev fogantyú
-(`window.__longWatch`): `play()`, `place(x,z,yaw,pitch)`, `steps(n, I)`,
-`god()`, `freeze()`, `warp(mp)` (a hullámóra előretekerése).
+A Claude beépített böngészője gyorsabb a képekhez, de ha egy másik chat
+dev szervere fut az 5360-on, nem engedi be: ilyenkor a fej nélküli
+Chromium marad (egy felülnézeti kép: a játékost 420 m magasra tenni,
+pitch −1,52, a ködöt kitolni). A dev fogantyú (`window.__longWatch`):
+`play()`, `place(x,z,yaw,pitch)`, `steps(n, I)`, `god()`, `freeze()`,
+`warp(mp)` (a hullámóra előretekerése), `colliders(on)`, `nav(on)`.
 
 **A figurák (3. menet, Synty-irány):** a felhasználó első visszajelzése a
 2. menetre: a kezek a testben voltak, és az egész figura dobozokból állt.

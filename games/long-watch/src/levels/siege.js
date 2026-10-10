@@ -7,20 +7,22 @@ import { Drone, Turret } from "../sim/drones.js";
 // One sitting, about twenty minutes and then as long as you last. The
 // reactor in the middle of the colony is the base; Kessler and two rangers
 // hold it. A wave comes every five minutes, warned 45 seconds ahead, each
-// bigger than the last. Between waves you go out: crates, patrols, the
-// skimmer, weapons; crystals from all of them, banked only back at the
-// base, where the supply terminal sells heal, ammo and upgrades. After the
-// fourth wave the Hive Warden comes up somewhere far out and marches on
-// the reactor. Kill it and the run goes on endless: a wave every four
+// bigger than the last. Between waves you go out: crates (crystal, ammo,
+// a weapon), patrols, the skimmer; crystals are yours the moment you pick
+// them up and are spent at the stations spread round the colony. After
+// the fourth wave the Hive Warden comes up somewhere far out and marches
+// on the reactor. Kill it and the run goes on endless: a wave every four
 // minutes, a bigger Warden every third. Lose the reactor and it is over.
 
 export const SIEGE = {
   waveEvery: 300, warn: 45, bossWave: 4, bossDelay: 20, endlessEvery: 240, bossEvery: 3,
   coreHp: 1500,
   base: { x: 0, z: -2, r: 46 },
-  patrolEvery: 20, patrolCap: 52, scatter: 8,
-  crateEvery: 40, crateCap: 10,
+  far: 190,                                   // how far out from the base things are put (the map is 480 m across)
+  patrolEvery: 20, patrolCap: 52, scatter: 12,
+  crateEvery: 30, crateCap: 16,
   skimmerEvery: 75,
+  cacheCooldown: 90,                          // seconds before a fixed ammo cache gives again
 };
 
 // What the stations sell: price per level (the array's length is the cap).
@@ -51,7 +53,7 @@ const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(
 export const SCRIPT = {
   start(run) {
     const K = run.kit.marks, B = SIEGE.base;
-    run.siege = { t: 0, wave: 0, next: SIEGE.waveEvery, warned: false, bossT: null, bosses: 0, endless: false, patrolT: 12, crateT: 8, skimmerT: SIEGE.skimmerEvery, lastBank: 0, survived: null };
+    run.siege = { t: 0, wave: 0, next: SIEGE.waveEvery, warned: false, bossT: null, bosses: 0, endless: false, patrolT: 12, crateT: 8, skimmerT: SIEGE.skimmerEvery, survived: null };
     const S = run.siege;
     // The reactor and the defenders.
     run.core = new Core(K.reactor.x, run.kit.h(K.reactor.x, K.reactor.z), K.reactor.z, SIEGE.coreHp);
@@ -64,12 +66,14 @@ export const SCRIPT = {
       label: (r) => { const left = MEDBAY_COOLDOWN - (r.time - (r.flags.medAt ?? -999)); return left > 0 ? ["use_medbay_wait", { s: String(Math.ceil(left)) }] : ["use_medbay"]; },
       act: (r) => { const left = MEDBAY_COOLDOWN - (r.time - (r.flags.medAt ?? -999)); if (left > 0) { r.fx({ type: "dry" }); return; } r.flags.medAt = r.time; const p = r.player; p.hp = p.maxHp; p.shield = p.maxShield; p.stamina = p.maxStamina; r.fx({ type: "healed" }); } });
     for (const st of STATIONS) if (st !== "medbay") run.addUse({ id: st, x: K[st].x, z: K[st].z, r: 2.4, repeat: true, label: () => [`use_${st}`], act: (r) => r.fx({ type: "station", station: st }) });
+    // Weapons out on the field (free, a walk away) and the fixed ammo caches (the level marks them).
     rack(run, "laser", K.laser.x, K.laser.z + 0.9);
-    for (const [x, z] of [[-13, 120], [K.relay.x - 2, K.relay.z - 2], [2, -54], [K.ammoPit.x, K.ammoPit.z], [-18, -121], [56, 30], [-60, -40]]) ammo(run, x, z);
+    if (K.launcher) rack(run, "launcher", K.launcher.x, K.launcher.z + 0.9);
+    for (const [name, m] of Object.entries(K)) if (/^ammo\d/.test(name)) ammo(run, m.x, m.z);
     run.obj("base", { marker: { x: run.core.x, z: run.core.z, y: run.core.body.y + 2 }, hidden: true, minDist: 50 });
     // Bugs already out there: packs scattered well away from the base, and some patrols.
     for (let i = 0; i < SIEGE.scatter; i++) {
-      const p = run.openSpot(B.x, B.z, 75, 135, 60);
+      const p = run.openSpot(B.x, B.z, 75, SIEGE.far, 60);
       if (!p) continue;
       const n = 2 + Math.floor(run.rng() * 2);
       for (let k = 0; k < n; k++) run.spawn("swarmer", p.x + (run.rng() - 0.5) * 6, p.z + (run.rng() - 0.5) * 6, { roam: 6 });
@@ -83,7 +87,7 @@ export const SCRIPT = {
   },
 
   update(run, dt) {
-    const S = run.siege, p = run.player, B = SIEGE.base;
+    const S = run.siege;
     S.t += dt;
     // ── The wave clock ──
     S.next -= dt;
@@ -99,9 +103,6 @@ export const SCRIPT = {
     if (S.crateT <= 0) { S.crateT = SIEGE.crateEvery; this.crate(run); }
     S.skimmerT -= dt;
     if (S.skimmerT <= 0) { S.skimmerT = SIEGE.skimmerEvery; this.skimmer(run); }
-    // ── Banking: crystals count once you are back inside the base ──
-    const home = Math.hypot(p.body.x - B.x, p.body.z - B.z) < B.r;
-    if (home && run.crystals > 0 && !p.downed) { run.bank += run.crystals; run.fx({ type: "bank", n: run.crystals, total: run.bank }); run.crystals = 0; }
     // Old crystals fade (so the ground does not fill up).
     if ((run.frame & 63) === 0) run.uses = run.uses.filter((u) => !(u.auto && u.born != null && run.time - u.born > 150));
     // ── Barks ──
@@ -109,7 +110,6 @@ export const SCRIPT = {
     if (hunting) run.flags.fighting = true;
     else if (run.flags.fighting && !run.boss?.alive) { run.flags.fighting = false; run.say("kessler_clear", { gap: 60 }); }
     if (run.core.hitT > 0 && run.time - (run.flags.coreBark ?? -99) > 25) { run.flags.coreBark = run.time; run.say("kessler_core_hit", { gap: 25 }); }
-    if (!home && run.crystals >= 30) run.say("kessler_bank", { gap: 120 });
   },
 
   // ── Waves ──
@@ -139,7 +139,7 @@ export const SCRIPT = {
   boss(run) {
     const S = run.siege, B = SIEGE.base;
     if (run.boss?.alive) return;
-    const p = run.openSpot(B.x, B.z, 100, 135, 80) ?? { x: 98, z: 6 };
+    const p = run.openSpot(B.x, B.z, 110, SIEGE.far, 80) ?? { x: 150, z: 10 };
     S.bosses++;
     const w = run.spawn("warden", p.x, p.z, { emerge: true, hpMul: 1 + 0.25 * (S.bosses - 1) });
     w.emergeT = 2.0;
@@ -169,15 +169,26 @@ export const SCRIPT = {
   },
 
   // ── Crates: random loot out on the dust ──
+  // Crystal, ammo (every gun topped up), a weapon you do not carry yet
+  // (laid out beside the crate, with its own ammo), or a big crystal find.
   crate(run) {
     const B = SIEGE.base;
     if (run.uses.filter((u) => u.crate).length >= SIEGE.crateCap) return;
-    const p = run.openSpot(B.x, B.z, 55, 130, 80, 2.2);
+    const p = run.openSpot(B.x, B.z, 55, SIEGE.far - 15, 80, 2.2);
     if (!p) return;
     const r = run.rng();
-    const kind = r < 0.45 ? "crystal" : r < 0.8 ? "ammo" : "upgrade";
+    const kind = r < 0.35 ? "crystal" : r < 0.65 ? "ammo" : r < 0.85 ? "weapon" : "upgrade";
     run.addUse({ id: `crate${run.time.toFixed(1)}`, x: p.x, z: p.z, r: 2.0, crate: true, model: "lootCrate", label: () => ["use_crate"], act: (rr, u) => {
-      if (kind === "ammo") { for (const g of rr.player.slots) { const W = WEAPONS[g.id]; if (g.reserve !== Infinity && W.reserve) g.reserve = Math.min(W.reserve * 1.5, g.reserve + W.reserve * 0.5); } rr.fx({ type: "ammo" }); rr.fx({ type: "loot", kind }); }
+      if (kind === "weapon") {
+        const want = ["launcher", "laser"].filter((id) => !rr.player.slots.some((g) => g.id === id));
+        if (want.length) {
+          const id = want[Math.floor(rr.rng() * want.length)], W = WEAPONS[id];
+          dropped(rr, { id, mag: W.mag, reserve: W.reserve, heat: 0 }, u.x + 0.9, u.z + 0.3);
+          rr.fx({ type: "loot", kind, id });
+          return;
+        }
+        refill(rr.player, 0.6); rr.fx({ type: "ammo" }); rr.fx({ type: "loot", kind: "ammo" });
+      } else if (kind === "ammo") { refill(rr.player, 0.6); rr.fx({ type: "ammo" }); rr.fx({ type: "loot", kind }); }
       else if (kind === "upgrade") { const n = 25 + Math.floor(rr.rng() * 20); rr.dropCrystal(u.x + 0.6, u.z + 0.6, n, u.y); rr.fx({ type: "loot", kind }); }
       else { const n = 8 + Math.floor(rr.rng() * 14); rr.dropCrystal(u.x + 0.6, u.z + 0.6, n, u.y); rr.fx({ type: "loot", kind }); }
     } });
@@ -212,11 +223,9 @@ export const SCRIPT = {
     run.fail();
   },
 
-  // ── Down out on the field: back at the base, lighter ──
+  // ── Down out on the field: back at the base (what you picked up is yours to keep) ──
   onDead(run) {
     const p = run.player, K = run.kit.marks;
-    const drop = Math.floor(run.crystals / 2);
-    if (drop > 0) { run.dropCrystal(p.body.x, p.body.z, drop); run.crystals -= drop; run.fx({ type: "crystalLost", n: drop, x: p.body.x, z: p.body.z }); }
     p.respawn(run, K.start.x, K.start.z, K.start.yaw ?? 0);
     run.say("kessler_respawn");
   },
@@ -310,9 +319,23 @@ function takeWeapon(run, id, state, u) {
   run.fx({ type: "pickup", id });
 }
 
+// Top every gun up: `k` of its reserve into the reserve (up to 1.5×) and the magazine filled.
+function refill(p, k) {
+  for (const g of p.slots) {
+    const W = WEAPONS[g.id];
+    if (g.reserve !== Infinity && W.reserve) g.reserve = Math.min(W.reserve * 1.5 * p.reserveMul, g.reserve + W.reserve * k);
+    if (W.mag && g.mag < p.magOf(g.id)) g.mag = p.magOf(g.id);
+  }
+}
+
+// A fixed ammo cache: it gives again after a cooldown.
 function ammo(run, x, z) {
-  run.addUse({ id: `ammo_${Math.round(x)}_${Math.round(z)}`, x, z, r: 1.7, model: "ammoBox", label: () => ["use_ammo"], act: (r) => {
-    for (const g of r.player.slots) { const W = WEAPONS[g.id]; if (g.reserve !== Infinity && W.reserve) g.reserve = Math.min(W.reserve * 1.5, g.reserve + W.reserve * 0.6); }
-    r.fx({ type: "ammo" }); r.say("kessler_ammo", { gap: 90 });
-  } });
+  run.addUse({ id: `ammo_${Math.round(x)}_${Math.round(z)}`, x, z, r: 1.7, model: "ammoBox", repeat: true,
+    label: (r, u) => { const left = SIEGE.cacheCooldown - (r.time - (u.lastAmmo ?? -999)); return left > 0 ? ["use_ammo_wait", { s: String(Math.ceil(left)) }] : ["use_ammo"]; },
+    act: (r, u) => {
+      if (r.time - (u.lastAmmo ?? -999) < SIEGE.cacheCooldown) { r.fx({ type: "dry" }); return; }
+      u.lastAmmo = r.time;
+      refill(r.player, 0.6);
+      r.fx({ type: "ammo" }); r.say("kessler_ammo", { gap: 90 });
+    } });
 }

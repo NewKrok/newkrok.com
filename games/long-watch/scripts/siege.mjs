@@ -76,7 +76,7 @@ const res = await p.evaluate(async ([minutes, seed]) => {
     if (pl.downed && !wasDown) downs++;
     wasDown = pl.downed;
     if (i % 3600 === 3599) {
-      out.push({ min: (i + 1) / 3600, pos: [Math.round(b0.x), Math.round(b0.z)], goal: goal ? [Math.round(goal.x), Math.round(goal.z)] : null, core: Math.round(run.core.hp), wave: S.wave, downs, lowHp: Math.round(lowHp), hp: Math.round(pl.hp), kills: run.stats.kills, bank: run.bank, carried: run.crystals, alive: run.bugs.filter((g) => g.alive).length, hunting: run.bugs.filter((g) => g.alive && g.state === "hunt").length, ammo: pl.slots.map((g) => `${g.id}:${g.mag}/${g.reserve === Infinity ? "inf" : g.reserve}`).join(" "), up: { ...pl.up }, at: goal?.why });
+      out.push({ min: (i + 1) / 3600, pos: [Math.round(b0.x), Math.round(b0.z)], goal: goal ? [Math.round(goal.x), Math.round(goal.z)] : null, core: Math.round(run.core.hp), wave: S.wave, downs, lowHp: Math.round(lowHp), hp: Math.round(pl.hp), kills: run.stats.kills, crystals: run.bank, alive: run.bugs.filter((g) => g.alive).length, hunting: run.bugs.filter((g) => g.alive && g.state === "hunt").length, ammo: pl.slots.map((g) => `${g.id}:${g.mag}/${g.reserve === Infinity ? "inf" : g.reserve}`).join(" "), up: { ...pl.up }, at: goal?.why });
       lowHp = 999;
     }
     if (i % 600 === 0) await new Promise((r) => setTimeout(r, 0));

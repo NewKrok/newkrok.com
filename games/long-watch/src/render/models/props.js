@@ -314,6 +314,16 @@ export function turret(b) {
     h.add(S.box(0.08, 0.08, 0.04, 0), { p: [0, 0.26, -0.17], c: 0xff6a5a, mat: "glow", glow: 1.2 });
   });
 }
+// A station's sign: a pole with a lit panel in the station's colour (o.c)
+// and a ring on the ground, so each station is found across the colony.
+export function beacon(b, o = {}) {
+  const C = o.c ?? 0xf0b860;
+  b.add(S.cyl(0.07, 0.1, 5.2, 6), { p: [0, 2.6, 0], c: DARK, mat: "metal" });
+  b.add(S.box(1.0, 1.0, 0.14, 0.04), { p: [0, 5.5, 0], c: 0x2a3038 });
+  for (const z of [-0.08, 0.08]) b.add(S.box(0.82, 0.82, 0.04, 0), { p: [0, 5.5, z], c: C, mat: "glow", glow: 1.3 });
+  b.add(S.cyl(0.12, 0.12, 0.3, 6), { p: [0, 6.15, 0], c: C, mat: "glow", glow: 1.6 });
+  b.add(S.torus(1.7, 0.06, 4, 28), { p: [0, 0.06, 0], r: [Math.PI / 2, 0, 0], c: C, mat: "glow", glow: 0.9 });
+}
 export function ammoBox(b) {
   b.add(S.box(0.9, 0.45, 0.5, 0.04), { p: [0, 0.23, 0], c: 0x4a5a3a, grad: [0x3a4a2e, 0x55663f] });
   b.add(S.box(0.92, 0.06, 0.52, 0), { p: [0, 0.42, 0], c: HAZ });

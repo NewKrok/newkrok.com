@@ -58,6 +58,8 @@ export const CAMERA = {
   side: 0.72,          // over the right shoulder (mirrored when swapped)
   aimSide: 0.95,       // further out and a touch higher when aiming, so the gun shows under the pauldron
   aimRaise: 0.08,
+  coverRaise: 0.35,    // in cover: up and out a little, looking over the figure at the wall
+  coverSide: 0.45,
   fov: 66,
   aimFov: 46,
 };
