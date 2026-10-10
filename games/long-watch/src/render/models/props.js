@@ -247,6 +247,73 @@ export function lootCrate(b) {
   b.add(S.cyl(0.05, 0.05, 0.5, 5), { p: [0.4, 0.95, 0.25], c: 0x222222 });
   b.add(S.ball(0.07, 6, 5), { p: [0.4, 1.22, 0.25], c: 0xffc46a, mat: "glow", glow: 1.4 });
 }
+// ── The base's stations ──
+// A medical pod: a glass tube on a base, green cross.
+export function medbay(b) {
+  b.add(S.box(1.6, 0.4, 1.2, 0.06), { p: [0, 0.2, 0], c: 0x8d8a86, grad: [0x5a5652, 0x9d9a96] });
+  b.add(S.cyl(0.5, 0.55, 1.8, 10), { p: [0, 1.3, 0], c: 0xbfe8ff, mat: "glass", smooth: true });
+  b.add(S.cyl(0.56, 0.56, 0.12, 10), { p: [0, 2.25, 0], c: 0x5b6670, mat: "metal" });
+  b.add(S.box(0.5, 0.5, 0.1, 0.02), { p: [0.75, 1.0, -0.45], c: 0xe8eef2 });
+  b.add(S.box(0.3, 0.09, 0.12, 0), { p: [0.75, 1.0, -0.47], c: 0x5af07a, mat: "glow", glow: 1.2 });
+  b.add(S.box(0.09, 0.3, 0.12, 0), { p: [0.75, 1.0, -0.47], c: 0x5af07a, mat: "glow", glow: 1.2 });
+}
+// A gun locker: a tall cabinet with a rifle silhouette on its door.
+export function armoury(b) {
+  b.add(S.box(1.8, 2.2, 0.8, 0.05), { p: [0, 1.1, 0], c: 0x5b6670, grad: [0x404850, 0x6b7680] });
+  b.add(S.box(1.82, 0.14, 0.82, 0), { p: [0, 0.5, 0], c: HAZ });
+  b.add(S.box(0.9, 0.08, 0.04, 0), { p: [0, 1.4, -0.42], c: 0xd8862e });
+  b.add(S.box(0.2, 0.25, 0.04, 0), { p: [-0.25, 1.25, -0.42], c: 0xd8862e });
+  b.add(S.box(0.06, 0.06, 0.04, 0), { p: [0.6, 1.75, -0.42], c: 0x7ef9ff, mat: "glow", glow: 1.2 });
+}
+// A workbench: a table with a vice, screens and a hanging lamp.
+export function workshop(b) {
+  b.add(S.box(2.2, 0.12, 1.0, 0.02), { p: [0, 0.9, 0], c: 0x7a6a5a, grad: [0x5a4a3a, 0x8a7a6a] });
+  for (const s of [-1, 1]) b.add(S.box(0.12, 0.9, 0.9, 0.02), { p: [s * 1.0, 0.45, 0], c: 0x4a535c, mat: "metal" });
+  b.add(S.box(0.4, 0.3, 0.3, 0.03), { p: [-0.6, 1.1, 0], c: 0x3a4048, mat: "metal" });
+  b.add(S.box(0.7, 0.5, 0.06, 0.01), { p: [0.5, 1.4, 0.4], r: [-0.3, 0, 0], c: 0x1a2030 });
+  b.add(S.box(0.62, 0.42, 0.02, 0), { p: [0.5, 1.4, 0.37], r: [-0.3, 0, 0], c: 0x7ef9ff, mat: "glow", glow: 0.8 });
+  b.add(S.cyl(0.01, 0.01, 1.2, 4), { p: [0, 2.6, 0], c: 0x222222 });
+  b.add(S.cone(0.3, 0.25, 8), { p: [0, 2.0, 0], r: [Math.PI, 0, 0], c: 0x5b6670 });
+  b.add(S.cyl(0.14, 0.14, 0.03, 8), { p: [0, 1.88, 0], c: 0xfff2c0, mat: "glow", glow: 1.2 });
+}
+// The drone bay: a landing frame with three drones parked on it.
+export function droneBay(b) {
+  b.add(S.box(2.4, 0.3, 1.4, 0.05), { p: [0, 0.15, 0], c: 0x5b6670, grad: [0x404850, 0x6b7680] });
+  for (const s of [-1, 1]) b.add(S.box(0.15, 2.2, 0.15, 0.02), { p: [s * 1.1, 1.1, 0.6], c: 0x4a535c, mat: "metal" });
+  b.add(S.box(2.4, 0.15, 0.2, 0.02), { p: [0, 2.2, 0.6], c: 0x4a535c, mat: "metal" });
+  for (let i = 0; i < 3; i++) b.at([-0.8 + i * 0.8, 0.55, -0.2], [0, i * 0.6, 0], 0.8, (d) => drone(d, { c: [0x8fe8d0, 0xf0b860, 0xff6a5a][i] }));
+  b.add(S.box(0.6, 0.06, 0.06, 0), { p: [0, 2.2, 0.72], c: 0x7ef9ff, mat: "glow", glow: 1.0 });
+}
+// The command post: a map table with a holographic base.
+export function commandPost(b) {
+  b.add(S.cyl(0.9, 1.0, 1.0, 10), { p: [0, 0.5, 0], c: 0x4a535c, grad: [0x343c44, 0x5b6670] });
+  b.add(S.cyl(1.0, 1.0, 0.08, 10), { p: [0, 1.04, 0], c: 0x1a2030 });
+  b.add(S.cyl(0.7, 0.7, 0.02, 10), { p: [0, 1.1, 0], c: 0x7ef9ff, mat: "glow", glow: 0.6 });
+  b.add(S.cyl(0.12, 0.14, 0.5, 8), { p: [0, 1.35, 0], c: 0x8fe8ff, mat: "glow", glow: 1.0 });
+  for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + 0.4; b.add(S.box(0.14, 0.2, 0.14, 0.02), { p: [Math.sin(a) * 0.45, 1.2, Math.cos(a) * 0.45], c: 0xd8862e }); }
+}
+// A drone: a flat disc with a lens and two stub wings; o.c is its colour.
+export function drone(b, o = {}) {
+  const C = o.c ?? 0x8fe8d0;
+  b.add(S.cyl(0.28, 0.32, 0.18, 8, 0.03), { p: [0, 0, 0], c: 0x5b6670, grad: [0x404850, 0x7b8690] });
+  b.add(S.cyl(0.14, 0.14, 0.06, 8), { p: [0, 0.12, 0], c: C, mat: "glow", glow: 1.1 });
+  b.add(S.ball(0.08, 8, 6), { p: [0, -0.02, -0.28], c: 0x1a2030 });
+  b.add(S.ball(0.045, 6, 5), { p: [0, -0.02, -0.33], c: C, mat: "glow", glow: 1.4 });
+  for (const s of [-1, 1]) b.add(S.box(0.35, 0.04, 0.16, 0.01), { p: [s * 0.4, 0.02, 0.04], r: [0, 0, s * 0.15], c: 0x4a535c });
+  for (const s of [-1, 1]) b.add(S.cyl(0.1, 0.1, 0.03, 8), { p: [s * 0.52, 0.05, 0.04], c: 0x2a3038 });
+}
+// A turret: a base, a yoke and a twin barrel head on a "head" node.
+export function turret(b) {
+  b.add(S.cyl(0.6, 0.7, 0.4, 8), { p: [0, 0.2, 0], c: 0x4a535c, grad: [0x343c44, 0x5b6670] });
+  b.add(S.cyl(0.22, 0.26, 0.8, 8), { p: [0, 0.8, 0], c: 0x5b6670, mat: "metal" });
+  b.add(S.box(0.9, 0.1, 0.1, 0), { p: [0, 0.45, 0], c: HAZ });
+  b.node("head", [0, 1.3, 0], [0, 0, 0], (h) => {
+    h.add(S.box(0.6, 0.4, 0.7, 0.06), { p: [0, 0, 0.1], c: 0x5b6670, grad: [0x404850, 0x7b8690] });
+    for (const s of [-1, 1]) h.add(S.cyl(0.05, 0.05, 0.8, 6), { p: [s * 0.14, 0, -0.5], r: [Math.PI / 2, 0, 0], c: 0x2a3038, mat: "metal" });
+    h.add(S.box(0.2, 0.1, 0.3, 0.02), { p: [0, 0.26, 0], c: 0xd8862e });
+    h.add(S.box(0.08, 0.08, 0.04, 0), { p: [0, 0.26, -0.17], c: 0xff6a5a, mat: "glow", glow: 1.2 });
+  });
+}
 export function ammoBox(b) {
   b.add(S.box(0.9, 0.45, 0.5, 0.04), { p: [0, 0.23, 0], c: 0x4a5a3a, grad: [0x3a4a2e, 0x55663f] });
   b.add(S.box(0.92, 0.06, 0.52, 0), { p: [0, 0.42, 0], c: HAZ });

@@ -1,7 +1,7 @@
 import { WEAPONS } from "../data/weapons.js";
 import { Core } from "../sim/core.js";
 import { BUGS } from "../sim/bugs.js";
-import { WARDEN } from "../sim/warden.js";
+import { Drone, Turret } from "../sim/drones.js";
 
 // ── Hold the line: the siege of Dustnest ─────────────────────────────────
 // One sitting, about twenty minutes and then as long as you last. The
@@ -23,17 +23,28 @@ export const SIEGE = {
   skimmerEvery: 75,
 };
 
-// What the terminal sells: price per level (the array's length is the cap).
+// What the stations sell: price per level (the array's length is the cap).
+// The medbay is free with a cooldown and is not a shop.
 export const SHOP = {
-  heal: { price: [15], repeat: true },
-  ammo: { price: [20], repeat: true },
-  repair: { price: [25], repeat: true },
-  dmg: { price: [40, 70, 110, 160] },
-  mag: { price: [30, 60, 100] },
-  hp: { price: [40, 80, 130] },
-  shield: { price: [40, 80] },
-  speed: { price: [50, 100] },
+  ammo: { station: "ammoShop", price: [20], repeat: true },
+  reserve: { station: "ammoShop", price: [40, 80] },
+  launcher: { station: "armoury", price: [120], weapon: true },
+  laser: { station: "armoury", price: [150], weapon: true },
+  dmg: { station: "workshop", price: [40, 70, 110, 160] },
+  mag: { station: "workshop", price: [30, 60, 100] },
+  hp: { station: "workshop", price: [40, 80, 130] },
+  shield: { station: "workshop", price: [40, 80] },
+  speed: { station: "workshop", price: [50, 100] },
+  drone_support: { station: "droneBay", price: [90] },
+  drone_ammo: { station: "droneBay", price: [110] },
+  drone_attack: { station: "droneBay", price: [130] },
+  drone_detector: { station: "droneBay", price: [70] },
+  repair: { station: "command", price: [25], repeat: true },
+  soldier: { station: "command", price: [150, 250] },
+  turret: { station: "command", price: [100, 140, 180, 220] },
 };
+export const STATIONS = ["medbay", "ammoShop", "armoury", "workshop", "droneBay", "command"];
+export const MEDBAY_COOLDOWN = 60;
 
 const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
@@ -47,9 +58,12 @@ export const SCRIPT = {
     run.addAlly(K.postKessler.x, K.postKessler.z, { name: "kessler", skin: "kessler", post: { x: K.postKessler.x, z: K.postKessler.z, r: 6 }, reach: 48, yaw: Math.PI });
     run.addAlly(K.postRuiz.x, K.postRuiz.z, { name: "ruiz", skin: "guard", post: { x: K.postRuiz.x, z: K.postRuiz.z, r: 6 }, reach: 34, yaw: -Math.PI / 2 });
     run.addAlly(K.postOkafor.x, K.postOkafor.z, { name: "okafor", skin: "guard", post: { x: K.postOkafor.x, z: K.postOkafor.z, r: 6 }, reach: 34, yaw: Math.PI / 2 });
-    // The terminal, the racks, a few ammo boxes out on the dust.
-    run.addUse({ id: "shop", x: K.terminal.x, z: K.terminal.z + 1.0, r: 2.2, repeat: true, label: () => ["use_shop"], act: (r) => r.fx({ type: "shop" }) });
-    rack(run, "launcher", K.armory.x, K.armory.z + 0.6);
+    // The stations: the medbay heals for free with a cooldown, the rest open a shop.
+    run.addUse({ id: "medbay", x: K.medbay.x, z: K.medbay.z, r: 2.2, repeat: true, hold: 1.2,
+      when: (r) => !r.player.downed,
+      label: (r) => { const left = MEDBAY_COOLDOWN - (r.time - (r.flags.medAt ?? -999)); return left > 0 ? ["use_medbay_wait", { s: String(Math.ceil(left)) }] : ["use_medbay"]; },
+      act: (r) => { const left = MEDBAY_COOLDOWN - (r.time - (r.flags.medAt ?? -999)); if (left > 0) { r.fx({ type: "dry" }); return; } r.flags.medAt = r.time; const p = r.player; p.hp = p.maxHp; p.shield = p.maxShield; p.stamina = p.maxStamina; r.fx({ type: "healed" }); } });
+    for (const st of STATIONS) if (st !== "medbay") run.addUse({ id: st, x: K[st].x, z: K[st].z, r: 2.4, repeat: true, label: () => [`use_${st}`], act: (r) => r.fx({ type: "station", station: st }) });
     rack(run, "laser", K.laser.x, K.laser.z + 0.9);
     for (const [x, z] of [[-13, 120], [K.relay.x - 2, K.relay.z - 2], [2, -54], [K.ammoPit.x, K.ammoPit.z], [-18, -121], [56, 30], [-60, -40]]) ammo(run, x, z);
     run.obj("base", { marker: { x: run.core.x, z: run.core.z, y: run.core.body.y + 2 }, hidden: true, minDist: 50 });
@@ -158,7 +172,7 @@ export const SCRIPT = {
   crate(run) {
     const B = SIEGE.base;
     if (run.uses.filter((u) => u.crate).length >= SIEGE.crateCap) return;
-    const p = run.openSpot(B.x, B.z, 55, 130, 60);
+    const p = run.openSpot(B.x, B.z, 55, 130, 80, 2.2);
     if (!p) return;
     const r = run.rng();
     const kind = r < 0.45 ? "crystal" : r < 0.8 ? "ammo" : "upgrade";
@@ -207,34 +221,49 @@ export const SCRIPT = {
     run.say("kessler_respawn");
   },
 
-  // ── The shop ──
-  shop(run) {
+  // ── The stations' shops ──
+  shop(run, station = null) {
     const p = run.player;
-    return Object.entries(SHOP).map(([id, d]) => {
-      const level = d.repeat ? 0 : p.up[id];
+    return Object.entries(SHOP).filter(([, d]) => !station || d.station === station).map(([id, d]) => {
+      const level = d.repeat ? 0 : (p.up[id] ?? 0);
       const price = d.price[Math.min(level, d.price.length - 1)];
-      const maxed = !d.repeat && level >= d.price.length;
+      let maxed = !d.repeat && level >= d.price.length;
       let useless = false;
-      if (id === "heal") useless = p.hp >= p.maxHp;
-      if (id === "ammo") useless = p.slots.every((g) => g.reserve === Infinity || g.reserve >= WEAPONS[g.id].reserve);
+      if (id === "ammo") useless = p.slots.every((g) => g.reserve === Infinity || g.reserve >= WEAPONS[g.id].reserve * p.reserveMul);
       if (id === "repair") useless = run.core.hp >= run.core.maxHp;
-      return { id, price, level, max: d.price.length, maxed, ok: !maxed && !useless && run.bank >= price, useless };
+      if (d.weapon) { maxed = false; useless = p.slots.some((g) => g.id === id); }
+      if (id.startsWith("drone_")) maxed = run.drones.some((q) => q.type === id.slice(6));
+      return { id, price, level, max: d.price.length, maxed, ok: !maxed && !useless && run.bank >= price, useless, owned: d.weapon && useless };
     });
   },
   buy(run, id) {
     const it = this.shop(run).find((q) => q.id === id);
     if (!it || !it.ok) return false;
-    const p = run.player;
+    const p = run.player, K = run.kit.marks;
     run.bank -= it.price;
+    p.up[id] = (p.up[id] ?? 0) + 1;
     switch (id) {
-      case "heal": p.hp = p.maxHp; p.shield = p.maxShield; break;
-      case "ammo": for (const g of p.slots) { const W = WEAPONS[g.id]; if (g.reserve !== Infinity) g.reserve = Math.max(g.reserve, W.reserve); if (g.mag < p.magOf(g.id) && W.mag) g.mag = p.magOf(g.id); } break;
+      case "ammo": for (const g of p.slots) { const W = WEAPONS[g.id]; if (g.reserve !== Infinity) g.reserve = Math.max(g.reserve, W.reserve * p.reserveMul); if (g.mag < p.magOf(g.id) && W.mag) g.mag = p.magOf(g.id); } break;
+      case "reserve": p.reserveMul = 1 + 0.5 * p.up.reserve; break;
+      case "launcher": case "laser": takeWeapon(run, id, null, { repeat: false }); break;
       case "repair": run.core.repair(450); break;
-      case "dmg": p.up.dmg++; p.dmgMul = 1 + 0.15 * p.up.dmg; break;
-      case "mag": p.up.mag++; p.magMul = 1 + 0.3 * p.up.mag; break;
-      case "hp": p.up.hp++; p.maxHp += 25; p.hp = Math.min(p.maxHp, p.hp + 25); break;
-      case "shield": p.up.shield++; p.maxShield += 25; break;
-      case "speed": p.up.speed++; p.speedMul = 1 + 0.08 * p.up.speed; break;
+      case "dmg": p.dmgMul = 1 + 0.15 * p.up.dmg; break;
+      case "mag": p.magMul = 1 + 0.3 * p.up.mag; break;
+      case "hp": p.maxHp += 25; p.hp = Math.min(p.maxHp, p.hp + 25); break;
+      case "shield": p.maxShield += 25; break;
+      case "speed": p.speedMul = 1 + 0.08 * p.up.speed; break;
+      case "drone_support": case "drone_ammo": case "drone_attack": case "drone_detector": run.drones.push(new Drone(id.slice(6), run.drones.length)); break;
+      case "soldier": {
+        const m = K[`postExtra${p.up.soldier}`];
+        run.addAlly(m.x, m.z, { name: `ranger${p.up.soldier}`, skin: "guard", post: { x: m.x, z: m.z, r: 6 }, reach: 30, yaw: 0 });
+        break;
+      }
+      case "turret": {
+        const m = K[`turret${p.up.turret}`];
+        run.turrets.push(new Turret(m.x, run.kit.h(m.x, m.z), m.z, run.turrets.length));
+        run.fx({ type: "turretUp", x: m.x, z: m.z });
+        break;
+      }
     }
     run.fx({ type: "bought", id });
     return true;

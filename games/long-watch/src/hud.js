@@ -30,7 +30,7 @@ export class Hud {
     this.markers = el("markers", R);
     this.tags = el("tags", R);
     this.vitals = el("vitals", R);
-    this.vitals.innerHTML = `<div class="bar shield"><i></i></div><div class="bar hp"><i></i></div><div class="allies"></div>`;
+    this.vitals.innerHTML = `<div class="bar shield"><i></i></div><div class="bar hp"><i></i></div><div class="bar stam"><i></i></div><div class="allies"></div>`;
     this.weapons = el("weapons", R);
     this.sub = el("subtitle", R);
     this.prompt = el("prompt", R);
@@ -42,7 +42,11 @@ export class Hud {
     this.letter = el("letterbox", R);
     this.letter.innerHTML = `<div class="lb top"></div><div class="lb bot"></div><div class="skip"></div>`;
     this.alert = el("alert", R);
+    this.minimap = el("minimap", R);
+    this.mapCanvas = el("", this.minimap, "canvas");
+    this.mapCanvas.width = this.mapCanvas.height = 176 * 2;
     this.hintT = 0; this.toastT = 0; this.hitT = 0; this.alertT = 0;
+    this.mapT = 0;
     this.dirs = [];
     this.pad = false;
   }
@@ -60,6 +64,75 @@ export class Hud {
   hitMarker(kill) { this.hitmark.classList.toggle("kill", !!kill); this.hitmark.classList.add("on"); this.hitT = 0.15; }
   spotted() { this.alert.textContent = t("spotted"); this.alert.classList.add("on"); this.alertT = 2.2; }
   hurtFrom(angle) { this.dirs.push({ a: angle, t: 1 }); }
+
+  // ── The minimap ──
+  // The ground, baked once from the level's colours (one pixel per 2 m),
+  // then every frame: a window round the ranger, north up, with the base,
+  // the stations, the defenders, the Warden; bugs and loot with the
+  // detector drone.
+  #bakeMap(kit) {
+    const T0 = kit.terrain, n = T0.n, c = document.createElement("canvas");
+    c.width = c.height = n;
+    const ctx = c.getContext("2d"), img = ctx.createImageData(n, n);
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+      const x = T0.x0 + (i + 0.5) * T0.cell, z = T0.z0 + (j + 0.5) * T0.cell;
+      const h = T0.height(x, z), sl = T0.slope(x, z), col = kit.ground(x, z, h, sl);
+      const k = (j * n + i) * 4, shade = 1.05 + Math.min(0.5, Math.max(0, h) * 0.03) - sl * 0.7;
+      img.data[k] = ((col >> 16) & 255) * shade; img.data[k + 1] = ((col >> 8) & 255) * shade; img.data[k + 2] = (col & 255) * shade; img.data[k + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    this.mapImg = c; this.mapKit = kit;
+  }
+  #drawMap(run) {
+    const kit = run.kit;
+    if (this.mapKit !== kit) this.#bakeMap(kit);
+    const cv = this.mapCanvas, ctx = cv.getContext("2d"), W = cv.width, span = 150;   // metres across the window
+    const p = run.player.body, T0 = kit.terrain, scale = W / span;
+    const sx = (x) => (x - p.x) * scale + W / 2, sz = (z) => (z - p.z) * scale + W / 2;
+    ctx.clearRect(0, 0, W, W);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, W, W); ctx.clip();
+    // The ground: the baked image placed so that the ranger is in the middle.
+    const px = (p.x - T0.x0) / T0.cell, pz = (p.z - T0.z0) / T0.cell, pxPerCell = T0.cell * scale;
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(this.mapImg, W / 2 - px * pxPerCell, W / 2 - pz * pxPerCell, T0.n * pxPerCell, T0.n * pxPerCell);
+    ctx.fillStyle = "rgba(10,14,20,0.12)"; ctx.fillRect(0, 0, W, W);
+    const dot = (x, z, r, fill, stroke) => { ctx.beginPath(); ctx.arc(sx(x), sz(z), r, 0, Math.PI * 2); ctx.fillStyle = fill; ctx.fill(); if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke(); } };
+    const clampTo = (x, z) => { const dx = x - p.x, dz = z - p.z, m = Math.max(Math.abs(dx), Math.abs(dz)) / (span / 2 - 6); return m > 1 ? [p.x + dx / m, p.z + dz / m] : [x, z]; };
+    // The burrows.
+    for (const h of kit.burrows) dot(h.x, h.z, 4, "rgba(60,20,40,0.8)", "#8a4a6a");
+    // Loot and bugs with the detector; the Warden always.
+    const detect = run.hasDrone("detector");
+    if (detect) for (const u of run.uses) if (u.auto || u.crate) dot(u.x, u.z, 3, "#b8ff4a");
+    for (const g of run.bugs) {
+      if (!g.alive || g.hidden) continue;
+      if (g.boss) { const [x, z] = clampTo(g.x, g.z); dot(x, z, 9, "#ff5a48", "#fff"); continue; }
+      if (detect && Math.hypot(g.x - p.x, g.z - p.z) < 95) dot(g.x, g.z, g.type === "skimmer" ? 4 : 3, g.type === "skimmer" ? "#9cff3a" : g.state === "hunt" ? "#ff5a48" : "#ffb04a");
+    }
+    // The base: the reactor and the stations (letters), the turrets, the defenders.
+    const K = kit.marks, C = run.core;
+    if (C) { const [x, z] = clampTo(C.x, C.z); dot(x, z, 7, C.hp < C.maxHp * 0.3 ? "#ff5a48" : "#6fe8ff", "#fff"); }
+    ctx.font = "bold 13px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    for (const [st, letter] of [["medbay", "+"], ["ammoShop", "A"], ["armoury", "W"], ["workshop", "U"], ["droneBay", "D"], ["command", "C"]]) {
+      const m = K[st]; if (!m) continue;
+      const d = Math.hypot(m.x - p.x, m.z - p.z); if (d > span / 2) continue;
+      dot(m.x, m.z, 7, "rgba(10,14,20,0.85)", st === "medbay" ? "#5af07a" : "#f0a040");
+      ctx.fillStyle = st === "medbay" ? "#5af07a" : "#f0a040"; ctx.fillText(letter, sx(m.x), sz(m.z) + 0.5);
+    }
+    for (const u of run.turrets) dot(u.x, u.z, 4, "#d8862e", "#fff");
+    for (const a of run.allies) dot(a.body.x, a.body.z, 4, a.downed ? "#ff5a48" : "#8fe8d0");
+    // Crystals on the ground near you, even without the drone (you can see them).
+    if (!detect) for (const u of run.uses) if (u.auto && Math.hypot(u.x - p.x, u.z - p.z) < 30) dot(u.x, u.z, 2.5, "#b8ff4a");
+    // The ranger: an arrow the way you look.
+    const yaw = run.player.yaw;
+    ctx.save(); ctx.translate(W / 2, W / 2); ctx.rotate(-yaw);
+    ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(6, 7); ctx.lineTo(0, 4); ctx.lineTo(-6, 7); ctx.closePath();
+    ctx.fillStyle = "#fff"; ctx.fill();
+    ctx.restore();
+    // North.
+    ctx.fillStyle = "rgba(255,255,255,0.7)"; ctx.font = "bold 12px sans-serif"; ctx.fillText("N", W / 2, 10);
+    ctx.restore();
+  }
 
   // Every frame.
   update(run, view, dt, speech, settings) {
@@ -90,6 +163,8 @@ export class Hud {
     this.vitals.querySelector(".shield i").style.width = `${(p.shield / p.maxShield) * 100}%`;
     this.vitals.querySelector(".hp i").style.width = `${(p.hp / p.maxHp) * 100}%`;
     this.vitals.querySelector(".hp").classList.toggle("low", p.hp < 35);
+    this.vitals.querySelector(".stam i").style.width = `${(p.stamina / p.maxStamina) * 100}%`;
+    this.vitals.querySelector(".stam").classList.toggle("winded", p.winded);
     const ah = run.allies.map((A) => `<div class="ally${A.downed ? " down" : ""}"><span>${t(`speaker_${A.name}`)}${A.downed ? " ✕" : ""}</span><div class="bar mini"><i style="width:${((A.hp / A.maxHp) * 100).toFixed(0)}%"></i></div></div>`).join("");
     if (ah !== this.aHtml) { this.vitals.querySelector(".allies").innerHTML = ah; this.aHtml = ah; }
 
@@ -171,6 +246,10 @@ export class Hud {
       if (ph !== this.pHtml) { this.prompt.innerHTML = ph; this.pHtml = ph; }
       this.prompt.classList.add("on");
     } else this.prompt.classList.remove("on");
+
+    // The minimap, a few times a second.
+    this.mapT -= dt;
+    if (this.mapT <= 0) { this.mapT = 0.1; this.#drawMap(run); }
 
     // Hints, toasts, alerts.
     this.hintT -= dt; if (this.hintT <= 0) this.hint.classList.remove("on");

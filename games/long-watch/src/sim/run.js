@@ -48,6 +48,8 @@ export class Run {
     this.boss = null;
     this.saidAt = {};
     this.allies = [];
+    this.drones = [];
+    this.turrets = [];
     this.core = null;
     this.crystals = 0;             // carried
     this.bank = 0;                 // banked at the base
@@ -59,6 +61,8 @@ export class Run {
   }
 
   get ally() { return this.allies[0]; }
+  weaponDef(id) { return WEAPONS[id]; }
+  hasDrone(type) { return this.drones.some((d) => d.type === type); }
   // Everyone the bugs may go for: the ranger, the defenders, the reactor.
   foes() { return this._foes ??= [this.player, ...this.allies, ...(this.core ? [this.core] : [])]; }
   // A defender near a point (for the bugs' feel and the revive).
@@ -80,6 +84,8 @@ export class Run {
     const p = this.player;
     p.step(this, I, dt);
     for (const a of this.allies) a.step(this, dt);
+    for (const d of this.drones) d.step(this, dt);
+    for (const u of this.turrets) u.step(this, dt);
     if (this.core) this.core.hitT -= dt;
     // Bugs far off and minding their own business only potter about now and then.
     const far = (this.frame = (this.frame ?? 0) + 1) % 4;
@@ -88,6 +94,12 @@ export class Run {
       b.step(this, dt);
     }
     this.bugs = this.bugs.filter((b) => !b.gone);
+    // The ranger does not walk through bugs either.
+    if (!p.downed) for (const g of this.bugs) {
+      if (!g.alive || g.hidden || g.def.fly) continue;
+      const dx = p.body.x - g.x, dz = p.body.z - g.z, dd = Math.hypot(dx, dz), min = g.def.radius + p.body.r;
+      if (dd < min && Math.abs(p.body.y - g.y) < 1.5 && dd > 1e-4) { p.body.x += dx / dd * (min - dd) * 0.6; p.body.z += dz / dd * (min - dd) * 0.6; }
+    }
     this.#shotsStep(dt);
     // Sounds reach the bugs at the end of the step.
     for (const n of this.noises) for (const b of this.bugs) b.hear(this, n);
@@ -147,13 +159,15 @@ export class Run {
   }
 
   // A random open spot on the walking grid, `rMin`…`rMax` from (cx, cz).
-  openSpot(cx, cz, rMin, rMax, tries = 40) {
+  // `pad`: metres of open ground wanted all round (for things that must be reachable).
+  openSpot(cx, cz, rMin, rMax, tries = 40, pad = 0) {
     for (let i = 0; i < tries; i++) {
       const a = this.rng() * Math.PI * 2, r = rMin + this.rng() * (rMax - rMin);
       const x = cx + Math.sin(a) * r, z = cz + Math.cos(a) * r;
       if (Math.abs(x) > 135 || Math.abs(z) > 135) continue;
       if (!this.nav.isOpen(x, z)) continue;
       if (this.kit.h(x, z) > 12) continue;
+      if (pad && ![[pad, 0], [-pad, 0], [0, pad], [0, -pad]].every(([dx, dz]) => this.nav.isOpen(x + dx, z + dz))) continue;
       return { x, z };
     }
     return null;

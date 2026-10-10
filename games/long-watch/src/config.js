@@ -27,6 +27,11 @@ export const PLAYER = {
   dashTime: 0.17,
   dashCool: 0.75,
   hp: 100,
+  stamina: 100,        // sprinting and dashing spend it; it comes back when you ease off
+  staminaSprint: 14,   // per second sprinting
+  staminaDash: 28,     // per dash
+  staminaRegen: 22,    // per second, after staminaDelay
+  staminaDelay: 0.8,
   shield: 60,          // recharges after a few calm seconds
   shieldDelay: 4,
   shieldRate: 22,

@@ -24,7 +24,7 @@ const res = await p.evaluate(async ([minutes, seed]) => {
   for (let i = 0; i < steps; i++) {
     if (run.over) { out.push({ over: run.over, at: Math.round(run.time) }); break; }
     const b0 = pl.body, S = run.siege;
-    const I = { forward: 0, strafe: 0, yaw: D.input.yaw, pitch: D.input.pitch, use: true };
+    const I = { forward: 0, strafe: 0, yaw: D.input.yaw, pitch: D.input.pitch, use: true, usePressed: i % 20 === 0 };
     let tgt = null, best = 1e9, nearest = 1e9;
     for (const g of run.bugs) {
       if (!g.alive || g.hidden) continue;
@@ -49,10 +49,12 @@ const res = await p.evaluate(async ([minutes, seed]) => {
         const sh = run.script.shop(run);
         for (const id of ["heal", "ammo", "repair", "dmg", "hp"]) { const it = sh.find((q) => q.id === id); if (it?.ok && (id !== "repair" || run.core.hp < run.core.maxHp * 0.7)) { run.script.buy(run, id); break; } }
         shopT = 600;
-      } else if (!waveSoon && (!goal || goalT > 1500 || Math.hypot(goal.x - b0.x, goal.z - b0.z) < 2)) {
+      } else if (!waveSoon && (!goal || goalT > 1500 || Math.hypot(goal.x - b0.x, goal.z - b0.z) < 1.8 || (goalT > 240 && b0.speed2D < 0.3))) {
         let bestU = null, bd = 1e9;
         for (const u of run.uses) { if (!(u.auto || u.crate)) continue; const d = Math.hypot(u.x - b0.x, u.z - b0.z) + Math.hypot(u.x - base.x, u.z - base.z) * 0.3; if (d < bd) { bd = d; bestU = u; } }
-        goal = bestU ? { x: bestU.x, z: bestU.z, why: "loot" } : { x: base.x + 3, z: base.z + 6, why: "idle" };
+        const stuck = goal && goalT > 240 && b0.speed2D < 0.3 ? goal : null;
+        if (stuck && bestU && Math.hypot(bestU.x - stuck.x, bestU.z - stuck.z) < 3) bestU = null;   // give up on what it cannot reach
+        goal = bestU ? { x: bestU.x, z: bestU.z, why: "loot" } : { x: base.x + 3 + (rnd() - 0.5) * 20, z: base.z + 6 + (rnd() - 0.5) * 20, why: "idle" };
         goalT = 0;
       }
       if (goal) {
@@ -74,7 +76,7 @@ const res = await p.evaluate(async ([minutes, seed]) => {
     if (pl.downed && !wasDown) downs++;
     wasDown = pl.downed;
     if (i % 3600 === 3599) {
-      out.push({ min: (i + 1) / 3600, core: Math.round(run.core.hp), wave: S.wave, downs, lowHp: Math.round(lowHp), hp: Math.round(pl.hp), kills: run.stats.kills, bank: run.bank, carried: run.crystals, alive: run.bugs.filter((g) => g.alive).length, hunting: run.bugs.filter((g) => g.alive && g.state === "hunt").length, ammo: pl.slots.map((g) => `${g.id}:${g.mag}/${g.reserve === Infinity ? "inf" : g.reserve}`).join(" "), up: { ...pl.up }, at: goal?.why });
+      out.push({ min: (i + 1) / 3600, pos: [Math.round(b0.x), Math.round(b0.z)], goal: goal ? [Math.round(goal.x), Math.round(goal.z)] : null, core: Math.round(run.core.hp), wave: S.wave, downs, lowHp: Math.round(lowHp), hp: Math.round(pl.hp), kills: run.stats.kills, bank: run.bank, carried: run.crystals, alive: run.bugs.filter((g) => g.alive).length, hunting: run.bugs.filter((g) => g.alive && g.state === "hunt").length, ammo: pl.slots.map((g) => `${g.id}:${g.mag}/${g.reserve === Infinity ? "inf" : g.reserve}`).join(" "), up: { ...pl.up }, at: goal?.why });
       lowHp = 999;
     }
     if (i % 600 === 0) await new Promise((r) => setTimeout(r, 0));

@@ -37,9 +37,6 @@ export class GameView {
     this.actors = new Actors(this.scene);
     this.lamps = [];
     for (let i = 0; i < LAMPS; i++) { const l = new T.PointLight(0xffd9a0, 0, 14, 1.6); this.scene.add(l); this.lamps.push(l); }
-    // The noise ring at the ranger's feet: how far your steps carry.
-    this.noiseRing = new T.Mesh(new T.RingGeometry(0.94, 1, 48).rotateX(-Math.PI / 2), new T.MeshBasicMaterial({ color: 0xf0a040, transparent: true, opacity: 0, depthWrite: false, toneMapped: false, blending: T.AdditiveBlending }));
-    this.scene.add(this.noiseRing);
     this.cam = {}; this.shake = 0; this.fovK = 0;
     this.W = 1; this.H = 1;
     this.power = false; this.relay = false;
@@ -194,13 +191,6 @@ export class GameView {
       core.scale.setScalar((0.8 + 0.2 * k) * (1 + Math.sin(t * 4) * 0.05) + (C && C.hitT > 0 ? 0.25 : 0));
       core.rotation.y = t * 0.8;
     }
-
-    // The noise ring.
-    const nr = run.cut ? 0 : p.noiseR;
-    this.noiseRing.position.set(b.px + (b.x - b.px) * a, b.y + 0.06, b.pz + (b.z - b.pz) * a);
-    this.noiseRing.scale.setScalar(Math.max(0.3, nr));
-    this.noiseRing.material.opacity = Math.min(0.45, nr * 0.05);
-    this.noiseRing.material.color.setHex(nr > 10 ? 0xff6040 : nr > 3 ? 0xf0a040 : 0x6fe8ff);
 
     // Light follows the ranger.
     this.sun.follow(b.x, b.y, b.z);

@@ -113,6 +113,8 @@ export class Actors {
     this.scene = scene;
     this.player = new RangerFigure(scene, "player", ["rifle", "pistol"]);
     this.allies = [];              // one figure per defender, made as they appear
+    this.drones = [];
+    this.turrets = [];
     this.bugs = new Map();
     this.npcs = [];
     this.uses = new Map();
@@ -128,6 +130,10 @@ export class Actors {
     this.bugs.clear();
     for (const f of this.allies) this.scene.remove(f.obj);
     this.allies = [];
+    for (const o of this.drones) this.scene.remove(o);
+    this.drones = [];
+    for (const o of this.turrets) this.scene.remove(o);
+    this.turrets = [];
     for (const o of this.npcs) this.scene.remove(o.obj);
     this.npcs = [];
     for (const o of this.uses.values()) this.scene.remove(o);
@@ -184,6 +190,21 @@ export class Actors {
       this.npcs.push({ obj, d });
     }
     for (const [i, o] of this.npcs.entries()) o.obj.position.y = o.d.y + Math.sin(t * 1.3 + i) * 0.008;
+
+    // Drones hover beside the ranger; turrets track their targets.
+    run.drones.forEach((d, i) => {
+      let o = this.drones[i];
+      if (!o) { o = instance("drone", { c: d.def.color }); o.scale.setScalar(0.7); this.drones[i] = o; this.scene.add(o); }
+      o.position.set(d.px + (d.x - d.px) * a, d.py + (d.y - d.py) * a, d.pz + (d.z - d.pz) * a);
+      o.rotation.set(Math.sin(t * 1.7 + i) * 0.06, d.yaw, Math.sin(t * 1.3 + i) * 0.08);
+    });
+    run.turrets.forEach((u, i) => {
+      let o = this.turrets[i];
+      if (!o) { o = instance("turret"); o.position.set(u.x, u.y, u.z); this.turrets[i] = o; this.scene.add(o); }
+      const h = o.userData.nodes.head;
+      h.rotation.set(-u.pitch, u.yaw, 0, "YXZ");
+      h.position.z = u.firing ? 0.08 : 0;
+    });
 
     // Use points with a model (crystals, crates, ammo, guns on racks or the ground).
     const live = new Set();

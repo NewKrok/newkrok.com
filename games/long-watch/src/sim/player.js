@@ -28,9 +28,10 @@ export class Ranger {
     this.cover = null;               // { nx, nz (out of the wall), low, snapT, edge }
     this.peekX = 0; this.peekZ = 0; this.peekUp = 0;
     this.maxHp = P.hp; this.maxShield = P.shield;
-    this.dmgMul = 1; this.magMul = 1; this.speedMul = 1;
+    this.dmgMul = 1; this.magMul = 1; this.speedMul = 1; this.reserveMul = 1;
     this.up = { dmg: 0, mag: 0, hp: 0, shield: 0, speed: 0 };   // levels bought
     this.hp = P.hp; this.shield = P.shield; this.calmT = 99;
+    this.maxStamina = P.stamina; this.stamina = P.stamina; this.staminaT = 0; this.winded = false;
     this.downed = false; this.downT = 0; this.reviveK = 0;
     this.dead = false;
     this.slots = [];                 // { id, mag, reserve, heat, hot }
@@ -79,7 +80,7 @@ export class Ranger {
     if (I.crouchPressed && !this.cover) this.crouched = !this.crouched;
     if (I.coverPressed) { if (this.cover) this.leaveCover(); else this.#takeCover(run, I); }
     const wantAim = I.aim && !this.reloadT;
-    this.sprinting = I.sprint && !wantAim && !I.fire && !this.cover && (I.forward > 0.3 || Math.hypot(I.forward, I.strafe) > 0.5);
+    this.sprinting = I.sprint && !wantAim && !I.fire && !this.cover && !this.winded && this.stamina > 0 && (I.forward > 0.3 || Math.hypot(I.forward, I.strafe) > 0.5);
     if (this.sprinting) this.crouched = false;
     this.aiming = (wantAim || I.fire) && !this.sprinting;
     this.aimK = damp(this.aimK, wantAim && !this.sprinting ? 1 : 0, 14, dt);
@@ -117,7 +118,8 @@ export class Ranger {
     b.h = crouchNow ? P.crouchHeight : P.height;
 
     // ── Dash ──
-    if (I.dashPressed && this.dashCool <= 0 && (b.grounded || this.airDash) && !this.cover) {
+    if (I.dashPressed && this.dashCool <= 0 && (b.grounded || this.airDash) && !this.cover && this.stamina >= P.staminaDash * 0.5) {
+      this.stamina = Math.max(0, this.stamina - P.staminaDash); this.staminaT = P.staminaDelay;
       let dx = mx, dz = mz;
       if (Math.hypot(dx, dz) < 0.2) { dx = -fx; dz = -fz; }
       b.dash(dx, dz);
@@ -175,8 +177,11 @@ export class Ranger {
     cameraRig(run.space, this, b.x, b.y, b.z, this.cam);
     this.#weapons(run, I, dt);
 
-    // ── Shield ──
+    // ── Shield and stamina ──
     if (this.calmT > P.shieldDelay) this.shield = Math.min(this.maxShield, this.shield + P.shieldRate * dt);
+    if (this.sprinting && b.speed2D > 1) { this.stamina = Math.max(0, this.stamina - P.staminaSprint * dt); this.staminaT = P.staminaDelay; if (this.stamina <= 0) this.winded = true; }
+    else { this.staminaT -= dt; if (this.staminaT <= 0) this.stamina = Math.min(this.maxStamina, this.stamina + P.staminaRegen * dt); }
+    if (this.winded && this.stamina > this.maxStamina * 0.3) this.winded = false;
 
     // ── Use points ──
     this.#use(run, I, dt);
@@ -205,7 +210,7 @@ export class Ranger {
     b.place(x, run.space.floor(x, z, run.kit.h(x, z) + 2) + 0.05, z);
     b.vx = b.vz = b.vy = 0;
     this.downed = false; this.dead = false; this.reviveK = 0;
-    this.hp = this.maxHp * 0.5; this.shield = 0; this.calmT = 0;
+    this.hp = this.maxHp * 0.5; this.shield = 0; this.calmT = 0; this.stamina = this.maxStamina; this.winded = false;
     this.iframes = 2; this.cover = null; this.crouched = false;
     this.face = this.yaw = yaw;
     for (const g of this.slots) if (g.mag === 0 && g.reserve > 0) { const take = Math.min(this.magOf(g.id), g.reserve); g.mag = take; if (g.reserve !== Infinity) g.reserve -= take; }

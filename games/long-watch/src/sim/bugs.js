@@ -15,7 +15,7 @@ import { Body } from "./body.js";
 
 export const BUGS = {
   // Small, fast, many. Bites, and leaps the last few metres.
-  swarmer: { hp: 48, speed: 7.4, wander: 1.8, radius: 0.42, height: 0.7, hearing: 1, sight: 24, bite: 8, reach: 1.45, biteCool: 0.85, leap: true, crystal: 3 },
+  swarmer: { hp: 48, speed: 6.3, wander: 1.8, radius: 0.42, height: 0.7, hearing: 1, sight: 24, bite: 8, reach: 1.45, biteCool: 0.85, leap: true, crystal: 3 },
   // Keeps its distance and lobs acid. Its glowing sac is the soft spot.
   spitter: { hp: 115, speed: 4.6, wander: 1.4, radius: 0.6, height: 1.2, hearing: 1.1, sight: 28, spit: 15, near: 9, far: 24, spitCool: 2.6, crystal: 7 },
   // Armoured head-on; charges in a straight line and stuns itself on walls.
@@ -236,11 +236,18 @@ export class Bug {
       if (this.type === "sentry") this.#look(run, dt); else this.#see(run, dt);
     }
 
-    // Keep apart from each other.
-    for (const o of run.bugs) {
-      if (o === this || !o.alive || o.hidden) continue;
-      const dx = this.x - o.x, dz = this.z - o.z, dd = Math.hypot(dx, dz), min = this.def.radius + o.def.radius;
-      if (dd < min && dd > 1e-4) { b.x += dx / dd * (min - dd) * 0.5; b.z += dz / dd * (min - dd) * 0.5; }
+    // Keep apart from each other and out of the rangers (a pack piles up, it does not pass through).
+    if (!d.fly) {
+      for (const o of run.bugs) {
+        if (o === this || !o.alive || o.hidden || o.def.fly) continue;
+        const dx = this.x - o.x, dz = this.z - o.z, dd = Math.hypot(dx, dz), min = this.def.radius + o.def.radius;
+        if (dd < min) { if (dd > 1e-4) { b.x += dx / dd * (min - dd) * 0.5; b.z += dz / dd * (min - dd) * 0.5; } else b.x += 0.05; }
+      }
+      if (this.act !== "leap" && this.act !== "charge") for (const t of run.foes()) {
+        if (t.kind === "core" || t.downed) continue;
+        const dx = this.x - t.body.x, dz = this.z - t.body.z, dd = Math.hypot(dx, dz), min = this.def.radius + t.body.r + 0.1;
+        if (dd < min && Math.abs(t.body.y - this.y) < 1.5) { if (dd > 1e-4) { b.x += dx / dd * (min - dd); b.z += dz / dd * (min - dd); } else b.x += 0.1; }
+      }
     }
 
     if (this.act !== "charge" && this.act !== "leap") b.step(run.space, { vx: wx * speed, vz: wz * speed }, dt);
@@ -378,17 +385,23 @@ export class Bug {
         run.noise(this.x, this.z, 10, this, false);
       }
       const done = this.act === "bite" ? 0.55 : this.act === "spit" ? 0.9 : this.act === "recover" ? 0.6 : 99;
-      if (this.actT >= done) { this.act = "walk"; this.actT = 0; }
+      if (this.actT >= done) {
+        // A swarmer that just bit (or missed) gathers itself for a moment.
+        if (this.act === "bite" && this.type === "swarmer" && Math.random() < 0.6) { this.act = "recover"; this.actT = 0; }
+        else { this.act = "walk"; this.actT = 0; }
+      }
       return [0, 0, 0];
     }
+    // Chasing: a swarmer stops to crouch and chitter now and then, which is your chance to pull away.
+    if (this.type === "swarmer" && td > 3 && td < 14 && this.cool <= 0 && Math.random() < dt * 0.35) { this.act = "recover"; this.actT = 0; this.cool = 1.2; return [0, 0, 0]; }
     const [wx, wz] = this.#way(run, this.knownX, this.knownZ, key);
     switch (this.type) {
       case "swarmer": {
         if (td < reachT - 0.3 && this.cool <= 0) { this.act = "bite"; this.actT = 0; this.struck = false; this.cool = d.biteCool; return [0, 0, 0]; }
-        if (d.leap && T.kind !== "core" && td < 5.5 && td > 2.6 && this.cool <= 0 && b.grounded && run.space.clear(this.x, this.y + 0.5, this.z, tx, T.body.y + 0.5, tz)) {
+        if (d.leap && T.kind !== "core" && td < 7 && td > 2.6 && this.cool <= 0 && b.grounded && run.space.clear(this.x, this.y + 0.5, this.z, tx, T.body.y + 0.5, tz)) {
           const l = td;
-          b.vx = (tx - this.x) / l * 9; b.vz = (tz - this.z) / l * 9; b.vy = 5.2; b.grounded = false;
-          this.act = "leap"; this.actT = 0; this.struck = false; this.cool = 1.6;
+          b.vx = (tx - this.x) / l * 10.5; b.vz = (tz - this.z) / l * 10.5; b.vy = 6.4; b.grounded = false;
+          this.act = "leap"; this.actT = 0; this.struck = false; this.cool = 2.0;
           run.fx({ type: "leap", id: this.id, x: this.x, y: this.y, z: this.z });
           return [0, 0, 0];
         }
@@ -424,7 +437,7 @@ export class Bug {
         if (!t || t.downed) continue;
         if (Math.hypot(t.body.x - this.x, t.body.z - this.z) < d.radius + 0.7 + (t.body.r > 1 ? t.body.r : 0) && Math.abs(t.body.y + 0.8 - this.y) < 1.4) { this.struck = true; t.hurt(run, d.bite * 1.3, this.x, this.z, "leap"); }
       }
-      if (b.grounded && this.actT > 0.15) { this.act = "walk"; this.actT = 0; }
+      if (b.grounded && this.actT > 0.15) { this.act = "recover"; this.actT = 0; }
       return;
     }
     // Charge.

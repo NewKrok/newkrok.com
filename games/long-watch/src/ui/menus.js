@@ -97,14 +97,14 @@ export class Menus {
           <button class="btn big" data-a="restart">${t("retry")}</button><button class="btn ghost" data-a="quit">${t("quit")}</button>
         </div>`;
       }
-      case "shop": {
-        const items = this.A.shop();
+      case "station": {
+        const items = this.A.shop(d.station);
         const rows = items.map((it) => `<button class="item${it.ok ? "" : " off"}" data-a="buy" data-v="${it.id}" ${it.ok ? "" : "aria-disabled=true"}>
-            <span class="iname">${t(`shop_${it.id}`)}${it.max > 1 ? ` <small>${it.maxed ? t("shop_max") : t("shop_lvl", { n: it.level + 1 })}</small>` : ""}</span>
+            <span class="iname">${t(`shop_${it.id}`)}${it.max > 1 ? ` <small>${it.maxed ? t("shop_max") : t("shop_lvl", { n: it.level + 1 })}</small>` : it.maxed ? ` <small>${t("shop_have")}</small>` : it.owned ? ` <small>${t("shop_have")}</small>` : ""}</span>
             <span class="idesc">${t(`shop_${it.id}_d`)}</span>
-            <span class="iprice">${it.maxed ? "—" : `◆ ${it.price}`}</span></button>`).join("");
+            <span class="iprice">${it.maxed || it.owned ? "—" : `◆ ${it.price}`}</span></button>`).join("");
         return `
-        <h2>${t("shop_title")}</h2>
+        <h2>${t(`st_${d.station}`)}</h2>
         <p class="sub bank">${t("shop_bank", { n: d.bank })}</p>
         <div class="wares">${rows}</div>
         <div class="row"><button class="btn big" data-a="resume">${t("close")}</button></div>`;

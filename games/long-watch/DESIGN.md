@@ -286,6 +286,27 @@ menetelése 1,1 m/s, 22 m-en belül teljes tempó. Még nincs: torony,
 ranglista, meta-fejlődés. A `sentry` típus a kódban maradt, az ostrom
 nem hívja.
 
+**5. menet (a felhasználó első játékteszt-visszajelzése után):** stamina
+(sprint és kitérés költi, a HUD-on csík; `PLAYER.stamina*`), a rajzók
+lassabbak (6,3) de nagyobbat ugranak és harapás vagy ugrás után
+megtorpannak (`recover`), a bogarak ütköznek egymással és a rangerekkel
+(`bugs.js` szétlökés + `run.js` a játékost tolja ki), a zajkör
+kikerült. A bázis állomásai a reaktor körül (`dustmoon.js` jelek,
+`siege.js` STATIONS/SHOP): gyengélkedő (ingyen, 60 mp), lőszerraktár
+(lőszer, tölténytáska), fegyvertár (gránátvető, lézer), műhely (sebzés,
+tár, páncél, pajzs, lábak), drónállomás (támogató, lőszer, támadó,
+felderítő; `sim/drones.js`, a játékos két oldalán lebegnek),
+parancsnoki poszt (reaktorjavítás, +2 ranger a `postExtra` jeleknél,
+4 torony a `turret1…4` jeleknél). Minitérkép a HUD jobb felső sarkában
+(`hud.js #drawMap`: a terep színei egyszer kisütve, 150 m-es ablak,
+észak fent; állomások betűvel, Kaptárőr mindig, bogarak és zsákmány a
+felderítő drónnal). Pálya: dombok és hat mesa (`MESAS`), a keletiben
+fedett átjáró (`PASSAGE`, tetőblokkok lámpával), sziklacsoportok,
+kősorok, monolitok; a magasságmező 1 m-es (volt 2), a talaj osztott
+csúcsokkal, a mező saját normáljaival (varrat nélkül) és csempézett
+porszemcse-textúrával (`levelview.js groundTexture`). Még nincs: ásó,
+új pálya, ranglista.
+
 **Ellenőrzés minden változtatás után** (`npm run dev -w games/long-watch`
 mellett): `node scripts/siege.mjs 11` (két hullám és a köztes kijárás;
 a reaktor nem eshet 0-ra, a bot 0–2 leütést kaphat), és a

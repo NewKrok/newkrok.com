@@ -59,7 +59,7 @@ const menus = new Menus(app, settings, {
   settingsChanged: (k) => applySettings(k),
   click: () => audio.play("click"),
   padInfo: () => (input.pad.info?.length ? input.pad.info.map((p) => p.id.slice(0, 40)).join(", ") : null),
-  shop: () => (run ? SCRIPT.shop(run) : []),
+  shop: (station) => (run ? SCRIPT.shop(run, station) : []),
   bank: () => run?.bank ?? 0,
   buy: (id) => { const ok = run ? SCRIPT.buy(run, id) : false; if (ok) { audio.play("pickup"); events(); } else audio.play("dry"); return ok; },
 });
@@ -132,7 +132,7 @@ function events() {
     view.handle(e, run);
     const at = (s, k) => audio.play(s, k ?? 0, e.x, e.z);
     switch (e.type) {
-      case "shot": if (e.src === "ally") at("allyRifle"); else if (e.id !== "laser") audio.play(e.id); break;
+      case "shot": if (e.src === "ally" || e.src === "turret" || e.src === "drone") at("allyRifle"); else if (e.id !== "laser") audio.play(e.id); break;
       case "tracer": if (e.hit === "armor") at("armor"); else if (e.hit === "splat") { at("splat"); if (e.src === "player") hud.hitMarker(false); } else if (e.hit === "spark" && Math.random() < 0.3) at("spark"); break;
       case "bugHit": if (e.armour) at("armor"); break;
       case "kill": hud.hitMarker(true); break;
@@ -186,7 +186,9 @@ function events() {
       case "bossDead": audio.play("objDone"); break;
       case "survived": hud.showToast(t("toast_survived", { score: e.score })); track("survived", { time: Math.round(run.stats.time), kills: run.stats.kills, score: e.score }); break;
       case "bought": hud.showToast(t("toast_bought")); break;
-      case "shop": pause("shop", { bank: run.bank }); break;
+      case "station": pause("station", { station: e.station, bank: run.bank }); break;
+      case "healed": audio.play("revived"); hud.showToast(t("toast_healed")); break;
+      case "turretUp": audio.play("powerOn"); break;
       case "failed": endT = 2.2; track("failed", { time: Math.round(run.stats.time), waves: run.stats.waves, score: SCRIPT.score(run) }); break;
       case "cutStart": hud.root.classList.add("cut"); break;
       case "cutEnd": if (e.skipped) director.clear(); break;

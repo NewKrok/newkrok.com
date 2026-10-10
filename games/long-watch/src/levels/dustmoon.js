@@ -36,10 +36,25 @@ const TRAIL = [[-58, 14], [-78, 8], [-92, 18], [-100, 2], [-96, -6]];
 const CANYON = [[0, -50], [-6, -66], [6, -82], [-4, -98], [-18, -112], [-22, -124]];
 const ROAD = [[0, 122], [2, 96], [-2, 70], [0, 48]];
 const EAST_ROAD = [[48, 2], [62, 4], [72, 6]];
+// Flat-topped hills out on the dust (x, z, radius, height), and the
+// passage cut through the eastern one (a roofed cutting: see the props).
+export const MESAS = [[-76, 58, 15, 7], [62, 74, 13, 6], [-58, -72, 11, 5], [44, -82, 12, 6], [-20, 96, 9, 4.5], [86, -46, 10, 5]];
+export const PASSAGE = { a: [46, 74], b: [80, 74], w: 2.6 };
 
 function height(x, z) {
-  // Rolling dust.
+  // Rolling dust, with broader hills and a finer grain over them.
   let h = 1.6 * Math.sin(x * 0.031 + 1.3) * Math.cos(z * 0.027) + 0.9 * Math.sin((x + z) * 0.063) + 0.5 * Math.sin(x * 0.11 - z * 0.07) + 0.25 * Math.sin(x * 0.23 + z * 0.19);
+  h += 2.6 * Math.sin(x * 0.047 + 0.7) * Math.sin(z * 0.041 + 2.1) + 1.4 * Math.sin((x - z) * 0.071 + 0.4) * Math.cos((x + 2 * z) * 0.033);
+  h += 0.35 * Math.sin(x * 0.37 + z * 0.21) * Math.cos(x * 0.19 - z * 0.43) + 0.2 * Math.sin(x * 0.71 + 1.1) * Math.sin(z * 0.63);
+  // Mesas: a steep, slightly lumpy side and a near-flat top; the passage cuts straight through one.
+  const [qd] = segDist(x, z, PASSAGE.a[0], PASSAGE.a[1], PASSAGE.b[0], PASSAGE.b[1]);
+  const cut = 1 - S(PASSAGE.w, PASSAGE.w + 1.6, qd);
+  for (const [mx, mz, mr, mh] of MESAS) {
+    const d = Math.hypot(x - mx, z - mz);
+    if (d > mr + 10) continue;
+    const top = mh + 0.3 * Math.sin(x * 0.5) * Math.cos(z * 0.45);
+    h += S(mr + 6 + 1.5 * Math.sin(x * 0.6 + z * 0.4), mr - 2, d) * top * (mz === PASSAGE.a[1] ? 1 - cut : 1);
+  }
   // Mountains all round: high enough to wall the area in, low enough to
   // leave the sky (and the gas giant) above them.
   const e = Math.max(Math.abs(x), Math.abs(z));
@@ -97,7 +112,7 @@ function ground(x, z, h, slope) {
 }
 
 export function buildDustmoon() {
-  const k = new Kit({ size: 320, cell: 2, fn: height, ground });
+  const k = new Kit({ size: 320, cell: 1, fn: height, ground });
   const R = rng(42);
   const conc = { top: 0x8d8a86, side: 0x76726e, bottom: 0x5a5652, bevel: 0.06 };
   const steel = { top: 0x5b6670, side: 0x4a535c, bevel: 0.05 };
@@ -188,12 +203,20 @@ export function buildDustmoon() {
   k.mark("reactor", 0, -2);
   k.prop("reactor", 0, -2, { collide: { r: 2.4, h: 3.4 } });
   k.light(0, 4.2, -2, 0x8fe8ff, 16, 0.9);
-  k.mark("terminal", 7, -2);
-  k.prop("console", 7, -2.9, { collide: { w: 2.6, d: 0.8, h: 1.1 }, yaw: 0 });
-  k.mark("postKessler", -5, 5);
-  k.mark("postRuiz", 9, -11);
-  k.mark("postOkafor", -11, -9);
-  for (const [x, z, yaw] of [[-5, 8, 0.1], [12, -8, 1.5], [-13, -4, 1.2], [6, 6, 0.2]]) k.prop("barrier", x, z, { yaw, collide: { w: 3.0, d: 0.6, h: 1.1 } });
+  // The stations round the reactor (each a use point in the siege script).
+  k.mark("medbay", 7, -4); k.prop("medbay", 7, -5.2, { collide: { w: 1.6, d: 1.2, h: 2.3 }, yaw: 0 });
+  k.mark("ammoShop", 8, 2); k.prop("ammoBox", 8, 3.1, { collide: { w: 0.9, d: 0.5, h: 0.5 }, yaw: 0 });
+  k.mark("armoury", -8, -5); k.prop("armoury", -8, -6.2, { collide: { w: 1.8, d: 0.8, h: 2.2 }, yaw: Math.PI });
+  k.mark("workshop", -8, 2); k.prop("workshop", -8, 3.2, { collide: { w: 2.2, d: 1.0, h: 1.0 }, yaw: Math.PI });
+  k.mark("droneBay", 0, 6); k.prop("droneBay", 0, 7.4, { collide: { w: 2.4, d: 1.4, h: 2.2 }, yaw: Math.PI });
+  k.mark("command", 0, -10); k.prop("commandPost", 0, -11.2, { collide: { r: 1.0, h: 1.1 }, yaw: 0 });
+  k.mark("postKessler", -5, 10);
+  k.mark("postRuiz", 12, -11);
+  k.mark("postOkafor", -13, -11);
+  k.mark("postExtra1", 12, 10);
+  k.mark("postExtra2", -14, -2);
+  [[16, -16], [-16, 16], [16, 16], [-16, -16]].forEach(([x, z], i) => k.mark(`turret${i + 1}`, x, z));
+  for (const [x, z, yaw] of [[-5, 13, 0.1], [15, -8, 1.5], [-16, -6, 1.2], [5, 11, 0.2], [14, 6, 1.4]]) k.prop("barrier", x, z, { yaw, collide: { w: 3.0, d: 0.6, h: 1.1 } });
 
   // ── West: the trail and the relay ridge ──
   for (let i = 0; i < TRAIL.length - 1; i++) {
@@ -256,14 +279,48 @@ export function buildDustmoon() {
   [[-74, 14], [-96, -2]].forEach(([x, z], i) => k.burrow(`west${i + 1}`, x, z));
   [[-2, -84], [-10, -110]].forEach(([x, z], i) => k.burrow(`can${i + 1}`, x, z));
 
-  // Scenery out on the dust.
-  for (let i = 0; i < 140; i++) {
-    const x = (R() - 0.5) * 300, z = (R() - 0.5) * 300;
-    if (Math.hypot(x, z) < 56 || Math.hypot(x, z - 122) < 22 || Math.hypot(x - PIT.x, z - PIT.z) < PIT.r + 4) continue;
+  // Scenery out on the dust: rock clusters, lines of boulders, monoliths, pebbles.
+  const clear = (x, z, m = 0) => {
+    if (Math.hypot(x, z) < 54 + m || Math.hypot(x, z - 122) < 22 || Math.hypot(x - PIT.x, z - PIT.z) < PIT.r + 4) return false;
     const [rd] = polyDist(x, z, ROAD), [td] = polyDist(x, z, TRAIL), [cd] = polyDist(x, z, CANYON), [ed] = polyDist(x, z, EAST_ROAD);
-    if (rd < 8 || td < 7 || ed < 7 || (z < -50 && cd < 9)) continue;
-    const big = R() < 0.3;
-    k.prop(big ? "rock" : "rockLow", x, z, { s: (big ? 1.2 : 0.8) + R() * 1.2, yaw: R() * 6, collide: big ? { r: 1.6, h: 2.2 } : { r: 1.4, h: 1.15 } });
+    if (rd < 8 || td < 7 || ed < 7 || (z < -50 && cd < 9)) return false;
+    const [pd] = segDist(x, z, PASSAGE.a[0], PASSAGE.a[1], PASSAGE.b[0], PASSAGE.b[1]);
+    if (pd < 6) return false;
+    for (const h of k.burrows) if (Math.hypot(h.x - x, h.z - z) < 4) return false;
+    return Math.abs(x) < 140 && Math.abs(z) < 140;
+  };
+  const rock = (x, z, s, kind) => {
+    if (!clear(x, z)) return;
+    if (kind === "spire") k.prop("spire", x, z, { s, yaw: R() * 6, collide: { r: 1.0 * s, h: 3.0 * s } });
+    else if (kind === "rock") k.prop("rock", x, z, { s, yaw: R() * 6, collide: { r: 1.6 * s, h: 2.2 * s } });
+    else k.prop("rockLow", x, z, { s, yaw: R() * 6, collide: { r: 1.4 * s, h: 1.15 * s } });
+  };
+  for (let i = 0; i < 70; i++) {                       // clusters
+    const cx = (R() - 0.5) * 290, cz = (R() - 0.5) * 290, n = 3 + Math.floor(R() * 5), big = R() < 0.35;
+    if (!clear(cx, cz, 6)) continue;
+    for (let j = 0; j < n; j++) {
+      const a = R() * Math.PI * 2, r = 1.5 + R() * 6;
+      rock(cx + Math.sin(a) * r, cz + Math.cos(a) * r, (big ? 1.3 : 0.7) + R() * 1.3, big && R() < 0.5 ? "rock" : "rockLow");
+    }
+    if (big && R() < 0.5) rock(cx, cz, 1.6 + R() * 1.4, "spire");
+  }
+  for (let i = 0; i < 18; i++) {                       // walls: a line of boulders
+    const cx = (R() - 0.5) * 280, cz = (R() - 0.5) * 280, a = R() * Math.PI, len = 10 + R() * 18;
+    if (!clear(cx, cz, 8)) continue;
+    for (let t = -len / 2; t <= len / 2; t += 2.6) rock(cx + Math.sin(a) * t + (R() - 0.5), cz + Math.cos(a) * t + (R() - 0.5), 1.1 + R() * 0.8, R() < 0.6 ? "rock" : "rockLow");
+  }
+  for (let i = 0; i < 14; i++) rock((R() - 0.5) * 280, (R() - 0.5) * 280, 2.2 + R() * 1.6, "spire");   // monoliths
+  for (let i = 0; i < 120; i++) rock((R() - 0.5) * 300, (R() - 0.5) * 300, 0.6 + R() * 1.2, R() < 0.25 ? "rock" : "rockLow");
+  // Boulders on the mesas' rims, and the roof over the passage through the eastern one.
+  for (const [mx, mz, mr] of MESAS) for (let i = 0; i < 7; i++) { const a = R() * Math.PI * 2; rock(mx + Math.sin(a) * (mr - 1), mz + Math.cos(a) * (mr - 1), 0.9 + R() * 1.1, "rockLow"); }
+  {
+    const [ax, az] = PASSAGE.a, [bx, bz] = PASSAGE.b, L = Math.hypot(bx - ax, bz - az), yaw = Math.atan2(bx - ax, bz - az);
+    const look = { top: 0x6b4536, side: 0x5a3a30, bottom: 0x3e2a24, bevel: 0.1 };
+    for (let t = 4; t < L - 3; t += 3.2) {
+      const x = ax + (bx - ax) * t / L, z = az + (bz - az) * t / L, g = k.h(x, z);
+      k.block(x, z, 3.4, PASSAGE.w * 2 + 7, g + 3.2, g + 6.8, look, yaw);
+      k.light(x, g + 3.0, z, 0xffb070, 7, 0.5);
+    }
   }
   for (let i = 0; i < 40; i++) {
     const x = (R() - 0.5) * 290, z = (R() - 0.5) * 290;
