@@ -47,7 +47,7 @@ function reachArm(arm, fore, S, H, pole, L1 = RIG.upper, L2 = RIG.fore) {
 // Gun stances: position and [rx, ry, rz] (YXZ) in the torso's frame. The
 // arms are short (0.59 m from the shoulder), so every stance keeps the
 // fore-end within the left hand's reach.
-const POSE = {
+export const POSE = {
   // Low ready: at the chest, held clear of the chest plate, the muzzle
   // down and across to the left (the fore-end near the left hip).
   ready: { p: [0.14, 0.32, -0.3], r: [-0.75, 0.95, -0.15] },
@@ -63,12 +63,12 @@ const POSE = {
 // Aiming: the stock stays at the shoulder (the pistol: arms out in front);
 // the gun pitches and yaws about that pivot. The torso turns sideways a
 // little ("bladed"), which brings the left shoulder forward to the fore-end.
-const AIM = {
+export const AIM = {
   long: { pivot: [0.24, 0.46, 0.0], grip: [0, -0.08, -0.17], blade: 0.5 },
   short: { pivot: [0.1, 0.4, 0.0], grip: [0, -0.02, -0.4], blade: 0.3 },
 };
-const REST_L = [-0.32, -0.1, -0.06];                               // a free left hand hangs
-const POLE_R = new T.Vector3(0.35, -0.8, 0.7), POLE_L = new T.Vector3(-0.6, -0.8, 0.1);
+export const REST_L = [-0.32, -0.1, -0.06];                               // a free left hand hangs
+export const POLE_R = new T.Vector3(0.35, -0.8, 0.7), POLE_L = new T.Vector3(-0.6, -0.8, 0.1);
 
 export const SWAP_TIME = 0.45;
 

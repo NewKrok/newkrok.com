@@ -2,6 +2,9 @@ import * as T from "three";
 import { make } from "./modelkit.js";
 import { MODELS } from "./models/index.js";
 import { RangerFigure } from "./rangerfig.js";
+import { RangerGlb, RANGER_ASSET } from "./rangerglb.js";
+import { BugGlb, BUG_ASSETS } from "./bugglb.js";
+import { ASSETS } from "./glb.js";
 import { angDiff, clamp, lerp } from "../config.js";
 
 // ── Everyone who moves ───────────────────────────────────────────────────
@@ -9,6 +12,12 @@ import { angDiff, clamp, lerp } from "../config.js";
 // points' little models. Bodies are drawn between the last two sim steps
 // (alpha) and posed procedurally: legs swing with the stride, the arms
 // carry the gun up when aiming, bugs scuttle on alternating legs.
+
+// The generated models the game wants loaded (src/render/glb.js); a figure
+// falls back to its code-built kind when its asset is missing.
+export const GLB_LIST = [RANGER_ASSET, ...Object.values(BUG_ASSETS)];
+export const makeRanger = (scene, skin, slots) => (ASSETS.ranger ? new RangerGlb(scene, skin, slots) : new RangerFigure(scene, skin, slots));
+const makeBug = (scene, g) => (BUG_ASSETS[g.type] && ASSETS[BUG_ASSETS[g.type][0]] ? new BugGlb(scene, g) : new BugFigure(scene, g));
 
 // One built model per kind, cloned for each copy (the clone shares the
 // geometry; its nodes are found again by name).
@@ -111,7 +120,7 @@ class BugFigure {
 export class Actors {
   constructor(scene) {
     this.scene = scene;
-    this.player = new RangerFigure(scene, "player", ["rifle", "pistol"]);
+    this.player = makeRanger(scene, "player", ["rifle", "pistol"]);
     this.allies = [];              // one figure per defender, made as they appear
     this.drones = [];
     this.turrets = [];
@@ -142,7 +151,7 @@ export class Actors {
 
   ally(i, k) {
     let f = this.allies[i];
-    if (!f) { f = new RangerFigure(this.scene, k.skin, ["rifle", "pistol"]); this.allies[i] = f; }
+    if (!f) { f = makeRanger(this.scene, k.skin, ["rifle", "pistol"]); this.allies[i] = f; }
     return f;
   }
 
@@ -176,7 +185,7 @@ export class Actors {
     for (const g of run.bugs) {
       seen.add(g.id);
       let f = this.bugs.get(g.id);
-      if (!f) { f = new BugFigure(this.scene, g); this.bugs.set(g.id, f); }
+      if (!f) { f = makeBug(this.scene, g); this.bugs.set(g.id, f); }
       f.pose(g, a, dt, t);
     }
     for (const [id, f] of this.bugs) if (!seen.has(id)) { f.dispose(this.scene); this.bugs.delete(id); }

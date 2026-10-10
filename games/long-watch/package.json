@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "voice": "node scripts/voice.mjs"
+    "voice": "node scripts/voice.mjs",
+    "models3d": "node scripts/tripo.mjs"
   },
   "dependencies": {
     "three": "^0.186.1"

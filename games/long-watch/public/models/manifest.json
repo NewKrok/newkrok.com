@@ -1,0 +1,54 @@
+{
+ "ranger": {
+  "hash": "99339a134d66",
+  "task": "fbbfe022-a053-49a1-8bb8-d9e0be352d7c",
+  "credits": 40,
+  "model": "P1-20260311",
+  "bytes": 1377612,
+  "rig": {
+   "hash": "52d25170f71a",
+   "bones": "8c9bf2b30d7a",
+   "task": "b1ff167f-ce5e-47e4-b666-bc27e33c135f",
+   "anim": [
+    "0752cc9b-2b18-4096-8292-4bdd6f56fab3",
+    "afe0c60c-637e-48f5-b696-e9a7de8a0045"
+   ],
+   "parts": 2,
+   "type": "biped",
+   "credits": 80,
+   "bytes": 2239260
+  }
+ },
+ "swarmer": {
+  "hash": "d2142a28de63",
+  "task": "587a7ae5-8dae-4bb6-a640-833a46e96bf2",
+  "credits": 40,
+  "model": "P1-20260311",
+  "bytes": 710828,
+  "rig": {
+   "hash": "f4fd82a45fd3",
+   "bones": "f311c4474fce",
+   "task": "5653aa82-8b0f-46bf-a5e4-81c6937145bc",
+   "anim": "bf5ecd08-e079-465f-a6b0-536d5d60b16c",
+   "type": "hexapod",
+   "credits": 35,
+   "bytes": 782196
+  }
+ },
+ "swarmer_p2": {
+  "hash": "8d4507616e44",
+  "task": "6d65667f-7890-4cb7-844b-eae48577a8f7",
+  "credits": 110,
+  "model": "P2-20260801",
+  "bytes": 1032380,
+  "rig": {
+   "hash": "d2ee6415b206",
+   "bones": "1402e1a17a91",
+   "task": "7d5356f8-c515-4641-8d7f-771e10b56c21",
+   "anim": "519156a5-439b-43dc-8a35-ebbe5ba35fb3",
+   "type": "hexapod",
+   "credits": 35,
+   "bytes": 1179564
+  }
+ }
+}

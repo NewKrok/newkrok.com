@@ -32,6 +32,14 @@ bogarak, a ranger és Kessler onnan jönnek.
   A Porfészek-hold rozsdavörös por egy gyűrűs gázóriás alatt. A Kaptár
   elemei (bogarak varratai, szemek, zsákok, sav) világítanak, ezekre fog a
   bloom.
+- **Generált modellek:** a ranger és a rajzó bogár a Tripo3D API-val
+  készült (`scripts/tripo.mjs`, promptok a `scripts/tripo-models.mjs`-ben,
+  kimenet a `public/models/` alatt): P1/P2 modell, auto-rig, preset
+  animációk egy GLB-ben. A játék betöltéskor tölti be őket
+  (`src/render/glb.js`); a ranger teste a klipekből jön, a fegyver, a
+  karok, a fej és a guggolás kódból (`src/render/rangerglb.js`), a bogár
+  a járás-klipet futtatja a sebességével (`src/render/bugglb.js`). Ha egy
+  fájl hiányzik, marad a kódból épített figura; `?code=1` ezt kéri.
 - **A rangerek páncélja:** Gears of War és Buzz Lightyear keveréke: nehéz,
   tagolt mellvért, nagy vállpáncél, térdvédők, szegmentált has; fehér (Hetes)
   vagy kopott szürkészöld (Kessler) héj, lime és lila (vagy narancs és
